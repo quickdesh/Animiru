@@ -18,6 +18,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -73,7 +74,7 @@ internal class PermissionStep : OnboardingStep {
         }
 
         Column {
-            PermissionItem(
+            PermissionCheckbox(
                 title = stringResource(MR.strings.onboarding_permission_install_apps),
                 subtitle = stringResource(MR.strings.onboarding_permission_install_apps_description),
                 granted = installGranted,
@@ -89,7 +90,7 @@ internal class PermissionStep : OnboardingStep {
                         // no-op. resulting checks is being done on resume
                     },
                 )
-                PermissionItem(
+                PermissionCheckbox(
                     title = stringResource(MR.strings.onboarding_permission_notifications),
                     subtitle = stringResource(MR.strings.onboarding_permission_notifications_description),
                     granted = notificationGranted,
@@ -97,7 +98,7 @@ internal class PermissionStep : OnboardingStep {
                 )
             }
 
-            PermissionItem(
+            PermissionCheckbox(
                 title = stringResource(MR.strings.onboarding_permission_ignore_battery_opts),
                 subtitle = stringResource(MR.strings.onboarding_permission_ignore_battery_opts_description),
                 granted = batteryGranted,
@@ -127,7 +128,7 @@ internal class PermissionStep : OnboardingStep {
     }
 
     @Composable
-    private fun PermissionItem(
+    private fun PermissionCheckbox(
         title: String,
         subtitle: String,
         granted: Boolean,
@@ -153,6 +154,28 @@ internal class PermissionStep : OnboardingStep {
                         Text(stringResource(MR.strings.onboarding_permission_action_grant))
                     }
                 }
+            },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        )
+    }
+
+    @Composable
+    private fun PermissionSwitch(
+        title: String,
+        subtitle: String,
+        granted: Boolean,
+        modifier: Modifier = Modifier,
+        onToggleChange: (Boolean) -> Unit,
+    ) {
+        ListItem(
+            modifier = modifier,
+            headlineContent = { Text(text = title) },
+            supportingContent = { Text(text = subtitle) },
+            trailingContent = {
+                Switch(
+                    checked = granted,
+                    onCheckedChange = onToggleChange,
+                )
             },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         )

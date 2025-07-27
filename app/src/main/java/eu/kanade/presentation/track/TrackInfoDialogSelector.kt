@@ -37,7 +37,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.WheelNumberPicker
 import tachiyomi.presentation.core.components.WheelTextPicker
@@ -94,17 +93,15 @@ fun TrackStatusSelector(
 }
 
 @Composable
-fun TrackItemSelector(
+fun TrackChapterSelector(
     selection: Int,
     onSelectionChange: (Int) -> Unit,
     range: Iterable<Int>,
     onConfirm: () -> Unit,
     onDismissRequest: () -> Unit,
-    isManga: Boolean,
 ) {
-    val titleText = if (isManga) MR.strings.chapters else AYMR.strings.episodes
     BaseSelector(
-        title = stringResource(titleText),
+        title = stringResource(MR.strings.chapters),
         content = {
             WheelNumberPicker(
                 items = range.toImmutableList(),
@@ -165,14 +162,12 @@ fun TrackDateSelector(
                     headline = null,
                     showModeToggle = false,
                 )
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        MaterialTheme.padding.small,
-                        Alignment.End,
-                    ),
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small, Alignment.End),
                 ) {
                     if (onRemove != null) {
                         TextButton(onClick = onRemove) {
@@ -193,7 +188,7 @@ fun TrackDateSelector(
 }
 
 @Composable
-fun BaseSelector(
+private fun BaseSelector(
     title: String,
     content: @Composable BoxScope.() -> Unit,
     onConfirm: () -> Unit,
@@ -212,10 +207,7 @@ fun BaseSelector(
         buttons = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(
-                    MaterialTheme.padding.small,
-                    Alignment.End,
-                ),
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small, Alignment.End),
             ) {
                 if (thirdButton != null) {
                     thirdButton()
@@ -248,8 +240,6 @@ private fun TrackStatusSelectorPreviews() {
                     4L to MR.strings.on_hold,
                     5L to MR.strings.dropped,
                     6L to MR.strings.repeating,
-                    7L to AYMR.strings.watching,
-                    8L to AYMR.strings.plan_to_watch,
                 ),
                 onConfirm = {},
                 onDismissRequest = {},

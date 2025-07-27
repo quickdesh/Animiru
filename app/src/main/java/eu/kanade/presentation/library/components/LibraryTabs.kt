@@ -18,7 +18,7 @@ import tachiyomi.presentation.core.components.material.TabText
 internal fun LibraryTabs(
     categories: List<Category>,
     pagerState: PagerState,
-    getNumberOfItemsForCategory: (Category) -> Int?,
+    getNumberOfMangaForCategory: (Category) -> Int?,
     onTabItemClick: (Int) -> Unit,
 ) {
     val currentPageIndex = pagerState.currentPage.coerceAtMost(categories.lastIndex)
@@ -39,7 +39,7 @@ internal fun LibraryTabs(
                     text = {
                         TabText(
                             text = category.visualName,
-                            badgeCount = getNumberOfItemsForCategory(category),
+                            badgeCount = getNumberOfMangaForCategory(category),
                         )
                     },
                     unselectedContentColor = MaterialTheme.colorScheme.onSurface,

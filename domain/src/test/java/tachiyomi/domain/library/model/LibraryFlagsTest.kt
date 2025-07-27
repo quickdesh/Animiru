@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
-import tachiyomi.domain.library.anime.model.AnimeLibrarySort
 
 @Execution(ExecutionMode.CONCURRENT)
 class LibraryFlagsTest {
@@ -13,58 +12,46 @@ class LibraryFlagsTest {
     @Test
     fun `Check the amount of flags`() {
         LibraryDisplayMode.values.size shouldBe 4
-        AnimeLibrarySort.types.size shouldBe 11
-        AnimeLibrarySort.directions.size shouldBe 2
+        LibrarySort.types.size shouldBe 10
+        LibrarySort.directions.size shouldBe 2
     }
 
     @Test
     fun `Test Flag plus operator (LibrarySort)`() {
-        val animecurrent = AnimeLibrarySort(
-            AnimeLibrarySort.Type.LastSeen,
-            AnimeLibrarySort.Direction.Ascending,
-        )
-        val newanime = AnimeLibrarySort(
-            AnimeLibrarySort.Type.DateAdded,
-            AnimeLibrarySort.Direction.Ascending,
-        )
-        val animeflag = animecurrent + newanime
+        val current = LibrarySort(LibrarySort.Type.LastRead, LibrarySort.Direction.Ascending)
+        val new = LibrarySort(LibrarySort.Type.DateAdded, LibrarySort.Direction.Ascending)
+        val flag = current + new
 
-        animeflag shouldBe 0b01011100
+        flag shouldBe 0b01011100
     }
 
     @Test
     fun `Test Flag plus operator`() {
-        val animesort = AnimeLibrarySort(
-            AnimeLibrarySort.Type.DateAdded,
-            AnimeLibrarySort.Direction.Ascending,
-        )
+        val sort = LibrarySort(LibrarySort.Type.DateAdded, LibrarySort.Direction.Ascending)
 
-        animesort.flag shouldBe 0b01011100
+        sort.flag shouldBe 0b01011100
     }
 
     @Test
     fun `Test Flag plus operator with old flag as base`() {
-        val currentanimeSort = AnimeLibrarySort(
-            AnimeLibrarySort.Type.UnseenCount,
-            AnimeLibrarySort.Direction.Descending,
+        val currentSort = LibrarySort(
+            LibrarySort.Type.UnreadCount,
+            LibrarySort.Direction.Descending,
         )
-        currentanimeSort.flag shouldBe 0b00001100
+        currentSort.flag shouldBe 0b00001100
 
-        val animesort = AnimeLibrarySort(
-            AnimeLibrarySort.Type.DateAdded,
-            AnimeLibrarySort.Direction.Ascending,
-        )
-        val animeflag = animesort.flag + animesort
+        val sort = LibrarySort(LibrarySort.Type.DateAdded, LibrarySort.Direction.Ascending)
+        val flag = currentSort.flag + sort
 
-        animeflag shouldBe 0b01011100
-        animeflag shouldNotBe currentanimeSort.flag
+        flag shouldBe 0b01011100
+        flag shouldNotBe currentSort.flag
     }
 
     @Test
     fun `Test default flags`() {
-        val animesort = AnimeLibrarySort.default
-        val animeflag = animesort.type + animesort.direction
+        val sort = LibrarySort.default
+        val flag = sort.type + sort.direction
 
-        animeflag shouldBe 0b01000000
+        flag shouldBe 0b01000000
     }
 }

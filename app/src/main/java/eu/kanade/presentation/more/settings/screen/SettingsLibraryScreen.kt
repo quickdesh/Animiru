@@ -18,28 +18,26 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.category.visualName
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.widget.TriStateListDialog
-import eu.kanade.tachiyomi.data.library.anime.AnimeLibraryUpdateJob
+import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.launch
-import tachiyomi.domain.category.anime.interactor.GetAnimeCategories
-import tachiyomi.domain.category.anime.interactor.ResetAnimeCategoryFlags
+import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.category.interactor.ResetCategoryFlags
 import tachiyomi.domain.category.model.Category
-import tachiyomi.domain.library.model.GroupAnimeLibraryMode
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_NETWORK_NOT_METERED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_ONLY_ON_WIFI
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.ENTRY_HAS_UNVIEWED
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.ENTRY_NON_COMPLETED
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.ENTRY_NON_VIEWED
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.ENTRY_OUTSIDE_RELEASE_PERIOD
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_EPISODE_SEEN_EXISTING
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_EPISODE_SEEN_NEW
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_HAS_UNREAD
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_COMPLETED
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_READ
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_OUTSIDE_RELEASE_PERIOD
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_CHAPTER_READ_EXISTING
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_CHAPTER_READ_NEW
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
@@ -54,54 +52,47 @@ object SettingsLibraryScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
-        val getAnimeCategories = remember { Injekt.get<GetAnimeCategories>() }
-        val allAnimeCategories by getAnimeCategories.subscribe().collectAsState(initial = emptyList())
+        val getCategories = remember { Injekt.get<GetCategories>() }
         val libraryPreferences = remember { Injekt.get<LibraryPreferences>() }
+        val allCategories by getCategories.subscribe().collectAsState(initial = emptyList())
 
         return listOf(
-            getCategoriesGroup(
-                LocalNavigator.currentOrThrow,
-                allAnimeCategories,
-                libraryPreferences,
-            ),
-            getGlobalUpdateGroup(allAnimeCategories, libraryPreferences),
-            getAnimeBehaviorGroup(libraryPreferences),
+            getCategoriesGroup(LocalNavigator.currentOrThrow, allCategories, libraryPreferences),
+            getGlobalUpdateGroup(allCategories, libraryPreferences),
+            getBehaviorGroup(libraryPreferences),
         )
     }
 
     @Composable
     private fun getCategoriesGroup(
         navigator: Navigator,
-        allAnimeCategories: List<Category>,
+        allCategories: List<Category>,
         libraryPreferences: LibraryPreferences,
     ): Preference.PreferenceGroup {
         val scope = rememberCoroutineScope()
-        val userAnimeCategoriesCount = allAnimeCategories.filterNot(Category::isSystemCategory).size
+        val userCategoriesCount = allCategories.filterNot(Category::isSystemCategory).size
 
         // For default category
-        val animeIds = listOf(libraryPreferences.defaultAnimeCategory().defaultValue()) +
-            allAnimeCategories.fastMap { it.id.toInt() }
-
-        val animeLabels = listOf(stringResource(MR.strings.default_category_summary)) +
-            allAnimeCategories.fastMap { it.visualName }
+        val ids = listOf(libraryPreferences.defaultCategory().defaultValue()) +
+            allCategories.fastMap { it.id.toInt() }
+        val labels = listOf(stringResource(MR.strings.default_category_summary)) +
+            allCategories.fastMap { it.visualName }
 
         return Preference.PreferenceGroup(
-            title = stringResource(AYMR.strings.general_categories),
+            title = stringResource(MR.strings.categories),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.action_edit_categories),
                     subtitle = pluralStringResource(
                         MR.plurals.num_categories,
-                        count = userAnimeCategoriesCount,
-                        userAnimeCategoriesCount,
+                        count = userCategoriesCount,
+                        userCategoriesCount,
                     ),
-                    // AM (REMOVE_TABBED_SCREENS) -->
                     onClick = { navigator.push(CategoryScreen()) },
-                    // <-- AM (REMOVE_TABBED_SCREENS)
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    preference = libraryPreferences.defaultAnimeCategory(),
-                    entries = animeIds.zip(animeLabels).toMap().toImmutableMap(),
+                    preference = libraryPreferences.defaultCategory(),
+                    entries = ids.zip(labels).toMap().toImmutableMap(),
                     title = stringResource(MR.strings.default_category),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
@@ -110,15 +101,11 @@ object SettingsLibraryScreen : SearchableSettings {
                     onValueChanged = {
                         if (!it) {
                             scope.launch {
-                                Injekt.get<ResetAnimeCategoryFlags>().await()
+                                Injekt.get<ResetCategoryFlags>().await()
                             }
                         }
                         true
                     },
-                ),
-                Preference.PreferenceItem.SwitchPreference(
-                    preference = libraryPreferences.hideHiddenCategoriesSettings(),
-                    title = stringResource(AYMR.strings.pref_category_hide_hidden),
                 ),
             ),
         )
@@ -126,37 +113,33 @@ object SettingsLibraryScreen : SearchableSettings {
 
     @Composable
     private fun getGlobalUpdateGroup(
-        allAnimeCategories: List<Category>,
+        allCategories: List<Category>,
         libraryPreferences: LibraryPreferences,
     ): Preference.PreferenceGroup {
         val context = LocalContext.current
 
         val autoUpdateIntervalPref = libraryPreferences.autoUpdateInterval()
+        val autoUpdateCategoriesPref = libraryPreferences.updateCategories()
+        val autoUpdateCategoriesExcludePref = libraryPreferences.updateCategoriesExclude()
+
         val autoUpdateInterval by autoUpdateIntervalPref.collectAsState()
 
-        val animeAutoUpdateCategoriesPref = libraryPreferences.animeUpdateCategories()
-        val animeAutoUpdateCategoriesExcludePref =
-            libraryPreferences.animeUpdateCategoriesExclude()
-
-        val includedAnime by animeAutoUpdateCategoriesPref.collectAsState()
-        val excludedAnime by animeAutoUpdateCategoriesExcludePref.collectAsState()
-        var showAnimeCategoriesDialog by rememberSaveable { mutableStateOf(false) }
-        if (showAnimeCategoriesDialog) {
+        val included by autoUpdateCategoriesPref.collectAsState()
+        val excluded by autoUpdateCategoriesExcludePref.collectAsState()
+        var showCategoriesDialog by rememberSaveable { mutableStateOf(false) }
+        if (showCategoriesDialog) {
             TriStateListDialog(
-                title = stringResource(AYMR.strings.anime_categories),
-                message = stringResource(AYMR.strings.pref_anime_library_update_categories_details),
-                items = allAnimeCategories,
-                initialChecked = includedAnime.mapNotNull { id -> allAnimeCategories.find { it.id.toString() == id } },
-                initialInversed = excludedAnime.mapNotNull { id -> allAnimeCategories.find { it.id.toString() == id } },
+                title = stringResource(MR.strings.categories),
+                message = stringResource(MR.strings.pref_library_update_categories_details),
+                items = allCategories,
+                initialChecked = included.mapNotNull { id -> allCategories.find { it.id.toString() == id } },
+                initialInversed = excluded.mapNotNull { id -> allCategories.find { it.id.toString() == id } },
                 itemLabel = { it.visualName },
-                onDismissRequest = { showAnimeCategoriesDialog = false },
+                onDismissRequest = { showCategoriesDialog = false },
                 onValueChanged = { newIncluded, newExcluded ->
-                    animeAutoUpdateCategoriesPref.set(newIncluded.map { it.id.toString() }.toSet())
-                    animeAutoUpdateCategoriesExcludePref.set(
-                        newExcluded.map { it.id.toString() }
-                            .toSet(),
-                    )
-                    showAnimeCategoriesDialog = false
+                    autoUpdateCategoriesPref.set(newIncluded.map { it.id.toString() }.toSet())
+                    autoUpdateCategoriesExcludePref.set(newExcluded.map { it.id.toString() }.toSet())
+                    showCategoriesDialog = false
                 },
             )
         }
@@ -176,7 +159,7 @@ object SettingsLibraryScreen : SearchableSettings {
                     ),
                     title = stringResource(MR.strings.pref_library_update_interval),
                     onValueChanged = {
-                        AnimeLibraryUpdateJob.setupTask(context, it)
+                        LibraryUpdateJob.setupTask(context, it)
                         true
                     },
                 ),
@@ -192,111 +175,90 @@ object SettingsLibraryScreen : SearchableSettings {
                     enabled = autoUpdateInterval > 0,
                     onValueChanged = {
                         // Post to event looper to allow the preference to be updated.
-                        ContextCompat.getMainExecutor(context).execute {
-                            AnimeLibraryUpdateJob.setupTask(context)
-                        }
+                        ContextCompat.getMainExecutor(context).execute { LibraryUpdateJob.setupTask(context) }
                         true
                     },
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.categories),
                     subtitle = getCategoriesLabel(
-                        allCategories = allAnimeCategories,
-                        included = includedAnime,
-                        excluded = excludedAnime,
+                        allCategories = allCategories,
+                        included = included,
+                        excluded = excluded,
                     ),
-                    onClick = { showAnimeCategoriesDialog = true },
+                    onClick = { showCategoriesDialog = true },
                 ),
-                // AM (GROUPING) -->
-                Preference.PreferenceItem.ListPreference(
-                    preference = libraryPreferences.groupLibraryUpdateType(),
-                    title = stringResource(MR.strings.library_group_updates),
-                    entries = persistentMapOf(
-                        GroupAnimeLibraryMode.GLOBAL to stringResource(MR.strings.library_group_updates_global),
-                        GroupAnimeLibraryMode.ALL_BUT_UNGROUPED to stringResource(
-                            MR.strings.library_group_updates_all_but_ungrouped,
-                        ),
-                        GroupAnimeLibraryMode.ALL to stringResource(MR.strings.library_group_updates_all),
-                    ),
-                ),
-                // <-- AM (GROUPING)
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.autoUpdateMetadata(),
                     title = stringResource(MR.strings.pref_library_update_refresh_metadata),
                     subtitle = stringResource(MR.strings.pref_library_update_refresh_metadata_summary),
                 ),
                 Preference.PreferenceItem.MultiSelectListPreference(
-                    preference = libraryPreferences.autoUpdateItemRestrictions(),
+                    preference = libraryPreferences.autoUpdateMangaRestrictions(),
                     entries = persistentMapOf(
-                        ENTRY_HAS_UNVIEWED to stringResource(MR.strings.pref_update_only_completely_seen),
-                        ENTRY_NON_VIEWED to stringResource(MR.strings.pref_update_only_started),
-                        ENTRY_NON_COMPLETED to stringResource(MR.strings.pref_update_only_non_completed),
-                        ENTRY_OUTSIDE_RELEASE_PERIOD to stringResource(MR.strings.pref_update_only_in_release_period),
+                        MANGA_HAS_UNREAD to stringResource(MR.strings.pref_update_only_completely_read),
+                        MANGA_NON_READ to stringResource(MR.strings.pref_update_only_started),
+                        MANGA_NON_COMPLETED to stringResource(MR.strings.pref_update_only_non_completed),
+                        MANGA_OUTSIDE_RELEASE_PERIOD to stringResource(MR.strings.pref_update_only_in_release_period),
                     ),
                     title = stringResource(MR.strings.pref_library_update_smart_update),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.newShowUpdatesCount(),
-                    title = stringResource(MR.strings.pref_library_anime_update_show_tab_badge),
+                    title = stringResource(MR.strings.pref_library_update_show_tab_badge),
                 ),
             ),
         )
     }
 
     @Composable
-    private fun getAnimeBehaviorGroup(
+    private fun getBehaviorGroup(
         libraryPreferences: LibraryPreferences,
     ): Preference.PreferenceGroup {
         return Preference.PreferenceGroup(
-            title = stringResource(AYMR.strings.pref_behavior_episode),
+            title = stringResource(MR.strings.pref_behavior),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.ListPreference(
-                    preference = libraryPreferences.swipeEpisodeStartAction(),
+                    preference = libraryPreferences.swipeToStartAction(),
                     entries = persistentMapOf(
-                        LibraryPreferences.EpisodeSwipeAction.Disabled to
+                        LibraryPreferences.ChapterSwipeAction.Disabled to
                             stringResource(MR.strings.disabled),
-                        LibraryPreferences.EpisodeSwipeAction.ToggleBookmark to
-                            stringResource(AYMR.strings.action_bookmark_episode),
-                        // AM (FILLERMARK) -->
-                        LibraryPreferences.EpisodeSwipeAction.ToggleFillermark to stringResource(
-                            MR.strings.action_fillermark_episode,
-                        ),
-                        // <-- AM (FILLERMARK)
-                        LibraryPreferences.EpisodeSwipeAction.ToggleSeen to
-                            stringResource(AYMR.strings.action_mark_as_seen),
-                        LibraryPreferences.EpisodeSwipeAction.Download to
+                        LibraryPreferences.ChapterSwipeAction.ToggleBookmark to
+                            stringResource(MR.strings.action_bookmark),
+                        LibraryPreferences.ChapterSwipeAction.ToggleRead to
+                            stringResource(MR.strings.action_mark_as_read),
+                        LibraryPreferences.ChapterSwipeAction.Download to
                             stringResource(MR.strings.action_download),
                     ),
-                    title = stringResource(AYMR.strings.pref_episode_swipe_start),
+                    title = stringResource(MR.strings.pref_chapter_swipe_start),
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    preference = libraryPreferences.swipeEpisodeEndAction(),
+                    preference = libraryPreferences.swipeToEndAction(),
                     entries = persistentMapOf(
-                        LibraryPreferences.EpisodeSwipeAction.Disabled to
+                        LibraryPreferences.ChapterSwipeAction.Disabled to
                             stringResource(MR.strings.disabled),
-                        LibraryPreferences.EpisodeSwipeAction.ToggleBookmark to
-                            stringResource(AYMR.strings.action_bookmark_episode),
-                        // AM (FILLERMARK) -->
-                        LibraryPreferences.EpisodeSwipeAction.ToggleFillermark to stringResource(
-                            MR.strings.action_fillermark_episode,
-                        ),
-                        // <-- AM (FILLERMARK)
-                        LibraryPreferences.EpisodeSwipeAction.ToggleSeen to
-                            stringResource(AYMR.strings.action_mark_as_seen),
-                        LibraryPreferences.EpisodeSwipeAction.Download to
+                        LibraryPreferences.ChapterSwipeAction.ToggleBookmark to
+                            stringResource(MR.strings.action_bookmark),
+                        LibraryPreferences.ChapterSwipeAction.ToggleRead to
+                            stringResource(MR.strings.action_mark_as_read),
+                        LibraryPreferences.ChapterSwipeAction.Download to
                             stringResource(MR.strings.action_download),
                     ),
-                    title = stringResource(AYMR.strings.pref_episode_swipe_end),
+                    title = stringResource(MR.strings.pref_chapter_swipe_end),
                 ),
                 Preference.PreferenceItem.MultiSelectListPreference(
-                    preference = libraryPreferences.markDuplicateSeenEpisodeAsSeen(),
+                    preference = libraryPreferences.markDuplicateReadChapterAsRead(),
                     entries = persistentMapOf(
-                        MARK_DUPLICATE_EPISODE_SEEN_EXISTING to
-                            stringResource(AYMR.strings.pref_mark_duplicate_seen_episode_seen_existing),
-                        MARK_DUPLICATE_EPISODE_SEEN_NEW to
-                            stringResource(AYMR.strings.pref_mark_duplicate_seen_episode_seen_new),
+                        MARK_DUPLICATE_CHAPTER_READ_EXISTING to
+                            stringResource(MR.strings.pref_mark_duplicate_read_chapter_read_existing),
+                        MARK_DUPLICATE_CHAPTER_READ_NEW to
+                            stringResource(MR.strings.pref_mark_duplicate_read_chapter_read_new),
                     ),
-                    title = stringResource(AYMR.strings.pref_mark_duplicate_seen_episode_seen),
+                    title = stringResource(MR.strings.pref_mark_duplicate_read_chapter_read),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = libraryPreferences.hideMissingChapters(),
+                    title = stringResource(MR.strings.pref_hide_missing_chapter_indicators),
                 ),
             ),
         )

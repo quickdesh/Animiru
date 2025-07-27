@@ -20,7 +20,6 @@ import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.coroutines.delay
 import mihon.domain.extensionrepo.model.ExtensionRepo
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.time.Duration.Companion.seconds
 
@@ -58,7 +57,7 @@ fun ExtensionRepoCreateDialog(
         },
         text = {
             Column {
-                Text(text = stringResource(AYMR.strings.action_add_repo_message))
+                Text(text = stringResource(MR.strings.action_add_repo_message))
 
                 OutlinedTextField(
                     modifier = Modifier

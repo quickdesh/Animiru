@@ -1,4 +1,3 @@
-// AM (REMOVE_TABBED_SCREENS) -->
 package eu.kanade.tachiyomi.ui.stats
 
 import androidx.compose.runtime.Composable
@@ -8,10 +7,9 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.more.stats.AnimeStatsScreenContent
+import eu.kanade.presentation.more.stats.StatsScreenContent
 import eu.kanade.presentation.more.stats.StatsScreenState
 import eu.kanade.presentation.util.Screen
-import eu.kanade.tachiyomi.ui.stats.anime.AnimeStatsScreenModel
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
@@ -23,7 +21,7 @@ class StatsScreen : Screen() {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
 
-        val screenModel = rememberScreenModel { AnimeStatsScreenModel() }
+        val screenModel = rememberScreenModel { StatsScreenModel() }
         val state by screenModel.state.collectAsState()
 
         Scaffold(
@@ -40,11 +38,10 @@ class StatsScreen : Screen() {
                 return@Scaffold
             }
 
-            AnimeStatsScreenContent(
-                state = state as? StatsScreenState.SuccessAnime ?: return@Scaffold,
+            StatsScreenContent(
+                state = state as StatsScreenState.Success,
                 paddingValues = paddingValues,
             )
         }
     }
 }
-// <-- AM (REMOVE_TABBED_SCREENS)

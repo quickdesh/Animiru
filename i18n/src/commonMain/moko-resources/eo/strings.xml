@@ -594,7 +594,7 @@
     <string name="pref_hardware_bitmap_threshold_default">Defaŭlta (%d)</string>
     <string name="pref_hardware_bitmap_threshold_summary">Se legilo ŝargas malplenan bildon alkremente redukti la sojlon.\nElektita: %s</string>
     <string name="label_add_repo_input">Deponeja URL-o</string>
-    <string name="action_add_repo_message">Aldoni aldonajn deponejojn al Animiru. Tio estu URL-o kiu finas per \"index.min.json\".</string>
+    <string name="action_add_repo_message">Aldoni aldonajn deponejojn al Mihon. Tio estu URL-o kiu finas per \"index.min.json\".</string>
     <string name="error_repo_exists">Tiu deponejo jam ekzistas!</string>
     <string name="delete_repo_confirmation">Ĉu vi deziras forigi la deponejon \"%s\"?</string>
     <string name="ext_installer_shizuku_unavailable_dialog">Instali kaj lanĉi Shizuku por uzi Shizuku kiel etendaĵa instalilo.</string>

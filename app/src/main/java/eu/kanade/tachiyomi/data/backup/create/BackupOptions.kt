@@ -3,62 +3,46 @@ package eu.kanade.tachiyomi.data.backup.create
 import dev.icerock.moko.resources.StringResource
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.aniyomi.AYMR
 
 data class BackupOptions(
     val libraryEntries: Boolean = true,
     val categories: Boolean = true,
-    val episodes: Boolean = true,
+    val chapters: Boolean = true,
     val tracking: Boolean = true,
     val history: Boolean = true,
     val readEntries: Boolean = true,
     val appSettings: Boolean = true,
     val extensionRepoSettings: Boolean = true,
-    val customButton: Boolean = true,
     val sourceSettings: Boolean = true,
     val privateSettings: Boolean = false,
-    val extensions: Boolean = false,
-    // AM (CUSTOM_INFORMATION) -->
-    val customInfo: Boolean = false,
-    // <-- AM (CUSTOM_INFORMATION)
 ) {
 
     fun asBooleanArray() = booleanArrayOf(
         libraryEntries,
         categories,
-        episodes,
+        chapters,
         tracking,
         history,
         readEntries,
         appSettings,
         extensionRepoSettings,
-        customButton,
         sourceSettings,
         privateSettings,
-        extensions,
-        // AM (CUSTOM_INFORMATION) -->
-        customInfo,
-        // <-- AM (CUSTOM_INFORMATION)
     )
 
-    fun canCreate() = libraryEntries ||
-        categories ||
-        appSettings ||
-        extensionRepoSettings ||
-        customButton ||
-        sourceSettings
+    fun canCreate() = libraryEntries || categories || appSettings || extensionRepoSettings || sourceSettings
 
     companion object {
         val libraryOptions = persistentListOf(
             Entry(
-                label = AYMR.strings.entries,
+                label = MR.strings.manga,
                 getter = BackupOptions::libraryEntries,
                 setter = { options, enabled -> options.copy(libraryEntries = enabled) },
             ),
             Entry(
-                label = AYMR.strings.episodes,
-                getter = BackupOptions::episodes,
-                setter = { options, enabled -> options.copy(episodes = enabled) },
+                label = MR.strings.chapters,
+                getter = BackupOptions::chapters,
+                setter = { options, enabled -> options.copy(chapters = enabled) },
                 enabled = { it.libraryEntries },
             ),
             Entry(
@@ -79,19 +63,11 @@ data class BackupOptions(
                 setter = { options, enabled -> options.copy(categories = enabled) },
             ),
             Entry(
-                label = AYMR.strings.non_library_settings,
+                label = MR.strings.non_library_settings,
                 getter = BackupOptions::readEntries,
                 setter = { options, enabled -> options.copy(readEntries = enabled) },
                 enabled = { it.libraryEntries },
             ),
-            // AM (CUSTOM_INFORMATION) -->
-            Entry(
-                label = MR.strings.custom_entry_info,
-                getter = BackupOptions::customInfo,
-                setter = { options, enabled -> options.copy(customInfo = enabled) },
-                enabled = { it.libraryEntries },
-            ),
-            // <-- AM (CUSTOM_INFORMATION)
         )
 
         val settingsOptions = persistentListOf(
@@ -106,11 +82,6 @@ data class BackupOptions(
                 setter = { options, enabled -> options.copy(extensionRepoSettings = enabled) },
             ),
             Entry(
-                label = AYMR.strings.custom_button_settings,
-                getter = BackupOptions::customButton,
-                setter = { options, enabled -> options.copy(customButton = enabled) },
-            ),
-            Entry(
                 label = MR.strings.source_settings,
                 getter = BackupOptions::sourceSettings,
                 setter = { options, enabled -> options.copy(sourceSettings = enabled) },
@@ -123,30 +94,17 @@ data class BackupOptions(
             ),
         )
 
-        val extensionOptions = persistentListOf(
-            Entry(
-                label = MR.strings.label_extensions,
-                getter = BackupOptions::extensions,
-                setter = { options, enabled -> options.copy(extensions = enabled) },
-            ),
-        )
-
         fun fromBooleanArray(array: BooleanArray) = BackupOptions(
             libraryEntries = array[0],
             categories = array[1],
-            episodes = array[2],
+            chapters = array[2],
             tracking = array[3],
             history = array[4],
             readEntries = array[5],
             appSettings = array[6],
             extensionRepoSettings = array[7],
-            customButton = array[8],
-            sourceSettings = array[9],
-            privateSettings = array[10],
-            extensions = array[11],
-            // AM (CUSTOM_INFORMATION) -->
-            customInfo = array[12],
-            // <-- AM (CUSTOM_INFORMATION)
+            sourceSettings = array[8],
+            privateSettings = array[9],
         )
     }
 

@@ -26,9 +26,6 @@ dependencyResolutionManagement {
         create("compose") {
             from(files("gradle/compose.versions.toml"))
         }
-        create("aniyomilibs") {
-            from(files("gradle/aniyomi.versions.toml"))
-        }
     }
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -39,12 +36,12 @@ dependencyResolutionManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "Animriu"
+rootProject.name = "Animiru"
 include(":app")
 include(":core-metadata")
 include(":core:archive")
@@ -52,7 +49,6 @@ include(":core:common")
 include(":data")
 include(":domain")
 include(":i18n")
-include(":i18n-aniyomi")
 include(":macrobenchmark")
 include(":presentation-core")
 include(":presentation-widget")

@@ -2,10 +2,10 @@ package eu.kanade.tachiyomi.data.track.shikimori
 
 import android.net.Uri
 import androidx.core.net.toUri
-import eu.kanade.tachiyomi.data.database.models.anime.AnimeTrack
-import eu.kanade.tachiyomi.data.track.model.AnimeTrackSearch
-import eu.kanade.tachiyomi.data.track.shikimori.dto.SMAddEntryResponse
-import eu.kanade.tachiyomi.data.track.shikimori.dto.SMEntry
+import eu.kanade.tachiyomi.data.database.models.Track
+import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import eu.kanade.tachiyomi.data.track.shikimori.dto.SMAddMangaResponse
+import eu.kanade.tachiyomi.data.track.shikimori.dto.SMManga
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMOAuth
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUser
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUserListEntry
@@ -24,7 +24,7 @@ import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.lang.withIOContext
 import uy.kohesive.injekt.injectLazy
-import tachiyomi.domain.track.anime.model.AnimeTrack as DomainAnimeTrack
+import tachiyomi.domain.track.model.Track as DomainTrack
 
 class ShikimoriApi(
     private val trackId: Long,
@@ -36,15 +36,15 @@ class ShikimoriApi(
 
     private val authClient = client.newBuilder().addInterceptor(interceptor).build()
 
-    suspend fun addLibAnime(track: AnimeTrack, userId: String): AnimeTrack {
+    suspend fun addLibManga(track: Track, userId: String): Track {
         return withIOContext {
             with(json) {
                 val payload = buildJsonObject {
                     putJsonObject("user_rate") {
                         put("user_id", userId)
                         put("target_id", track.remote_id)
-                        put("target_type", "Anime")
-                        put("episodes", track.last_episode_seen.toInt())
+                        put("target_type", "Manga")
+                        put("chapters", track.last_chapter_read.toInt())
                         put("score", track.score.toInt())
                         put("status", track.toShikimoriStatus())
                     }
@@ -55,8 +55,9 @@ class ShikimoriApi(
                         body = payload.toString().toRequestBody(jsonMime),
                     ),
                 ).awaitSuccess()
-                    .parseAs<SMAddEntryResponse>()
+                    .parseAs<SMAddMangaResponse>()
                     .let {
+                        // save id of the entry for possible future delete request
                         track.library_id = it.id
                     }
                 track
@@ -64,12 +65,9 @@ class ShikimoriApi(
         }
     }
 
-    suspend fun updateLibAnime(track: AnimeTrack, userId: String): AnimeTrack = addLibAnime(
-        track,
-        userId,
-    )
+    suspend fun updateLibManga(track: Track, userId: String): Track = addLibManga(track, userId)
 
-    suspend fun deleteLibAnime(track: DomainAnimeTrack) {
+    suspend fun deleteLibManga(track: DomainTrack) {
         withIOContext {
             authClient
                 .newCall(DELETE("$API_URL/v2/user_rates/${track.libraryId}"))
@@ -77,9 +75,9 @@ class ShikimoriApi(
         }
     }
 
-    suspend fun searchAnime(search: String): List<AnimeTrackSearch> {
+    suspend fun search(search: String): List<TrackSearch> {
         return withIOContext {
-            val url = "$API_URL/animes".toUri().buildUpon()
+            val url = "$API_URL/mangas".toUri().buildUpon()
                 .appendQueryParameter("order", "popularity")
                 .appendQueryParameter("search", search)
                 .appendQueryParameter("limit", "20")
@@ -87,27 +85,27 @@ class ShikimoriApi(
             with(json) {
                 authClient.newCall(GET(url.toString()))
                     .awaitSuccess()
-                    .parseAs<List<SMEntry>>()
-                    .map { it.toAnimeTrack(trackId) }
+                    .parseAs<List<SMManga>>()
+                    .map { it.toTrack(trackId) }
             }
         }
     }
 
-    suspend fun findLibAnime(track: AnimeTrack, user_id: String): AnimeTrack? {
+    suspend fun findLibManga(track: Track, userId: String): Track? {
         return withIOContext {
-            val urlAnimes = "$API_URL/animes".toUri().buildUpon()
+            val urlMangas = "$API_URL/mangas".toUri().buildUpon()
                 .appendPath(track.remote_id.toString())
                 .build()
-            val anime = with(json) {
-                authClient.newCall(GET(urlAnimes.toString()))
+            val manga = with(json) {
+                authClient.newCall(GET(urlMangas.toString()))
                     .awaitSuccess()
-                    .parseAs<SMEntry>()
+                    .parseAs<SMManga>()
             }
 
             val url = "$API_URL/v2/user_rates".toUri().buildUpon()
-                .appendQueryParameter("user_id", user_id)
+                .appendQueryParameter("user_id", userId)
                 .appendQueryParameter("target_id", track.remote_id.toString())
-                .appendQueryParameter("target_type", "Anime")
+                .appendQueryParameter("target_type", "Manga")
                 .build()
             with(json) {
                 authClient.newCall(GET(url.toString()))
@@ -118,7 +116,7 @@ class ShikimoriApi(
                             throw Exception("Too many manga in response")
                         }
                         entries
-                            .map { it.toAnimeTrack(trackId, anime) }
+                            .map { it.toTrack(trackId, manga) }
                             .firstOrNull()
                     }
             }
@@ -161,10 +159,10 @@ class ShikimoriApi(
         private const val OAUTH_URL = "$BASE_URL/oauth/token"
         private const val LOGIN_URL = "$BASE_URL/oauth/authorize"
 
-        private const val REDIRECT_URL = "animiru://shikimori-auth"
+        private const val REDIRECT_URL = "mihon://shikimori-auth"
 
-        private const val CLIENT_ID = "tQLOaRzbA0gJ4WSlsq6sQcsRWAAk-t8RIhssui6fQ1w"
-        private const val CLIENT_SECRET = "95WTl3ePbcXJtVYkiWiP4bQUtJL9oGbbneqKZ6VOwhs"
+        private const val CLIENT_ID = "PB9dq8DzI405s7wdtwTdirYqHiyVMh--djnP7lBUqSA"
+        private const val CLIENT_SECRET = "NajpZcOBKB9sJtgNcejf8OB9jBN1OYYoo-k4h2WWZus"
 
         fun authUrl(): Uri = LOGIN_URL.toUri().buildUpon()
             .appendQueryParameter("client_id", CLIENT_ID)

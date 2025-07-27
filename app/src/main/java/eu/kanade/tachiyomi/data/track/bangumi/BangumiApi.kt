@@ -2,12 +2,12 @@ package eu.kanade.tachiyomi.data.track.bangumi
 
 import android.net.Uri
 import androidx.core.net.toUri
-import eu.kanade.tachiyomi.data.database.models.anime.AnimeTrack
+import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.bangumi.dto.BGMCollectionResponse
 import eu.kanade.tachiyomi.data.track.bangumi.dto.BGMOAuth
 import eu.kanade.tachiyomi.data.track.bangumi.dto.BGMSearchResult
 import eu.kanade.tachiyomi.data.track.bangumi.dto.BGMUser
-import eu.kanade.tachiyomi.data.track.model.AnimeTrackSearch
+import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.network.POST
@@ -38,13 +38,13 @@ class BangumiApi(
 
     private val authClient = client.newBuilder().addInterceptor(interceptor).build()
 
-    suspend fun addLibAnime(track: AnimeTrack): AnimeTrack {
+    suspend fun addLibManga(track: Track): Track {
         return withIOContext {
             val url = "$API_URL/v0/users/-/collections/${track.remote_id}"
             val body = buildJsonObject {
                 put("type", track.toApiStatus())
                 put("rate", track.score.toInt().coerceIn(0, 10))
-                put("ep_status", track.last_episode_seen.toInt())
+                put("ep_status", track.last_chapter_read.toInt())
                 put("private", track.private)
             }
                 .toString()
@@ -56,13 +56,13 @@ class BangumiApi(
         }
     }
 
-    suspend fun updateLibAnime(track: AnimeTrack): AnimeTrack {
+    suspend fun updateLibManga(track: Track): Track {
         return withIOContext {
             val url = "$API_URL/v0/users/-/collections/${track.remote_id}"
             val body = buildJsonObject {
                 put("type", track.toApiStatus())
                 put("rate", track.score.toInt().coerceIn(0, 10))
-                put("ep_status", track.last_episode_seen.toInt())
+                put("ep_status", track.last_chapter_read.toInt())
                 put("private", track.private)
             }
                 .toString()
@@ -81,7 +81,7 @@ class BangumiApi(
         }
     }
 
-    suspend fun searchAnime(search: String): List<AnimeTrackSearch> {
+    suspend fun search(search: String): List<TrackSearch> {
         // This API is marked as experimental in the documentation
         // but that has been the case since 2022 with few significant
         // changes to the schema for this endpoint since
@@ -93,7 +93,7 @@ class BangumiApi(
                 put("sort", "match")
                 putJsonObject("filter") {
                     putJsonArray("type") {
-                        add(2) // "Anime" (动画) type
+                        add(1) // "Book" (书籍) type
                     }
                 }
             }
@@ -104,12 +104,13 @@ class BangumiApi(
                     .awaitSuccess()
                     .parseAs<BGMSearchResult>()
                     .data
-                    .map { it.toAnimeTrackSearch(trackId) }
+                    .filter { it.platform == null || it.platform == "漫画" }
+                    .map { it.toTrackSearch(trackId) }
             }
         }
     }
 
-    suspend fun statusLibAnime(track: AnimeTrack, username: String): AnimeTrack? {
+    suspend fun statusLibManga(track: Track, username: String): Track? {
         return withIOContext {
             val url = "$API_URL/v0/users/$username/collections/${track.remote_id}"
             with(json) {
@@ -119,9 +120,9 @@ class BangumiApi(
                         .parseAs<BGMCollectionResponse>()
                         .let {
                             track.status = it.getStatus()
-                            track.last_episode_seen = it.epStatus?.toDouble() ?: 0.0
+                            track.last_chapter_read = it.epStatus?.toDouble() ?: 0.0
                             track.score = it.rate?.toDouble() ?: 0.0
-                            track.total_episodes = it.subject?.eps?.toLong() ?: 0L
+                            track.total_chapters = it.subject?.eps?.toLong() ?: 0L
                             track
                         }
                 } catch (e: HttpException) {
@@ -144,7 +145,6 @@ class BangumiApi(
                 .add("code", code)
                 .add("redirect_uri", REDIRECT_URL)
                 .build()
-
             with(json) {
                 client.newCall(POST(OAUTH_URL, body = body))
                     .awaitSuccess()
@@ -165,14 +165,14 @@ class BangumiApi(
     }
 
     companion object {
-        private const val CLIENT_ID = "bgm2204622cb426b1e78"
-        private const val CLIENT_SECRET = "5c9fd8953ebe3d10d6ea3f5e2d5f8508"
+        private const val CLIENT_ID = "bgm291665acbd06a4c28"
+        private const val CLIENT_SECRET = "43e5ce36b207de16e5d3cfd3e79118db"
 
         private const val API_URL = "https://api.bgm.tv"
         private const val OAUTH_URL = "https://bgm.tv/oauth/access_token"
         private const val LOGIN_URL = "https://bgm.tv/oauth/authorize"
 
-        private const val REDIRECT_URL = "animiru://bangumi-auth"
+        private const val REDIRECT_URL = "mihon://bangumi-auth"
 
         private const val APP_JSON = "application/json"
 

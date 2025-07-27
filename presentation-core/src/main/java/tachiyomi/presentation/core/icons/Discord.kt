@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap.Companion.Butt
 import androidx.compose.ui.graphics.StrokeJoin.Companion.Miter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.ImageVector.Builder
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
@@ -15,7 +16,7 @@ val CustomIcons.Discord: ImageVector
         if (_discord != null) {
             return _discord!!
         }
-        _discord = ImageVector.Builder(
+        _discord = Builder(
             name = "Discord",
             defaultWidth = 24.0.dp,
             defaultHeight = 24.0.dp,

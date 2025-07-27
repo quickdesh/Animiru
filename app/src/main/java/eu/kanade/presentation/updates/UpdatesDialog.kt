@@ -5,19 +5,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun UpdatesDeleteConfirmationDialog(
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
-    isManga: Boolean,
 ) {
-    val title = if (isManga) MR.strings.confirm_delete_chapters else AYMR.strings.confirm_delete_episodes
     AlertDialog(
         text = {
-            Text(text = stringResource(title))
+            Text(text = stringResource(MR.strings.confirm_delete_chapters))
         },
         onDismissRequest = onDismissRequest,
         confirmButton = {

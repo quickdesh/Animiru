@@ -10,7 +10,6 @@ class BackupCategory(
     @ProtoNumber(2) var order: Long = 0,
     @ProtoNumber(3) var id: Long = 0,
     // @ProtoNumber(3) val updateInterval: Int = 0, 1.x value not used in 0.x
-    // Bump by 100 to specify this is a 0.x value
     @ProtoNumber(100) var flags: Long = 0,
 ) {
     fun toCategory(id: Long) = Category(
@@ -18,7 +17,6 @@ class BackupCategory(
         name = this@BackupCategory.name,
         flags = this@BackupCategory.flags,
         order = this@BackupCategory.order,
-        hidden = false,
     )
 }
 

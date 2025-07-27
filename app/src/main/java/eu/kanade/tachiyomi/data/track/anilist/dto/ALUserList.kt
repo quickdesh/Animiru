@@ -4,12 +4,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ALUserListEntryQueryResult(
-    val data: ALUserListEntryPage,
+data class ALUserListMangaQueryResult(
+    val data: ALUserListMangaPage,
 )
 
 @Serializable
-data class ALUserListEntryPage(
+data class ALUserListMangaPage(
     @SerialName("Page")
     val page: ALUserListMediaList,
 )
@@ -30,16 +30,15 @@ data class ALUserListItem(
     val media: ALSearchItem,
     val private: Boolean,
 ) {
-
-    fun toALUserAnime(): ALUserAnime {
-        return ALUserAnime(
+    fun toALUserManga(): ALUserManga {
+        return ALUserManga(
             libraryId = this@ALUserListItem.id,
             listStatus = status,
             scoreRaw = scoreRaw,
-            episodesSeen = progress,
+            chaptersRead = progress,
             startDateFuzzy = startedAt.toEpochMilli(),
             completedDateFuzzy = completedAt.toEpochMilli(),
-            anime = media.toALAnime(),
+            manga = media.toALManga(),
             private = private,
         )
     }

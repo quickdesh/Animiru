@@ -2,7 +2,6 @@ package eu.kanade.tachiyomi.data.backup.restore.restorers
 
 import android.content.Context
 import android.util.Log
-import eu.kanade.tachiyomi.animesource.sourcePreferences
 import eu.kanade.tachiyomi.data.backup.create.BackupCreateJob
 import eu.kanade.tachiyomi.data.backup.models.BackupCategory
 import eu.kanade.tachiyomi.data.backup.models.BackupPreference
@@ -13,11 +12,12 @@ import eu.kanade.tachiyomi.data.backup.models.IntPreferenceValue
 import eu.kanade.tachiyomi.data.backup.models.LongPreferenceValue
 import eu.kanade.tachiyomi.data.backup.models.StringPreferenceValue
 import eu.kanade.tachiyomi.data.backup.models.StringSetPreferenceValue
-import eu.kanade.tachiyomi.data.library.anime.AnimeLibraryUpdateJob
+import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
+import eu.kanade.tachiyomi.source.sourcePreferences
 import tachiyomi.core.common.preference.AndroidPreferenceStore
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.plusAssign
-import tachiyomi.domain.category.anime.interactor.GetAnimeCategories
+import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.library.service.LibraryPreferences
@@ -26,7 +26,7 @@ import uy.kohesive.injekt.api.get
 
 class PreferenceRestorer(
     private val context: Context,
-    private val getAnimeCategories: GetAnimeCategories = Injekt.get(),
+    private val getCategories: GetCategories = Injekt.get(),
     private val preferenceStore: PreferenceStore = Injekt.get(),
 ) {
     suspend fun restoreApp(
@@ -39,7 +39,7 @@ class PreferenceRestorer(
             backupCategories,
         )
 
-        AnimeLibraryUpdateJob.setupTask(context)
+        LibraryUpdateJob.setupTask(context)
         BackupCreateJob.setupTask(context)
     }
 
@@ -55,20 +55,18 @@ class PreferenceRestorer(
         preferenceStore: PreferenceStore,
         backupCategories: List<BackupCategory>? = null,
     ) {
-        val allAnimeCategories = if (backupCategories != null) getAnimeCategories.await() else emptyList()
-
-        val animeCategoriesByName = allAnimeCategories.associateBy { it.name }
+        val allCategories = if (backupCategories != null) getCategories.await() else emptyList()
+        val categoriesByName = allCategories.associateBy { it.name }
         val backupCategoriesById = backupCategories?.associateBy { it.id.toString() }.orEmpty()
-
         val prefs = preferenceStore.getAll()
         toRestore.forEach { (key, value) ->
             try {
                 when (value) {
                     is IntPreferenceValue -> {
                         if (prefs[key] is Int?) {
-                            val newValue = if (key == LibraryPreferences.DEFAULT_ANIME_CATEGORY_PREF_KEY) {
+                            val newValue = if (key == LibraryPreferences.DEFAULT_CATEGORY_PREF_KEY) {
                                 backupCategoriesById[value.value.toString()]
-                                    ?.let { animeCategoriesByName[it.name]?.id?.toInt() }
+                                    ?.let { categoriesByName[it.name]?.id?.toInt() }
                             } else {
                                 value.value
                             }
@@ -103,7 +101,7 @@ class PreferenceRestorer(
                                 value.value,
                                 preferenceStore,
                                 backupCategoriesById,
-                                animeCategoriesByName,
+                                categoriesByName,
                             )
                             if (!restored) preferenceStore.getStringSet(key).set(value.value)
                         }
@@ -120,18 +118,16 @@ class PreferenceRestorer(
         value: Set<String>,
         preferenceStore: PreferenceStore,
         backupCategoriesById: Map<String, BackupCategory>,
-        animeCategoriesByName: Map<String, Category>,
+        categoriesByName: Map<String, Category>,
     ): Boolean {
         val categoryPreferences = LibraryPreferences.categoryPreferenceKeys + DownloadPreferences.categoryPreferenceKeys
         if (key !in categoryPreferences) return false
 
-        val ids = value.flatMap {
-            listOf(
-                backupCategoriesById[it]?.name?.let { name ->
-                    animeCategoriesByName[name]?.id?.toString()
-                },
-            )
-        }.filterNotNull()
+        val ids = value.mapNotNull {
+            backupCategoriesById[it]?.name?.let { name ->
+                categoriesByName[name]?.id?.toString()
+            }
+        }
 
         if (ids.isNotEmpty()) {
             preferenceStore.getStringSet(key) += ids

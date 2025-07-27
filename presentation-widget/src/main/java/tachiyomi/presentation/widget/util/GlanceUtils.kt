@@ -9,6 +9,7 @@ import tachiyomi.presentation.widget.R
 fun GlanceModifier.appWidgetBackgroundRadius(): GlanceModifier {
     return this.cornerRadius(R.dimen.appwidget_background_radius)
 }
+
 fun GlanceModifier.appWidgetInnerRadius(): GlanceModifier {
     return this.cornerRadius(R.dimen.appwidget_inner_radius)
 }

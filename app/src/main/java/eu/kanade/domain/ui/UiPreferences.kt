@@ -1,7 +1,6 @@
 package eu.kanade.domain.ui
 
 import eu.kanade.domain.ui.model.AppTheme
-import eu.kanade.domain.ui.model.StartScreen
 import eu.kanade.domain.ui.model.TabletUiMode
 import eu.kanade.domain.ui.model.ThemeMode
 import eu.kanade.tachiyomi.util.system.DeviceUtil
@@ -34,8 +33,6 @@ class UiPreferences(
     fun dateFormat() = preferenceStore.getString("app_date_format", "")
 
     fun tabletUiMode() = preferenceStore.getEnum("tablet_ui_mode", TabletUiMode.AUTOMATIC)
-
-    fun startScreen() = preferenceStore.getEnum("start_screen", StartScreen.ANIME)
 
     companion object {
         fun dateFormat(format: String): DateTimeFormatter = when (format) {

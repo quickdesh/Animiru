@@ -9,7 +9,7 @@ sealed interface LibraryDisplayMode {
 
     object Serializer {
         fun deserialize(serialized: String): LibraryDisplayMode {
-            return Companion.deserialize(serialized)
+            return LibraryDisplayMode.deserialize(serialized)
         }
 
         fun serialize(value: LibraryDisplayMode): String {

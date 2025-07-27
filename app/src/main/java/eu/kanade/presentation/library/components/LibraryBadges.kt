@@ -21,7 +21,7 @@ internal fun DownloadsBadge(count: Long) {
 }
 
 @Composable
-internal fun UnviewedBadge(count: Long) {
+internal fun UnreadBadge(count: Long) {
     if (count > 0) {
         Badge(text = "$count")
     }
@@ -53,7 +53,7 @@ private fun BadgePreview() {
     TachiyomiPreviewTheme {
         Column {
             DownloadsBadge(count = 10)
-            UnviewedBadge(count = 10)
+            UnreadBadge(count = 10)
             LanguageBadge(isLocal = true, sourceLanguage = "EN")
             LanguageBadge(isLocal = false, sourceLanguage = "EN")
         }

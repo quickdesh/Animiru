@@ -25,7 +25,6 @@ import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.update
-import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.components.LazyColumnWithAction
@@ -96,12 +95,6 @@ class CreateBackupScreen : Screen() {
                 item {
                     SectionCard(MR.strings.label_settings) {
                         Options(BackupOptions.settingsOptions, state, model)
-                    }
-                }
-
-                item {
-                    SectionCard(MR.strings.label_extensions) {
-                        Options(BackupOptions.extensionOptions, state, model)
                     }
                 }
             }

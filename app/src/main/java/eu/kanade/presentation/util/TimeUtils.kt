@@ -21,11 +21,7 @@ fun Duration.toDurationString(context: Context, fallback: String): String {
                     context.stringResource(MR.strings.minute_short, minutes),
                 )
             }
-            if (seconds != 0 && days == 0L && hours == 0) {
-                add(
-                    context.stringResource(MR.strings.seconds_short, seconds),
-                )
-            }
+            if (seconds != 0 && days == 0L && hours == 0) add(context.stringResource(MR.strings.seconds_short, seconds))
         }.joinToString(" ").ifBlank { fallback }
     }
 }

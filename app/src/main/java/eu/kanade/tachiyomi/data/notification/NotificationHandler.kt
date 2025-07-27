@@ -5,24 +5,23 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.net.toUri
-import eu.kanade.tachiyomi.core.common.Constants
-import eu.kanade.tachiyomi.extension.anime.util.AnimeExtensionInstaller
+import eu.kanade.tachiyomi.extension.util.ExtensionInstaller
 import eu.kanade.tachiyomi.ui.main.MainActivity
+import tachiyomi.core.common.Constants
 
 /**
  * Class that manages [PendingIntent] of activity's
  */
 object NotificationHandler {
-
     /**
      * Returns [PendingIntent] that starts a download activity.
      *
      * @param context context of application
      */
-    internal fun openAnimeDownloadManagerPendingActivity(context: Context): PendingIntent {
+    internal fun openDownloadManagerPendingActivity(context: Context): PendingIntent {
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-            action = Constants.SHORTCUT_ANIME_DOWNLOADS
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            action = Constants.SHORTCUT_DOWNLOADS
         }
         return PendingIntent.getActivity(
             context,
@@ -59,7 +58,7 @@ object NotificationHandler {
      */
     fun installApkPendingActivity(context: Context, uri: Uri): PendingIntent {
         val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, AnimeExtensionInstaller.APK_MIME)
+            setDataAndType(uri, ExtensionInstaller.APK_MIME)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
         }
         return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
@@ -67,11 +66,6 @@ object NotificationHandler {
 
     fun openUrl(context: Context, url: String): PendingIntent {
         val notificationIntent = Intent(Intent.ACTION_VIEW, url.toUri())
-        return PendingIntent.getActivity(
-            context,
-            0,
-            notificationIntent,
-            PendingIntent.FLAG_IMMUTABLE,
-        )
+        return PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
     }
 }

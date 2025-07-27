@@ -17,17 +17,14 @@ import eu.kanade.tachiyomi.R
 val Context.notificationManager: NotificationManager
     get() = getSystemService()!!
 
-fun Context.notify(
-    id: Int,
-    channelId: String,
-    block: (NotificationCompat.Builder.() -> Unit)? = null,
-) {
+fun Context.notify(id: Int, channelId: String, block: (NotificationCompat.Builder.() -> Unit)? = null) {
     val notification = notificationBuilder(channelId, block).build()
     this.notify(id, notification)
 }
 
 fun Context.notify(id: Int, notification: Notification) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+    if (
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
         PermissionChecker.checkSelfPermission(
             this,
             Manifest.permission.POST_NOTIFICATIONS,
@@ -40,7 +37,8 @@ fun Context.notify(id: Int, notification: Notification) {
 }
 
 fun Context.notify(notificationWithIdAndTags: List<NotificationWithIdAndTag>) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+    if (
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
         PermissionChecker.checkSelfPermission(
             this,
             Manifest.permission.POST_NOTIFICATIONS,

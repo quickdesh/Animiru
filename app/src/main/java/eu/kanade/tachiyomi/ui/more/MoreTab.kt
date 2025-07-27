@@ -4,7 +4,6 @@ import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -22,15 +21,11 @@ import eu.kanade.domain.base.BasePreferences
 import eu.kanade.presentation.more.MoreScreen
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
-import eu.kanade.tachiyomi.data.connection.discord.DiscordScreen
-import eu.kanade.tachiyomi.data.download.anime.AnimeDownloadManager
+import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.download.DownloadQueueScreen
-import eu.kanade.tachiyomi.ui.setting.PlayerSettingsScreen
 import eu.kanade.tachiyomi.ui.setting.SettingsScreen
 import eu.kanade.tachiyomi.ui.stats.StatsScreen
-import eu.kanade.tachiyomi.ui.storage.StorageScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,9 +45,7 @@ data object MoreTab : Tab {
             val isSelected = LocalTabNavigator.current.current.key == key
             val image = AnimatedImageVector.animatedVectorResource(R.drawable.anim_more_enter)
             return TabOptions(
-                // AM (RECENTS) -->
-                index = 3u,
-                // <-- AM (RECENTS)
+                index = 4u,
                 title = stringResource(MR.strings.label_more),
                 icon = rememberAnimatedVectorPainter(image, isSelected),
             )
@@ -61,12 +54,6 @@ data object MoreTab : Tab {
     override suspend fun onReselect(navigator: Navigator) {
         navigator.push(SettingsScreen())
     }
-
-    // AM (TAB_HOLD) -->
-    override suspend fun onReselectHold(navigator: Navigator) {
-        navigator.push(StorageScreen())
-    }
-    // <-- AM (TAB_HOLD)
 
     @Composable
     override fun Content() {
@@ -80,57 +67,42 @@ data object MoreTab : Tab {
             onDownloadedOnlyChange = { screenModel.downloadedOnly = it },
             incognitoMode = screenModel.incognitoMode,
             onIncognitoModeChange = { screenModel.incognitoMode = it },
-            // AM (REMOVE_TABBED_SCREENS) -->
             onClickDownloadQueue = { navigator.push(DownloadQueueScreen) },
             onClickCategories = { navigator.push(CategoryScreen()) },
             onClickStats = { navigator.push(StatsScreen()) },
-            onClickStorage = { navigator.push(StorageScreen()) },
-            // <-- AM (REMOVE_TABBED_SCREENS)
             onClickDataAndStorage = { navigator.push(SettingsScreen(SettingsScreen.Destination.DataAndStorage)) },
-            onClickPlayerSettings = { navigator.push(PlayerSettingsScreen) },
             onClickSettings = { navigator.push(SettingsScreen()) },
             onClickAbout = { navigator.push(SettingsScreen(SettingsScreen.Destination.About)) },
         )
-
-        // AM (DISCORD_RPC) -->
-        LaunchedEffect(Unit) {
-            with(DiscordRPCService) {
-                discordScope.launchIO { setScreen(context.applicationContext, DiscordScreen.MORE) }
-            }
-        }
-        // <-- AM (DISCORD_RPC)
     }
 }
 
 private class MoreScreenModel(
-    private val animeDownloadManager: AnimeDownloadManager = Injekt.get(),
+    private val downloadManager: DownloadManager = Injekt.get(),
     preferences: BasePreferences = Injekt.get(),
 ) : ScreenModel {
 
     var downloadedOnly by preferences.downloadedOnly().asState(screenModelScope)
     var incognitoMode by preferences.incognitoMode().asState(screenModelScope)
 
-    private var _downloadQueueState: MutableStateFlow<DownloadQueueState> = MutableStateFlow(
-        DownloadQueueState.Stopped,
-    )
+    private var _downloadQueueState: MutableStateFlow<DownloadQueueState> = MutableStateFlow(DownloadQueueState.Stopped)
     val downloadQueueState: StateFlow<DownloadQueueState> = _downloadQueueState.asStateFlow()
 
     init {
         // Handle running/paused status change and queue progress updating
         screenModelScope.launchIO {
             combine(
-                animeDownloadManager.isDownloaderRunning,
-                animeDownloadManager.queueState,
-            ) { isRunningAnime, animeDownloadQueue ->
-                Pair(isRunningAnime, animeDownloadQueue.size)
-            }.collectLatest { (isDownloadingAnime, animeDownloadQueueSize) ->
-                val pendingDownloadExists = animeDownloadQueueSize != 0
-                _downloadQueueState.value = when {
-                    !pendingDownloadExists -> DownloadQueueState.Stopped
-                    !isDownloadingAnime -> DownloadQueueState.Paused(animeDownloadQueueSize)
-                    else -> DownloadQueueState.Downloading(animeDownloadQueueSize)
+                downloadManager.isDownloaderRunning,
+                downloadManager.queueState,
+            ) { isRunning, downloadQueue -> Pair(isRunning, downloadQueue.size) }
+                .collectLatest { (isDownloading, downloadQueueSize) ->
+                    val pendingDownloadExists = downloadQueueSize != 0
+                    _downloadQueueState.value = when {
+                        !pendingDownloadExists -> DownloadQueueState.Stopped
+                        !isDownloading -> DownloadQueueState.Paused(downloadQueueSize)
+                        else -> DownloadQueueState.Downloading(downloadQueueSize)
+                    }
                 }
-            }
         }
     }
 }

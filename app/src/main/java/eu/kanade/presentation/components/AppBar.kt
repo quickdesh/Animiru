@@ -2,12 +2,9 @@ package eu.kanade.presentation.components
 
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,8 +35,8 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -55,7 +52,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.i18n.MR
-import tachiyomi.presentation.core.components.Pill
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.clearFocusOnSoftKeyboardHide
 import tachiyomi.presentation.core.util.runOnEnterKeyPressed
@@ -168,44 +164,25 @@ fun AppBarTitle(
     title: String?,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
-    count: Int = 0,
 ) {
-    if (count > 0) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    Column(modifier = modifier) {
+        title?.let {
             Text(
-                text = title!!,
+                text = it,
                 maxLines = 1,
-                modifier = Modifier.weight(1f, false),
                 overflow = TextOverflow.Ellipsis,
             )
-            val pillAlpha = if (isSystemInDarkTheme()) 0.12f else 0.08f
-            Pill(
-                text = "$count",
-                modifier = Modifier.padding(start = 4.dp),
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = pillAlpha),
-                fontSize = 14.sp,
-            )
         }
-    } else {
-        Column(modifier = modifier) {
-            title?.let {
-                Text(
-                    text = it,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            subtitle?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.basicMarquee(
-                        repeatDelayMillis = 2_000,
-                    ),
-                )
-            }
+        subtitle?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.basicMarquee(
+                    repeatDelayMillis = 2_000,
+                ),
+            )
         }
     }
 }
@@ -225,6 +202,7 @@ fun AppBarActions(
                 }
             },
             state = rememberTooltipState(),
+            focusable = false,
         ) {
             IconButton(
                 onClick = it.onClick,
@@ -249,15 +227,14 @@ fun AppBarActions(
                 }
             },
             state = rememberTooltipState(),
+            focusable = false,
         ) {
             IconButton(
                 onClick = { showMenu = !showMenu },
             ) {
                 Icon(
                     Icons.Outlined.MoreVert,
-                    contentDescription = stringResource(
-                        MR.strings.action_menu_overflow_description,
-                    ),
+                    contentDescription = stringResource(MR.strings.action_menu_overflow_description),
                 )
             }
         }
@@ -315,6 +292,7 @@ fun SearchToolbar(
                 onSearch(searchQuery)
                 focusManager.clearFocus()
                 keyboardController?.hide()
+                focusManager.moveFocus(FocusDirection.Next)
             }
 
             BasicTextField(
@@ -348,11 +326,7 @@ fun SearchToolbar(
                         placeholder = {
                             Text(
                                 modifier = Modifier.secondaryItemAlpha(),
-                                text = (
-                                    placeholderText ?: stringResource(
-                                        MR.strings.action_search_hint,
-                                    )
-                                    ),
+                                text = (placeholderText ?: stringResource(MR.strings.action_search_hint)),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.titleMedium.copy(
@@ -382,6 +356,7 @@ fun SearchToolbar(
                             }
                         },
                         state = rememberTooltipState(),
+                        focusable = false,
                     ) {
                         IconButton(
                             onClick = onClick,
@@ -401,6 +376,7 @@ fun SearchToolbar(
                             }
                         },
                         state = rememberTooltipState(),
+                        focusable = false,
                     ) {
                         IconButton(
                             onClick = {

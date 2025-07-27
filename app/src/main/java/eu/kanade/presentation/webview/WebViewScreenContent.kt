@@ -3,7 +3,6 @@ package eu.kanade.presentation.webview
 import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -12,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import com.kevinnzou.web.AccompanistWebViewClient
@@ -39,19 +37,13 @@ import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.WarningBanner
 import eu.kanade.tachiyomi.BuildConfig
-import eu.kanade.tachiyomi.network.NetworkHelper
-import eu.kanade.tachiyomi.util.system.WebViewUtil
 import eu.kanade.tachiyomi.util.system.getHtml
 import eu.kanade.tachiyomi.util.system.setDefaultSettings
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
-import okhttp3.Request
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-
 @Composable
 fun WebViewScreenContent(
     onNavigateUp: () -> Unit,
@@ -65,11 +57,8 @@ fun WebViewScreenContent(
 ) {
     val state = rememberWebViewState(url = url, additionalHttpHeaders = headers)
     val navigator = rememberWebViewNavigator()
-    val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
-    val network = remember { Injekt.get<NetworkHelper>() }
-    val spoofedPackageName = remember { WebViewUtil.spoofedPackageName(context) }
 
     var currentUrl by remember { mutableStateOf(url) }
     var showCloudflareHelp by remember { mutableStateOf(false) }
@@ -124,40 +113,6 @@ fun WebViewScreenContent(
                 }
                 return super.shouldOverrideUrlLoading(view, request)
             }
-
-            override fun shouldInterceptRequest(
-                view: WebView?,
-                request: WebResourceRequest?,
-            ): WebResourceResponse? {
-                return try {
-                    val internalRequest = Request.Builder().apply {
-                        url(request!!.url.toString())
-                        request.requestHeaders.forEach { (key, value) ->
-                            if (key == "X-Requested-With" && value in setOf(context.packageName, spoofedPackageName)) {
-                                return@forEach
-                            }
-                            addHeader(key, value)
-                        }
-                        method(request.method, null)
-                    }.build()
-
-                    val response = network.nonCloudflareClient.newCall(internalRequest).execute()
-
-                    val contentType = response.body.contentType()?.let { "${it.type}/${it.subtype}" } ?: "text/html"
-                    val contentEncoding = response.body.contentType()?.charset()?.name() ?: "utf-8"
-
-                    WebResourceResponse(
-                        contentType,
-                        contentEncoding,
-                        response.code,
-                        response.message,
-                        response.headers.associate { it.first to it.second },
-                        response.body.byteStream(),
-                    )
-                } catch (e: Throwable) {
-                    super.shouldInterceptRequest(view, request)
-                }
-            }
         }
     }
 
@@ -175,7 +130,7 @@ fun WebViewScreenContent(
                                 persistentListOf(
                                     AppBar.Action(
                                         title = stringResource(MR.strings.action_webview_back),
-                                        icon = Icons.Outlined.ArrowBack,
+                                        icon = Icons.AutoMirrored.Outlined.ArrowBack,
                                         onClick = {
                                             if (navigator.canGoBack) {
                                                 navigator.navigateBack()
@@ -185,7 +140,7 @@ fun WebViewScreenContent(
                                     ),
                                     AppBar.Action(
                                         title = stringResource(MR.strings.action_webview_forward),
-                                        icon = Icons.Outlined.ArrowForward,
+                                        icon = Icons.AutoMirrored.Outlined.ArrowForward,
                                         onClick = {
                                             if (navigator.canGoForward) {
                                                 navigator.navigateForward()
@@ -224,7 +179,7 @@ fun WebViewScreenContent(
                                     .clip(MaterialTheme.shapes.small)
                                     .clickable {
                                         uriHandler.openUri(
-                                            "https://aniyomi.org/docs/guides/troubleshooting/#cloudflare",
+                                            "https://mihon.app/docs/guides/troubleshooting/#cloudflare",
                                         )
                                     },
                             )

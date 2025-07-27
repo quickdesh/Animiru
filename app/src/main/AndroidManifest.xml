@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" >
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -9,7 +9,7 @@
 
     <!-- Storage -->
     <uses-permission
-        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
 
     <!-- For background jobs -->
@@ -45,7 +45,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:preserveLegacyExternalStorage="true"
         android:requestLegacyExternalStorage="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Tachiyomi">
 
@@ -53,7 +53,6 @@
             android:name=".ui.main.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.Tachiyomi.SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -61,7 +60,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Deep link to add manga repos -->
+            <!-- Deep link to add repos -->
             <intent-filter android:label="@string/action_add_repo">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -110,11 +109,10 @@
             android:exported="false"
             android:process=":error_handler" />
 
-
         <activity
-            android:name=".ui.deeplink.anime.DeepLinkAnimeActivity"
+            android:name=".ui.deeplink.DeepLinkActivity"
             android:exported="true"
-            android:label="@string/action_global_search"
+            android:label="@string/action_search"
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.NoDisplay">
             <intent-filter>
@@ -124,7 +122,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <intent-filter>
-                <action android:name="eu.kanade.tachiyomi.ANIMESEARCH" />
+                <action android:name="eu.kanade.tachiyomi.SEARCH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <intent-filter>
@@ -139,21 +137,18 @@
         </activity>
 
         <activity
-            android:name=".ui.player.PlayerActivity"
-            android:autoRemoveFromRecents="true"
-            android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize|keyboardHidden|keyboard|uiMode"
+            android:name=".ui.reader.ReaderActivity"
             android:exported="false"
-            android:launchMode="singleTask"
-            android:resizeableActivity="true"
-            android:supportsPictureInPicture="true"
-            android:theme="@style/Theme.Tachiyomi">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="com.samsung.android.support.REMOTE_ACTION" />
             </intent-filter>
 
-            <meta-data android:name="com.samsung.android.support.REMOTE_ACTION"
-                android:resource="@xml/s_pen_actions"/>
+            <meta-data
+                android:name="com.samsung.android.support.REMOTE_ACTION"
+                android:resource="@xml/s_pen_actions" />
         </activity>
+
         <activity
             android:name=".ui.security.UnlockActivity"
             android:exported="false"
@@ -165,7 +160,7 @@
             android:exported="false" />
 
         <activity
-            android:name=".extension.anime.util.AnimeExtensionInstallActivity"
+            android:name=".extension.util.ExtensionInstallActivity"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
@@ -179,73 +174,24 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="animiru"/>
+                <data android:scheme="animiru" />
 
-                <data android:host="myanimelist-auth" />
                 <data android:host="anilist-auth" />
                 <data android:host="bangumi-auth" />
+                <data android:host="myanimelist-auth" />
                 <data android:host="shikimori-auth" />
-                <data android:host="simkl-auth"/>
             </intent-filter>
         </activity>
-
-        <!--AM (SYNC_DRIVE) -->
-        <activity
-            android:name=".ui.setting.connection.GoogleDriveLoginActivity"
-            android:label="GoogleDrive"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:scheme="animiru.google.oauth" />
-            </intent-filter>
-        </activity>
-        <!--AM (SYNC_DRIVE) -->
-
-        <!--AM (DISCORD_RPC) -->
-        <activity android:label="Discord Login"
-            android:name=".ui.setting.connection.DiscordLoginActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:exported="false"
-            tools:ignore="AppLinkUrlError">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data
-                    android:scheme="https"
-                    android:host="account.samsung.com"
-                    android:path="/accounts/oauth/callback" />
-            </intent-filter>
-        </activity>
-        <service
-            android:name=".data.connection.discord.DiscordRPCService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="dataSync">
-            <intent-filter>
-                <action android:name ="android.intent.action.VIEW"/>
-                <category android:name ="android.intent.category.DEFAULT"/>
-                <category android:name ="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https"
-                    android:host="account.samsung.com"
-                    android:path="/accounts/oauth/callback"/>
-            </intent-filter>
-        </service>
-        <!--AM (DISCORD_RPC) -->
 
         <receiver
             android:name=".data.notification.NotificationReceiver"
             android:exported="false" />
 
         <service
-            android:name=".extension.anime.util.AnimeExtensionInstallService"
+            android:name=".extension.util.ExtensionInstallService"
             android:exported="false"
             android:foregroundServiceType="shortService" />
+
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"

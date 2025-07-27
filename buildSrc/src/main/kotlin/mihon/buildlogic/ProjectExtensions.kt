@@ -93,6 +93,7 @@ internal fun Project.configureCompose(commonExtension: CommonExtension<*, *, *, 
             rootBuildDir.resolve("compose-reports").resolve(relativePath).let(reportsDestination::set)
         }
     }
+
 }
 
 internal fun Project.configureTest() {

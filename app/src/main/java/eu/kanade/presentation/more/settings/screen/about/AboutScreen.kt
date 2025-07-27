@@ -51,7 +51,10 @@ import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.icons.CustomIcons
 import tachiyomi.presentation.core.icons.Discord
+import tachiyomi.presentation.core.icons.Facebook
 import tachiyomi.presentation.core.icons.Github
+import tachiyomi.presentation.core.icons.Reddit
+import tachiyomi.presentation.core.icons.X
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.time.Instant
@@ -146,17 +149,6 @@ object AboutScreen : Screen() {
 
                 item {
                     TextPreferenceWidget(
-                        title = stringResource(MR.strings.help_translate),
-                        onPreferenceClick = {
-                            uriHandler.openUri(
-                                "https://aniyomi.org/docs/contribute#translation",
-                            )
-                        },
-                    )
-                }
-
-                item {
-                    TextPreferenceWidget(
                         title = stringResource(MR.strings.licenses),
                         onPreferenceClick = { navigator.push(OpenSourceLicensesScreen()) },
                     )
@@ -165,7 +157,7 @@ object AboutScreen : Screen() {
                 item {
                     TextPreferenceWidget(
                         title = stringResource(MR.strings.privacy_policy),
-                        onPreferenceClick = { uriHandler.openUri("https://aniyomi.org/privacy/") },
+                        onPreferenceClick = { uriHandler.openUri("https://mihon.app/privacy/") },
                     )
                 }
 
@@ -179,17 +171,32 @@ object AboutScreen : Screen() {
                         LinkIcon(
                             label = stringResource(MR.strings.website),
                             icon = Icons.Outlined.Public,
-                            url = "https://aniyomi.org",
+                            url = "https://mihon.app",
                         )
                         LinkIcon(
                             label = "Discord",
                             icon = CustomIcons.Discord,
-                            url = "https://discord.gg/yDuHDMwxhv",
+                            url = "https://discord.gg/mihon",
+                        )
+                        LinkIcon(
+                            label = "X",
+                            icon = CustomIcons.X,
+                            url = "https://x.com/mihonapp",
+                        )
+                        LinkIcon(
+                            label = "Facebook",
+                            icon = CustomIcons.Facebook,
+                            url = "https://facebook.com/mihonapp",
+                        )
+                        LinkIcon(
+                            label = "Reddit",
+                            icon = CustomIcons.Reddit,
+                            url = "https://www.reddit.com/r/mihonapp",
                         )
                         LinkIcon(
                             label = "GitHub",
                             icon = CustomIcons.Github,
-                            url = "https://github.com/Quickdesh/Animiru",
+                            url = "https://github.com/mihonapp",
                         )
                     }
                 }
@@ -208,14 +215,7 @@ object AboutScreen : Screen() {
         val updateChecker = AppUpdateChecker()
         withUIContext {
             try {
-                when (
-                    val result = withIOContext {
-                        updateChecker.checkForUpdate(
-                            context,
-                            forceCheck = true,
-                        )
-                    }
-                ) {
+                when (val result = withIOContext { updateChecker.checkForUpdate(context, forceCheck = true) }) {
                     is GetApplicationRelease.Result.NewUpdate -> {
                         onAvailableUpdate(result)
                     }
@@ -248,7 +248,7 @@ object AboutScreen : Screen() {
                 }
             }
             isPreviewBuildType -> {
-                "Preview r${BuildConfig.COMMIT_COUNT}".let {
+                "Beta r${BuildConfig.COMMIT_COUNT}".let {
                     if (withBuildDate) {
                         "$it (${BuildConfig.COMMIT_SHA}, ${getFormattedBuildTime()})"
                     } else {

@@ -1,6 +1,6 @@
 package eu.kanade.tachiyomi.data.track.bangumi.dto
 
-import eu.kanade.tachiyomi.data.track.model.AnimeTrackSearch
+import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -27,7 +27,7 @@ data class BGMSubject(
     val rating: BGMSubjectRating?,
     val platform: String?,
 ) {
-    fun toAnimeTrackSearch(trackId: Long): AnimeTrackSearch = AnimeTrackSearch.create(trackId).apply {
+    fun toTrackSearch(trackId: Long): TrackSearch = TrackSearch.create(trackId).apply {
         remote_id = this@BGMSubject.id
         title = nameCn.ifBlank { name }
         cover_url = images?.common.orEmpty()
@@ -38,7 +38,7 @@ data class BGMSubject(
         }
         score = rating?.score ?: -1.0
         tracking_url = "https://bangumi.tv/subject/${this@BGMSubject.id}"
-        total_episodes = eps
+        total_chapters = eps
         start_date = date ?: ""
     }
 }

@@ -1,8 +1,8 @@
 package eu.kanade.tachiyomi.data.track.bangumi
 
-import eu.kanade.tachiyomi.data.database.models.anime.AnimeTrack
+import eu.kanade.tachiyomi.data.database.models.Track
 
-fun AnimeTrack.toApiStatus() = when (status) {
+fun Track.toApiStatus() = when (status) {
     Bangumi.PLAN_TO_READ -> 1
     Bangumi.COMPLETED -> 2
     Bangumi.READING -> 3

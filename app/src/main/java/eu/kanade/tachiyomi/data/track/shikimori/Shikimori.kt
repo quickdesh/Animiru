@@ -3,28 +3,20 @@ package eu.kanade.tachiyomi.data.track.shikimori
 import android.graphics.Color
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.database.models.anime.AnimeTrack
-import eu.kanade.tachiyomi.data.track.AnimeTracker
+import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
-import eu.kanade.tachiyomi.data.track.DeletableAnimeTracker
-import eu.kanade.tachiyomi.data.track.model.AnimeTrackSearch
+import eu.kanade.tachiyomi.data.track.DeletableTracker
+import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMOAuth
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.injectLazy
-import tachiyomi.domain.track.anime.model.AnimeTrack as DomainAnimeTrack
+import tachiyomi.domain.track.model.Track as DomainTrack
 
-class Shikimori(id: Long) :
-    BaseTracker(
-        id,
-        "Shikimori",
-    ),
-    AnimeTracker,
-    DeletableAnimeTracker {
+class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
 
     companion object {
         const val READING = 1L
@@ -47,22 +39,18 @@ class Shikimori(id: Long) :
 
     override fun getScoreList(): ImmutableList<String> = SCORE_LIST
 
-    override fun indexToScore(index: Int): Double {
-        return index.toDouble()
-    }
-
-    override fun displayScore(track: DomainAnimeTrack): String {
+    override fun displayScore(track: DomainTrack): String {
         return track.score.toInt().toString()
     }
 
-    private suspend fun add(track: AnimeTrack): AnimeTrack {
-        return api.addLibAnime(track, getUsername())
+    private suspend fun add(track: Track): Track {
+        return api.addLibManga(track, getUsername())
     }
 
-    override suspend fun update(track: AnimeTrack, didWatchEpisode: Boolean): AnimeTrack {
+    override suspend fun update(track: Track, didReadChapter: Boolean): Track {
         if (track.status != COMPLETED) {
-            if (didWatchEpisode) {
-                if (track.last_episode_seen.toLong() == track.total_episodes && track.total_episodes > 0) {
+            if (didReadChapter) {
+                if (track.last_chapter_read.toLong() == track.total_chapters && track.total_chapters > 0) {
                     track.status = COMPLETED
                 } else if (track.status != REREADING) {
                     track.status = READING
@@ -70,43 +58,43 @@ class Shikimori(id: Long) :
             }
         }
 
-        return api.updateLibAnime(track, getUsername())
+        return api.updateLibManga(track, getUsername())
     }
 
-    override suspend fun delete(track: DomainAnimeTrack) {
-        api.deleteLibAnime(track)
+    override suspend fun delete(track: DomainTrack) {
+        api.deleteLibManga(track)
     }
 
-    override suspend fun bind(track: AnimeTrack, hasSeenEpisodes: Boolean): AnimeTrack {
-        val remoteTrack = api.findLibAnime(track, getUsername())
+    override suspend fun bind(track: Track, hasReadChapters: Boolean): Track {
+        val remoteTrack = api.findLibManga(track, getUsername())
         return if (remoteTrack != null) {
             track.copyPersonalFrom(remoteTrack)
             track.library_id = remoteTrack.library_id
 
             if (track.status != COMPLETED) {
                 val isRereading = track.status == REREADING
-                track.status = if (!isRereading && hasSeenEpisodes) READING else track.status
+                track.status = if (!isRereading && hasReadChapters) READING else track.status
             }
 
             update(track)
         } else {
             // Set default fields if it's not found in the list
-            track.status = if (hasSeenEpisodes) READING else PLAN_TO_READ
+            track.status = if (hasReadChapters) READING else PLAN_TO_READ
             track.score = 0.0
             add(track)
         }
     }
 
-    override suspend fun searchAnime(query: String): List<AnimeTrackSearch> {
-        return api.searchAnime(query)
+    override suspend fun search(query: String): List<TrackSearch> {
+        return api.search(query)
     }
 
-    override suspend fun refresh(track: AnimeTrack): AnimeTrack {
-        api.findLibAnime(track, getUsername())?.let { remoteTrack ->
+    override suspend fun refresh(track: Track): Track {
+        api.findLibManga(track, getUsername())?.let { remoteTrack ->
             track.library_id = remoteTrack.library_id
             track.copyPersonalFrom(remoteTrack)
-            track.total_episodes = remoteTrack.total_episodes
-        } ?: throw Exception("Could not find anime")
+            track.total_chapters = remoteTrack.total_chapters
+        } ?: throw Exception("Could not find manga")
         return track
     }
 
@@ -114,23 +102,23 @@ class Shikimori(id: Long) :
 
     override fun getLogoColor() = Color.rgb(40, 40, 40)
 
-    override fun getStatusListAnime(): List<Long> {
+    override fun getStatusList(): List<Long> {
         return listOf(READING, COMPLETED, ON_HOLD, DROPPED, PLAN_TO_READ, REREADING)
     }
 
-    override fun getStatusForAnime(status: Long): StringResource? = when (status) {
-        READING -> AYMR.strings.watching
-        PLAN_TO_READ -> AYMR.strings.plan_to_watch
+    override fun getStatus(status: Long): StringResource? = when (status) {
+        READING -> MR.strings.reading
+        PLAN_TO_READ -> MR.strings.plan_to_read
         COMPLETED -> MR.strings.completed
         ON_HOLD -> MR.strings.on_hold
         DROPPED -> MR.strings.dropped
-        REREADING -> AYMR.strings.repeating_anime
+        REREADING -> MR.strings.repeating
         else -> null
     }
 
-    override fun getWatchingStatus(): Long = READING
+    override fun getReadingStatus(): Long = READING
 
-    override fun getRewatchingStatus(): Long = REREADING
+    override fun getRereadingStatus(): Long = REREADING
 
     override fun getCompletionStatus(): Long = COMPLETED
 

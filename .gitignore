@@ -6,7 +6,7 @@ build
 # IDE files
 *.iml
 .idea/*
-!.idea/icon.png
+!.idea/icon.svg
 /captures
 
 # Configuration files
@@ -14,7 +14,3 @@ local.properties
 
 # macOS specific files
 .DS_Store
-
-# AM (SYNC_DRIVE) -->
-/app/src/main/assets/client_secrets.json
-# <-- AM (SYNC_DRIVE)

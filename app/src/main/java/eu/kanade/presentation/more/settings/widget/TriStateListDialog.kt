@@ -1,6 +1,5 @@
 package eu.kanade.presentation.more.settings.widget
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,7 +37,6 @@ private enum class State {
     UNCHECKED,
 }
 
-@SuppressLint("ComposeParameterOrder")
 @Composable
 fun <T> TriStateListDialog(
     title: String,
@@ -49,9 +47,6 @@ fun <T> TriStateListDialog(
     itemLabel: @Composable (T) -> String,
     onDismissRequest: () -> Unit,
     onValueChanged: (newIncluded: List<T>, newExcluded: List<T>) -> Unit,
-    // AM (DISCORD_RPC) -->
-    onlyChecked: Boolean = false,
-    // <-- AM (DISCORD_RPC)
 ) {
     val selected = remember {
         items
@@ -87,9 +82,7 @@ fun <T> TriStateListDialog(
                                     .clickable {
                                         selected[index] = when (state) {
                                             State.UNCHECKED -> State.CHECKED
-                                            // AM (DISCORD_RPC) -->
-                                            State.CHECKED -> if (onlyChecked) State.UNCHECKED else State.INVERSED
-                                            // <-- AM (DISCORD_RPC)
+                                            State.CHECKED -> State.INVERSED
                                             State.INVERSED -> State.UNCHECKED
                                         }
                                     }
@@ -111,8 +104,8 @@ fun <T> TriStateListDialog(
                                     },
                                     contentDescription = stringResource(
                                         when (state) {
-                                            State.UNCHECKED -> MR.strings.disabled
-                                            State.CHECKED -> MR.strings.disabled
+                                            State.UNCHECKED -> MR.strings.not_selected
+                                            State.CHECKED -> MR.strings.selected
                                             State.INVERSED -> MR.strings.disabled
                                         },
                                     ),

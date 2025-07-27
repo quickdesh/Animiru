@@ -1,4 +1,3 @@
-// AM (REMOVE_TABBED_SCREENS) -->
 package eu.kanade.tachiyomi.ui.download
 
 import android.view.LayoutInflater
@@ -15,7 +14,6 @@ import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -54,28 +52,26 @@ import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.components.NestedMenuItem
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.databinding.DownloadListBinding
-import eu.kanade.tachiyomi.ui.download.anime.AnimeDownloadAdapter
-import eu.kanade.tachiyomi.ui.download.anime.AnimeDownloadHeaderItem
-import eu.kanade.tachiyomi.ui.download.anime.AnimeDownloadQueueScreenModel
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.Pill
+import tachiyomi.presentation.core.components.material.ExtendedFloatingActionButton
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import kotlin.math.roundToInt
 
 object DownloadQueueScreen : Screen() {
+
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
-        val animeScreenModel = rememberScreenModel { AnimeDownloadQueueScreenModel() }
-        val animeDownloadList by animeScreenModel.state.collectAsState()
-        val animeDownloadCount by remember {
-            derivedStateOf { animeDownloadList.sumOf { it.subItems.size } }
+        val screenModel = rememberScreenModel { DownloadQueueScreenModel() }
+        val downloadList by screenModel.state.collectAsState()
+        val downloadCount by remember {
+            derivedStateOf { downloadList.sumOf { it.subItems.size } }
         }
 
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -113,10 +109,10 @@ object DownloadQueueScreen : Screen() {
                                 modifier = Modifier.weight(1f, false),
                                 overflow = TextOverflow.Ellipsis,
                             )
-                            if (animeDownloadCount > 0) {
+                            if (downloadCount > 0) {
                                 val pillAlpha = if (isSystemInDarkTheme()) 0.12f else 0.08f
                                 Pill(
-                                    text = "$animeDownloadCount",
+                                    text = "$downloadCount",
                                     modifier = Modifier.padding(start = 4.dp),
                                     color = MaterialTheme.colorScheme.onBackground
                                         .copy(alpha = pillAlpha),
@@ -126,20 +122,94 @@ object DownloadQueueScreen : Screen() {
                         }
                     },
                     navigateUp = navigator::pop,
-                    actions = { AnimeActions(animeScreenModel, animeDownloadList) },
+                    actions = {
+                        if (downloadList.isNotEmpty()) {
+                            var sortExpanded by remember { mutableStateOf(false) }
+                            val onDismissRequest = { sortExpanded = false }
+                            DropdownMenu(
+                                expanded = sortExpanded,
+                                onDismissRequest = onDismissRequest,
+                            ) {
+                                NestedMenuItem(
+                                    text = { Text(text = stringResource(MR.strings.action_order_by_upload_date)) },
+                                    children = { closeMenu ->
+                                        DropdownMenuItem(
+                                            text = { Text(text = stringResource(MR.strings.action_newest)) },
+                                            onClick = {
+                                                screenModel.reorderQueue(
+                                                    { it.download.chapter.dateUpload },
+                                                    true,
+                                                )
+                                                closeMenu()
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(text = stringResource(MR.strings.action_oldest)) },
+                                            onClick = {
+                                                screenModel.reorderQueue(
+                                                    { it.download.chapter.dateUpload },
+                                                    false,
+                                                )
+                                                closeMenu()
+                                            },
+                                        )
+                                    },
+                                )
+                                NestedMenuItem(
+                                    text = { Text(text = stringResource(MR.strings.action_order_by_chapter_number)) },
+                                    children = { closeMenu ->
+                                        DropdownMenuItem(
+                                            text = { Text(text = stringResource(MR.strings.action_asc)) },
+                                            onClick = {
+                                                screenModel.reorderQueue(
+                                                    { it.download.chapter.chapterNumber },
+                                                    false,
+                                                )
+                                                closeMenu()
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(text = stringResource(MR.strings.action_desc)) },
+                                            onClick = {
+                                                screenModel.reorderQueue(
+                                                    { it.download.chapter.chapterNumber },
+                                                    true,
+                                                )
+                                                closeMenu()
+                                            },
+                                        )
+                                    },
+                                )
+                            }
+
+                            AppBarActions(
+                                persistentListOf(
+                                    AppBar.Action(
+                                        title = stringResource(MR.strings.action_sort),
+                                        icon = Icons.AutoMirrored.Outlined.Sort,
+                                        onClick = { sortExpanded = true },
+                                    ),
+                                    AppBar.OverflowAction(
+                                        title = stringResource(MR.strings.action_cancel_all),
+                                        onClick = { screenModel.clearQueue() },
+                                    ),
+                                ),
+                            )
+                        }
+                    },
                     scrollBehavior = scrollBehavior,
                 )
             },
             floatingActionButton = {
                 AnimatedVisibility(
-                    visible = animeDownloadList.isNotEmpty(),
+                    visible = downloadList.isNotEmpty(),
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {
-                    val animeIsRunning by animeScreenModel.isDownloaderRunning.collectAsState()
+                    val isRunning by screenModel.isDownloaderRunning.collectAsState()
                     ExtendedFloatingActionButton(
                         text = {
-                            val id = if (animeIsRunning) {
+                            val id = if (isRunning) {
                                 MR.strings.action_pause
                             } else {
                                 MR.strings.action_resume
@@ -147,7 +217,7 @@ object DownloadQueueScreen : Screen() {
                             Text(text = stringResource(id))
                         },
                         icon = {
-                            val icon = if (animeIsRunning) {
+                            val icon = if (isRunning) {
                                 Icons.Outlined.Pause
                             } else {
                                 Icons.Filled.PlayArrow
@@ -155,10 +225,10 @@ object DownloadQueueScreen : Screen() {
                             Icon(imageVector = icon, contentDescription = null)
                         },
                         onClick = {
-                            if (animeIsRunning) {
-                                animeScreenModel.pauseDownloads()
+                            if (isRunning) {
+                                screenModel.pauseDownloads()
                             } else {
-                                animeScreenModel.startDownloads()
+                                screenModel.startDownloads()
                             }
                         },
                         expanded = fabExpanded,
@@ -166,7 +236,7 @@ object DownloadQueueScreen : Screen() {
                 }
             },
         ) { contentPadding ->
-            if (animeDownloadList.isEmpty()) {
+            if (downloadList.isEmpty()) {
                 EmptyScreen(
                     stringRes = MR.strings.information_no_downloads,
                     modifier = Modifier.padding(contentPadding),
@@ -185,31 +255,27 @@ object DownloadQueueScreen : Screen() {
                 AndroidView(
                     modifier = Modifier.fillMaxWidth(),
                     factory = { context ->
-                        animeScreenModel.controllerBinding = DownloadListBinding.inflate(
-                            LayoutInflater.from(context),
-                        )
-                        animeScreenModel.adapter = AnimeDownloadAdapter(animeScreenModel.listener)
-                        animeScreenModel.controllerBinding.root.adapter = animeScreenModel.adapter
-                        animeScreenModel.adapter?.isHandleDragEnabled = true
-                        animeScreenModel.controllerBinding.root.layoutManager = LinearLayoutManager(
-                            context,
-                        )
+                        screenModel.controllerBinding = DownloadListBinding.inflate(LayoutInflater.from(context))
+                        screenModel.adapter = DownloadAdapter(screenModel.listener)
+                        screenModel.controllerBinding.root.adapter = screenModel.adapter
+                        screenModel.adapter?.isHandleDragEnabled = true
+                        screenModel.controllerBinding.root.layoutManager = LinearLayoutManager(context)
 
-                        ViewCompat.setNestedScrollingEnabled(animeScreenModel.controllerBinding.root, true)
+                        ViewCompat.setNestedScrollingEnabled(screenModel.controllerBinding.root, true)
 
                         scope.launchUI {
-                            animeScreenModel.getDownloadStatusFlow()
-                                .collect(animeScreenModel::onStatusChange)
+                            screenModel.getDownloadStatusFlow()
+                                .collect(screenModel::onStatusChange)
                         }
                         scope.launchUI {
-                            animeScreenModel.getDownloadProgressFlow()
-                                .collect(animeScreenModel::onUpdateDownloadedPages)
+                            screenModel.getDownloadProgressFlow()
+                                .collect(screenModel::onUpdateDownloadedPages)
                         }
 
-                        animeScreenModel.controllerBinding.root
+                        screenModel.controllerBinding.root
                     },
                     update = {
-                        animeScreenModel.controllerBinding.root
+                        screenModel.controllerBinding.root
                             .updatePadding(
                                 left = left,
                                 top = top,
@@ -217,95 +283,10 @@ object DownloadQueueScreen : Screen() {
                                 bottom = bottom,
                             )
 
-                        animeScreenModel.adapter?.updateDataSet(animeDownloadList)
+                        screenModel.adapter?.updateDataSet(downloadList)
                     },
                 )
             }
-        }
-    }
-
-    @Composable
-    private fun AnimeActions(
-        animeScreenModel: AnimeDownloadQueueScreenModel,
-        animeDownloadList: List<AnimeDownloadHeaderItem>,
-    ) {
-        if (animeDownloadList.isNotEmpty()) {
-            var sortExpanded by remember { mutableStateOf(false) }
-            val onDismissRequest = { sortExpanded = false }
-            DropdownMenu(
-                expanded = sortExpanded,
-                onDismissRequest = onDismissRequest,
-            ) {
-                NestedMenuItem(
-                    text = { Text(text = stringResource(MR.strings.action_order_by_upload_date)) },
-                    children = { closeMenu ->
-                        DropdownMenuItem(
-                            text = { Text(text = stringResource(MR.strings.action_newest)) },
-                            onClick = {
-                                animeScreenModel.reorderQueue(
-                                    { it.download.episode.dateUpload },
-                                    true,
-                                )
-                                closeMenu()
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(text = stringResource(MR.strings.action_oldest)) },
-                            onClick = {
-                                animeScreenModel.reorderQueue(
-                                    { it.download.episode.dateUpload },
-                                    false,
-                                )
-                                closeMenu()
-                            },
-                        )
-                    },
-                )
-                NestedMenuItem(
-                    text = {
-                        Text(
-                            text = stringResource(AYMR.strings.action_order_by_episode_number),
-                        )
-                    },
-                    children = { closeMenu ->
-                        DropdownMenuItem(
-                            text = { Text(text = stringResource(MR.strings.action_asc)) },
-                            onClick = {
-                                animeScreenModel.reorderQueue(
-                                    { it.download.episode.episodeNumber },
-                                    false,
-                                )
-                                closeMenu()
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(text = stringResource(MR.strings.action_desc)) },
-                            onClick = {
-                                animeScreenModel.reorderQueue(
-                                    { it.download.episode.episodeNumber },
-                                    true,
-                                )
-                                closeMenu()
-                            },
-                        )
-                    },
-                )
-            }
-
-            AppBarActions(
-                persistentListOf(
-                    AppBar.Action(
-                        title = stringResource(MR.strings.action_sort),
-                        icon = Icons.AutoMirrored.Outlined.Sort,
-                        onClick = { sortExpanded = true },
-                    ),
-                    AppBar.OverflowAction(
-                        title = stringResource(MR.strings.action_cancel_all),
-                        onClick = { animeScreenModel.clearQueue() },
-                    ),
-                ),
-            )
         }
     }
 }
-// <-- AM (REMOVE_TABBED_SCREENS)

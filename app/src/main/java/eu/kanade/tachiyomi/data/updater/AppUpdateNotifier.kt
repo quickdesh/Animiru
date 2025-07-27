@@ -81,9 +81,7 @@ internal class AppUpdateNotifier(private val context: Context) {
     fun onDownloadStarted(title: String? = null): NotificationCompat.Builder {
         with(notificationBuilder) {
             title?.let { setContentTitle(title) }
-            setContentText(
-                context.stringResource(MR.strings.update_check_notification_download_in_progress),
-            )
+            setContentText(context.stringResource(MR.strings.update_check_notification_download_in_progress))
             setSmallIcon(android.R.drawable.stat_sys_download)
             setOngoing(true)
 
@@ -135,10 +133,7 @@ internal class AppUpdateNotifier(private val context: Context) {
             addAction(
                 R.drawable.ic_close_24dp,
                 context.stringResource(MR.strings.action_cancel),
-                NotificationReceiver.dismissNotificationPendingBroadcast(
-                    context,
-                    Notifications.ID_APP_UPDATE_PROMPT,
-                ),
+                NotificationReceiver.dismissNotificationPendingBroadcast(context, Notifications.ID_APP_UPDATE_PROMPT),
             )
         }
         notificationBuilder.show(Notifications.ID_APP_UPDATE_PROMPT)

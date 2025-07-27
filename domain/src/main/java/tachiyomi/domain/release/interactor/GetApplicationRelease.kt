@@ -20,11 +20,8 @@ class GetApplicationRelease(
         val now = Instant.now()
 
         // Limit checks to once every 3 days at most
-        if (!arguments.forceCheck &&
-            now.isBefore(
-                Instant.ofEpochMilli(lastChecked.get()).plus(3, ChronoUnit.DAYS),
-            )
-        ) {
+        val nextCheckTime = Instant.ofEpochMilli(lastChecked.get()).plus(3, ChronoUnit.DAYS)
+        if (!arguments.forceCheck && now.isBefore(nextCheckTime)) {
             return Result.NoNewUpdate
         }
 
@@ -54,11 +51,11 @@ class GetApplicationRelease(
         // Removes prefixes like "r" or "v"
         val newVersion = versionTag.replace("[^\\d.]".toRegex(), "")
         return if (isPreview) {
-            // Preview builds: based on releases in "tachiyomiorg/tachiyomi-preview" repo
+            // Preview builds: based on releases in "mihonapp/mihon-preview" repo
             // tagged as something like "r1234"
             newVersion.toInt() > commitCount
         } else {
-            // Release builds: based on releases in "tachiyomiorg/tachiyomi" repo
+            // Release builds: based on releases in "mihonapp/mihon" repo
             // tagged as something like "v0.1.2"
             val oldVersion = versionName.replace("[^\\d.]".toRegex(), "")
 
@@ -76,6 +73,7 @@ class GetApplicationRelease(
     }
 
     data class Arguments(
+        val isFoss: Boolean,
         val isPreview: Boolean,
         val commitCount: Int,
         val versionName: String,

@@ -1,4 +1,3 @@
-// AM (REMOVE_TABBED_SCREENS) -->
 package eu.kanade.tachiyomi.ui.category
 
 import androidx.compose.runtime.Composable
@@ -8,59 +7,54 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.util.fastMap
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import eu.kanade.presentation.category.AnimeCategoryScreen
+import eu.kanade.presentation.category.CategoryScreen
 import eu.kanade.presentation.category.components.CategoryCreateDialog
 import eu.kanade.presentation.category.components.CategoryDeleteDialog
 import eu.kanade.presentation.category.components.CategoryRenameDialog
-import eu.kanade.tachiyomi.ui.category.anime.AnimeCategoryDialog
-import eu.kanade.tachiyomi.ui.category.anime.AnimeCategoryEvent
-import eu.kanade.tachiyomi.ui.category.anime.AnimeCategoryScreenModel
-import eu.kanade.tachiyomi.ui.category.anime.AnimeCategoryScreenState
+import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import tachiyomi.presentation.core.screens.LoadingScreen
 
-class CategoryScreen : Screen {
+class CategoryScreen : Screen() {
 
     @Composable
     override fun Content() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { AnimeCategoryScreenModel() }
+        val screenModel = rememberScreenModel { CategoryScreenModel() }
 
         val state by screenModel.state.collectAsState()
 
-        if (state is AnimeCategoryScreenState.Loading) {
+        if (state is CategoryScreenState.Loading) {
             LoadingScreen()
             return
         }
 
-        val successState = state as AnimeCategoryScreenState.Success
+        val successState = state as CategoryScreenState.Success
 
-        AnimeCategoryScreen(
+        CategoryScreen(
             state = successState,
-            onClickCreate = { screenModel.showDialog(AnimeCategoryDialog.Create) },
-            onClickRename = { screenModel.showDialog(AnimeCategoryDialog.Rename(it)) },
-            onClickDelete = { screenModel.showDialog(AnimeCategoryDialog.Delete(it)) },
-            onClickHide = screenModel::hideCategory,
+            onClickCreate = { screenModel.showDialog(CategoryDialog.Create) },
+            onClickRename = { screenModel.showDialog(CategoryDialog.Rename(it)) },
+            onClickDelete = { screenModel.showDialog(CategoryDialog.Delete(it)) },
             onChangeOrder = screenModel::changeOrder,
             navigateUp = navigator::pop,
         )
 
         when (val dialog = successState.dialog) {
             null -> {}
-            AnimeCategoryDialog.Create -> {
+            CategoryDialog.Create -> {
                 CategoryCreateDialog(
                     onDismissRequest = screenModel::dismissDialog,
-                    onCreate = { screenModel.createCategory(it) },
+                    onCreate = screenModel::createCategory,
                     categories = successState.categories.fastMap { it.name }.toImmutableList(),
                 )
             }
-            is AnimeCategoryDialog.Rename -> {
+            is CategoryDialog.Rename -> {
                 CategoryRenameDialog(
                     onDismissRequest = screenModel::dismissDialog,
                     onRename = { screenModel.renameCategory(dialog.category, it) },
@@ -68,7 +62,7 @@ class CategoryScreen : Screen {
                     category = dialog.category.name,
                 )
             }
-            is AnimeCategoryDialog.Delete -> {
+            is CategoryDialog.Delete -> {
                 CategoryDeleteDialog(
                     onDismissRequest = screenModel::dismissDialog,
                     onDelete = { screenModel.deleteCategory(dialog.category.id) },
@@ -79,11 +73,10 @@ class CategoryScreen : Screen {
 
         LaunchedEffect(Unit) {
             screenModel.events.collectLatest { event ->
-                if (event is AnimeCategoryEvent.LocalizedMessage) {
+                if (event is CategoryEvent.LocalizedMessage) {
                     context.toast(event.stringRes)
                 }
             }
         }
     }
 }
-// <-- AM (REMOVE_TABBED_SCREENS)

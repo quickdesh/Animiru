@@ -10,9 +10,7 @@ class SetupBackupCreateMigration : Migration {
 
     override suspend fun invoke(migrationContext: MigrationContext): Boolean {
         val context = migrationContext.get<Application>() ?: return false
-
         BackupCreateJob.setupTask(context)
-
         return true
     }
 }

@@ -12,7 +12,6 @@ class TrackLoginActivity : BaseOAuthLoginActivity() {
             "bangumi-auth" -> handleBangumi(data)
             "myanimelist-auth" -> handleMyAnimeList(data)
             "shikimori-auth" -> handleShikimori(data)
-            "simkl-auth" -> handleSimkl(data)
         }
     }
 
@@ -65,19 +64,6 @@ class TrackLoginActivity : BaseOAuthLoginActivity() {
             }
         } else {
             trackerManager.shikimori.logout()
-            returnToSettings()
-        }
-    }
-
-    private fun handleSimkl(data: Uri?) {
-        val code = data?.getQueryParameter("code")
-        if (code != null) {
-            lifecycleScope.launchIO {
-                trackerManager.simkl.login(code)
-                returnToSettings()
-            }
-        } else {
-            trackerManager.simkl.logout()
             returnToSettings()
         }
     }

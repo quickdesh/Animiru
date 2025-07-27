@@ -27,18 +27,6 @@ android {
         buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLastCommitTime = false)}\"")
         buildConfigField("boolean", "UPDATER_ENABLED", "${Config.enableUpdater}")
 
-        // Put these fields in acra.properties
-        // val acraProperties = Properties()
-        // rootProject.file("acra.properties")
-        //     .takeIf { it.exists() }
-        //     ?.let { acraProperties.load(FileInputStream(it)) }
-        // val acraUri = acraProperties.getProperty("ACRA_URI", "")
-        // val acraLogin = acraProperties.getProperty("ACRA_LOGIN", "")
-        // val acraPassword = acraProperties.getProperty("ACRA_PASSWORD", "")
-        // buildConfigField("String", "ACRA_URI", "\"$acraUri\"")
-        // buildConfigField("String", "ACRA_LOGIN", "\"$acraLogin\"")
-        // buildConfigField("String", "ACRA_PASSWORD", "\"$acraPassword\"")
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -182,7 +170,6 @@ kotlin {
 
 dependencies {
     implementation(projects.i18n)
-    implementation(projects.i18nAniyomi)
     implementation(projects.core.archive)
     implementation(projects.core.common)
     implementation(projects.coreMetadata)
@@ -222,15 +209,11 @@ dependencies {
     implementation(androidx.appcompat)
     implementation(androidx.biometricktx)
     implementation(androidx.constraintlayout)
-    implementation(aniyomilibs.compose.constraintlayout)
     implementation(androidx.corektx)
     implementation(androidx.splashscreen)
     implementation(androidx.recyclerview)
-    // AM (REMOVE_LIBRARIES) -->
-    // implementation(androidx.viewpager)
-    // <-- AM (REMOVE_LIBRARIES)
+    implementation(androidx.viewpager)
     implementation(androidx.profileinstaller)
-    implementation(aniyomilibs.mediasession)
 
     implementation(androidx.bundles.lifecycle)
 
@@ -264,20 +247,20 @@ dependencies {
     // Image loading
     implementation(platform(libs.coil.bom))
     implementation(libs.bundles.coil)
-    implementation(libs.subsamplingscaleimageview) { exclude(module = "image-decoder") }
-    // AM (REMOVE_LIBRARIES) -->
-    // implementation(libs.image.decoder)
-    // <-- AM (REMOVE_LIBRARIES)
+    implementation(libs.subsamplingscaleimageview) {
+        exclude(module = "image-decoder")
+    }
+    implementation(libs.image.decoder)
 
     // UI libraries
     implementation(libs.material)
     implementation(libs.flexible.adapter.core)
-    // AM (REMOVE_LIBRARIES) -->
-    // implementation(libs.photoview)
-    // implementation(libs.directionalviewpager) { exclude(group = "androidx.viewpager", module = "viewpager") }
-    // implementation(libs.insetter)
-    // <-- AM (REMOVE_LIBRARIES)
-    implementation(libs.bundles.richtext)
+    implementation(libs.photoview)
+    implementation(libs.directionalviewpager) {
+        exclude(group = "androidx.viewpager", module = "viewpager")
+    }
+    implementation(libs.insetter)
+    implementation(libs.richeditor.compose)
     implementation(libs.aboutLibraries.compose)
     implementation(libs.bundles.voyager)
     implementation(libs.compose.materialmotion)
@@ -285,6 +268,7 @@ dependencies {
     implementation(libs.compose.webview)
     implementation(libs.compose.grid)
     implementation(libs.reorderable)
+    implementation(libs.bundles.markdown)
 
     // Logging
     implementation(libs.logcat)
@@ -292,43 +276,21 @@ dependencies {
     // Shizuku
     implementation(libs.bundles.shizuku)
 
+    // String similarity
+    implementation(libs.stringSimilarity)
+
     // Tests
     testImplementation(libs.bundles.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
 
     // For detecting memory leaks; see https://square.github.io/leakcanary/
     // debugImplementation(libs.leakcanary.android)
-
-    // AM (REMOVE_LIBRARIES) -->
-    // implementation(libs.leakcanary.plumber)
-    // <-- AM (REMOVE_LIBRARIES)
+    implementation(libs.leakcanary.plumber)
 
     testImplementation(kotlinx.coroutines.test)
-
-    // mpv-android
-    implementation(aniyomilibs.aniyomi.mpv)
-    // FFmpeg-kit
-    implementation(aniyomilibs.ffmpeg.kit)
-    implementation(aniyomilibs.arthenica.smartexceptions)
-    // seeker seek bar
-    implementation(aniyomilibs.seeker)
-    // true type parser
-    implementation(aniyomilibs.truetypeparser)
-
-    // AM (SYNC_DRIVE) -->
-    implementation(aniyomilibs.google.api.services.drive)
-    implementation(aniyomilibs.google.api.client.oauth)
-    // <-- AM (SYNC_DRIVE)
 }
 
 androidComponents {
-    beforeVariants { variantBuilder ->
-        // Disables standardBenchmark
-        if (variantBuilder.buildType == "benchmark") {
-            variantBuilder.enable = variantBuilder.productFlavors.containsAll(
-                listOf("default" to "dev"),
-            )
-        }
-    }
     onVariants(selector().withFlavor("default" to "standard")) {
         // Only excluding in standard flavor because this breaks
         // Layout Inspector's Compose tree

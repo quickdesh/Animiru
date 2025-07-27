@@ -28,59 +28,67 @@ object SettingsSecurityScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
-        val context = LocalContext.current
         val securityPreferences = remember { Injekt.get<SecurityPreferences>() }
-        val authSupported = remember { context.isAuthenticationSupported() }
+        return buildList(1) {
+            add(getSecurityGroup(securityPreferences))
+        }
+    }
 
+    @Composable
+    private fun getSecurityGroup(
+        securityPreferences: SecurityPreferences,
+    ): Preference.PreferenceGroup {
+        val context = LocalContext.current
+        val authSupported = remember { context.isAuthenticationSupported() }
         val useAuthPref = securityPreferences.useAuthenticator()
         val useAuth by useAuthPref.collectAsState()
 
-        return listOf(
-            Preference.PreferenceItem.SwitchPreference(
-                preference = useAuthPref,
-                title = stringResource(MR.strings.lock_with_biometrics),
-                enabled = authSupported,
-                onValueChanged = {
-                    (context as FragmentActivity).authenticate(
-                        title = context.stringResource(MR.strings.lock_with_biometrics),
-                    )
-                },
-            ),
-            Preference.PreferenceItem.ListPreference(
-                preference = securityPreferences.lockAppAfter(),
-                entries = LockAfterValues
-                    .associateWith {
-                        when (it) {
-                            -1 -> stringResource(MR.strings.lock_never)
-                            0 -> stringResource(MR.strings.lock_always)
-                            else -> pluralStringResource(
-                                MR.plurals.lock_after_mins,
-                                count = it,
-                                it,
-                            )
+        return Preference.PreferenceGroup(
+            title = stringResource(MR.strings.pref_security),
+            preferenceItems = persistentListOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = useAuthPref,
+                    title = stringResource(MR.strings.lock_with_biometrics),
+                    enabled = authSupported,
+                    onValueChanged = {
+                        (context as FragmentActivity).authenticate(
+                            title = context.stringResource(MR.strings.lock_with_biometrics),
+                        )
+                    },
+                ),
+                Preference.PreferenceItem.ListPreference(
+                    preference = securityPreferences.lockAppAfter(),
+                    entries = LockAfterValues
+                        .associateWith {
+                            when (it) {
+                                -1 -> stringResource(MR.strings.lock_never)
+                                0 -> stringResource(MR.strings.lock_always)
+                                else -> pluralStringResource(MR.plurals.lock_after_mins, count = it, it)
+                            }
                         }
-                    }
-                    .toImmutableMap(),
-                title = stringResource(MR.strings.lock_when_idle),
-                enabled = authSupported && useAuth,
-                onValueChanged = {
-                    (context as FragmentActivity).authenticate(
-                        title = context.stringResource(MR.strings.lock_when_idle),
-                    )
-                },
+                        .toImmutableMap(),
+                    title = stringResource(MR.strings.lock_when_idle),
+                    enabled = authSupported && useAuth,
+                    onValueChanged = {
+                        (context as FragmentActivity).authenticate(
+                            title = context.stringResource(MR.strings.lock_when_idle),
+                        )
+                    },
+                ),
+
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = securityPreferences.hideNotificationContent(),
+                    title = stringResource(MR.strings.hide_notification_content),
+                ),
+                Preference.PreferenceItem.ListPreference(
+                    preference = securityPreferences.secureScreen(),
+                    entries = SecurityPreferences.SecureScreenMode.entries
+                        .associateWith { stringResource(it.titleRes) }
+                        .toImmutableMap(),
+                    title = stringResource(MR.strings.secure_screen),
+                ),
+                Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.secure_screen_summary)),
             ),
-            Preference.PreferenceItem.SwitchPreference(
-                preference = securityPreferences.hideNotificationContent(),
-                title = stringResource(MR.strings.hide_notification_content),
-            ),
-            Preference.PreferenceItem.ListPreference(
-                preference = securityPreferences.secureScreen(),
-                entries = SecurityPreferences.SecureScreenMode.entries
-                    .associateWith { stringResource(it.titleRes) }
-                    .toImmutableMap(),
-                title = stringResource(MR.strings.secure_screen),
-            ),
-            Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.secure_screen_summary)),
         )
     }
 }
