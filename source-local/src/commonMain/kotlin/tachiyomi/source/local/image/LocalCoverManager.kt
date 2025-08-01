@@ -6,7 +6,7 @@ import java.io.InputStream
 
 expect class LocalCoverManager {
 
-    fun find(mangaUrl: String): UniFile?
+    fun find(animeUrl: String): UniFile?
 
-    fun update(manga: SManga, inputStream: InputStream): UniFile?
+    fun update(anime: SManga, inputStream: InputStream): UniFile?
 }

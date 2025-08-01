@@ -10,6 +10,7 @@ import java.util.Locale
 /**
  * Fills manga and chapter metadata using this epub file's metadata.
  */
+// TODO(mihon): Remove
 fun EpubReader.fillMetadata(manga: SManga, chapter: SChapter) {
     val ref = getPackageHref()
     val doc = getPackageDocument(ref)

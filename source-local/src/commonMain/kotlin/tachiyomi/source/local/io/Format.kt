@@ -2,8 +2,9 @@ package tachiyomi.source.local.io
 
 import com.hippo.unifile.UniFile
 import tachiyomi.core.common.storage.extension
-import tachiyomi.source.local.io.Archive.isSupported as isArchiveSupported
+import tachiyomi.source.local.io.Formats.isSupported as isArchiveSupported
 
+// TODO(mihon): Remove
 sealed interface Format {
     data class Directory(val file: UniFile) : Format
     data class Archive(val file: UniFile) : Format

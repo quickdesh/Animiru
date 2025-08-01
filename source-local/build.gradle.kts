@@ -46,4 +46,9 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
+
+    dependencies {
+        // FFmpeg-kit
+        implementation(aniyomilibs.ffmpeg.kit)
+    }
 }
