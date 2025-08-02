@@ -80,7 +80,7 @@ private fun ColumnScope.FilterPage(
 ) {
     val filterDownloaded by screenModel.libraryPreferences.filterDownloaded().collectAsState()
     val downloadedOnly by screenModel.preferences.downloadedOnly().collectAsState()
-    val autoUpdateMangaRestrictions by screenModel.libraryPreferences.autoUpdateMangaRestrictions().collectAsState()
+    val autoUpdateMangaRestrictions by screenModel.libraryPreferences.autoUpdateAnimeRestrictions().collectAsState()
 
     TriStateItem(
         label = stringResource(MR.strings.label_downloaded),
@@ -92,11 +92,11 @@ private fun ColumnScope.FilterPage(
         enabled = !downloadedOnly,
         onClick = { screenModel.toggleFilter(LibraryPreferences::filterDownloaded) },
     )
-    val filterUnread by screenModel.libraryPreferences.filterUnread().collectAsState()
+    val filterUnread by screenModel.libraryPreferences.filterUnseen().collectAsState()
     TriStateItem(
         label = stringResource(MR.strings.action_filter_unread),
         state = filterUnread,
-        onClick = { screenModel.toggleFilter(LibraryPreferences::filterUnread) },
+        onClick = { screenModel.toggleFilter(LibraryPreferences::filterUnseen) },
     )
     val filterStarted by screenModel.libraryPreferences.filterStarted().collectAsState()
     TriStateItem(
@@ -117,7 +117,7 @@ private fun ColumnScope.FilterPage(
         onClick = { screenModel.toggleFilter(LibraryPreferences::filterCompleted) },
     )
     // TODO: re-enable when custom intervals are ready for stable
-    if ((!isReleaseBuildType) && LibraryPreferences.MANGA_OUTSIDE_RELEASE_PERIOD in autoUpdateMangaRestrictions) {
+    if ((!isReleaseBuildType) && LibraryPreferences.ANIME_OUTSIDE_RELEASE_PERIOD in autoUpdateMangaRestrictions) {
         val filterIntervalCustom by screenModel.libraryPreferences.filterIntervalCustom().collectAsState()
         TriStateItem(
             label = stringResource(MR.strings.action_filter_interval_custom),
@@ -172,7 +172,7 @@ private fun ColumnScope.SortPage(
         listOfNotNull(
             MR.strings.action_sort_alpha to LibrarySort.Type.Alphabetical,
             MR.strings.action_sort_total to LibrarySort.Type.TotalChapters,
-            MR.strings.action_sort_last_read to LibrarySort.Type.LastRead,
+            MR.strings.action_sort_last_read to LibrarySort.Type.LastSeen,
             MR.strings.action_sort_last_manga_update to LibrarySort.Type.LastUpdate,
             MR.strings.action_sort_unread_count to LibrarySort.Type.UnreadCount,
             MR.strings.action_sort_latest_chapter to LibrarySort.Type.LatestChapter,
@@ -272,7 +272,7 @@ private fun ColumnScope.DisplayPage(
     )
     CheckboxItem(
         label = stringResource(MR.strings.action_display_unread_badge),
-        pref = screenModel.libraryPreferences.unreadBadge(),
+        pref = screenModel.libraryPreferences.unseenBadge(),
     )
     CheckboxItem(
         label = stringResource(MR.strings.action_display_local_badge),
@@ -284,7 +284,7 @@ private fun ColumnScope.DisplayPage(
     )
     CheckboxItem(
         label = stringResource(MR.strings.action_display_show_continue_reading_button),
-        pref = screenModel.libraryPreferences.showContinueReadingButton(),
+        pref = screenModel.libraryPreferences.showContinueViewingButton(),
     )
 
     HeadingItem(MR.strings.tabs_header)

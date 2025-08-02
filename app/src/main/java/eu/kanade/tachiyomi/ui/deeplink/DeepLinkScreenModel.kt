@@ -10,12 +10,12 @@ import eu.kanade.tachiyomi.animesource.model.SEpisode
 import eu.kanade.tachiyomi.animesource.online.ResolvableAnimeSource
 import eu.kanade.tachiyomi.animesource.online.UriType
 import kotlinx.coroutines.flow.update
-import mihon.domain.manga.model.toDomainManga
+import mihon.domain.anime.model.toDomainAnime
 import tachiyomi.core.common.util.lang.launchIO
-import tachiyomi.domain.chapter.interactor.GetChapterByUrlAndMangaId
-import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.manga.interactor.NetworkToLocalManga
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.episode.interactor.GetEpisodeByUrlAndAnimeId
+import tachiyomi.domain.episode.model.Episode
+import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -23,8 +23,8 @@ import uy.kohesive.injekt.api.get
 class DeepLinkScreenModel(
     query: String = "",
     private val sourceManager: SourceManager = Injekt.get(),
-    private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
-    private val getChapterByUrlAndMangaId: GetChapterByUrlAndMangaId = Injekt.get(),
+    private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
+    private val getEpisodeByUrlAndAnimeId: GetEpisodeByUrlAndAnimeId = Injekt.get(),
     private val syncChaptersWithSource: SyncChaptersWithSource = Injekt.get(),
 ) : StateScreenModel<DeepLinkScreenModel.State>(State.Loading) {
 
@@ -35,7 +35,7 @@ class DeepLinkScreenModel(
                 .firstOrNull { it.getUriType(query) != UriType.Unknown }
 
             val manga = source?.getAnime(query)?.let {
-                networkToLocalManga(it.toDomainManga(source.id))
+                networkToLocalAnime(it.toDomainAnime(source.id))
             }
 
             val chapter = if (source?.getUriType(query) == UriType.Chapter && manga != null) {
@@ -58,12 +58,12 @@ class DeepLinkScreenModel(
         }
     }
 
-    private suspend fun getChapterFromSChapter(sEpisode: SEpisode, manga: Manga, source: AnimeSource): Chapter? {
-        val localChapter = getChapterByUrlAndMangaId.await(sEpisode.url, manga.id)
+    private suspend fun getChapterFromSChapter(sEpisode: SEpisode, anime: Anime, source: AnimeSource): Episode? {
+        val localChapter = getEpisodeByUrlAndAnimeId.await(sEpisode.url, anime.id)
 
         return if (localChapter == null) {
-            val sourceChapters = source.getEpisodeList(manga.toSManga())
-            val newChapters = syncChaptersWithSource.await(sourceChapters, manga, source, false)
+            val sourceChapters = source.getEpisodeList(anime.toSManga())
+            val newChapters = syncChaptersWithSource.await(sourceChapters, anime, source, false)
             newChapters.find { it.url == sEpisode.url }
         } else {
             localChapter
@@ -78,6 +78,6 @@ class DeepLinkScreenModel(
         data object NoResults : State
 
         @Immutable
-        data class Result(val manga: Manga, val chapterId: Long? = null) : State
+        data class Result(val anime: Anime, val chapterId: Long? = null) : State
     }
 }

@@ -15,7 +15,7 @@ import eu.kanade.presentation.reader.ChapterTransition
 import eu.kanade.presentation.theme.TachiyomiTheme
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.source.local.isLocal
 
 class ReaderTransitionView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
@@ -27,18 +27,18 @@ class ReaderTransitionView @JvmOverloads constructor(context: Context, attrs: At
         layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
     }
 
-    fun bind(transition: ChapterTransition, downloadManager: DownloadManager, manga: Manga?) {
-        data = if (manga != null) {
+    fun bind(transition: ChapterTransition, downloadManager: DownloadManager, anime: Anime?) {
+        data = if (anime != null) {
             Data(
                 transition = transition,
                 currChapterDownloaded = transition.from.pageLoader?.isLocal == true,
-                goingToChapterDownloaded = manga.isLocal() ||
+                goingToChapterDownloaded = anime.isLocal() ||
                     transition.to?.chapter?.let { goingToChapter ->
                         downloadManager.isChapterDownloaded(
                             chapterName = goingToChapter.name,
                             chapterScanlator = goingToChapter.scanlator,
-                            mangaTitle = manga.title,
-                            sourceId = manga.source,
+                            mangaTitle = anime.title,
+                            sourceId = anime.source,
                             skipCache = true,
                         )
                     } ?: false,

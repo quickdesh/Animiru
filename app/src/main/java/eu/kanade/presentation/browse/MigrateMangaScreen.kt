@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.manga.components.BaseMangaListItem
 import eu.kanade.tachiyomi.ui.browse.migration.manga.MigrateMangaScreenModel
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
@@ -19,8 +19,8 @@ fun MigrateMangaScreen(
     navigateUp: () -> Unit,
     title: String?,
     state: MigrateMangaScreenModel.State,
-    onClickItem: (Manga) -> Unit,
-    onClickCover: (Manga) -> Unit,
+    onClickItem: (Anime) -> Unit,
+    onClickCover: (Anime) -> Unit,
 ) {
     Scaffold(
         topBar = { scrollBehavior ->
@@ -52,15 +52,15 @@ fun MigrateMangaScreen(
 private fun MigrateMangaContent(
     contentPadding: PaddingValues,
     state: MigrateMangaScreenModel.State,
-    onClickItem: (Manga) -> Unit,
-    onClickCover: (Manga) -> Unit,
+    onClickItem: (Anime) -> Unit,
+    onClickCover: (Anime) -> Unit,
 ) {
     FastScrollLazyColumn(
         contentPadding = contentPadding,
     ) {
         items(state.titles) { manga ->
             MigrateMangaItem(
-                manga = manga,
+                anime = manga,
                 onClickItem = onClickItem,
                 onClickCover = onClickCover,
             )
@@ -70,15 +70,15 @@ private fun MigrateMangaContent(
 
 @Composable
 private fun MigrateMangaItem(
-    manga: Manga,
-    onClickItem: (Manga) -> Unit,
-    onClickCover: (Manga) -> Unit,
+    anime: Anime,
+    onClickItem: (Anime) -> Unit,
+    onClickCover: (Anime) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     BaseMangaListItem(
         modifier = modifier,
-        manga = manga,
-        onClickItem = { onClickItem(manga) },
-        onClickCover = { onClickCover(manga) },
+        anime = anime,
+        onClickItem = { onClickItem(anime) },
+        onClickCover = { onClickCover(anime) },
     )
 }

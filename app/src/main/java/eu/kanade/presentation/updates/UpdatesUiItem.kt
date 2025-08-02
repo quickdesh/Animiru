@@ -85,7 +85,7 @@ internal fun LazyListScope.updatesUiItems(
         key = {
             when (it) {
                 is UpdatesUiModel.Header -> "updatesHeader-${it.hashCode()}"
-                is UpdatesUiModel.Item -> "updates-${it.item.update.mangaId}-${it.item.update.chapterId}"
+                is UpdatesUiModel.Item -> "updates-${it.item.update.animeId}-${it.item.update.episodeId}"
             }
         },
     ) { item ->
@@ -102,8 +102,8 @@ internal fun LazyListScope.updatesUiItems(
                     modifier = Modifier.animateItemFastScroll(),
                     update = updatesItem.update,
                     selected = updatesItem.selected,
-                    readProgress = updatesItem.update.lastPageRead
-                        .takeIf { !updatesItem.update.read && it > 0L }
+                    readProgress = updatesItem.update.lastSecondSeen
+                        .takeIf { !updatesItem.update.seen && it > 0L }
                         ?.let {
                             stringResource(
                                 MR.strings.chapter_progress,
@@ -146,7 +146,7 @@ private fun UpdatesUiItem(
     modifier: Modifier = Modifier,
 ) {
     val haptic = LocalHapticFeedback.current
-    val textAlpha = if (update.read) DISABLED_ALPHA else 1f
+    val textAlpha = if (update.seen) DISABLED_ALPHA else 1f
 
     Row(
         modifier = modifier
@@ -176,7 +176,7 @@ private fun UpdatesUiItem(
                 .weight(1f),
         ) {
             Text(
-                text = update.mangaTitle,
+                text = update.animeTitle,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodyMedium,
                 color = LocalContentColor.current.copy(alpha = textAlpha),
@@ -185,7 +185,7 @@ private fun UpdatesUiItem(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 var textHeight by remember { mutableIntStateOf(0) }
-                if (!update.read) {
+                if (!update.seen) {
                     Icon(
                         imageVector = Icons.Filled.Circle,
                         contentDescription = stringResource(MR.strings.unread),
@@ -206,7 +206,7 @@ private fun UpdatesUiItem(
                     Spacer(modifier = Modifier.width(2.dp))
                 }
                 Text(
-                    text = update.chapterName,
+                    text = update.episodeName,
                     maxLines = 1,
                     style = MaterialTheme.typography.bodySmall,
                     color = LocalContentColor.current.copy(alpha = textAlpha),

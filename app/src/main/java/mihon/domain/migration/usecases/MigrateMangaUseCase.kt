@@ -12,12 +12,12 @@ import eu.kanade.tachiyomi.data.track.TrackerManager
 import kotlinx.coroutines.CancellationException
 import mihon.domain.migration.models.MigrationFlag
 import tachiyomi.domain.category.interactor.GetCategories
-import tachiyomi.domain.category.interactor.SetMangaCategories
-import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
-import tachiyomi.domain.chapter.interactor.UpdateChapter
-import tachiyomi.domain.chapter.model.toChapterUpdate
-import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.model.MangaUpdate
+import tachiyomi.domain.category.interactor.SetAnimeCategories
+import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
+import tachiyomi.domain.episode.interactor.UpdateEpisode
+import tachiyomi.domain.episode.model.toEpisodeUpdate
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
@@ -29,18 +29,18 @@ class MigrateMangaUseCase(
     private val sourceManager: SourceManager,
     private val downloadManager: DownloadManager,
     private val updateManga: UpdateManga,
-    private val getChaptersByMangaId: GetChaptersByMangaId,
+    private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
     private val syncChaptersWithSource: SyncChaptersWithSource,
-    private val updateChapter: UpdateChapter,
+    private val updateEpisode: UpdateEpisode,
     private val getCategories: GetCategories,
-    private val setMangaCategories: SetMangaCategories,
+    private val setAnimeCategories: SetAnimeCategories,
     private val getTracks: GetTracks,
     private val insertTrack: InsertTrack,
     private val coverCache: CoverCache,
 ) {
     private val enhancedServices by lazy { trackerManager.trackers.filterIsInstance<EnhancedTracker>() }
 
-    suspend operator fun invoke(current: Manga, target: Manga, replace: Boolean) {
+    suspend operator fun invoke(current: Anime, target: Anime, replace: Boolean) {
         val targetSource = sourceManager.get(target.source) ?: return
         val currentSource = sourceManager.get(current.source)
         val flags = sourcePreferences.migrationFlags().get()
@@ -56,18 +56,18 @@ class MigrateMangaUseCase(
 
             // Update chapters read, bookmark and dateFetch
             if (MigrationFlag.CHAPTER in flags) {
-                val prevMangaChapters = getChaptersByMangaId.await(current.id)
-                val mangaChapters = getChaptersByMangaId.await(target.id)
+                val prevMangaChapters = getEpisodesByAnimeId.await(current.id)
+                val mangaChapters = getEpisodesByAnimeId.await(target.id)
 
                 val maxChapterRead = prevMangaChapters
-                    .filter { it.read }
-                    .maxOfOrNull { it.chapterNumber }
+                    .filter { it.seen }
+                    .maxOfOrNull { it.episodeNumber }
 
                 val updatedMangaChapters = mangaChapters.map { mangaChapter ->
                     var updatedChapter = mangaChapter
                     if (updatedChapter.isRecognizedNumber) {
                         val prevChapter = prevMangaChapters
-                            .find { it.isRecognizedNumber && it.chapterNumber == updatedChapter.chapterNumber }
+                            .find { it.isRecognizedNumber && it.episodeNumber == updatedChapter.episodeNumber }
 
                         if (prevChapter != null) {
                             updatedChapter = updatedChapter.copy(
@@ -76,27 +76,27 @@ class MigrateMangaUseCase(
                             )
                         }
 
-                        if (maxChapterRead != null && updatedChapter.chapterNumber <= maxChapterRead) {
-                            updatedChapter = updatedChapter.copy(read = true)
+                        if (maxChapterRead != null && updatedChapter.episodeNumber <= maxChapterRead) {
+                            updatedChapter = updatedChapter.copy(seen = true)
                         }
                     }
 
                     updatedChapter
                 }
 
-                val chapterUpdates = updatedMangaChapters.map { it.toChapterUpdate() }
-                updateChapter.awaitAll(chapterUpdates)
+                val chapterUpdates = updatedMangaChapters.map { it.toEpisodeUpdate() }
+                updateEpisode.awaitAll(chapterUpdates)
             }
 
             // Update categories
             if (MigrationFlag.CHAPTER in flags) {
                 val categoryIds = getCategories.await(current.id).map { it.id }
-                setMangaCategories.await(target.id, categoryIds)
+                setAnimeCategories.await(target.id, categoryIds)
             }
 
             // Update track
             getTracks.await(current.id).mapNotNull { track ->
-                val updatedTrack = track.copy(mangaId = target.id)
+                val updatedTrack = track.copy(animeId = target.id)
 
                 val service = enhancedServices
                     .firstOrNull { it.isTrackFrom(updatedTrack, current, currentSource) }
@@ -120,22 +120,22 @@ class MigrateMangaUseCase(
                 coverCache.setCustomCoverToCache(target, coverCache.getCustomCoverFile(current.id).inputStream())
             }
 
-            val currentMangaUpdate = MangaUpdate(
+            val currentAnimeUpdate = AnimeUpdate(
                 id = current.id,
                 favorite = false,
                 dateAdded = 0,
             )
                 .takeIf { replace }
-            val targetMangaUpdate = MangaUpdate(
+            val targetAnimeUpdate = AnimeUpdate(
                 id = target.id,
                 favorite = true,
-                chapterFlags = current.chapterFlags,
+                episodeFlags = current.episodeFlags,
                 viewerFlags = current.viewerFlags,
                 dateAdded = if (replace) current.dateAdded else Instant.now().toEpochMilli(),
                 notes = if (MigrationFlag.NOTES in flags) current.notes else null,
             )
 
-            updateManga.awaitAll(listOfNotNull(currentMangaUpdate, targetMangaUpdate))
+            updateManga.awaitAll(listOfNotNull(currentAnimeUpdate, targetAnimeUpdate))
         } catch (e: Throwable) {
             if (e is CancellationException) {
                 throw e

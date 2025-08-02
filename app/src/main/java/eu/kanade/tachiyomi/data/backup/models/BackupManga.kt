@@ -3,7 +3,7 @@ package eu.kanade.tachiyomi.data.backup.models
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 
 @Suppress("DEPRECATION")
 @Serializable
@@ -43,8 +43,8 @@ data class BackupManga(
     @ProtoNumber(109) var version: Long = 0,
     @ProtoNumber(110) var notes: String = "",
 ) {
-    fun getMangaImpl(): Manga {
-        return Manga.create().copy(
+    fun getMangaImpl(): Anime {
+        return Anime.create().copy(
             url = this@BackupManga.url,
             title = this@BackupManga.title,
             artist = this@BackupManga.artist,
@@ -57,7 +57,7 @@ data class BackupManga(
             source = this@BackupManga.source,
             dateAdded = this@BackupManga.dateAdded,
             viewerFlags = (this@BackupManga.viewer_flags ?: this@BackupManga.viewer).toLong(),
-            chapterFlags = this@BackupManga.chapterFlags.toLong(),
+            episodeFlags = this@BackupManga.chapterFlags.toLong(),
             updateStrategy = this@BackupManga.updateStrategy,
             lastModifiedAt = this@BackupManga.lastModifiedAt,
             favoriteModifiedAt = this@BackupManga.favoriteModifiedAt,

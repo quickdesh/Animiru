@@ -15,15 +15,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.manga.components.MangaCover
-import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.model.asMangaCover
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.model.asAnimeCover
 import tachiyomi.presentation.core.components.material.padding
 
 private val UpcomingItemHeight = 96.dp
 
 @Composable
 fun UpcomingItem(
-    upcoming: Manga,
+    upcoming: Anime,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -40,7 +40,7 @@ fun UpcomingItem(
     ) {
         MangaCover.Book(
             modifier = Modifier.fillMaxHeight(),
-            data = upcoming.asMangaCover(),
+            data = upcoming.asAnimeCover(),
         )
         Text(
             modifier = Modifier.weight(1f),

@@ -60,7 +60,7 @@ data object UpdatesTab : Tab {
             state = state,
             snackbarHostState = screenModel.snackbarHostState,
             lastUpdated = screenModel.lastUpdated,
-            onClickCover = { item -> navigator.push(MangaScreen(item.update.mangaId)) },
+            onClickCover = { item -> navigator.push(MangaScreen(item.update.animeId)) },
             onSelectAll = screenModel::toggleAllSelection,
             onInvertSelection = screenModel::invertSelection,
             onUpdateLibrary = screenModel::updateLibrary,
@@ -70,7 +70,7 @@ data object UpdatesTab : Tab {
             onMultiDeleteClicked = screenModel::showConfirmDeleteChapters,
             onUpdateSelected = screenModel::toggleSelection,
             onOpenChapter = {
-                val intent = ReaderActivity.newIntent(context, it.update.mangaId, it.update.chapterId)
+                val intent = ReaderActivity.newIntent(context, it.update.animeId, it.update.episodeId)
                 context.startActivity(intent)
             },
             onCalendarClicked = { navigator.push(UpcomingScreen()) },

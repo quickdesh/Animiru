@@ -3,22 +3,22 @@ package mihon.feature.migration.list.search
 import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
 import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 import eu.kanade.tachiyomi.animesource.model.SAnime
-import mihon.domain.manga.model.toDomainManga
-import tachiyomi.domain.manga.model.Manga
+import mihon.domain.anime.model.toDomainAnime
+import tachiyomi.domain.anime.model.Anime
 
 class SmartSourceSearchEngine(extraSearchParams: String?) : BaseSmartSearchEngine<SAnime>(extraSearchParams) {
 
     override fun getTitle(result: SAnime) = result.title
 
-    suspend fun regularSearch(source: AnimeCatalogueSource, title: String): Manga? {
+    suspend fun regularSearch(source: AnimeCatalogueSource, title: String): Anime? {
         return regularSearch(makeSearchAction(source), title).let {
-            it?.toDomainManga(source.id)
+            it?.toDomainAnime(source.id)
         }
     }
 
-    suspend fun deepSearch(source: AnimeCatalogueSource, title: String): Manga? {
+    suspend fun deepSearch(source: AnimeCatalogueSource, title: String): Anime? {
         return deepSearch(makeSearchAction(source), title).let {
-            it?.toDomainManga(source.id)
+            it?.toDomainAnime(source.id)
         }
     }
 

@@ -63,8 +63,8 @@ import eu.kanade.presentation.more.settings.LocalPreferenceMinHeight
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.SAnime
-import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.model.MangaWithChapterCount
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
@@ -79,11 +79,11 @@ import uy.kohesive.injekt.api.get
 
 @Composable
 fun DuplicateMangaDialog(
-    duplicates: List<MangaWithChapterCount>,
+    duplicates: List<AnimeWithEpisodeCount>,
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
-    onOpenManga: (manga: Manga) -> Unit,
-    onMigrate: (manga: Manga) -> Unit,
+    onOpenManga: (anime: Anime) -> Unit,
+    onMigrate: (anime: Anime) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val sourceManager = remember { Injekt.get<SourceManager>() }
@@ -123,14 +123,14 @@ fun DuplicateMangaDialog(
             ) {
                 items(
                     items = duplicates,
-                    key = { it.manga.id },
+                    key = { it.anime.id },
                 ) {
                     DuplicateMangaListItem(
                         duplicate = it,
-                        getSource = { sourceManager.getOrStub(it.manga.source) },
-                        onMigrate = { onMigrate(it.manga) },
+                        getSource = { sourceManager.getOrStub(it.anime.source) },
+                        onMigrate = { onMigrate(it.anime) },
                         onDismissRequest = onDismissRequest,
-                        onOpenManga = { onOpenManga(it.manga) },
+                        onOpenManga = { onOpenManga(it.anime) },
                     )
                 }
             }
@@ -170,14 +170,14 @@ fun DuplicateMangaDialog(
 
 @Composable
 private fun DuplicateMangaListItem(
-    duplicate: MangaWithChapterCount,
+    duplicate: AnimeWithEpisodeCount,
     getSource: () -> AnimeSource,
     onDismissRequest: () -> Unit,
     onOpenManga: () -> Unit,
     onMigrate: () -> Unit,
 ) {
     val source = getSource()
-    val manga = duplicate.manga
+    val manga = duplicate.anime
     Column(
         modifier = Modifier
             .width(MangaCardWidth)
@@ -210,8 +210,8 @@ private fun DuplicateMangaListItem(
                     textColor = MaterialTheme.colorScheme.onSecondary,
                     text = pluralStringResource(
                         MR.plurals.manga_num_chapters,
-                        duplicate.chapterCount.toInt(),
-                        duplicate.chapterCount,
+                        duplicate.episodeCount.toInt(),
+                        duplicate.episodeCount,
                     ),
                 )
             }
@@ -315,7 +315,7 @@ private fun MangaDetailRow(
 }
 
 @Composable
-private fun getMaximumMangaCardHeight(duplicates: List<MangaWithChapterCount>): Dp {
+private fun getMaximumMangaCardHeight(duplicates: List<AnimeWithEpisodeCount>): Dp {
     val density = LocalDensity.current
     val typography = MaterialTheme.typography
     val textMeasurer = rememberTextMeasurer()
@@ -343,7 +343,7 @@ private fun getMaximumMangaCardHeight(duplicates: List<MangaWithChapterCount>): 
     ) {
         duplicates.fastMaxOfOrNull {
             calculateMangaCardHeight(
-                manga = it.manga,
+                anime = it.anime,
                 density = density,
                 typography = typography,
                 textMeasurer = textMeasurer,
@@ -359,7 +359,7 @@ private fun getMaximumMangaCardHeight(duplicates: List<MangaWithChapterCount>): 
 }
 
 private fun calculateMangaCardHeight(
-    manga: Manga,
+    anime: Anime,
     density: Density,
     typography: Typography,
     textMeasurer: TextMeasurer,
@@ -369,14 +369,14 @@ private fun calculateMangaCardHeight(
     constraints: Constraints,
     detailsConstraints: Constraints,
 ): Dp {
-    val titleHeight = textMeasurer.measureHeight(manga.title, typography.titleSmall, 2, constraints)
-    val authorHeight = if (!manga.author.isNullOrBlank()) {
-        textMeasurer.measureHeight(manga.author!!, typography.bodySmall, 2, detailsConstraints)
+    val titleHeight = textMeasurer.measureHeight(anime.title, typography.titleSmall, 2, constraints)
+    val authorHeight = if (!anime.author.isNullOrBlank()) {
+        textMeasurer.measureHeight(anime.author!!, typography.bodySmall, 2, detailsConstraints)
     } else {
         0
     }
-    val artistHeight = if (!manga.artist.isNullOrBlank() && manga.author != manga.artist) {
-        textMeasurer.measureHeight(manga.artist!!, typography.bodySmall, 2, detailsConstraints)
+    val artistHeight = if (!anime.artist.isNullOrBlank() && anime.author != anime.artist) {
+        textMeasurer.measureHeight(anime.artist!!, typography.bodySmall, 2, detailsConstraints)
     } else {
         0
     }

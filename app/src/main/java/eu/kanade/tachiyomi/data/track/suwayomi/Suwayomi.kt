@@ -11,7 +11,7 @@ import eu.kanade.tachiyomi.animesource.AnimeSource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
-import tachiyomi.domain.manga.model.Manga as DomainManga
+import tachiyomi.domain.anime.model.Anime as DomainManga
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class Suwayomi(id: Long) : BaseTracker(id, "Suwayomi"), EnhancedTracker {

@@ -53,7 +53,7 @@ class DeepLinkScreen(
                     if (resultState.chapterId == null) {
                         navigator.replace(
                             MangaScreen(
-                                resultState.manga.id,
+                                resultState.anime.id,
                                 true,
                             ),
                         )
@@ -61,7 +61,7 @@ class DeepLinkScreen(
                         navigator.pop()
                         ReaderActivity.newIntent(
                             context,
-                            resultState.manga.id,
+                            resultState.anime.id,
                             resultState.chapterId,
                         ).also(context::startActivity)
                     }

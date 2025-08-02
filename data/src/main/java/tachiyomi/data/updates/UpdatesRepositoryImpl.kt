@@ -2,7 +2,7 @@ package tachiyomi.data.updates
 
 import kotlinx.coroutines.flow.Flow
 import tachiyomi.data.DatabaseHandler
-import tachiyomi.domain.manga.model.MangaCover
+import tachiyomi.domain.anime.model.AnimeCover
 import tachiyomi.domain.updates.model.UpdatesWithRelations
 import tachiyomi.domain.updates.repository.UpdatesRepository
 
@@ -10,14 +10,14 @@ class UpdatesRepositoryImpl(
     private val databaseHandler: DatabaseHandler,
 ) : UpdatesRepository {
 
-    override suspend fun awaitWithRead(
-        read: Boolean,
+    override suspend fun awaitWithSeen(
+        seen: Boolean,
         after: Long,
         limit: Long,
     ): List<UpdatesWithRelations> {
         return databaseHandler.awaitList {
             updatesViewQueries.getUpdatesByReadStatus(
-                read = read,
+                read = seen,
                 after = after,
                 limit = limit,
                 mapper = ::mapUpdatesWithRelations,
@@ -31,14 +31,14 @@ class UpdatesRepositoryImpl(
         }
     }
 
-    override fun subscribeWithRead(
-        read: Boolean,
+    override fun subscribeWithSeen(
+        seen: Boolean,
         after: Long,
         limit: Long,
     ): Flow<List<UpdatesWithRelations>> {
         return databaseHandler.subscribeToList {
             updatesViewQueries.getUpdatesByReadStatus(
-                read = read,
+                read = seen,
                 after = after,
                 limit = limit,
                 mapper = ::mapUpdatesWithRelations,
@@ -62,20 +62,20 @@ class UpdatesRepositoryImpl(
         dateUpload: Long,
         dateFetch: Long,
     ): UpdatesWithRelations = UpdatesWithRelations(
-        mangaId = mangaId,
-        mangaTitle = mangaTitle,
-        chapterId = chapterId,
-        chapterName = chapterName,
+        animeId = mangaId,
+        animeTitle = mangaTitle,
+        episodeId = chapterId,
+        episodeName = chapterName,
         scanlator = scanlator,
-        read = read,
+        seen = read,
         bookmark = bookmark,
-        lastPageRead = lastPageRead,
+        lastSecondSeen = lastPageRead,
         sourceId = sourceId,
         dateFetch = dateFetch,
-        coverData = MangaCover(
-            mangaId = mangaId,
+        coverData = AnimeCover(
+            animeId = mangaId,
             sourceId = sourceId,
-            isMangaFavorite = favorite,
+            isAnimeFavorite = favorite,
             url = thumbnailUrl,
             lastModified = coverLastModified,
         ),

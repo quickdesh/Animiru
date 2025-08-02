@@ -96,8 +96,8 @@ fun TrackInfoDialogHome(
                     tracker = item.tracker,
                     status = item.tracker.getStatus(item.track.status),
                     onStatusClick = { onStatusClick(item) },
-                    chapters = "${item.track.lastChapterRead.toInt()}".let {
-                        val totalChapters = item.track.totalChapters
+                    chapters = "${item.track.lastEpisodeSeen.toInt()}".let {
+                        val totalChapters = item.track.totalEpisodes
                         if (totalChapters > 0) {
                             // Add known total chapter count
                             "$it / $totalChapters"

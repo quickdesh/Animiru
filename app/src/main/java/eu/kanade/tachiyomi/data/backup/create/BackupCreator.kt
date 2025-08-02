@@ -25,9 +25,9 @@ import okio.sink
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.backup.service.BackupPreferences
-import tachiyomi.domain.manga.interactor.GetFavorites
-import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.repository.MangaRepository
+import tachiyomi.domain.anime.interactor.GetFavorites
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.repository.AnimeRepository
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -44,7 +44,7 @@ class BackupCreator(
     private val parser: ProtoBuf = Injekt.get(),
     private val getFavorites: GetFavorites = Injekt.get(),
     private val backupPreferences: BackupPreferences = Injekt.get(),
-    private val mangaRepository: MangaRepository = Injekt.get(),
+    private val animeRepository: AnimeRepository = Injekt.get(),
 
     private val categoriesBackupCreator: CategoriesBackupCreator = CategoriesBackupCreator(),
     private val mangaBackupCreator: MangaBackupCreator = MangaBackupCreator(),
@@ -77,7 +77,7 @@ class BackupCreator(
                 throw IllegalStateException(context.stringResource(MR.strings.create_backup_file_error))
             }
 
-            val nonFavoriteManga = if (options.readEntries) mangaRepository.getReadMangaNotInLibrary() else emptyList()
+            val nonFavoriteManga = if (options.readEntries) animeRepository.getWatchedAnimeNotInLibrary() else emptyList()
             val backupManga = backupMangas(getFavorites.await() + nonFavoriteManga, options)
 
             val backup = Backup(
@@ -125,10 +125,10 @@ class BackupCreator(
         return categoriesBackupCreator()
     }
 
-    private suspend fun backupMangas(mangas: List<Manga>, options: BackupOptions): List<BackupManga> {
+    private suspend fun backupMangas(mangases: List<Anime>, options: BackupOptions): List<BackupManga> {
         if (!options.libraryEntries) return emptyList()
 
-        return mangaBackupCreator(mangas, options)
+        return mangaBackupCreator(mangases, options)
     }
 
     private fun backupSources(mangas: List<BackupManga>): List<BackupSource> {

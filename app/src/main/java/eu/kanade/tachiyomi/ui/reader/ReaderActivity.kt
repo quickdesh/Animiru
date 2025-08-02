@@ -196,7 +196,7 @@ class ReaderActivity : BaseActivity() {
             .launchIn(lifecycleScope)
 
         viewModel.state
-            .map { it.manga }
+            .map { it.anime }
             .distinctUntilChanged()
             .filterNotNull()
             .onEach { updateViewer() }
@@ -384,7 +384,7 @@ class ReaderActivity : BaseActivity() {
                 visible = state.menuVisible,
                 fullscreen = isFullscreen,
 
-                mangaTitle = state.manga?.title,
+                mangaTitle = state.anime?.title,
                 chapterTitle = state.currentChapter?.chapter?.name,
                 navigateUp = onBackPressedDispatcher::onBackPressed,
                 onClickTopAppBar = ::openMangaScreen,
@@ -556,7 +556,7 @@ class ReaderActivity : BaseActivity() {
     }
 
     private fun openMangaScreen() {
-        viewModel.manga?.id?.let { id ->
+        viewModel.anime?.id?.let { id ->
             startActivity(
                 Intent(this, MainActivity::class.java).apply {
                     action = Constants.SHORTCUT_MANGA
@@ -568,7 +568,7 @@ class ReaderActivity : BaseActivity() {
     }
 
     private fun openChapterInWebView() {
-        val manga = viewModel.manga ?: return
+        val manga = viewModel.anime ?: return
         val source = viewModel.getSource() ?: return
         assistUrl?.let {
             val intent = WebViewActivity.newIntent(this@ReaderActivity, it, source.id, manga.title)
@@ -727,7 +727,7 @@ class ReaderActivity : BaseActivity() {
      * sharing tool.
      */
     private fun onShareImageResult(uri: Uri, page: ReaderPage) {
-        val manga = viewModel.manga ?: return
+        val manga = viewModel.anime ?: return
         val chapter = page.chapter.chapter
 
         val intent = uri.toShareIntent(

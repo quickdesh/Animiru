@@ -286,7 +286,7 @@ class PagerPageHolder(
             if (imageUrl.startsWith("http", true)) {
                 errorLayout?.actionOpenInWebView?.viewer = viewer
                 errorLayout?.actionOpenInWebView?.setOnClickListener {
-                    val sourceId = viewer.activity.viewModel.manga?.source
+                    val sourceId = viewer.activity.viewModel.anime?.source
 
                     val intent = WebViewActivity.newIntent(context, imageUrl, sourceId)
                     context.startActivity(intent)

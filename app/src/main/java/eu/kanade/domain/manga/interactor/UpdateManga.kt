@@ -5,10 +5,10 @@ import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.manga.interactor.FetchInterval
-import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.model.MangaUpdate
-import tachiyomi.domain.manga.repository.MangaRepository
+import tachiyomi.domain.anime.interactor.FetchInterval
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.model.AnimeUpdate
+import tachiyomi.domain.anime.repository.AnimeRepository
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -16,20 +16,20 @@ import java.time.Instant
 import java.time.ZonedDateTime
 
 class UpdateManga(
-    private val mangaRepository: MangaRepository,
+    private val animeRepository: AnimeRepository,
     private val fetchInterval: FetchInterval,
 ) {
 
-    suspend fun await(mangaUpdate: MangaUpdate): Boolean {
-        return mangaRepository.update(mangaUpdate)
+    suspend fun await(animeUpdate: AnimeUpdate): Boolean {
+        return animeRepository.update(animeUpdate)
     }
 
-    suspend fun awaitAll(mangaUpdates: List<MangaUpdate>): Boolean {
-        return mangaRepository.updateAll(mangaUpdates)
+    suspend fun awaitAll(animeUpdates: List<AnimeUpdate>): Boolean {
+        return animeRepository.updateAll(animeUpdates)
     }
 
     suspend fun awaitUpdateFromSource(
-        localManga: Manga,
+        localAnime: Anime,
         remoteManga: SAnime,
         manualFetch: Boolean,
         coverCache: CoverCache = Injekt.get(),
@@ -44,7 +44,7 @@ class UpdateManga(
 
         // if the manga isn't a favorite (or 'update titles' preference is enabled), set its title from source and update in db
         val title =
-            if (remoteTitle.isNotEmpty() && (!localManga.favorite || libraryPreferences.updateMangaTitles().get())) {
+            if (remoteTitle.isNotEmpty() && (!localAnime.favorite || libraryPreferences.updateAnimeTitles().get())) {
                 remoteTitle
             } else {
                 null
@@ -54,23 +54,23 @@ class UpdateManga(
             when {
                 // Never refresh covers if the url is empty to avoid "losing" existing covers
                 remoteManga.thumbnail_url.isNullOrEmpty() -> null
-                !manualFetch && localManga.thumbnailUrl == remoteManga.thumbnail_url -> null
-                localManga.isLocal() -> Instant.now().toEpochMilli()
-                localManga.hasCustomCover(coverCache) -> {
-                    coverCache.deleteFromCache(localManga, false)
+                !manualFetch && localAnime.thumbnailUrl == remoteManga.thumbnail_url -> null
+                localAnime.isLocal() -> Instant.now().toEpochMilli()
+                localAnime.hasCustomCover(coverCache) -> {
+                    coverCache.deleteFromCache(localAnime, false)
                     null
                 }
                 else -> {
-                    coverCache.deleteFromCache(localManga, false)
+                    coverCache.deleteFromCache(localAnime, false)
                     Instant.now().toEpochMilli()
                 }
             }
 
         val thumbnailUrl = remoteManga.thumbnail_url?.takeIf { it.isNotEmpty() }
 
-        val success = mangaRepository.update(
-            MangaUpdate(
-                id = localManga.id,
+        val success = animeRepository.update(
+            AnimeUpdate(
+                id = localAnime.id,
                 title = title,
                 coverLastModified = coverLastModified,
                 author = remoteManga.author,
@@ -84,27 +84,27 @@ class UpdateManga(
             ),
         )
         if (success && title != null) {
-            downloadManager.renameManga(localManga, title)
+            downloadManager.renameManga(localAnime, title)
         }
         return success
     }
 
     suspend fun awaitUpdateFetchInterval(
-        manga: Manga,
+        anime: Anime,
         dateTime: ZonedDateTime = ZonedDateTime.now(),
         window: Pair<Long, Long> = fetchInterval.getWindow(dateTime),
     ): Boolean {
-        return mangaRepository.update(
-            fetchInterval.toMangaUpdate(manga, dateTime, window),
+        return animeRepository.update(
+            fetchInterval.toAnimeUpdate(anime, dateTime, window),
         )
     }
 
     suspend fun awaitUpdateLastUpdate(mangaId: Long): Boolean {
-        return mangaRepository.update(MangaUpdate(id = mangaId, lastUpdate = Instant.now().toEpochMilli()))
+        return animeRepository.update(AnimeUpdate(id = mangaId, lastUpdate = Instant.now().toEpochMilli()))
     }
 
     suspend fun awaitUpdateCoverLastModified(mangaId: Long): Boolean {
-        return mangaRepository.update(MangaUpdate(id = mangaId, coverLastModified = Instant.now().toEpochMilli()))
+        return animeRepository.update(AnimeUpdate(id = mangaId, coverLastModified = Instant.now().toEpochMilli()))
     }
 
     suspend fun awaitUpdateFavorite(mangaId: Long, favorite: Boolean): Boolean {
@@ -112,8 +112,8 @@ class UpdateManga(
             true -> Instant.now().toEpochMilli()
             false -> 0
         }
-        return mangaRepository.update(
-            MangaUpdate(id = mangaId, favorite = favorite, dateAdded = dateAdded),
+        return animeRepository.update(
+            AnimeUpdate(id = mangaId, favorite = favorite, dateAdded = dateAdded),
         )
     }
 }

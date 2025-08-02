@@ -68,12 +68,12 @@ fun HistoryItem(
                 overflow = TextOverflow.Ellipsis,
                 style = textStyle,
             )
-            val readAt = remember { history.readAt?.toTimestampString() ?: "" }
+            val readAt = remember { history.seenAt?.toTimestampString() ?: "" }
             Text(
-                text = if (history.chapterNumber > -1) {
+                text = if (history.episodeNumber > -1) {
                     stringResource(
                         MR.strings.recent_manga_time,
-                        formatChapterNumber(history.chapterNumber),
+                        formatChapterNumber(history.episodeNumber),
                         readAt,
                     )
                 } else {
@@ -84,7 +84,7 @@ fun HistoryItem(
             )
         }
 
-        if (!history.coverData.isMangaFavorite) {
+        if (!history.coverData.isAnimeFavorite) {
             IconButton(onClick = onClickFavorite) {
                 Icon(
                     imageVector = Icons.Outlined.FavoriteBorder,

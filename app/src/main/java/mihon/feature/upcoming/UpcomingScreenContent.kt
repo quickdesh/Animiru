@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 import mihon.feature.upcoming.components.UpcomingItem
 import mihon.feature.upcoming.components.calendar.Calendar
 import tachiyomi.core.common.Constants
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
 import tachiyomi.presentation.core.components.TwoPanelBox
@@ -45,7 +45,7 @@ import java.time.YearMonth
 fun UpcomingScreenContent(
     state: UpcomingScreenModel.State,
     setSelectedYearMonth: (YearMonth) -> Unit,
-    onClickUpcoming: (manga: Manga) -> Unit,
+    onClickUpcoming: (anime: Anime) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -142,7 +142,7 @@ private fun UpcomingScreenSmallImpl(
     selectedYearMonth: YearMonth,
     setSelectedYearMonth: (YearMonth) -> Unit,
     onClickDay: (LocalDate) -> Unit,
-    onClickUpcoming: (manga: Manga) -> Unit,
+    onClickUpcoming: (anime: Anime) -> Unit,
 ) {
     FastScrollLazyColumn(
         contentPadding = paddingValues,
@@ -169,8 +169,8 @@ private fun UpcomingScreenSmallImpl(
             when (item) {
                 is UpcomingUIModel.Item -> {
                     UpcomingItem(
-                        upcoming = item.manga,
-                        onClick = { onClickUpcoming(item.manga) },
+                        upcoming = item.anime,
+                        onClick = { onClickUpcoming(item.anime) },
                     )
                 }
                 is UpcomingUIModel.Header -> {
@@ -193,7 +193,7 @@ private fun UpcomingScreenLargeImpl(
     selectedYearMonth: YearMonth,
     setSelectedYearMonth: (YearMonth) -> Unit,
     onClickDay: (LocalDate) -> Unit,
-    onClickUpcoming: (manga: Manga) -> Unit,
+    onClickUpcoming: (anime: Anime) -> Unit,
 ) {
     TwoPanelBox(
         modifier = Modifier.padding(paddingValues),
@@ -220,8 +220,8 @@ private fun UpcomingScreenLargeImpl(
                     when (item) {
                         is UpcomingUIModel.Item -> {
                             UpcomingItem(
-                                upcoming = item.manga,
-                                onClick = { onClickUpcoming(item.manga) },
+                                upcoming = item.anime,
+                                onClick = { onClickUpcoming(item.anime) },
                             )
                         }
                         is UpcomingUIModel.Header -> {

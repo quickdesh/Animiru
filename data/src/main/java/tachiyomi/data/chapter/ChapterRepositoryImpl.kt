@@ -5,27 +5,27 @@ import logcat.LogPriority
 import tachiyomi.core.common.util.lang.toLong
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.DatabaseHandler
-import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.chapter.model.ChapterUpdate
-import tachiyomi.domain.chapter.repository.ChapterRepository
+import tachiyomi.domain.episode.model.Episode
+import tachiyomi.domain.episode.model.EpisodeUpdate
+import tachiyomi.domain.episode.repository.EpisodeRepository
 
 class ChapterRepositoryImpl(
     private val handler: DatabaseHandler,
-) : ChapterRepository {
+) : EpisodeRepository {
 
-    override suspend fun addAll(chapters: List<Chapter>): List<Chapter> {
+    override suspend fun addAll(episodes: List<Episode>): List<Episode> {
         return try {
             handler.await(inTransaction = true) {
-                chapters.map { chapter ->
+                episodes.map { chapter ->
                     chaptersQueries.insert(
-                        chapter.mangaId,
+                        chapter.animeId,
                         chapter.url,
                         chapter.name,
                         chapter.scanlator,
-                        chapter.read,
+                        chapter.seen,
                         chapter.bookmark,
-                        chapter.lastPageRead,
-                        chapter.chapterNumber,
+                        chapter.lastSecondSeen,
+                        chapter.episodeNumber,
                         chapter.sourceOrder,
                         chapter.dateFetch,
                         chapter.dateUpload,
@@ -41,26 +41,26 @@ class ChapterRepositoryImpl(
         }
     }
 
-    override suspend fun update(chapterUpdate: ChapterUpdate) {
-        partialUpdate(chapterUpdate)
+    override suspend fun update(episodeUpdate: EpisodeUpdate) {
+        partialUpdate(episodeUpdate)
     }
 
-    override suspend fun updateAll(chapterUpdates: List<ChapterUpdate>) {
-        partialUpdate(*chapterUpdates.toTypedArray())
+    override suspend fun updateAll(episodeUpdates: List<EpisodeUpdate>) {
+        partialUpdate(*episodeUpdates.toTypedArray())
     }
 
-    private suspend fun partialUpdate(vararg chapterUpdates: ChapterUpdate) {
+    private suspend fun partialUpdate(vararg episodeUpdates: EpisodeUpdate) {
         handler.await(inTransaction = true) {
-            chapterUpdates.forEach { chapterUpdate ->
+            episodeUpdates.forEach { chapterUpdate ->
                 chaptersQueries.update(
-                    mangaId = chapterUpdate.mangaId,
+                    mangaId = chapterUpdate.animeId,
                     url = chapterUpdate.url,
                     name = chapterUpdate.name,
                     scanlator = chapterUpdate.scanlator,
-                    read = chapterUpdate.read,
+                    read = chapterUpdate.seen,
                     bookmark = chapterUpdate.bookmark,
-                    lastPageRead = chapterUpdate.lastPageRead,
-                    chapterNumber = chapterUpdate.chapterNumber,
+                    lastPageRead = chapterUpdate.lastSecondSeen,
+                    chapterNumber = chapterUpdate.episodeNumber,
                     sourceOrder = chapterUpdate.sourceOrder,
                     dateFetch = chapterUpdate.dateFetch,
                     dateUpload = chapterUpdate.dateUpload,
@@ -72,56 +72,56 @@ class ChapterRepositoryImpl(
         }
     }
 
-    override suspend fun removeChaptersWithIds(chapterIds: List<Long>) {
+    override suspend fun removeEpisodesWithIds(episodeIds: List<Long>) {
         try {
-            handler.await { chaptersQueries.removeChaptersWithIds(chapterIds) }
+            handler.await { chaptersQueries.removeChaptersWithIds(episodeIds) }
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)
         }
     }
 
-    override suspend fun getChapterByMangaId(mangaId: Long, applyScanlatorFilter: Boolean): List<Chapter> {
+    override suspend fun getEpisodeByAnimeId(animeId: Long, applyScanlatorFilter: Boolean): List<Episode> {
         return handler.awaitList {
-            chaptersQueries.getChaptersByMangaId(mangaId, applyScanlatorFilter.toLong(), ::mapChapter)
+            chaptersQueries.getChaptersByMangaId(animeId, applyScanlatorFilter.toLong(), ::mapChapter)
         }
     }
 
-    override suspend fun getScanlatorsByMangaId(mangaId: Long): List<String> {
+    override suspend fun getScanlatorsByAnimeId(animeId: Long): List<String> {
         return handler.awaitList {
-            chaptersQueries.getScanlatorsByMangaId(mangaId) { it.orEmpty() }
+            chaptersQueries.getScanlatorsByMangaId(animeId) { it.orEmpty() }
         }
     }
 
-    override fun getScanlatorsByMangaIdAsFlow(mangaId: Long): Flow<List<String>> {
+    override fun getScanlatorsByAnimeIdAsFlow(animeId: Long): Flow<List<String>> {
         return handler.subscribeToList {
-            chaptersQueries.getScanlatorsByMangaId(mangaId) { it.orEmpty() }
+            chaptersQueries.getScanlatorsByMangaId(animeId) { it.orEmpty() }
         }
     }
 
-    override suspend fun getBookmarkedChaptersByMangaId(mangaId: Long): List<Chapter> {
+    override suspend fun getBookmarkedEpisodesByAnimeId(animeId: Long): List<Episode> {
         return handler.awaitList {
             chaptersQueries.getBookmarkedChaptersByMangaId(
-                mangaId,
+                animeId,
                 ::mapChapter,
             )
         }
     }
 
-    override suspend fun getChapterById(id: Long): Chapter? {
+    override suspend fun getEpisodeById(id: Long): Episode? {
         return handler.awaitOneOrNull { chaptersQueries.getChapterById(id, ::mapChapter) }
     }
 
-    override suspend fun getChapterByMangaIdAsFlow(mangaId: Long, applyScanlatorFilter: Boolean): Flow<List<Chapter>> {
+    override suspend fun getEpisodeByAnimeIdAsFlow(animeId: Long, applyScanlatorFilter: Boolean): Flow<List<Episode>> {
         return handler.subscribeToList {
-            chaptersQueries.getChaptersByMangaId(mangaId, applyScanlatorFilter.toLong(), ::mapChapter)
+            chaptersQueries.getChaptersByMangaId(animeId, applyScanlatorFilter.toLong(), ::mapChapter)
         }
     }
 
-    override suspend fun getChapterByUrlAndMangaId(url: String, mangaId: Long): Chapter? {
+    override suspend fun getEpisodeByUrlAndAnimeId(url: String, animeId: Long): Episode? {
         return handler.awaitOneOrNull {
             chaptersQueries.getChapterByUrlAndMangaId(
                 url,
-                mangaId,
+                animeId,
                 ::mapChapter,
             )
         }
@@ -144,18 +144,18 @@ class ChapterRepositoryImpl(
         version: Long,
         @Suppress("UNUSED_PARAMETER")
         isSyncing: Long,
-    ): Chapter = Chapter(
+    ): Episode = Episode(
         id = id,
-        mangaId = mangaId,
-        read = read,
+        animeId = mangaId,
+        seen = read,
         bookmark = bookmark,
-        lastPageRead = lastPageRead,
+        lastSecondSeen = lastPageRead,
         dateFetch = dateFetch,
         sourceOrder = sourceOrder,
         url = url,
         name = name,
         dateUpload = dateUpload,
-        chapterNumber = chapterNumber,
+        episodeNumber = chapterNumber,
         scanlator = scanlator,
         lastModifiedAt = lastModifiedAt,
         version = version,

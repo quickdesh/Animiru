@@ -4,7 +4,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -12,7 +12,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 fun RemoveMangaDialog(
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
-    mangaToRemove: Manga,
+    animeToRemove: Anime,
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -35,7 +35,7 @@ fun RemoveMangaDialog(
             Text(text = stringResource(MR.strings.are_you_sure))
         },
         text = {
-            Text(text = stringResource(MR.strings.remove_manga, mangaToRemove.title))
+            Text(text = stringResource(MR.strings.remove_manga, animeToRemove.title))
         },
     )
 }

@@ -12,7 +12,7 @@ import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.sourcePreferences
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
@@ -97,19 +97,19 @@ class Kavita(id: Long) : BaseTracker(id, "Kavita"), EnhancedTracker {
 
     override fun getAcceptedSources() = listOf("eu.kanade.tachiyomi.extension.all.kavita.Kavita")
 
-    override suspend fun match(manga: Manga): TrackSearch? =
+    override suspend fun match(anime: Anime): TrackSearch? =
         try {
-            api.getTrackSearch(manga.url)
+            api.getTrackSearch(anime.url)
         } catch (e: Exception) {
             null
         }
 
-    override fun isTrackFrom(track: DomainTrack, manga: Manga, source: AnimeSource?): Boolean =
-        track.remoteUrl == manga.url && source?.let { accept(it) } == true
+    override fun isTrackFrom(track: DomainTrack, anime: Anime, source: AnimeSource?): Boolean =
+        track.remoteUrl == anime.url && source?.let { accept(it) } == true
 
-    override fun migrateTrack(track: DomainTrack, manga: Manga, newSource: AnimeSource): DomainTrack? =
+    override fun migrateTrack(track: DomainTrack, anime: Anime, newSource: AnimeSource): DomainTrack? =
         if (accept(newSource)) {
-            track.copy(remoteUrl = manga.url)
+            track.copy(remoteUrl = anime.url)
         } else {
             null
         }

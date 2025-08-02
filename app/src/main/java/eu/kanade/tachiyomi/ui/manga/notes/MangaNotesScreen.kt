@@ -13,19 +13,19 @@ import eu.kanade.presentation.manga.MangaNotesScreen
 import eu.kanade.presentation.util.Screen
 import kotlinx.coroutines.flow.update
 import tachiyomi.core.common.util.lang.launchNonCancellable
-import tachiyomi.domain.manga.interactor.UpdateMangaNotes
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.interactor.UpdateAnimeNotes
+import tachiyomi.domain.anime.model.Anime
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class MangaNotesScreen(
-    private val manga: Manga,
+    private val anime: Anime,
 ) : Screen() {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
 
-        val screenModel = rememberScreenModel { Model(manga) }
+        val screenModel = rememberScreenModel { Model(anime) }
         val state by screenModel.state.collectAsState()
 
         MangaNotesScreen(
@@ -36,9 +36,9 @@ class MangaNotesScreen(
     }
 
     private class Model(
-        private val manga: Manga,
-        private val updateMangaNotes: UpdateMangaNotes = Injekt.get(),
-    ) : StateScreenModel<State>(State(manga, manga.notes)) {
+        private val anime: Anime,
+        private val updateAnimeNotes: UpdateAnimeNotes = Injekt.get(),
+    ) : StateScreenModel<State>(State(anime, anime.notes)) {
 
         fun updateNotes(content: String) {
             if (content == state.value.notes) return
@@ -48,14 +48,14 @@ class MangaNotesScreen(
             }
 
             screenModelScope.launchNonCancellable {
-                updateMangaNotes(manga.id, content)
+                updateAnimeNotes(anime.id, content)
             }
         }
     }
 
     @Immutable
     data class State(
-        val manga: Manga,
+        val anime: Anime,
         val notes: String,
     )
 }

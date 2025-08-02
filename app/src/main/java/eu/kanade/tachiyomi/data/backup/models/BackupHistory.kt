@@ -13,7 +13,7 @@ data class BackupHistory(
 ) {
     fun getHistoryImpl(): History {
         return History.create().copy(
-            readAt = Date(lastRead),
+            seenAt = Date(lastRead),
             readDuration = readDuration,
         )
     }

@@ -66,7 +66,7 @@ class GlobalSearchScreen(
                 navigateUp = navigator::pop,
                 onChangeSearchQuery = screenModel::updateSearchQuery,
                 onSearch = { screenModel.search() },
-                getManga = { screenModel.getManga(it) },
+                getAnime = { screenModel.getManga(it) },
                 onChangeSearchFilter = screenModel::setSourceFilter,
                 onToggleResults = screenModel::toggleFilterResults,
                 onClickSource = {

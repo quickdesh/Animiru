@@ -5,7 +5,7 @@ import eu.kanade.tachiyomi.data.database.models.Track as DbTrack
 
 fun Track.copyPersonalFrom(other: Track): Track {
     return this.copy(
-        lastChapterRead = other.lastChapterRead,
+        lastEpisodeSeen = other.lastEpisodeSeen,
         score = other.score,
         status = other.status,
         startDate = other.startDate,
@@ -16,12 +16,12 @@ fun Track.copyPersonalFrom(other: Track): Track {
 
 fun Track.toDbTrack(): DbTrack = DbTrack.create(trackerId).also {
     it.id = id
-    it.manga_id = mangaId
+    it.manga_id = animeId
     it.remote_id = remoteId
     it.library_id = libraryId
     it.title = title
-    it.last_chapter_read = lastChapterRead
-    it.total_chapters = totalChapters
+    it.last_chapter_read = lastEpisodeSeen
+    it.total_chapters = totalEpisodes
     it.status = status
     it.score = score
     it.tracking_url = remoteUrl
@@ -34,13 +34,13 @@ fun DbTrack.toDomainTrack(idRequired: Boolean = true): Track? {
     val trackId = id ?: if (!idRequired) -1 else return null
     return Track(
         id = trackId,
-        mangaId = manga_id,
+        animeId = manga_id,
         trackerId = tracker_id,
         remoteId = remote_id,
         libraryId = library_id,
         title = title,
-        lastChapterRead = last_chapter_read,
-        totalChapters = total_chapters,
+        lastEpisodeSeen = last_chapter_read,
+        totalEpisodes = total_chapters,
         status = status,
         score = score,
         remoteUrl = tracking_url,

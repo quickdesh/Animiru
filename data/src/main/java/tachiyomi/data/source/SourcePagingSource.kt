@@ -4,10 +4,10 @@ import androidx.paging.PagingState
 import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
 import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 import eu.kanade.tachiyomi.animesource.model.AnimesPage
-import mihon.domain.manga.model.toDomainManga
+import mihon.domain.anime.model.toDomainAnime
 import tachiyomi.core.common.util.lang.withIOContext
-import tachiyomi.domain.manga.interactor.NetworkToLocalManga
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.repository.SourcePagingSource
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -36,14 +36,14 @@ class SourceLatestPagingSource(source: AnimeCatalogueSource) : BaseSourcePagingS
 
 abstract class BaseSourcePagingSource(
     protected val source: AnimeCatalogueSource,
-    private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
+    private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
 ) : SourcePagingSource() {
 
     private val seenManga = hashSetOf<String>()
 
     abstract suspend fun requestNextPage(currentPage: Int): AnimesPage
 
-    override suspend fun load(params: LoadParams<Long>): LoadResult<Long, Manga> {
+    override suspend fun load(params: LoadParams<Long>): LoadResult<Long, Anime> {
         val page = params.key ?: 1
 
         return try {
@@ -54,9 +54,9 @@ abstract class BaseSourcePagingSource(
             }
 
             val manga = mangasPage.animes
-                .map { it.toDomainManga(source.id) }
+                .map { it.toDomainAnime(source.id) }
                 .filter { seenManga.add(it.url) }
-                .let { networkToLocalManga(it) }
+                .let { networkToLocalAnime(it) }
 
             LoadResult.Page(
                 data = manga,
@@ -68,7 +68,7 @@ abstract class BaseSourcePagingSource(
         }
     }
 
-    override fun getRefreshKey(state: PagingState<Long, Manga>): Long? {
+    override fun getRefreshKey(state: PagingState<Long, Anime>): Long? {
         return state.anchorPosition?.let { anchorPosition ->
             val anchorPage = state.closestPageToPosition(anchorPosition)
             anchorPage?.prevKey ?: anchorPage?.nextKey

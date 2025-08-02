@@ -212,7 +212,7 @@ data class BrowseSourceScreen(
         ) { paddingValues ->
             BrowseSourceContent(
                 source = screenModel.source,
-                mangaList = screenModel.mangaPagerFlowFlow.collectAsLazyPagingItems(),
+                animeList = screenModel.mangaPagerFlowFlow.collectAsLazyPagingItems(),
                 columns = screenModel.getColumnsPreference(LocalConfiguration.current.orientation),
                 displayMode = screenModel.displayMode,
                 snackbarHostState = snackbarHostState,
@@ -252,9 +252,9 @@ data class BrowseSourceScreen(
                 DuplicateMangaDialog(
                     duplicates = dialog.duplicates,
                     onDismissRequest = onDismissRequest,
-                    onConfirm = { screenModel.addFavorite(dialog.manga) },
+                    onConfirm = { screenModel.addFavorite(dialog.anime) },
                     onOpenManga = { navigator.push(MangaScreen(it.id)) },
-                    onMigrate = { screenModel.setDialog(BrowseSourceScreenModel.Dialog.Migrate(dialog.manga, it)) },
+                    onMigrate = { screenModel.setDialog(BrowseSourceScreenModel.Dialog.Migrate(dialog.anime, it)) },
                 )
             }
 
@@ -271,9 +271,9 @@ data class BrowseSourceScreen(
                 RemoveMangaDialog(
                     onDismissRequest = onDismissRequest,
                     onConfirm = {
-                        screenModel.changeMangaFavorite(dialog.manga)
+                        screenModel.changeMangaFavorite(dialog.anime)
                     },
-                    mangaToRemove = dialog.manga,
+                    animeToRemove = dialog.anime,
                 )
             }
             is BrowseSourceScreenModel.Dialog.ChangeMangaCategory -> {
@@ -282,8 +282,8 @@ data class BrowseSourceScreen(
                     onDismissRequest = onDismissRequest,
                     onEditCategories = { navigator.push(CategoryScreen()) },
                     onConfirm = { include, _ ->
-                        screenModel.changeMangaFavorite(dialog.manga)
-                        screenModel.moveMangaToCategories(dialog.manga, include)
+                        screenModel.changeMangaFavorite(dialog.anime)
+                        screenModel.moveMangaToCategories(dialog.anime, include)
                     },
                 )
             }

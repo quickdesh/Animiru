@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.util.fastAny
 import eu.kanade.tachiyomi.ui.library.LibraryItem
-import tachiyomi.domain.library.model.LibraryManga
-import tachiyomi.domain.manga.model.MangaCover
+import tachiyomi.domain.library.model.LibraryAnime
+import tachiyomi.domain.anime.model.AnimeCover
 
 @Composable
 internal fun LibraryCompactGrid(
@@ -16,10 +16,10 @@ internal fun LibraryCompactGrid(
     showTitle: Boolean,
     columns: Int,
     contentPadding: PaddingValues,
-    selection: List<LibraryManga>,
-    onClick: (LibraryManga) -> Unit,
-    onLongClick: (LibraryManga) -> Unit,
-    onClickContinueReading: ((LibraryManga) -> Unit)?,
+    selection: List<LibraryAnime>,
+    onClick: (LibraryAnime) -> Unit,
+    onLongClick: (LibraryAnime) -> Unit,
+    onClickContinueReading: ((LibraryAnime) -> Unit)?,
     searchQuery: String?,
     onGlobalSearchClicked: () -> Unit,
 ) {
@@ -34,14 +34,14 @@ internal fun LibraryCompactGrid(
             items = items,
             contentType = { "library_compact_grid_item" },
         ) { libraryItem ->
-            val manga = libraryItem.libraryManga.manga
+            val manga = libraryItem.libraryAnime.anime
             MangaCompactGridItem(
-                isSelected = selection.fastAny { it.id == libraryItem.libraryManga.id },
+                isSelected = selection.fastAny { it.id == libraryItem.libraryAnime.id },
                 title = manga.title.takeIf { showTitle },
-                coverData = MangaCover(
-                    mangaId = manga.id,
+                coverData = AnimeCover(
+                    animeId = manga.id,
                     sourceId = manga.source,
-                    isMangaFavorite = manga.favorite,
+                    isAnimeFavorite = manga.favorite,
                     url = manga.thumbnailUrl,
                     lastModified = manga.coverLastModified,
                 ),
@@ -55,10 +55,10 @@ internal fun LibraryCompactGrid(
                         sourceLanguage = libraryItem.sourceLanguage,
                     )
                 },
-                onLongClick = { onLongClick(libraryItem.libraryManga) },
-                onClick = { onClick(libraryItem.libraryManga) },
+                onLongClick = { onLongClick(libraryItem.libraryAnime) },
+                onClick = { onClick(libraryItem.libraryAnime) },
                 onClickContinueReading = if (onClickContinueReading != null && libraryItem.unreadCount > 0) {
-                    { onClickContinueReading(libraryItem.libraryManga) }
+                    { onClickContinueReading(libraryItem.libraryAnime) }
                 } else {
                     null
                 },

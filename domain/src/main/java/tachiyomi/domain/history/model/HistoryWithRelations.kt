@@ -1,15 +1,14 @@
 package tachiyomi.domain.history.model
 
-import tachiyomi.domain.manga.model.MangaCover
+import tachiyomi.domain.anime.model.AnimeCover
 import java.util.Date
 
 data class HistoryWithRelations(
     val id: Long,
-    val chapterId: Long,
-    val mangaId: Long,
+    val episodeId: Long,
+    val animeId: Long,
     val title: String,
-    val chapterNumber: Double,
-    val readAt: Date?,
-    val readDuration: Long,
-    val coverData: MangaCover,
+    val episodeNumber: Double,
+    val seenAt: Date?,
+    val coverData: AnimeCover,
 )

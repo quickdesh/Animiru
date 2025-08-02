@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import mihon.feature.migration.dialog.MigrateMangaDialog
 import tachiyomi.core.common.i18n.stringResource
-import tachiyomi.domain.chapter.model.Chapter
+import tachiyomi.domain.episode.model.Episode
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -82,7 +82,7 @@ data object HistoryTab : Tab {
                     onDismissRequest = onDismissRequest,
                     onDelete = { all ->
                         if (all) {
-                            screenModel.removeAllFromHistory(dialog.history.mangaId)
+                            screenModel.removeAllFromHistory(dialog.history.animeId)
                         } else {
                             screenModel.removeFromHistory(dialog.history)
                         }
@@ -99,9 +99,9 @@ data object HistoryTab : Tab {
                 DuplicateMangaDialog(
                     duplicates = dialog.duplicates,
                     onDismissRequest = onDismissRequest,
-                    onConfirm = { screenModel.addFavorite(dialog.manga) },
+                    onConfirm = { screenModel.addFavorite(dialog.anime) },
                     onOpenManga = { navigator.push(MangaScreen(it.id)) },
-                    onMigrate = { screenModel.showMigrateDialog(dialog.manga, it) },
+                    onMigrate = { screenModel.showMigrateDialog(dialog.anime, it) },
                 )
             }
             is HistoryScreenModel.Dialog.ChangeCategory -> {
@@ -110,7 +110,7 @@ data object HistoryTab : Tab {
                     onDismissRequest = onDismissRequest,
                     onEditCategories = { navigator.push(CategoryScreen()) },
                     onConfirm = { include, _ ->
-                        screenModel.moveMangaToCategoriesAndAddToLibrary(dialog.manga, include)
+                        screenModel.moveMangaToCategoriesAndAddToLibrary(dialog.anime, include)
                     },
                 )
             }
@@ -139,7 +139,7 @@ data object HistoryTab : Tab {
                         snackbarHostState.showSnackbar(context.stringResource(MR.strings.internal_error))
                     HistoryScreenModel.Event.HistoryCleared ->
                         snackbarHostState.showSnackbar(context.stringResource(MR.strings.clear_history_completed))
-                    is HistoryScreenModel.Event.OpenChapter -> openChapter(context, e.chapter)
+                    is HistoryScreenModel.Event.OpenChapter -> openChapter(context, e.episode)
                 }
             }
         }
@@ -151,9 +151,9 @@ data object HistoryTab : Tab {
         }
     }
 
-    private suspend fun openChapter(context: Context, chapter: Chapter?) {
-        if (chapter != null) {
-            val intent = ReaderActivity.newIntent(context, chapter.mangaId, chapter.id)
+    private suspend fun openChapter(context: Context, episode: Episode?) {
+        if (episode != null) {
+            val intent = ReaderActivity.newIntent(context, episode.animeId, episode.id)
             context.startActivity(intent)
         } else {
             snackbarHostState.showSnackbar(context.stringResource(MR.strings.no_next_chapter))

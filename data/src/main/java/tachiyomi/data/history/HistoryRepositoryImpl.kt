@@ -29,8 +29,8 @@ class HistoryRepositoryImpl(
         return handler.awaitOne { historyQueries.getReadDuration() }
     }
 
-    override suspend fun getHistoryByMangaId(mangaId: Long): List<History> {
-        return handler.awaitList { historyQueries.getHistoryByMangaId(mangaId, HistoryMapper::mapHistory) }
+    override suspend fun getHistoryByAnimeId(animeId: Long): List<History> {
+        return handler.awaitList { historyQueries.getHistoryByMangaId(animeId, HistoryMapper::mapHistory) }
     }
 
     override suspend fun resetHistory(historyId: Long) {
@@ -41,9 +41,9 @@ class HistoryRepositoryImpl(
         }
     }
 
-    override suspend fun resetHistoryByMangaId(mangaId: Long) {
+    override suspend fun resetHistoryByAnimeId(animeId: Long) {
         try {
-            handler.await { historyQueries.resetHistoryByMangaId(mangaId) }
+            handler.await { historyQueries.resetHistoryByMangaId(animeId) }
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, throwable = e)
         }
@@ -63,8 +63,8 @@ class HistoryRepositoryImpl(
         try {
             handler.await {
                 historyQueries.upsert(
-                    historyUpdate.chapterId,
-                    historyUpdate.readAt,
+                    historyUpdate.episodeId,
+                    historyUpdate.seenAt,
                     historyUpdate.sessionReadDuration,
                 )
             }

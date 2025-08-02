@@ -16,19 +16,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.library.components.CommonMangaItemDefaults
 import eu.kanade.presentation.library.components.MangaComfortableGridItem
-import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.model.MangaCover
-import tachiyomi.domain.manga.model.asMangaCover
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.model.AnimeCover
+import tachiyomi.domain.anime.model.asAnimeCover
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun GlobalSearchCardRow(
-    titles: List<Manga>,
-    getManga: @Composable (Manga) -> State<Manga>,
-    onClick: (Manga) -> Unit,
-    onLongClick: (Manga) -> Unit,
+    titles: List<Anime>,
+    getAnime: @Composable (Anime) -> State<Anime>,
+    onClick: (Anime) -> Unit,
+    onLongClick: (Anime) -> Unit,
 ) {
     if (titles.isEmpty()) {
         EmptyResultItem()
@@ -40,10 +40,10 @@ fun GlobalSearchCardRow(
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
     ) {
         items(titles) {
-            val title by getManga(it)
+            val title by getAnime(it)
             MangaItem(
                 title = title.title,
-                cover = title.asMangaCover(),
+                cover = title.asAnimeCover(),
                 isFavorite = title.favorite,
                 onClick = { onClick(title) },
                 onLongClick = { onLongClick(title) },
@@ -55,7 +55,7 @@ fun GlobalSearchCardRow(
 @Composable
 private fun MangaItem(
     title: String,
-    cover: MangaCover,
+    cover: AnimeCover,
     isFavorite: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,

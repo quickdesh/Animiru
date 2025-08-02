@@ -11,7 +11,7 @@ import mihon.core.archive.epubReader
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
 import tachiyomi.source.local.LocalSource
@@ -24,7 +24,7 @@ class ChapterLoader(
     private val context: Context,
     private val downloadManager: DownloadManager,
     private val downloadProvider: DownloadProvider,
-    private val manga: Manga,
+    private val anime: Anime,
     private val source: AnimeSource,
 ) {
 
@@ -80,14 +80,14 @@ class ChapterLoader(
         val isDownloaded = downloadManager.isChapterDownloaded(
             dbChapter.name,
             dbChapter.scanlator,
-            manga.title,
-            manga.source,
+            anime.title,
+            anime.source,
             skipCache = true,
         )
         return when {
             isDownloaded -> DownloadPageLoader(
                 chapter,
-                manga,
+                anime,
                 source,
                 downloadManager,
                 downloadProvider,

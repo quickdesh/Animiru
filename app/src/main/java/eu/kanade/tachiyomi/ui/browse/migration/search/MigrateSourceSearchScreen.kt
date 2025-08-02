@@ -32,7 +32,7 @@ import mihon.feature.migration.dialog.MigrateMangaDialog
 import mihon.feature.migration.list.MigrationListScreen
 import mihon.presentation.core.util.collectAsLazyPagingItems
 import tachiyomi.core.common.Constants
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.ExtendedFloatingActionButton
 import tachiyomi.presentation.core.components.material.Scaffold
@@ -41,7 +41,7 @@ import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.source.local.LocalSource
 
 data class MigrateSourceSearchScreen(
-    private val currentManga: Manga,
+    private val currentAnime: Anime,
     private val sourceId: Long,
     private val query: String?,
 ) : Screen() {
@@ -83,21 +83,21 @@ data class MigrateSourceSearchScreen(
             },
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         ) { paddingValues ->
-            val openMigrateDialog: (Manga) -> Unit = {
+            val openMigrateDialog: (Anime) -> Unit = {
                 val migrateListScreen = navigator.items
                     .filterIsInstance<MigrationListScreen>()
                     .lastOrNull()
 
                 if (migrateListScreen == null) {
-                    screenModel.setDialog(BrowseSourceScreenModel.Dialog.Migrate(target = it, current = currentManga))
+                    screenModel.setDialog(BrowseSourceScreenModel.Dialog.Migrate(target = it, current = currentAnime))
                 } else {
-                    migrateListScreen.addMatchOverride(current = currentManga.id, target = it.id)
+                    migrateListScreen.addMatchOverride(current = currentAnime.id, target = it.id)
                     navigator.popUntil { screen -> screen is MigrationListScreen }
                 }
             }
             BrowseSourceContent(
                 source = screenModel.source,
-                mangaList = screenModel.mangaPagerFlowFlow.collectAsLazyPagingItems(),
+                animeList = screenModel.mangaPagerFlowFlow.collectAsLazyPagingItems(),
                 columns = screenModel.getColumnsPreference(LocalConfiguration.current.orientation),
                 displayMode = screenModel.displayMode,
                 snackbarHostState = snackbarHostState,
@@ -132,7 +132,7 @@ data class MigrateSourceSearchScreen(
             }
             is BrowseSourceScreenModel.Dialog.Migrate -> {
                 MigrateMangaDialog(
-                    current = currentManga,
+                    current = currentAnime,
                     target = dialog.target,
                     // Initiated from the context of [currentManga] so we show [dialog.target].
                     onClickTitle = { navigator.push(MangaScreen(dialog.target.id)) },

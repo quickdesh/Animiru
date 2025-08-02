@@ -4,11 +4,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import kotlin.coroutines.CoroutineContext
 
 class MigratingManga(
-    val manga: Manga,
+    val anime: Anime,
     val chapterCount: Int,
     val latestChapter: Double?,
     val source: String,
@@ -22,7 +22,7 @@ class MigratingManga(
         data object Searching : SearchResult
         data object NotFound : SearchResult
         data class Success(
-            val manga: Manga,
+            val anime: Anime,
             val chapterCount: Int,
             val latestChapter: Double?,
             val source: String,

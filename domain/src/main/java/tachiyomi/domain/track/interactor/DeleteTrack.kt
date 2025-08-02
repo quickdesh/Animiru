@@ -8,9 +8,9 @@ class DeleteTrack(
     private val trackRepository: TrackRepository,
 ) {
 
-    suspend fun await(mangaId: Long, trackerId: Long) {
+    suspend fun await(animeId: Long, trackerId: Long) {
         try {
-            trackRepository.delete(mangaId, trackerId)
+            trackRepository.delete(animeId, trackerId)
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)
         }

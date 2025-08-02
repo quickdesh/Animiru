@@ -8,34 +8,34 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.metadata.comicinfo.ComicInfo
 import tachiyomi.core.metadata.comicinfo.ComicInfoPublishingStatus
-import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.episode.model.Episode
+import tachiyomi.domain.anime.model.Anime
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 // TODO: move these into the domain model
-val Manga.readingMode: Long
+val Anime.readingMode: Long
     get() = viewerFlags and ReadingMode.MASK.toLong()
 
-val Manga.readerOrientation: Long
+val Anime.readerOrientation: Long
     get() = viewerFlags and ReaderOrientation.MASK.toLong()
 
-val Manga.downloadedFilter: TriState
+val Anime.downloadedFilter: TriState
     get() {
         if (Injekt.get<BasePreferences>().downloadedOnly().get()) return TriState.ENABLED_IS
         return when (downloadedFilterRaw) {
-            Manga.CHAPTER_SHOW_DOWNLOADED -> TriState.ENABLED_IS
-            Manga.CHAPTER_SHOW_NOT_DOWNLOADED -> TriState.ENABLED_NOT
+            Anime.EPISODE_SHOW_DOWNLOADED -> TriState.ENABLED_IS
+            Anime.EPISODE_SHOW_NOT_DOWNLOADED -> TriState.ENABLED_NOT
             else -> TriState.DISABLED
         }
     }
-fun Manga.chaptersFiltered(): Boolean {
+fun Anime.chaptersFiltered(): Boolean {
     return unreadFilter != TriState.DISABLED ||
         downloadedFilter != TriState.DISABLED ||
         bookmarkedFilter != TriState.DISABLED
 }
 
-fun Manga.toSManga(): SAnime = SAnime.create().also {
+fun Anime.toSManga(): SAnime = SAnime.create().also {
     it.url = url
     it.title = title
     it.artist = artist
@@ -47,7 +47,7 @@ fun Manga.toSManga(): SAnime = SAnime.create().also {
     it.initialized = initialized
 }
 
-fun Manga.copyFrom(other: SAnime): Manga {
+fun Anime.copyFrom(other: SAnime): Anime {
     val author = other.author ?: author
     val artist = other.artist ?: artist
     val description = other.description ?: description
@@ -69,7 +69,7 @@ fun Manga.copyFrom(other: SAnime): Manga {
     )
 }
 
-fun Manga.hasCustomCover(coverCache: CoverCache = Injekt.get()): Boolean {
+fun Anime.hasCustomCover(coverCache: CoverCache = Injekt.get()): Boolean {
     return coverCache.getCustomCoverFile(id).exists()
 }
 
@@ -77,15 +77,15 @@ fun Manga.hasCustomCover(coverCache: CoverCache = Injekt.get()): Boolean {
  * Creates a ComicInfo instance based on the manga and chapter metadata.
  */
 fun getComicInfo(
-    manga: Manga,
-    chapter: Chapter,
+    anime: Anime,
+    episode: Episode,
     urls: List<String>,
     categories: List<String>?,
     sourceName: String,
 ) = ComicInfo(
-    title = ComicInfo.Title(chapter.name),
-    series = ComicInfo.Series(manga.title),
-    number = chapter.chapterNumber.takeIf { it >= 0 }?.let {
+    title = ComicInfo.Title(episode.name),
+    series = ComicInfo.Series(anime.title),
+    number = episode.episodeNumber.takeIf { it >= 0 }?.let {
         if ((it.rem(1) == 0.0)) {
             ComicInfo.Number(it.toInt().toString())
         } else {
@@ -93,13 +93,13 @@ fun getComicInfo(
         }
     },
     web = ComicInfo.Web(urls.joinToString(" ")),
-    summary = manga.description?.let { ComicInfo.Summary(it) },
-    writer = manga.author?.let { ComicInfo.Writer(it) },
-    penciller = manga.artist?.let { ComicInfo.Penciller(it) },
-    translator = chapter.scanlator?.let { ComicInfo.Translator(it) },
-    genre = manga.genre?.let { ComicInfo.Genre(it.joinToString()) },
+    summary = anime.description?.let { ComicInfo.Summary(it) },
+    writer = anime.author?.let { ComicInfo.Writer(it) },
+    penciller = anime.artist?.let { ComicInfo.Penciller(it) },
+    translator = episode.scanlator?.let { ComicInfo.Translator(it) },
+    genre = anime.genre?.let { ComicInfo.Genre(it.joinToString()) },
     publishingStatus = ComicInfo.PublishingStatusTachiyomi(
-        ComicInfoPublishingStatus.toComicInfoValue(manga.status),
+        ComicInfoPublishingStatus.toComicInfoValue(anime.status),
     ),
     categories = categories?.let { ComicInfo.CategoriesTachiyomi(it.joinToString()) },
     source = ComicInfo.SourceMihon(sourceName),

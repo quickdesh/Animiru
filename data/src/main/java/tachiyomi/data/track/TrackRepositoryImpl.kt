@@ -13,9 +13,9 @@ class TrackRepositoryImpl(
         return handler.awaitOneOrNull { manga_syncQueries.getTrackById(id, TrackMapper::mapTrack) }
     }
 
-    override suspend fun getTracksByMangaId(mangaId: Long): List<Track> {
+    override suspend fun getTracksByAnimeId(animeId: Long): List<Track> {
         return handler.awaitList {
-            manga_syncQueries.getTracksByMangaId(mangaId, TrackMapper::mapTrack)
+            manga_syncQueries.getTracksByMangaId(animeId, TrackMapper::mapTrack)
         }
     }
 
@@ -25,16 +25,16 @@ class TrackRepositoryImpl(
         }
     }
 
-    override fun getTracksByMangaIdAsFlow(mangaId: Long): Flow<List<Track>> {
+    override fun getTracksByAnimeIdAsFlow(animeId: Long): Flow<List<Track>> {
         return handler.subscribeToList {
-            manga_syncQueries.getTracksByMangaId(mangaId, TrackMapper::mapTrack)
+            manga_syncQueries.getTracksByMangaId(animeId, TrackMapper::mapTrack)
         }
     }
 
-    override suspend fun delete(mangaId: Long, trackerId: Long) {
+    override suspend fun delete(animeId: Long, trackerId: Long) {
         handler.await {
             manga_syncQueries.delete(
-                mangaId = mangaId,
+                mangaId = animeId,
                 syncId = trackerId,
             )
         }
@@ -52,13 +52,13 @@ class TrackRepositoryImpl(
         handler.await(inTransaction = true) {
             tracks.forEach { mangaTrack ->
                 manga_syncQueries.insert(
-                    mangaId = mangaTrack.mangaId,
+                    mangaId = mangaTrack.animeId,
                     syncId = mangaTrack.trackerId,
                     remoteId = mangaTrack.remoteId,
                     libraryId = mangaTrack.libraryId,
                     title = mangaTrack.title,
-                    lastChapterRead = mangaTrack.lastChapterRead,
-                    totalChapters = mangaTrack.totalChapters,
+                    lastChapterRead = mangaTrack.lastEpisodeSeen,
+                    totalChapters = mangaTrack.totalEpisodes,
                     status = mangaTrack.status,
                     score = mangaTrack.score,
                     remoteUrl = mangaTrack.remoteUrl,

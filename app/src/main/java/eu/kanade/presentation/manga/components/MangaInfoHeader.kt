@@ -83,7 +83,7 @@ import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.util.system.copyToClipboard
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.TextButton
@@ -100,7 +100,7 @@ import kotlin.math.roundToInt
 fun MangaInfoBox(
     isTabletUi: Boolean,
     appBarPadding: Dp,
-    manga: Manga,
+    anime: Anime,
     sourceName: String,
     isStubSource: Boolean,
     onCoverClick: () -> Unit,
@@ -115,7 +115,7 @@ fun MangaInfoBox(
         )
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(manga)
+                .data(anime)
                 .crossfade(true)
                 .build(),
             contentDescription = null,
@@ -137,7 +137,7 @@ fun MangaInfoBox(
             if (!isTabletUi) {
                 MangaAndSourceTitlesSmall(
                     appBarPadding = appBarPadding,
-                    manga = manga,
+                    anime = anime,
                     sourceName = sourceName,
                     isStubSource = isStubSource,
                     onCoverClick = onCoverClick,
@@ -146,7 +146,7 @@ fun MangaInfoBox(
             } else {
                 MangaAndSourceTitlesLarge(
                     appBarPadding = appBarPadding,
-                    manga = manga,
+                    anime = anime,
                     sourceName = sourceName,
                     isStubSource = isStubSource,
                     onCoverClick = onCoverClick,
@@ -330,7 +330,7 @@ fun ExpandableMangaDescription(
 @Composable
 private fun MangaAndSourceTitlesLarge(
     appBarPadding: Dp,
-    manga: Manga,
+    anime: Anime,
     sourceName: String,
     isStubSource: Boolean,
     onCoverClick: () -> Unit,
@@ -345,7 +345,7 @@ private fun MangaAndSourceTitlesLarge(
         MangaCover.Book(
             modifier = Modifier.fillMaxWidth(0.65f),
             data = ImageRequest.Builder(LocalContext.current)
-                .data(manga)
+                .data(anime)
                 .crossfade(true)
                 .build(),
             contentDescription = stringResource(MR.strings.manga_cover),
@@ -353,10 +353,10 @@ private fun MangaAndSourceTitlesLarge(
         )
         Spacer(modifier = Modifier.height(16.dp))
         MangaContentInfo(
-            title = manga.title,
-            author = manga.author,
-            artist = manga.artist,
-            status = manga.status,
+            title = anime.title,
+            author = anime.author,
+            artist = anime.artist,
+            status = anime.status,
             sourceName = sourceName,
             isStubSource = isStubSource,
             doSearch = doSearch,
@@ -368,7 +368,7 @@ private fun MangaAndSourceTitlesLarge(
 @Composable
 private fun MangaAndSourceTitlesSmall(
     appBarPadding: Dp,
-    manga: Manga,
+    anime: Anime,
     sourceName: String,
     isStubSource: Boolean,
     onCoverClick: () -> Unit,
@@ -386,7 +386,7 @@ private fun MangaAndSourceTitlesSmall(
                 .sizeIn(maxWidth = 100.dp)
                 .align(Alignment.Top),
             data = ImageRequest.Builder(LocalContext.current)
-                .data(manga)
+                .data(anime)
                 .crossfade(true)
                 .build(),
             contentDescription = stringResource(MR.strings.manga_cover),
@@ -396,10 +396,10 @@ private fun MangaAndSourceTitlesSmall(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             MangaContentInfo(
-                title = manga.title,
-                author = manga.author,
-                artist = manga.artist,
-                status = manga.status,
+                title = anime.title,
+                author = anime.author,
+                artist = anime.artist,
+                status = anime.status,
                 sourceName = sourceName,
                 isStubSource = isStubSource,
                 doSearch = doSearch,

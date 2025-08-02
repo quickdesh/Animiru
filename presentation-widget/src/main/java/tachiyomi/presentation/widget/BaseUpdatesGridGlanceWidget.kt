@@ -37,7 +37,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
 import tachiyomi.core.common.util.lang.withIOContext
-import tachiyomi.domain.manga.model.MangaCover
+import tachiyomi.domain.anime.model.AnimeCover
 import tachiyomi.domain.updates.interactor.GetUpdates
 import tachiyomi.domain.updates.model.UpdatesWithRelations
 import tachiyomi.presentation.widget.components.CoverHeight
@@ -119,15 +119,15 @@ abstract class BaseUpdatesGridGlanceWidget(
         val roundPx = context.resources.getDimension(R.dimen.appwidget_inner_radius)
         return withIOContext {
             this@prepareData
-                .distinctBy { it.mangaId }
+                .distinctBy { it.animeId }
                 .take(rowCount * columnCount)
                 .map { updatesView ->
                     val request = ImageRequest.Builder(context)
                         .data(
-                            MangaCover(
-                                mangaId = updatesView.mangaId,
+                            AnimeCover(
+                                animeId = updatesView.animeId,
                                 sourceId = updatesView.sourceId,
-                                isMangaFavorite = true,
+                                isAnimeFavorite = true,
                                 url = updatesView.coverData.url,
                                 lastModified = updatesView.coverData.lastModified,
                             ),
@@ -148,7 +148,7 @@ abstract class BaseUpdatesGridGlanceWidget(
                         .image
                         ?.asDrawable(context.resources)
                         ?.toBitmap()
-                    Pair(updatesView.mangaId, bitmap)
+                    Pair(updatesView.animeId, bitmap)
                 }
                 .toImmutableList()
         }

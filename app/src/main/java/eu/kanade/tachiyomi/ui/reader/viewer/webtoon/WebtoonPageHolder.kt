@@ -290,7 +290,7 @@ class WebtoonPageHolder(
         if (imageUrl != null) {
             if (imageUrl.startsWith("http", true)) {
                 errorLayout?.actionOpenInWebView?.setOnClickListener {
-                    val sourceId = viewer.activity.viewModel.manga?.source
+                    val sourceId = viewer.activity.viewModel.anime?.source
 
                     val intent = WebViewActivity.newIntent(context, imageUrl, sourceId)
                     context.startActivity(intent)

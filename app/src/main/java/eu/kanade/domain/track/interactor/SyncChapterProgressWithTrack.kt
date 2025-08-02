@@ -5,17 +5,17 @@ import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.Tracker
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
-import tachiyomi.domain.chapter.interactor.UpdateChapter
-import tachiyomi.domain.chapter.model.toChapterUpdate
+import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
+import tachiyomi.domain.episode.interactor.UpdateEpisode
+import tachiyomi.domain.episode.model.toEpisodeUpdate
 import tachiyomi.domain.track.interactor.InsertTrack
 import tachiyomi.domain.track.model.Track
 import kotlin.math.max
 
 class SyncChapterProgressWithTrack(
-    private val updateChapter: UpdateChapter,
+    private val updateEpisode: UpdateEpisode,
     private val insertTrack: InsertTrack,
-    private val getChaptersByMangaId: GetChaptersByMangaId,
+    private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
 ) {
 
     suspend fun await(
@@ -27,22 +27,22 @@ class SyncChapterProgressWithTrack(
             return
         }
 
-        val sortedChapters = getChaptersByMangaId.await(mangaId)
-            .sortedBy { it.chapterNumber }
+        val sortedChapters = getEpisodesByAnimeId.await(mangaId)
+            .sortedBy { it.episodeNumber }
             .filter { it.isRecognizedNumber }
 
         val chapterUpdates = sortedChapters
-            .filter { chapter -> chapter.chapterNumber <= remoteTrack.lastChapterRead && !chapter.read }
-            .map { it.copy(read = true).toChapterUpdate() }
+            .filter { chapter -> chapter.episodeNumber <= remoteTrack.lastEpisodeSeen && !chapter.seen }
+            .map { it.copy(seen = true).toEpisodeUpdate() }
 
         // only take into account continuous reading
-        val localLastRead = sortedChapters.takeWhile { it.read }.lastOrNull()?.chapterNumber ?: 0F
-        val lastRead = max(remoteTrack.lastChapterRead, localLastRead.toDouble())
-        val updatedTrack = remoteTrack.copy(lastChapterRead = lastRead)
+        val localLastRead = sortedChapters.takeWhile { it.seen }.lastOrNull()?.episodeNumber ?: 0F
+        val lastRead = max(remoteTrack.lastEpisodeSeen, localLastRead.toDouble())
+        val updatedTrack = remoteTrack.copy(lastEpisodeSeen = lastRead)
 
         try {
             tracker.update(updatedTrack.toDbTrack())
-            updateChapter.awaitAll(chapterUpdates)
+            updateEpisode.awaitAll(chapterUpdates)
             insertTrack.await(updatedTrack)
         } catch (e: Throwable) {
             logcat(LogPriority.WARN, e)

@@ -15,7 +15,7 @@ import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchItemResult
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SourceFilter
 import eu.kanade.tachiyomi.util.system.LocaleHelper
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.presentation.core.components.material.Scaffold
 
 @Composable
@@ -26,10 +26,10 @@ fun GlobalSearchScreen(
     onSearch: (String) -> Unit,
     onChangeSearchFilter: (SourceFilter) -> Unit,
     onToggleResults: () -> Unit,
-    getManga: @Composable (Manga) -> State<Manga>,
+    getAnime: @Composable (Anime) -> State<Anime>,
     onClickSource: (AnimeCatalogueSource) -> Unit,
-    onClickItem: (Manga) -> Unit,
-    onLongClickItem: (Manga) -> Unit,
+    onClickItem: (Anime) -> Unit,
+    onLongClickItem: (Anime) -> Unit,
 ) {
     Scaffold(
         topBar = { scrollBehavior ->
@@ -52,7 +52,7 @@ fun GlobalSearchScreen(
         GlobalSearchContent(
             items = state.filteredItems,
             contentPadding = paddingValues,
-            getManga = getManga,
+            getAnime = getAnime,
             onClickSource = onClickSource,
             onClickItem = onClickItem,
             onLongClickItem = onLongClickItem,
@@ -64,10 +64,10 @@ fun GlobalSearchScreen(
 internal fun GlobalSearchContent(
     items: Map<AnimeCatalogueSource, SearchItemResult>,
     contentPadding: PaddingValues,
-    getManga: @Composable (Manga) -> State<Manga>,
+    getAnime: @Composable (Anime) -> State<Anime>,
     onClickSource: (AnimeCatalogueSource) -> Unit,
-    onClickItem: (Manga) -> Unit,
-    onLongClickItem: (Manga) -> Unit,
+    onClickItem: (Anime) -> Unit,
+    onLongClickItem: (Anime) -> Unit,
     fromSourceId: Long? = null,
 ) {
     LazyColumn(
@@ -90,7 +90,7 @@ internal fun GlobalSearchContent(
                         is SearchItemResult.Success -> {
                             GlobalSearchCardRow(
                                 titles = result.result,
-                                getManga = getManga,
+                                getAnime = getAnime,
                                 onClick = onClickItem,
                                 onLongClick = onLongClickItem,
                             )

@@ -23,14 +23,15 @@ data class LibrarySort(
         override val mask: Long = 0b00111100L
 
         data object Alphabetical : Type(0b00000000)
-        data object LastRead : Type(0b00000100)
+        data object LastSeen : Type(0b00000100)
         data object LastUpdate : Type(0b00001000)
-        data object UnreadCount : Type(0b00001100)
-        data object TotalChapters : Type(0b00010000)
-        data object LatestChapter : Type(0b00010100)
-        data object ChapterFetchDate : Type(0b00011000)
+        data object UnseenCount : Type(0b00001100)
+        data object TotalEpisodes : Type(0b00010000)
+        data object LatestEpisode : Type(0b00010100)
+        data object EpisodeFetchDate : Type(0b00011000)
         data object DateAdded : Type(0b00011100)
-        data object TrackerMean : Type(0b00100000)
+        data object TrackerMean : Type(0b000100000)
+        data object AiringTime : Type(0b00110000)
         data object Random : Type(0b00111100)
 
         companion object {
@@ -70,14 +71,15 @@ data class LibrarySort(
         val types by lazy {
             setOf(
                 Type.Alphabetical,
-                Type.LastRead,
+                Type.LastSeen,
                 Type.LastUpdate,
-                Type.UnreadCount,
-                Type.TotalChapters,
-                Type.LatestChapter,
-                Type.ChapterFetchDate,
+                Type.UnseenCount,
+                Type.TotalEpisodes,
+                Type.LatestEpisode,
+                Type.EpisodeFetchDate,
                 Type.DateAdded,
                 Type.TrackerMean,
+                Type.AiringTime,
                 Type.Random,
             )
         }
@@ -98,14 +100,15 @@ data class LibrarySort(
                 val values = serialized.split(",")
                 val type = when (values[0]) {
                     "ALPHABETICAL" -> Type.Alphabetical
-                    "LAST_READ" -> Type.LastRead
-                    "LAST_MANGA_UPDATE" -> Type.LastUpdate
-                    "UNREAD_COUNT" -> Type.UnreadCount
-                    "TOTAL_CHAPTERS" -> Type.TotalChapters
-                    "LATEST_CHAPTER" -> Type.LatestChapter
-                    "CHAPTER_FETCH_DATE" -> Type.ChapterFetchDate
+                    "LAST_SEEN" -> Type.LastSeen
+                    "LAST_ANIME_UPDATE" -> Type.LastUpdate
+                    "UNSEEN_COUNT" -> Type.UnseenCount
+                    "TOTAL_EPISODES" -> Type.TotalEpisodes
+                    "LATEST_EPISODE" -> Type.LatestEpisode
+                    "EPISODE_FETCH_DATE" -> Type.EpisodeFetchDate
                     "DATE_ADDED" -> Type.DateAdded
                     "TRACKER_MEAN" -> Type.TrackerMean
+                    "AIRING_TIME" -> Type.AiringTime
                     "RANDOM" -> Type.Random
                     else -> Type.Alphabetical
                 }
@@ -120,14 +123,15 @@ data class LibrarySort(
     fun serialize(): String {
         val type = when (type) {
             Type.Alphabetical -> "ALPHABETICAL"
-            Type.LastRead -> "LAST_READ"
-            Type.LastUpdate -> "LAST_MANGA_UPDATE"
-            Type.UnreadCount -> "UNREAD_COUNT"
-            Type.TotalChapters -> "TOTAL_CHAPTERS"
-            Type.LatestChapter -> "LATEST_CHAPTER"
-            Type.ChapterFetchDate -> "CHAPTER_FETCH_DATE"
+            Type.LastSeen -> "LAST_SEEN"
+            Type.LastUpdate -> "LAST_ANIME_UPDATE"
+            Type.UnseenCount -> "UNSEEN_COUNT"
+            Type.TotalEpisodes -> "TOTAL_EPISODES"
+            Type.LatestEpisode -> "LATEST_EPISODE"
+            Type.EpisodeFetchDate -> "EPISODE_FETCH_DATE"
             Type.DateAdded -> "DATE_ADDED"
             Type.TrackerMean -> "TRACKER_MEAN"
+            Type.AiringTime -> "AIRING_TIME"
             Type.Random -> "RANDOM"
         }
         val direction = if (direction == Direction.Ascending) "ASCENDING" else "DESCENDING"

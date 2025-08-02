@@ -15,20 +15,20 @@ import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import mihon.domain.upcoming.interactor.GetUpcomingManga
-import tachiyomi.domain.manga.model.Manga
+import mihon.domain.upcoming.interactor.GetUpcomingAnime
+import tachiyomi.domain.anime.model.Anime
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.time.LocalDate
 import java.time.YearMonth
 
 class UpcomingScreenModel(
-    private val getUpcomingManga: GetUpcomingManga = Injekt.get(),
+    private val getUpcomingAnime: GetUpcomingAnime = Injekt.get(),
 ) : StateScreenModel<UpcomingScreenModel.State>(State()) {
 
     init {
         screenModelScope.launch {
-            getUpcomingManga.subscribe().collectLatest {
+            getUpcomingAnime.subscribe().collectLatest {
                 mutableState.update { state ->
                     val upcomingItems = it.toUpcomingUIModels()
                     state.copy(
@@ -41,14 +41,14 @@ class UpcomingScreenModel(
         }
     }
 
-    private fun List<Manga>.toUpcomingUIModels(): ImmutableList<UpcomingUIModel> {
+    private fun List<Anime>.toUpcomingUIModels(): ImmutableList<UpcomingUIModel> {
         var mangaCount = 0
         return fastMap { UpcomingUIModel.Item(it) }
             .insertSeparatorsReversed { before, after ->
                 if (after != null) mangaCount++
 
-                val beforeDate = before?.manga?.expectedNextUpdate?.toLocalDate()
-                val afterDate = after?.manga?.expectedNextUpdate?.toLocalDate()
+                val beforeDate = before?.anime?.expectedNextUpdate?.toLocalDate()
+                val afterDate = after?.anime?.expectedNextUpdate?.toLocalDate()
 
                 if (beforeDate != afterDate && afterDate != null) {
                     UpcomingUIModel.Header(afterDate, mangaCount).also { mangaCount = 0 }

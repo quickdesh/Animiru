@@ -1,17 +1,18 @@
 package tachiyomi.domain.updates.model
 
-import tachiyomi.domain.manga.model.MangaCover
+import tachiyomi.domain.anime.model.AnimeCover
 
 data class UpdatesWithRelations(
-    val mangaId: Long,
-    val mangaTitle: String,
-    val chapterId: Long,
-    val chapterName: String,
+    val animeId: Long,
+    val animeTitle: String,
+    val episodeId: Long,
+    val episodeName: String,
     val scanlator: String?,
-    val read: Boolean,
+    val seen: Boolean,
     val bookmark: Boolean,
-    val lastPageRead: Long,
+    val lastSecondSeen: Long,
+    val totalSeconds: Long,
     val sourceId: Long,
     val dateFetch: Long,
-    val coverData: MangaCover,
+    val coverData: AnimeCover,
 )

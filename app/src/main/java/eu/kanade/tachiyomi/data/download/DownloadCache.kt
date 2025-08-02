@@ -45,8 +45,8 @@ import tachiyomi.core.common.storage.nameWithoutExtension
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.episode.model.Episode
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StorageManager
 import uy.kohesive.injekt.Injekt
@@ -175,14 +175,14 @@ class DownloadCache(
     /**
      * Returns the amount of downloaded chapters for a manga.
      *
-     * @param manga the manga to check.
+     * @param anime the manga to check.
      */
-    fun getDownloadCount(manga: Manga): Int {
+    fun getDownloadCount(anime: Anime): Int {
         renewCache()
 
-        val sourceDir = rootDownloadsDir.sourceDirs[manga.source]
+        val sourceDir = rootDownloadsDir.sourceDirs[anime.source]
         if (sourceDir != null) {
-            val mangaDir = sourceDir.mangaDirs[provider.getMangaDirName(manga.title)]
+            val mangaDir = sourceDir.mangaDirs[provider.getMangaDirName(anime.title)]
             if (mangaDir != null) {
                 return mangaDir.chapterDirs.size
             }
@@ -195,21 +195,21 @@ class DownloadCache(
      *
      * @param chapterDirName the downloaded chapter's directory name.
      * @param mangaUniFile the directory of the manga.
-     * @param manga the manga of the chapter.
+     * @param anime the manga of the chapter.
      */
-    suspend fun addChapter(chapterDirName: String, mangaUniFile: UniFile, manga: Manga) {
+    suspend fun addChapter(chapterDirName: String, mangaUniFile: UniFile, anime: Anime) {
         rootDownloadsDirMutex.withLock {
             // Retrieve the cached source directory or cache a new one
-            var sourceDir = rootDownloadsDir.sourceDirs[manga.source]
+            var sourceDir = rootDownloadsDir.sourceDirs[anime.source]
             if (sourceDir == null) {
-                val source = sourceManager.get(manga.source) ?: return
+                val source = sourceManager.get(anime.source) ?: return
                 val sourceUniFile = provider.findSourceDir(source) ?: return
                 sourceDir = SourceDirectory(sourceUniFile)
-                rootDownloadsDir.sourceDirs += manga.source to sourceDir
+                rootDownloadsDir.sourceDirs += anime.source to sourceDir
             }
 
             // Retrieve the cached manga directory or cache a new one
-            val mangaDirName = provider.getMangaDirName(manga.title)
+            val mangaDirName = provider.getMangaDirName(anime.title)
             var mangaDir = sourceDir.mangaDirs[mangaDirName]
             if (mangaDir == null) {
                 mangaDir = MangaDirectory(mangaUniFile)
@@ -226,14 +226,14 @@ class DownloadCache(
     /**
      * Removes a chapter that has been deleted from this cache.
      *
-     * @param chapter the chapter to remove.
-     * @param manga the manga of the chapter.
+     * @param episode the chapter to remove.
+     * @param anime the manga of the chapter.
      */
-    suspend fun removeChapter(chapter: Chapter, manga: Manga) {
+    suspend fun removeChapter(episode: Episode, anime: Anime) {
         rootDownloadsDirMutex.withLock {
-            val sourceDir = rootDownloadsDir.sourceDirs[manga.source] ?: return
-            val mangaDir = sourceDir.mangaDirs[provider.getMangaDirName(manga.title)] ?: return
-            provider.getValidChapterDirNames(chapter.name, chapter.scanlator).forEach {
+            val sourceDir = rootDownloadsDir.sourceDirs[anime.source] ?: return
+            val mangaDir = sourceDir.mangaDirs[provider.getMangaDirName(anime.title)] ?: return
+            provider.getValidChapterDirNames(episode.name, episode.scanlator).forEach {
                 if (it in mangaDir.chapterDirs) {
                     mangaDir.chapterDirs -= it
                 }
@@ -246,14 +246,14 @@ class DownloadCache(
     /**
      * Removes a list of chapters that have been deleted from this cache.
      *
-     * @param chapters the list of chapter to remove.
-     * @param manga the manga of the chapter.
+     * @param episodes the list of chapter to remove.
+     * @param anime the manga of the chapter.
      */
-    suspend fun removeChapters(chapters: List<Chapter>, manga: Manga) {
+    suspend fun removeChapters(episodes: List<Episode>, anime: Anime) {
         rootDownloadsDirMutex.withLock {
-            val sourceDir = rootDownloadsDir.sourceDirs[manga.source] ?: return
-            val mangaDir = sourceDir.mangaDirs[provider.getMangaDirName(manga.title)] ?: return
-            chapters.forEach { chapter ->
+            val sourceDir = rootDownloadsDir.sourceDirs[anime.source] ?: return
+            val mangaDir = sourceDir.mangaDirs[provider.getMangaDirName(anime.title)] ?: return
+            episodes.forEach { chapter ->
                 provider.getValidChapterDirNames(chapter.name, chapter.scanlator).forEach {
                     if (it in mangaDir.chapterDirs) {
                         mangaDir.chapterDirs -= it
@@ -268,12 +268,12 @@ class DownloadCache(
     /**
      * Removes a manga that has been deleted from this cache.
      *
-     * @param manga the manga to remove.
+     * @param anime the manga to remove.
      */
-    suspend fun removeManga(manga: Manga) {
+    suspend fun removeManga(anime: Anime) {
         rootDownloadsDirMutex.withLock {
-            val sourceDir = rootDownloadsDir.sourceDirs[manga.source] ?: return
-            val mangaDirName = provider.getMangaDirName(manga.title)
+            val sourceDir = rootDownloadsDir.sourceDirs[anime.source] ?: return
+            val mangaDirName = provider.getMangaDirName(anime.title)
             if (sourceDir.mangaDirs.containsKey(mangaDirName)) {
                 sourceDir.mangaDirs -= mangaDirName
             }
@@ -285,14 +285,14 @@ class DownloadCache(
     /**
      * Renames a manga in this cache.
      *
-     * @param manga the manga being renamed.
+     * @param anime the manga being renamed.
      * @param mangaUniFile the manga's new directory.
      * @param newTitle the manga's new title.
      */
-    suspend fun renameManga(manga: Manga, mangaUniFile: UniFile, newTitle: String) {
+    suspend fun renameManga(anime: Anime, mangaUniFile: UniFile, newTitle: String) {
         rootDownloadsDirMutex.withLock {
-            val sourceDir = rootDownloadsDir.sourceDirs[manga.source] ?: return
-            val oldMangaDirName = provider.getMangaDirName(manga.title)
+            val sourceDir = rootDownloadsDir.sourceDirs[anime.source] ?: return
+            val oldMangaDirName = provider.getMangaDirName(anime.title)
             var oldChapterDirs: MutableSet<String>? = null
             // Save the old name's cached chapter dirs
             if (sourceDir.mangaDirs.containsKey(oldMangaDirName)) {

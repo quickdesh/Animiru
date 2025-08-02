@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import eu.kanade.core.preference.PreferenceMutableState
 import eu.kanade.tachiyomi.ui.library.LibraryItem
 import tachiyomi.domain.library.model.LibraryDisplayMode
-import tachiyomi.domain.library.model.LibraryManga
+import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.util.plus
@@ -31,15 +31,15 @@ fun LibraryPager(
     state: PagerState,
     contentPadding: PaddingValues,
     hasActiveFilters: Boolean,
-    selectedManga: List<LibraryManga>,
+    selectedManga: List<LibraryAnime>,
     searchQuery: String?,
     onGlobalSearchClicked: () -> Unit,
     getDisplayMode: (Int) -> PreferenceMutableState<LibraryDisplayMode>,
     getColumnsForOrientation: (Boolean) -> PreferenceMutableState<Int>,
     getLibraryForPage: (Int) -> List<LibraryItem>,
-    onClickManga: (LibraryManga) -> Unit,
-    onLongClickManga: (LibraryManga) -> Unit,
-    onClickContinueReading: ((LibraryManga) -> Unit)?,
+    onClickManga: (LibraryAnime) -> Unit,
+    onLongClickManga: (LibraryAnime) -> Unit,
+    onClickContinueReading: ((LibraryAnime) -> Unit)?,
 ) {
     HorizontalPager(
         modifier = Modifier.fillMaxSize(),

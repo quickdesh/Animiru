@@ -82,10 +82,10 @@ fun HistoryScreen(
                 HistoryScreenContent(
                     history = it,
                     contentPadding = contentPadding,
-                    onClickCover = { history -> onClickCover(history.mangaId) },
-                    onClickResume = { history -> onClickResume(history.mangaId, history.chapterId) },
+                    onClickCover = { history -> onClickCover(history.animeId) },
+                    onClickResume = { history -> onClickResume(history.animeId, history.episodeId) },
                     onClickDelete = { item -> onDialogChange(HistoryScreenModel.Dialog.Delete(item)) },
-                    onClickFavorite = { history -> onClickFavorite(history.mangaId) },
+                    onClickFavorite = { history -> onClickFavorite(history.animeId) },
                 )
             }
         }

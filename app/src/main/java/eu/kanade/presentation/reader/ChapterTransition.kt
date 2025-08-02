@@ -38,8 +38,8 @@ import eu.kanade.tachiyomi.data.database.models.toDomainChapter
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import kotlinx.collections.immutable.persistentMapOf
-import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.chapter.service.calculateChapterGap
+import tachiyomi.domain.episode.model.Episode
+import tachiyomi.domain.episode.service.calculateEpisodeGap
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
@@ -59,25 +59,25 @@ fun ChapterTransition(
             is ChapterTransition.Prev -> {
                 TransitionText(
                     topLabel = stringResource(MR.strings.transition_previous),
-                    topChapter = goingToChapter,
+                    topEpisode = goingToChapter,
                     topChapterDownloaded = goingToChapterDownloaded,
                     bottomLabel = stringResource(MR.strings.transition_current),
-                    bottomChapter = currChapter,
+                    bottomEpisode = currChapter,
                     bottomChapterDownloaded = currChapterDownloaded,
                     fallbackLabel = stringResource(MR.strings.transition_no_previous),
-                    chapterGap = calculateChapterGap(currChapter, goingToChapter),
+                    chapterGap = calculateEpisodeGap(currChapter, goingToChapter),
                 )
             }
             is ChapterTransition.Next -> {
                 TransitionText(
                     topLabel = stringResource(MR.strings.transition_finished),
-                    topChapter = currChapter,
+                    topEpisode = currChapter,
                     topChapterDownloaded = currChapterDownloaded,
                     bottomLabel = stringResource(MR.strings.transition_next),
-                    bottomChapter = goingToChapter,
+                    bottomEpisode = goingToChapter,
                     bottomChapterDownloaded = goingToChapterDownloaded,
                     fallbackLabel = stringResource(MR.strings.transition_no_next),
-                    chapterGap = calculateChapterGap(goingToChapter, currChapter),
+                    chapterGap = calculateEpisodeGap(goingToChapter, currChapter),
                 )
             }
         }
@@ -87,10 +87,10 @@ fun ChapterTransition(
 @Composable
 private fun TransitionText(
     topLabel: String,
-    topChapter: Chapter?,
+    topEpisode: Episode?,
     topChapterDownloaded: Boolean,
     bottomLabel: String,
-    bottomChapter: Chapter?,
+    bottomEpisode: Episode?,
     bottomChapterDownloaded: Boolean,
     fallbackLabel: String,
     chapterGap: Int,
@@ -100,11 +100,11 @@ private fun TransitionText(
             .widthIn(max = 460.dp)
             .fillMaxWidth(),
     ) {
-        if (topChapter != null) {
+        if (topEpisode != null) {
             ChapterText(
                 header = topLabel,
-                name = topChapter.name,
-                scanlator = topChapter.scanlator,
+                name = topEpisode.name,
+                scanlator = topEpisode.scanlator,
                 downloaded = topChapterDownloaded,
             )
 
@@ -116,7 +116,7 @@ private fun TransitionText(
             )
         }
 
-        if (bottomChapter != null) {
+        if (bottomEpisode != null) {
             if (chapterGap > 0) {
                 ChapterGapWarning(
                     gapCount = chapterGap,
@@ -128,8 +128,8 @@ private fun TransitionText(
 
             ChapterText(
                 header = bottomLabel,
-                name = bottomChapter.name,
-                scanlator = bottomChapter.scanlator,
+                name = bottomEpisode.name,
+                scanlator = bottomEpisode.scanlator,
                 downloaded = bottomChapterDownloaded,
             )
         } else {
@@ -275,13 +275,13 @@ private val CardColor: CardColors
 private val VerticalSpacerSize = 24.dp
 private const val DOWNLOADED_ICON_ID = "downloaded"
 
-private fun previewChapter(name: String, scanlator: String, chapterNumber: Double) = Chapter.create().copy(
+private fun previewChapter(name: String, scanlator: String, chapterNumber: Double) = Episode.create().copy(
     id = 0L,
-    mangaId = 0L,
+    animeId = 0L,
     url = "",
     name = name,
     scanlator = scanlator,
-    chapterNumber = chapterNumber,
+    episodeNumber = chapterNumber,
 )
 private val FakeChapter = previewChapter(
     name = "Vol.1, Ch.1 - Fake Chapter Title",

@@ -23,12 +23,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import mihon.domain.manga.model.toDomainManga
+import mihon.domain.anime.model.toDomainAnime
 import tachiyomi.core.common.preference.toggle
 import tachiyomi.core.common.util.lang.launchIO
-import tachiyomi.domain.manga.interactor.GetManga
-import tachiyomi.domain.manga.interactor.NetworkToLocalManga
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.interactor.GetAnime
+import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -39,8 +39,8 @@ abstract class SearchScreenModel(
     sourcePreferences: SourcePreferences = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
     private val extensionManager: ExtensionManager = Injekt.get(),
-    private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
-    private val getManga: GetManga = Injekt.get(),
+    private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
+    private val getAnime: GetAnime = Injekt.get(),
     private val preferences: SourcePreferences = Injekt.get(),
 ) : StateScreenModel<SearchScreenModel.State>(initialState) {
 
@@ -73,9 +73,9 @@ abstract class SearchScreenModel(
     }
 
     @Composable
-    fun getManga(initialManga: Manga): androidx.compose.runtime.State<Manga> {
-        return produceState(initialValue = initialManga) {
-            getManga.subscribe(initialManga.url, initialManga.source)
+    fun getManga(initialAnime: Anime): androidx.compose.runtime.State<Anime> {
+        return produceState(initialValue = initialAnime) {
+            getAnime.subscribe(initialAnime.url, initialAnime.source)
                 .filterNotNull()
                 .collectLatest { manga ->
                     value = manga
@@ -167,9 +167,9 @@ abstract class SearchScreenModel(
                         }
 
                         val titles = page.animes
-                            .map { it.toDomainManga(source.id) }
+                            .map { it.toDomainAnime(source.id) }
                             .distinctBy { it.url }
-                            .let { networkToLocalManga(it) }
+                            .let { networkToLocalAnime(it) }
 
                         if (isActive) {
                             updateItem(source, SearchItemResult.Success(titles))
@@ -202,9 +202,9 @@ abstract class SearchScreenModel(
         updateItems(newItems)
     }
 
-    fun setMigrateDialog(currentId: Long, target: Manga) {
+    fun setMigrateDialog(currentId: Long, target: Anime) {
         screenModelScope.launchIO {
-            val current = getManga.await(currentId) ?: return@launchIO
+            val current = getAnime.await(currentId) ?: return@launchIO
             mutableState.update { it.copy(dialog = Dialog.Migrate(target, current)) }
         }
     }
@@ -215,7 +215,7 @@ abstract class SearchScreenModel(
 
     @Immutable
     data class State(
-        val from: Manga? = null,
+        val from: Anime? = null,
         val searchQuery: String? = null,
         val sourceFilter: SourceFilter = SourceFilter.PinnedOnly,
         val onlyShowHasResults: Boolean = false,
@@ -228,7 +228,7 @@ abstract class SearchScreenModel(
     }
 
     sealed interface Dialog {
-        data class Migrate(val target: Manga, val current: Manga) : Dialog
+        data class Migrate(val target: Anime, val current: Anime) : Dialog
     }
 }
 
@@ -245,7 +245,7 @@ sealed interface SearchItemResult {
     ) : SearchItemResult
 
     data class Success(
-        val result: List<Manga>,
+        val result: List<Anime>,
     ) : SearchItemResult {
         val isEmpty: Boolean
             get() = result.isEmpty()

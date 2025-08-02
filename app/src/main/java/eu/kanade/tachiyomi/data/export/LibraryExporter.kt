@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 
 object LibraryExporter {
 
@@ -17,7 +17,7 @@ object LibraryExporter {
     suspend fun exportToCsv(
         context: Context,
         uri: Uri,
-        favorites: List<Manga>,
+        favorites: List<Anime>,
         options: ExportOptions,
         onExportComplete: () -> Unit,
     ) {
@@ -32,7 +32,7 @@ object LibraryExporter {
 
     private val escapeRequired = listOf("\r", "\n", "\"", ",")
 
-    private fun generateCsvData(favorites: List<Manga>, options: ExportOptions): String {
+    private fun generateCsvData(favorites: List<Anime>, options: ExportOptions): String {
         val columnSize = listOf(
             options.includeTitle,
             options.includeAuthor,

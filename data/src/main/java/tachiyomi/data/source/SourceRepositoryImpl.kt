@@ -54,7 +54,7 @@ class SourceRepositoryImpl(
             }
     }
 
-    override fun getSourcesWithNonLibraryManga(): Flow<List<SourceWithCount>> {
+    override fun getSourcesWithNonLibraryAnime(): Flow<List<SourceWithCount>> {
         val sourceIdWithNonLibraryManga =
             handler.subscribeToList { mangasQueries.getSourceIdsWithNonLibraryManga() }
         return sourceIdWithNonLibraryManga.map { sourceId ->

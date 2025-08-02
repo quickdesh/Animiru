@@ -21,7 +21,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.model.LibraryDisplayMode
-import tachiyomi.domain.library.model.LibraryManga
+import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.presentation.core.components.material.PullRefresh
 import kotlin.time.Duration.Companion.seconds
 
@@ -29,16 +29,16 @@ import kotlin.time.Duration.Companion.seconds
 fun LibraryContent(
     categories: List<Category>,
     searchQuery: String?,
-    selection: List<LibraryManga>,
+    selection: List<LibraryAnime>,
     contentPadding: PaddingValues,
     currentPage: () -> Int,
     hasActiveFilters: Boolean,
     showPageTabs: Boolean,
     onChangeCurrentPage: (Int) -> Unit,
     onMangaClicked: (Long) -> Unit,
-    onContinueReadingClicked: ((LibraryManga) -> Unit)?,
-    onToggleSelection: (LibraryManga) -> Unit,
-    onToggleRangeSelection: (LibraryManga) -> Unit,
+    onContinueReadingClicked: ((LibraryAnime) -> Unit)?,
+    onToggleSelection: (LibraryAnime) -> Unit,
+    onToggleRangeSelection: (LibraryAnime) -> Unit,
     onRefresh: (Category?) -> Boolean,
     onGlobalSearchClicked: () -> Unit,
     getNumberOfMangaForCategory: (Category) -> Int?,
@@ -73,9 +73,9 @@ fun LibraryContent(
         }
 
         val notSelectionMode = selection.isEmpty()
-        val onClickManga = { manga: LibraryManga ->
+        val onClickManga = { manga: LibraryAnime ->
             if (notSelectionMode) {
-                onMangaClicked(manga.manga.id)
+                onMangaClicked(manga.anime.id)
             } else {
                 onToggleSelection(manga)
             }

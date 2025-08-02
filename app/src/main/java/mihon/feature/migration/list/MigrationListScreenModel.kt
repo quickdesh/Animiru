@@ -34,10 +34,10 @@ import mihon.feature.migration.list.search.SmartSourceSearchEngine
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
-import tachiyomi.domain.manga.interactor.GetManga
-import tachiyomi.domain.manga.interactor.NetworkToLocalManga
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
+import tachiyomi.domain.anime.interactor.GetAnime
+import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -47,11 +47,11 @@ class MigrationListScreenModel(
     extraSearchQuery: String?,
     private val preferences: SourcePreferences = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
-    private val getManga: GetManga = Injekt.get(),
-    private val networkToLocalManga: NetworkToLocalManga = Injekt.get(),
+    private val getAnime: GetAnime = Injekt.get(),
+    private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
     private val updateManga: UpdateManga = Injekt.get(),
     private val syncChaptersWithSource: SyncChaptersWithSource = Injekt.get(),
-    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get(),
+    private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
     private val migrateManga: MigrateMangaUseCase = Injekt.get(),
 ) : StateScreenModel<MigrationListScreenModel.State>(State()) {
 
@@ -73,10 +73,10 @@ class MigrationListScreenModel(
             val manga = mangaIds
                 .map {
                     async {
-                        val manga = getManga.await(it) ?: return@async null
+                        val manga = getAnime.await(it) ?: return@async null
                         val chapterInfo = getChapterInfo(it)
                         MigratingManga(
-                            manga = manga,
+                            anime = manga,
                             chapterCount = chapterInfo.chapterCount,
                             latestChapter = chapterInfo.latestChapter,
                             source = sourceManager.getOrStub(manga.source).getNameForMangaInfo(),
@@ -91,18 +91,18 @@ class MigrationListScreenModel(
         }
     }
 
-    private suspend fun getChapterInfo(id: Long) = getChaptersByMangaId.await(id).let { chapters ->
+    private suspend fun getChapterInfo(id: Long) = getEpisodesByAnimeId.await(id).let { chapters ->
         ChapterInfo(
-            latestChapter = chapters.maxOfOrNull { it.chapterNumber },
+            latestChapter = chapters.maxOfOrNull { it.episodeNumber },
             chapterCount = chapters.size,
         )
     }
 
-    private suspend fun Manga.toSuccessSearchResult(): SearchResult.Success {
+    private suspend fun Anime.toSuccessSearchResult(): SearchResult.Success {
         val chapterInfo = getChapterInfo(id)
         val source = sourceManager.getOrStub(source).getNameForMangaInfo()
         return SearchResult.Success(
-            manga = this,
+            anime = this,
             chapterCount = chapterInfo.chapterCount,
             latestChapter = chapterInfo.latestChapter,
             source = source,
@@ -118,7 +118,7 @@ class MigrationListScreenModel(
 
         for (manga in mangas) {
             if (!currentCoroutineContext().isActive) break
-            if (manga.manga.id !in state.value.mangaIds) continue
+            if (manga.anime.id !in state.value.mangaIds) continue
             if (manga.searchResult.value != SearchResult.Searching) continue
             if (!manga.migrationScope.isActive) continue
 
@@ -129,7 +129,7 @@ class MigrationListScreenModel(
                         sources.map { source ->
                             async innerAsync@{
                                 sourceSemaphore.withPermit {
-                                    val result = searchSource(manga.manga, source, deepSearchMode)
+                                    val result = searchSource(manga.anime, source, deepSearchMode)
                                     if (result == null || result.second.chapterCount == 0) return@innerAsync null
                                     result
                                 }
@@ -139,7 +139,7 @@ class MigrationListScreenModel(
                             .maxByOrNull { it.second.latestChapter ?: 0.0 }
                     } else {
                         sources.forEach { source ->
-                            val result = searchSource(manga.manga, source, deepSearchMode)
+                            val result = searchSource(manga.anime, source, deepSearchMode)
                             if (result != null) return@async result
                         }
                         null
@@ -177,20 +177,20 @@ class MigrationListScreenModel(
     }
 
     private suspend fun searchSource(
-        manga: Manga,
+        anime: Anime,
         source: AnimeCatalogueSource,
         deepSearchMode: Boolean,
-    ): Pair<Manga, ChapterInfo>? {
+    ): Pair<Anime, ChapterInfo>? {
         return try {
             val searchResult = if (deepSearchMode) {
-                smartSearchEngine.deepSearch(source, manga.title)
+                smartSearchEngine.deepSearch(source, anime.title)
             } else {
-                smartSearchEngine.regularSearch(source, manga.title)
+                smartSearchEngine.regularSearch(source, anime.title)
             }
 
-            if (searchResult == null || !(searchResult.url == manga.url && source.id == manga.source)) return null
+            if (searchResult == null || !(searchResult.url == anime.url && source.id == anime.source)) return null
 
-            val localManga = networkToLocalManga(searchResult)
+            val localManga = networkToLocalAnime(searchResult)
             try {
                 val chapters = source.getEpisodeList(localManga.toSManga())
                 syncChaptersWithSource.await(chapters, localManga, source)
@@ -221,11 +221,11 @@ class MigrationListScreenModel(
         items.any { it.searchResult.value is SearchResult.Success }
 
     fun useMangaForMigration(current: Long, target: Long, onMissingChapters: () -> Unit) {
-        val migratingManga = items.find { it.manga.id == current } ?: return
+        val migratingManga = items.find { it.anime.id == current } ?: return
         migratingManga.searchResult.value = SearchResult.Searching
         screenModelScope.launchIO {
             val result = migratingManga.migrationScope.async {
-                val manga = getManga.await(target) ?: return@async null
+                val manga = getAnime.await(target) ?: return@async null
                 try {
                     val source = sourceManager.get(manga.source)!!
                     val chapters = source.getEpisodeList(manga.toSManga())
@@ -272,13 +272,13 @@ class MigrationListScreenModel(
                         ensureActive()
                         val target = manga.searchResult.value.let {
                             if (it is SearchResult.Success) {
-                                it.manga
+                                it.anime
                             } else {
                                 null
                             }
                         }
                         if (target != null) {
-                            migrateManga(current = manga.manga, target = target, replace = replace)
+                            migrateManga(current = manga.anime, target = target, replace = replace)
                         }
                     } catch (e: Exception) {
                         if (e is CancellationException) throw e
@@ -308,9 +308,9 @@ class MigrationListScreenModel(
 
     fun migrateNow(mangaId: Long, replace: Boolean) {
         screenModelScope.launchIO {
-            val manga = items.find { it.manga.id == mangaId } ?: return@launchIO
-            val target = (manga.searchResult.value as? SearchResult.Success)?.manga ?: return@launchIO
-            migrateManga(current = manga.manga, target = target, replace = replace)
+            val manga = items.find { it.anime.id == mangaId } ?: return@launchIO
+            val target = (manga.searchResult.value as? SearchResult.Success)?.anime ?: return@launchIO
+            migrateManga(current = manga.anime, target = target, replace = replace)
 
             removeManga(mangaId)
         }
@@ -318,7 +318,7 @@ class MigrationListScreenModel(
 
     fun removeManga(mangaId: Long) {
         screenModelScope.launchIO {
-            val item = items.find { it.manga.id == mangaId } ?: return@launchIO
+            val item = items.find { it.anime.id == mangaId } ?: return@launchIO
             removeManga(item)
             item.migrationScope.cancel()
             updateMigrationProgress()
@@ -375,6 +375,6 @@ class MigrationListScreenModel(
         val migrationComplete: Boolean = false,
         val dialog: Dialog? = null,
     ) {
-        val mangaIds: List<Long> = items.map { it.manga.id }
+        val mangaIds: List<Long> = items.map { it.anime.id }
     }
 }

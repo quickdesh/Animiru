@@ -1,9 +1,9 @@
 package tachiyomi.data.manga
 
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
-import tachiyomi.domain.library.model.LibraryManga
-import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.model.MangaWithChapterCount
+import tachiyomi.domain.library.model.LibraryAnime
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
 
 object MangaMapper {
     fun mapManga(
@@ -33,7 +33,7 @@ object MangaMapper {
         @Suppress("UNUSED_PARAMETER")
         isSyncing: Long,
         notes: String,
-    ): Manga = Manga(
+    ): Anime = Anime(
         id = id,
         source = source,
         favorite = favorite,
@@ -42,7 +42,7 @@ object MangaMapper {
         fetchInterval = calculateInterval.toInt(),
         dateAdded = dateAdded,
         viewerFlags = viewerFlags,
-        chapterFlags = chapterFlags,
+        episodeFlags = chapterFlags,
         coverLastModified = coverLastModified,
         url = url,
         title = title,
@@ -93,8 +93,8 @@ object MangaMapper {
         lastRead: Long,
         bookmarkCount: Double,
         category: Long,
-    ): LibraryManga = LibraryManga(
-        manga = mapManga(
+    ): LibraryAnime = LibraryAnime(
+        anime = mapManga(
             id,
             source,
             url,
@@ -122,12 +122,12 @@ object MangaMapper {
             notes,
         ),
         category = category,
-        totalChapters = totalCount,
-        readCount = readCount.toLong(),
+        totalEpisodes = totalCount,
+        seenCount = readCount.toLong(),
         bookmarkCount = bookmarkCount.toLong(),
         latestUpload = latestUpload,
-        chapterFetchedAt = chapterFetchedAt,
-        lastRead = lastRead,
+        episodeFetchedAt = chapterFetchedAt,
+        lastSeen = lastRead,
     )
 
     fun mapMangaWithChapterCount(
@@ -157,8 +157,8 @@ object MangaMapper {
         isSyncing: Long,
         notes: String,
         totalCount: Long,
-    ): MangaWithChapterCount = MangaWithChapterCount(
-        manga = mapManga(
+    ): AnimeWithEpisodeCount = AnimeWithEpisodeCount(
+        anime = mapManga(
             id,
             source,
             url,
@@ -185,6 +185,6 @@ object MangaMapper {
             isSyncing,
             notes,
         ),
-        chapterCount = totalCount,
+        episodeCount = totalCount,
     )
 }

@@ -31,12 +31,12 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_NETWORK_NOT_METERED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_ONLY_ON_WIFI
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_HAS_UNREAD
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_COMPLETED
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_READ
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_OUTSIDE_RELEASE_PERIOD
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_CHAPTER_READ_EXISTING
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_CHAPTER_READ_NEW
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_HAS_UNSEEN
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_NON_COMPLETED
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_NON_SEEN
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_OUTSIDE_RELEASE_PERIOD
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_EPISODE_SEEN_EXISTING
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_EPISODE_SEEN_NEW
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
@@ -194,12 +194,12 @@ object SettingsLibraryScreen : SearchableSettings {
                     subtitle = stringResource(MR.strings.pref_library_update_refresh_metadata_summary),
                 ),
                 Preference.PreferenceItem.MultiSelectListPreference(
-                    preference = libraryPreferences.autoUpdateMangaRestrictions(),
+                    preference = libraryPreferences.autoUpdateAnimeRestrictions(),
                     entries = persistentMapOf(
-                        MANGA_HAS_UNREAD to stringResource(MR.strings.pref_update_only_completely_read),
-                        MANGA_NON_READ to stringResource(MR.strings.pref_update_only_started),
-                        MANGA_NON_COMPLETED to stringResource(MR.strings.pref_update_only_non_completed),
-                        MANGA_OUTSIDE_RELEASE_PERIOD to stringResource(MR.strings.pref_update_only_in_release_period),
+                        ANIME_HAS_UNSEEN to stringResource(MR.strings.pref_update_only_completely_read),
+                        ANIME_NON_SEEN to stringResource(MR.strings.pref_update_only_started),
+                        ANIME_NON_COMPLETED to stringResource(MR.strings.pref_update_only_non_completed),
+                        ANIME_OUTSIDE_RELEASE_PERIOD to stringResource(MR.strings.pref_update_only_in_release_period),
                     ),
                     title = stringResource(MR.strings.pref_library_update_smart_update),
                 ),
@@ -221,13 +221,13 @@ object SettingsLibraryScreen : SearchableSettings {
                 Preference.PreferenceItem.ListPreference(
                     preference = libraryPreferences.swipeToStartAction(),
                     entries = persistentMapOf(
-                        LibraryPreferences.ChapterSwipeAction.Disabled to
+                        LibraryPreferences.EpisodeSwipeAction.Disabled to
                             stringResource(MR.strings.disabled),
-                        LibraryPreferences.ChapterSwipeAction.ToggleBookmark to
+                        LibraryPreferences.EpisodeSwipeAction.ToggleBookmark to
                             stringResource(MR.strings.action_bookmark),
-                        LibraryPreferences.ChapterSwipeAction.ToggleRead to
+                        LibraryPreferences.EpisodeSwipeAction.ToggleRead to
                             stringResource(MR.strings.action_mark_as_read),
-                        LibraryPreferences.ChapterSwipeAction.Download to
+                        LibraryPreferences.EpisodeSwipeAction.Download to
                             stringResource(MR.strings.action_download),
                     ),
                     title = stringResource(MR.strings.pref_chapter_swipe_start),
@@ -235,29 +235,29 @@ object SettingsLibraryScreen : SearchableSettings {
                 Preference.PreferenceItem.ListPreference(
                     preference = libraryPreferences.swipeToEndAction(),
                     entries = persistentMapOf(
-                        LibraryPreferences.ChapterSwipeAction.Disabled to
+                        LibraryPreferences.EpisodeSwipeAction.Disabled to
                             stringResource(MR.strings.disabled),
-                        LibraryPreferences.ChapterSwipeAction.ToggleBookmark to
+                        LibraryPreferences.EpisodeSwipeAction.ToggleBookmark to
                             stringResource(MR.strings.action_bookmark),
-                        LibraryPreferences.ChapterSwipeAction.ToggleRead to
+                        LibraryPreferences.EpisodeSwipeAction.ToggleRead to
                             stringResource(MR.strings.action_mark_as_read),
-                        LibraryPreferences.ChapterSwipeAction.Download to
+                        LibraryPreferences.EpisodeSwipeAction.Download to
                             stringResource(MR.strings.action_download),
                     ),
                     title = stringResource(MR.strings.pref_chapter_swipe_end),
                 ),
                 Preference.PreferenceItem.MultiSelectListPreference(
-                    preference = libraryPreferences.markDuplicateReadChapterAsRead(),
+                    preference = libraryPreferences.markDuplicateSeenEpisodeAsSeen(),
                     entries = persistentMapOf(
-                        MARK_DUPLICATE_CHAPTER_READ_EXISTING to
+                        MARK_DUPLICATE_EPISODE_SEEN_EXISTING to
                             stringResource(MR.strings.pref_mark_duplicate_read_chapter_read_existing),
-                        MARK_DUPLICATE_CHAPTER_READ_NEW to
+                        MARK_DUPLICATE_EPISODE_SEEN_NEW to
                             stringResource(MR.strings.pref_mark_duplicate_read_chapter_read_new),
                     ),
                     title = stringResource(MR.strings.pref_mark_duplicate_read_chapter_read),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = libraryPreferences.hideMissingChapters(),
+                    preference = libraryPreferences.hideMissingEpisodes(),
                     title = stringResource(MR.strings.pref_hide_missing_chapter_indicators),
                 ),
             ),

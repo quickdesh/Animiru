@@ -59,7 +59,7 @@ class MigrationListScreen(private val mangaIds: List<Long>, private val extraSea
                 navigator.push(MangaScreen(it.id, true))
             },
             onSearchManually = { migrationItem ->
-                navigator push MigrateSearchScreen(migrationItem.manga.id)
+                navigator push MigrateSearchScreen(migrationItem.anime.id)
             },
             onSkip = { screenModel.removeManga(it) },
             onMigrate = { screenModel.migrateNow(mangaId = it, replace = true) },

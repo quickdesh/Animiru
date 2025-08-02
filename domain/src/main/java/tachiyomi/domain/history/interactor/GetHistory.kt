@@ -9,8 +9,8 @@ class GetHistory(
     private val repository: HistoryRepository,
 ) {
 
-    suspend fun await(mangaId: Long): List<History> {
-        return repository.getHistoryByMangaId(mangaId)
+    suspend fun await(animeId: Long): List<History> {
+        return repository.getHistoryByAnimeId(animeId)
     }
 
     fun subscribe(query: String): Flow<List<HistoryWithRelations>> {

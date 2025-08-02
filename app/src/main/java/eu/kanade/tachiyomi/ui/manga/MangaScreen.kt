@@ -62,8 +62,8 @@ import mihon.feature.migration.dialog.MigrateMangaDialog
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.episode.model.Episode
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.screens.LoadingScreen
 
@@ -102,11 +102,11 @@ class MangaScreen(
         val successState = state as MangaScreenModel.State.Success
         val isHttpSource = remember { successState.source is AnimeHttpSource }
 
-        LaunchedEffect(successState.manga, screenModel.source) {
+        LaunchedEffect(successState.anime, screenModel.source) {
             if (isHttpSource) {
                 try {
                     withIOContext {
-                        assistUrl = getMangaUrl(screenModel.manga, screenModel.source)
+                        assistUrl = getMangaUrl(screenModel.anime, screenModel.source)
                     }
                 } catch (e: Exception) {
                     logcat(LogPriority.ERROR, e) { "Failed to get manga URL" }
@@ -117,7 +117,7 @@ class MangaScreen(
         MangaScreen(
             state = successState,
             snackbarHostState = screenModel.snackbarHostState,
-            nextUpdate = successState.manga.expectedNextUpdate,
+            nextUpdate = successState.anime.expectedNextUpdate,
             isTabletUi = isTabletUi(),
             chapterSwipeStartAction = screenModel.chapterSwipeStartAction,
             chapterSwipeEndAction = screenModel.chapterSwipeEndAction,
@@ -131,14 +131,14 @@ class MangaScreen(
             onWebViewClicked = {
                 openMangaInWebView(
                     navigator,
-                    screenModel.manga,
+                    screenModel.anime,
                     screenModel.source,
                 )
             }.takeIf { isHttpSource },
             onWebViewLongClicked = {
                 copyMangaUrl(
                     context,
-                    screenModel.manga,
+                    screenModel.anime,
                     screenModel.source,
                 )
             }.takeIf { isHttpSource },
@@ -155,16 +155,16 @@ class MangaScreen(
             onContinueReading = { continueReading(context, screenModel.getNextUnreadChapter()) },
             onSearch = { query, global -> scope.launch { performSearch(navigator, query, global) } },
             onCoverClicked = screenModel::showCoverDialog,
-            onShareClicked = { shareManga(context, screenModel.manga, screenModel.source) }.takeIf { isHttpSource },
+            onShareClicked = { shareManga(context, screenModel.anime, screenModel.source) }.takeIf { isHttpSource },
             onDownloadActionClicked = screenModel::runDownloadAction.takeIf { !successState.source.isLocalOrStub() },
-            onEditCategoryClicked = screenModel::showChangeCategoryDialog.takeIf { successState.manga.favorite },
+            onEditCategoryClicked = screenModel::showChangeCategoryDialog.takeIf { successState.anime.favorite },
             onEditFetchIntervalClicked = screenModel::showSetFetchIntervalDialog.takeIf {
-                successState.manga.favorite
+                successState.anime.favorite
             },
             onMigrateClicked = {
-                navigator.push(MigrationConfigScreen(successState.manga.id))
-            }.takeIf { successState.manga.favorite },
-            onEditNotesClicked = { navigator.push(MangaNotesScreen(manga = successState.manga)) },
+                navigator.push(MigrationConfigScreen(successState.anime.id))
+            }.takeIf { successState.anime.favorite },
+            onEditNotesClicked = { navigator.push(MangaNotesScreen(anime = successState.anime)) },
             onMultiBookmarkClicked = screenModel::bookmarkChapters,
             onMultiMarkAsReadClicked = screenModel::markChaptersRead,
             onMarkPreviousAsReadClicked = screenModel::markPreviousChapterRead,
@@ -186,7 +186,7 @@ class MangaScreen(
                     onDismissRequest = onDismissRequest,
                     onEditCategories = { navigator.push(CategoryScreen()) },
                     onConfirm = { include, _ ->
-                        screenModel.moveMangaToCategoriesAndAddToLibrary(dialog.manga, include)
+                        screenModel.moveMangaToCategoriesAndAddToLibrary(dialog.anime, include)
                     },
                 )
             }
@@ -195,7 +195,7 @@ class MangaScreen(
                     onDismissRequest = onDismissRequest,
                     onConfirm = {
                         screenModel.toggleAllSelection(false)
-                        screenModel.deleteChapters(dialog.chapters)
+                        screenModel.deleteChapters(dialog.episodes)
                     },
                 )
             }
@@ -221,7 +221,7 @@ class MangaScreen(
             }
             MangaScreenModel.Dialog.SettingsSheet -> ChapterSettingsDialog(
                 onDismissRequest = onDismissRequest,
-                manga = successState.manga,
+                anime = successState.anime,
                 onDownloadFilterChanged = screenModel::setDownloadedFilter,
                 onUnreadFilterChanged = screenModel::setUnreadFilter,
                 onBookmarkedFilterChanged = screenModel::setBookmarkedFilter,
@@ -235,8 +235,8 @@ class MangaScreen(
             MangaScreenModel.Dialog.TrackSheet -> {
                 NavigatorAdaptiveSheet(
                     screen = TrackInfoDialogHomeScreen(
-                        mangaId = successState.manga.id,
-                        mangaTitle = successState.manga.title,
+                        mangaId = successState.anime.id,
+                        mangaTitle = successState.anime.title,
                         sourceId = successState.source.id,
                     ),
                     enableSwipeDismiss = { it.lastItem is TrackInfoDialogHomeScreen },
@@ -244,7 +244,7 @@ class MangaScreen(
                 )
             }
             MangaScreenModel.Dialog.FullCover -> {
-                val sm = rememberScreenModel { MangaCoverScreenModel(successState.manga.id) }
+                val sm = rememberScreenModel { MangaCoverScreenModel(successState.anime.id) }
                 val manga by sm.state.collectAsState()
                 if (manga != null) {
                     val getContent = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
@@ -252,7 +252,7 @@ class MangaScreen(
                         sm.editCover(context, it)
                     }
                     MangaCoverDialog(
-                        manga = manga!!,
+                        anime = manga!!,
                         snackbarHostState = sm.snackbarHostState,
                         isCustomCover = remember(manga) { manga!!.hasCustomCover() },
                         onShareClick = { sm.shareCover(context) },
@@ -271,10 +271,10 @@ class MangaScreen(
             }
             is MangaScreenModel.Dialog.SetFetchInterval -> {
                 SetIntervalDialog(
-                    interval = dialog.manga.fetchInterval,
-                    nextUpdate = dialog.manga.expectedNextUpdate,
+                    interval = dialog.anime.fetchInterval,
+                    nextUpdate = dialog.anime.expectedNextUpdate,
                     onDismissRequest = onDismissRequest,
-                    onValueChanged = { interval: Int -> screenModel.setFetchInterval(dialog.manga, interval) }
+                    onValueChanged = { interval: Int -> screenModel.setFetchInterval(dialog.anime, interval) }
                         .takeIf { screenModel.isUpdateIntervalEnabled },
                 )
             }
@@ -290,16 +290,16 @@ class MangaScreen(
         }
     }
 
-    private fun continueReading(context: Context, unreadChapter: Chapter?) {
-        if (unreadChapter != null) openChapter(context, unreadChapter)
+    private fun continueReading(context: Context, unreadEpisode: Episode?) {
+        if (unreadEpisode != null) openChapter(context, unreadEpisode)
     }
 
-    private fun openChapter(context: Context, chapter: Chapter) {
-        context.startActivity(ReaderActivity.newIntent(context, chapter.mangaId, chapter.id))
+    private fun openChapter(context: Context, episode: Episode) {
+        context.startActivity(ReaderActivity.newIntent(context, episode.animeId, episode.id))
     }
 
-    private fun getMangaUrl(manga_: Manga?, source_: AnimeSource?): String? {
-        val manga = manga_ ?: return null
+    private fun getMangaUrl(anime_: Anime?, source_: AnimeSource?): String? {
+        val manga = anime_ ?: return null
         val source = source_ as? AnimeHttpSource ?: return null
 
         return try {
@@ -309,21 +309,21 @@ class MangaScreen(
         }
     }
 
-    private fun openMangaInWebView(navigator: Navigator, manga_: Manga?, source_: AnimeSource?) {
-        getMangaUrl(manga_, source_)?.let { url ->
+    private fun openMangaInWebView(navigator: Navigator, anime_: Anime?, source_: AnimeSource?) {
+        getMangaUrl(anime_, source_)?.let { url ->
             navigator.push(
                 WebViewScreen(
                     url = url,
-                    initialTitle = manga_?.title,
+                    initialTitle = anime_?.title,
                     sourceId = source_?.id,
                 ),
             )
         }
     }
 
-    private fun shareManga(context: Context, manga_: Manga?, source_: AnimeSource?) {
+    private fun shareManga(context: Context, anime_: Anime?, source_: AnimeSource?) {
         try {
-            getMangaUrl(manga_, source_)?.let { url ->
+            getMangaUrl(anime_, source_)?.let { url ->
                 val intent = url.toUri().toShareIntent(context, type = "text/plain")
                 context.startActivity(
                     Intent.createChooser(
@@ -386,8 +386,8 @@ class MangaScreen(
     /**
      * Copy Manga URL to Clipboard
      */
-    private fun copyMangaUrl(context: Context, manga_: Manga?, source_: AnimeSource?) {
-        val manga = manga_ ?: return
+    private fun copyMangaUrl(context: Context, anime_: Anime?, source_: AnimeSource?) {
+        val manga = anime_ ?: return
         val source = source_ as? AnimeHttpSource ?: return
         val url = source.getAnimeUrl(manga.toSManga())
         context.copyToClipboard(url, url)

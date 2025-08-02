@@ -3,10 +3,9 @@ package eu.kanade.tachiyomi.data.download
 import android.content.Context
 import androidx.core.content.edit
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.episode.model.Episode
+import tachiyomi.domain.anime.model.Anime
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -33,16 +32,16 @@ class DownloadPendingDeleter(
     /**
      * Adds a list of chapters for future deletion.
      *
-     * @param chapters the chapters to be deleted.
-     * @param manga the manga of the chapters.
+     * @param episodes the chapters to be deleted.
+     * @param anime the manga of the chapters.
      */
     @Synchronized
-    fun addChapters(chapters: List<Chapter>, manga: Manga) {
+    fun addChapters(episodes: List<Episode>, anime: Anime) {
         val lastEntry = lastAddedEntry
 
-        val newEntry = if (lastEntry != null && lastEntry.manga.id == manga.id) {
+        val newEntry = if (lastEntry != null && lastEntry.manga.id == anime.id) {
             // Append new chapters
-            val newChapters = lastEntry.chapters.addUniqueById(chapters)
+            val newChapters = lastEntry.chapters.addUniqueById(episodes)
 
             // If no chapters were added, do nothing
             if (newChapters.size == lastEntry.chapters.size) return
@@ -50,13 +49,13 @@ class DownloadPendingDeleter(
             // Last entry matches the manga, reuse it to avoid decoding json from preferences
             lastEntry.copy(chapters = newChapters)
         } else {
-            val existingEntry = preferences.getString(manga.id.toString(), null)
+            val existingEntry = preferences.getString(anime.id.toString(), null)
             if (existingEntry != null) {
                 // Existing entry found on preferences, decode json and add the new chapter
                 val savedEntry = json.decodeFromString<Entry>(existingEntry)
 
                 // Append new chapters
-                val newChapters = savedEntry.chapters.addUniqueById(chapters)
+                val newChapters = savedEntry.chapters.addUniqueById(episodes)
 
                 // If no chapters were added, do nothing
                 if (newChapters.size == savedEntry.chapters.size) return
@@ -64,7 +63,7 @@ class DownloadPendingDeleter(
                 savedEntry.copy(chapters = newChapters)
             } else {
                 // No entry has been found yet, create a new one
-                Entry(chapters.map { it.toEntry() }, manga.toEntry())
+                Entry(episodes.map { it.toEntry() }, anime.toEntry())
             }
         }
 
@@ -83,7 +82,7 @@ class DownloadPendingDeleter(
      * downloader, so don't use them for anything else.
      */
     @Synchronized
-    fun getPendingChapters(): Map<Manga, List<Chapter>> {
+    fun getPendingChapters(): Map<Anime, List<Episode>> {
         val entries = decodeAll()
         preferences.edit {
             clear()
@@ -111,9 +110,9 @@ class DownloadPendingDeleter(
     /**
      * Returns a copy of chapter entries ensuring no duplicates by chapter id.
      */
-    private fun List<ChapterEntry>.addUniqueById(chapters: List<Chapter>): List<ChapterEntry> {
+    private fun List<ChapterEntry>.addUniqueById(episodes: List<Episode>): List<ChapterEntry> {
         val newList = toMutableList()
-        for (chapter in chapters) {
+        for (chapter in episodes) {
             if (none { it.id == chapter.id }) {
                 newList.add(chapter.toEntry())
             }
@@ -124,17 +123,17 @@ class DownloadPendingDeleter(
     /**
      * Returns a manga entry from a manga model.
      */
-    private fun Manga.toEntry() = MangaEntry(id, url, title, source)
+    private fun Anime.toEntry() = MangaEntry(id, url, title, source)
 
     /**
      * Returns a chapter entry from a chapter model.
      */
-    private fun Chapter.toEntry() = ChapterEntry(id, url, name, scanlator)
+    private fun Episode.toEntry() = ChapterEntry(id, url, name, scanlator)
 
     /**
      * Returns a manga model from a manga entry.
      */
-    private fun MangaEntry.toModel() = Manga.create().copy(
+    private fun MangaEntry.toModel() = Anime.create().copy(
         url = url,
         title = title,
         source = source,
@@ -144,7 +143,7 @@ class DownloadPendingDeleter(
     /**
      * Returns a chapter model from a chapter entry.
      */
-    private fun ChapterEntry.toModel() = Chapter.create().copy(
+    private fun ChapterEntry.toModel() = Episode.create().copy(
         id = id,
         url = url,
         name = name,

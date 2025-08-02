@@ -25,7 +25,7 @@ class ReaderSettingsScreenModel(
         .stateIn(ioCoroutineScope, SharingStarted.Lazily, null)
 
     val mangaFlow = readerState
-        .map { it.manga }
+        .map { it.anime }
         .distinctUntilChanged()
         .stateIn(ioCoroutineScope, SharingStarted.Lazily, null)
 }

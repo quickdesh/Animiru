@@ -24,8 +24,8 @@ import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.core.metadata.tachiyomi.EpisodeDetails
 import tachiyomi.core.metadata.tachiyomi.MangaDetails
-import tachiyomi.domain.chapter.service.ChapterRecognition
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.episode.service.EpisodeRecognition
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.source.local.filter.OrderBy
 import tachiyomi.source.local.image.LocalCoverManager
@@ -197,8 +197,8 @@ actual class LocalSource(
                     name = episodeFile.nameWithoutExtension.orEmpty()
                     date_upload = episodeFile.lastModified()
 
-                    val episodeNumber = ChapterRecognition
-                        .parseChapterNumber(anime.title, this.name, this.episode_number.toDouble())
+                    val episodeNumber = EpisodeRecognition
+                        .parseEpisodeNumber(anime.title, this.name, this.episode_number.toDouble())
                         .toFloat()
                     episode_number = episodeNumber
 
@@ -282,7 +282,7 @@ actual class LocalSource(
     }
 }
 
-fun Manga.isLocal(): Boolean = source == LocalSource.ID
+fun Anime.isLocal(): Boolean = source == LocalSource.ID
 
 fun AnimeSource.isLocal(): Boolean = id == LocalSource.ID
 

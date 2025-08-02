@@ -26,7 +26,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.StateFlow
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.library.model.LibraryDisplayMode
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
@@ -39,7 +39,7 @@ import tachiyomi.source.local.LocalSource
 @Composable
 fun BrowseSourceContent(
     source: AnimeSource?,
-    mangaList: LazyPagingItems<StateFlow<Manga>>,
+    animeList: LazyPagingItems<StateFlow<Anime>>,
     columns: GridCells,
     displayMode: LibraryDisplayMode,
     snackbarHostState: SnackbarHostState,
@@ -47,20 +47,20 @@ fun BrowseSourceContent(
     onWebViewClick: () -> Unit,
     onHelpClick: () -> Unit,
     onLocalSourceHelpClick: () -> Unit,
-    onMangaClick: (Manga) -> Unit,
-    onMangaLongClick: (Manga) -> Unit,
+    onMangaClick: (Anime) -> Unit,
+    onMangaLongClick: (Anime) -> Unit,
 ) {
     val context = LocalContext.current
 
-    val errorState = mangaList.loadState.refresh.takeIf { it is LoadState.Error }
-        ?: mangaList.loadState.append.takeIf { it is LoadState.Error }
+    val errorState = animeList.loadState.refresh.takeIf { it is LoadState.Error }
+        ?: animeList.loadState.append.takeIf { it is LoadState.Error }
 
     val getErrorMessage: (LoadState.Error) -> String = { state ->
         with(context) { state.error.formattedMessage }
     }
 
     LaunchedEffect(errorState) {
-        if (mangaList.itemCount > 0 && errorState != null && errorState is LoadState.Error) {
+        if (animeList.itemCount > 0 && errorState != null && errorState is LoadState.Error) {
             val result = snackbarHostState.showSnackbar(
                 message = getErrorMessage(errorState),
                 actionLabel = context.stringResource(MR.strings.action_retry),
@@ -68,17 +68,17 @@ fun BrowseSourceContent(
             )
             when (result) {
                 SnackbarResult.Dismissed -> snackbarHostState.currentSnackbarData?.dismiss()
-                SnackbarResult.ActionPerformed -> mangaList.retry()
+                SnackbarResult.ActionPerformed -> animeList.retry()
             }
         }
     }
 
-    if (mangaList.itemCount == 0 && mangaList.loadState.refresh is LoadState.Loading) {
+    if (animeList.itemCount == 0 && animeList.loadState.refresh is LoadState.Loading) {
         LoadingScreen(Modifier.padding(contentPadding))
         return
     }
 
-    if (mangaList.itemCount == 0) {
+    if (animeList.itemCount == 0) {
         EmptyScreen(
             modifier = Modifier.padding(contentPadding),
             message = when (errorState) {
@@ -98,7 +98,7 @@ fun BrowseSourceContent(
                     EmptyScreenAction(
                         stringRes = MR.strings.action_retry,
                         icon = Icons.Outlined.Refresh,
-                        onClick = mangaList::refresh,
+                        onClick = animeList::refresh,
                     ),
                     EmptyScreenAction(
                         stringRes = MR.strings.action_open_in_web_view,
@@ -120,7 +120,7 @@ fun BrowseSourceContent(
     when (displayMode) {
         LibraryDisplayMode.ComfortableGrid -> {
             BrowseSourceComfortableGrid(
-                mangaList = mangaList,
+                animeList = animeList,
                 columns = columns,
                 contentPadding = contentPadding,
                 onMangaClick = onMangaClick,
@@ -129,7 +129,7 @@ fun BrowseSourceContent(
         }
         LibraryDisplayMode.List -> {
             BrowseSourceList(
-                mangaList = mangaList,
+                animeList = animeList,
                 contentPadding = contentPadding,
                 onMangaClick = onMangaClick,
                 onMangaLongClick = onMangaLongClick,
@@ -137,7 +137,7 @@ fun BrowseSourceContent(
         }
         LibraryDisplayMode.CompactGrid, LibraryDisplayMode.CoverOnlyGrid -> {
             BrowseSourceCompactGrid(
-                mangaList = mangaList,
+                animeList = animeList,
                 columns = columns,
                 contentPadding = contentPadding,
                 onMangaClick = onMangaClick,

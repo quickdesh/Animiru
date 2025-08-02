@@ -2,7 +2,7 @@ package eu.kanade.tachiyomi.data.cache
 
 import android.content.Context
 import eu.kanade.tachiyomi.util.storage.DiskUtil
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -54,13 +54,13 @@ class CoverCache(private val context: Context) {
     /**
      * Saves the given stream as the manga's custom cover to cache.
      *
-     * @param manga the manga.
+     * @param anime the manga.
      * @param inputStream the stream to copy.
      * @throws IOException if there's any error.
      */
     @Throws(IOException::class)
-    fun setCustomCoverToCache(manga: Manga, inputStream: InputStream) {
-        getCustomCoverFile(manga.id).outputStream().use {
+    fun setCustomCoverToCache(anime: Anime, inputStream: InputStream) {
+        getCustomCoverFile(anime.id).outputStream().use {
             inputStream.copyTo(it)
         }
     }
@@ -68,19 +68,19 @@ class CoverCache(private val context: Context) {
     /**
      * Delete the cover files of the manga from the cache.
      *
-     * @param manga the manga.
+     * @param anime the manga.
      * @param deleteCustomCover whether the custom cover should be deleted.
      * @return number of files that were deleted.
      */
-    fun deleteFromCache(manga: Manga, deleteCustomCover: Boolean = false): Int {
+    fun deleteFromCache(anime: Anime, deleteCustomCover: Boolean = false): Int {
         var deleted = 0
 
-        getCoverFile(manga.thumbnailUrl)?.let {
+        getCoverFile(anime.thumbnailUrl)?.let {
             if (it.exists() && it.delete()) ++deleted
         }
 
         if (deleteCustomCover) {
-            if (deleteCustomCover(manga.id)) ++deleted
+            if (deleteCustomCover(anime.id)) ++deleted
         }
 
         return deleted

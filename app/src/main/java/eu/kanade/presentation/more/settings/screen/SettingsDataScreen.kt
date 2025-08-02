@@ -68,8 +68,8 @@ import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.backup.service.BackupPreferences
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.manga.interactor.GetFavorites
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.interactor.GetFavorites
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.storage.service.StoragePreferences
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.TextButton
@@ -321,7 +321,7 @@ object SettingsDataScreen : SearchableSettings {
                     },
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = libraryPreferences.autoClearChapterCache(),
+                    preference = libraryPreferences.autoClearEpisodeCache(),
                     title = stringResource(MR.strings.pref_auto_clear_chapter_cache),
                 ),
             ),
@@ -344,7 +344,7 @@ object SettingsDataScreen : SearchableSettings {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
         val getFavorites = remember { Injekt.get<GetFavorites>() }
-        var favorites by remember { mutableStateOf<List<Manga>>(emptyList()) }
+        var favorites by remember { mutableStateOf<List<Anime>>(emptyList()) }
         LaunchedEffect(Unit) {
             favorites = getFavorites.await()
         }

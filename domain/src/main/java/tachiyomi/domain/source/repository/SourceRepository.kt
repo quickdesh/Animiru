@@ -3,11 +3,11 @@ package tachiyomi.domain.source.repository
 import androidx.paging.PagingSource
 import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 import kotlinx.coroutines.flow.Flow
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.model.Source
 import tachiyomi.domain.source.model.SourceWithCount
 
-typealias SourcePagingSource = PagingSource<Long, Manga>
+typealias SourcePagingSource = PagingSource<Long, Anime>
 
 interface SourceRepository {
 
@@ -17,7 +17,7 @@ interface SourceRepository {
 
     fun getSourcesWithFavoriteCount(): Flow<List<Pair<Source, Long>>>
 
-    fun getSourcesWithNonLibraryManga(): Flow<List<SourceWithCount>>
+    fun getSourcesWithNonLibraryAnime(): Flow<List<SourceWithCount>>
 
     fun search(sourceId: Long, query: String, filterList: AnimeFilterList): SourcePagingSource
 

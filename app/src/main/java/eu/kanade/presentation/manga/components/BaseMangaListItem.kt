@@ -14,18 +14,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.presentation.core.components.material.padding
 
 @Composable
 fun BaseMangaListItem(
-    manga: Manga,
+    anime: Anime,
     modifier: Modifier = Modifier,
     onClickItem: () -> Unit = {},
     onClickCover: () -> Unit = onClickItem,
-    cover: @Composable RowScope.() -> Unit = { defaultCover(manga, onClickCover) },
+    cover: @Composable RowScope.() -> Unit = { defaultCover(anime, onClickCover) },
     actions: @Composable RowScope.() -> Unit = {},
-    content: @Composable RowScope.() -> Unit = { defaultContent(manga) },
+    content: @Composable RowScope.() -> Unit = { defaultContent(anime) },
 ) {
     Row(
         modifier = modifier
@@ -40,7 +40,7 @@ fun BaseMangaListItem(
     }
 }
 
-private val defaultCover: @Composable RowScope.(Manga, () -> Unit) -> Unit = { manga, onClick ->
+private val defaultCover: @Composable RowScope.(Anime, () -> Unit) -> Unit = { manga, onClick ->
     MangaCover.Square(
         modifier = Modifier
             .padding(vertical = MaterialTheme.padding.small)
@@ -50,7 +50,7 @@ private val defaultCover: @Composable RowScope.(Manga, () -> Unit) -> Unit = { m
     )
 }
 
-private val defaultContent: @Composable RowScope.(Manga) -> Unit = {
+private val defaultContent: @Composable RowScope.(Anime) -> Unit = {
     Box(modifier = Modifier.weight(1f)) {
         Text(
             text = it.title,

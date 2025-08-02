@@ -29,10 +29,10 @@ import kotlinx.coroutines.sync.withPermit
 import logcat.LogPriority
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.library.model.LibraryManga
-import tachiyomi.domain.manga.interactor.GetLibraryManga
-import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.manga.model.toMangaUpdate
+import tachiyomi.domain.library.model.LibraryAnime
+import tachiyomi.domain.anime.interactor.GetLibraryAnime
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.model.toAnimeUpdate
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -47,12 +47,12 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
 
     private val sourceManager: SourceManager = Injekt.get()
     private val coverCache: CoverCache = Injekt.get()
-    private val getLibraryManga: GetLibraryManga = Injekt.get()
+    private val getLibraryAnime: GetLibraryAnime = Injekt.get()
     private val updateManga: UpdateManga = Injekt.get()
 
     private val notifier = LibraryUpdateNotifier(context)
 
-    private var mangaToUpdate: List<LibraryManga> = mutableListOf()
+    private var mangaToUpdate: List<LibraryAnime> = mutableListOf()
 
     override suspend fun doWork(): Result {
         setForegroundSafely()
@@ -94,27 +94,27 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
      * Adds list of manga to be updated.
      */
     private suspend fun addMangaToQueue() {
-        mangaToUpdate = getLibraryManga.await()
+        mangaToUpdate = getLibraryAnime.await()
         notifier.showQueueSizeWarningNotificationIfNeeded(mangaToUpdate)
     }
 
     private suspend fun updateMetadata() {
         val semaphore = Semaphore(5)
         val progressCount = AtomicInt(0)
-        val currentlyUpdatingManga = CopyOnWriteArrayList<Manga>()
+        val currentlyUpdatingAnime = CopyOnWriteArrayList<Anime>()
 
         coroutineScope {
-            mangaToUpdate.groupBy { it.manga.source }
+            mangaToUpdate.groupBy { it.anime.source }
                 .values
                 .map { mangaInSource ->
                     async {
                         semaphore.withPermit {
                             mangaInSource.forEach { libraryManga ->
-                                val manga = libraryManga.manga
+                                val manga = libraryManga.anime
                                 ensureActive()
 
                                 withUpdateNotification(
-                                    currentlyUpdatingManga,
+                                    currentlyUpdatingAnime,
                                     progressCount,
                                     manga,
                                 ) {
@@ -124,7 +124,7 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
                                         val updatedManga = manga.prepUpdateCover(coverCache, networkManga, true)
                                             .copyFrom(networkManga)
                                         try {
-                                            updateManga.await(updatedManga.toMangaUpdate())
+                                            updateManga.await(updatedManga.toAnimeUpdate())
                                         } catch (e: Exception) {
                                             logcat(LogPriority.ERROR) { "Manga doesn't exist anymore" }
                                         }
@@ -144,16 +144,16 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
     }
 
     private suspend fun withUpdateNotification(
-        updatingManga: CopyOnWriteArrayList<Manga>,
+        updatingAnime: CopyOnWriteArrayList<Anime>,
         completed: AtomicInt,
-        manga: Manga,
+        anime: Anime,
         block: suspend () -> Unit,
     ) = coroutineScope {
         ensureActive()
 
-        updatingManga.add(manga)
+        updatingAnime.add(anime)
         notifier.showProgressNotification(
-            updatingManga,
+            updatingAnime,
             completed.load(),
             mangaToUpdate.size,
         )
@@ -162,10 +162,10 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
 
         ensureActive()
 
-        updatingManga.remove(manga)
+        updatingAnime.remove(anime)
         completed.fetchAndIncrement()
         notifier.showProgressNotification(
-            updatingManga,
+            updatingAnime,
             completed.load(),
             mangaToUpdate.size,
         )

@@ -201,10 +201,10 @@ private fun UpdatesBottomBar(
         }.takeIf { selected.fastAll { it.update.bookmark } },
         onMarkAsReadClicked = {
             onMultiMarkAsReadClicked(selected, true)
-        }.takeIf { selected.fastAny { !it.update.read } },
+        }.takeIf { selected.fastAny { !it.update.seen } },
         onMarkAsUnreadClicked = {
             onMultiMarkAsReadClicked(selected, false)
-        }.takeIf { selected.fastAny { it.update.read || it.update.lastPageRead > 0L } },
+        }.takeIf { selected.fastAny { it.update.seen || it.update.lastSecondSeen > 0L } },
         onDownloadClicked = {
             onDownloadChapter(selected, ChapterDownloadAction.START)
         }.takeIf {

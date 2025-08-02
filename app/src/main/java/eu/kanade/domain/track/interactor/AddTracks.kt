@@ -12,9 +12,9 @@ import logcat.LogPriority
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.lang.withNonCancellableContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
+import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.history.interactor.GetHistory
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.track.interactor.InsertTrack
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -23,15 +23,15 @@ import java.time.ZoneOffset
 class AddTracks(
     private val insertTrack: InsertTrack,
     private val syncChapterProgressWithTrack: SyncChapterProgressWithTrack,
-    private val getChaptersByMangaId: GetChaptersByMangaId,
+    private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
     private val trackerManager: TrackerManager,
 ) {
 
     // TODO: update all trackers based on common data
     suspend fun bind(tracker: Tracker, item: Track, mangaId: Long) = withNonCancellableContext {
         withIOContext {
-            val allChapters = getChaptersByMangaId.await(mangaId)
-            val hasReadChapters = allChapters.any { it.read }
+            val allChapters = getEpisodesByAnimeId.await(mangaId)
+            val hasReadChapters = allChapters.any { it.seen }
             tracker.bind(item, hasReadChapters)
 
             var track = item.toDomainTrack(idRequired = false) ?: return@withIOContext
@@ -42,23 +42,23 @@ class AddTracks(
             // Update chapter progress if newer chapters marked read locally
             if (hasReadChapters) {
                 val latestLocalReadChapterNumber = allChapters
-                    .sortedBy { it.chapterNumber }
-                    .takeWhile { it.read }
+                    .sortedBy { it.episodeNumber }
+                    .takeWhile { it.seen }
                     .lastOrNull()
-                    ?.chapterNumber ?: -1.0
+                    ?.episodeNumber ?: -1.0
 
-                if (latestLocalReadChapterNumber > track.lastChapterRead) {
+                if (latestLocalReadChapterNumber > track.lastEpisodeSeen) {
                     track = track.copy(
-                        lastChapterRead = latestLocalReadChapterNumber,
+                        lastEpisodeSeen = latestLocalReadChapterNumber,
                     )
                     tracker.setRemoteLastChapterRead(track.toDbTrack(), latestLocalReadChapterNumber.toInt())
                 }
 
                 if (track.startDate <= 0) {
                     val firstReadChapterDate = Injekt.get<GetHistory>().await(mangaId)
-                        .sortedBy { it.readAt }
+                        .sortedBy { it.seenAt }
                         .firstOrNull()
-                        ?.readAt
+                        ?.seenAt
 
                     firstReadChapterDate?.let {
                         val startDate = firstReadChapterDate.time.convertEpochMillisZone(
@@ -77,20 +77,20 @@ class AddTracks(
         }
     }
 
-    suspend fun bindEnhancedTrackers(manga: Manga, source: AnimeSource) = withNonCancellableContext {
+    suspend fun bindEnhancedTrackers(anime: Anime, source: AnimeSource) = withNonCancellableContext {
         withIOContext {
             trackerManager.loggedInTrackers()
                 .filterIsInstance<EnhancedTracker>()
                 .filter { it.accept(source) }
                 .forEach { service ->
                     try {
-                        service.match(manga)?.let { track ->
-                            track.manga_id = manga.id
+                        service.match(anime)?.let { track ->
+                            track.manga_id = anime.id
                             (service as Tracker).bind(track)
                             insertTrack.await(track.toDomainTrack(idRequired = false)!!)
 
                             syncChapterProgressWithTrack.await(
-                                manga.id,
+                                anime.id,
                                 track.toDomainTrack(idRequired = false)!!,
                                 service,
                             )
@@ -99,7 +99,7 @@ class AddTracks(
                         logcat(
                             LogPriority.WARN,
                             e,
-                        ) { "Could not match manga: ${manga.title} with service $service" }
+                        ) { "Could not match manga: ${anime.title} with service $service" }
                     }
                 }
         }

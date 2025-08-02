@@ -8,8 +8,8 @@ import logcat.LogPriority
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.displayablePath
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.episode.model.Episode
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.Injekt
@@ -106,13 +106,13 @@ class DownloadProvider(
     /**
      * Returns a list of downloaded directories for the chapters that exist.
      *
-     * @param chapters the chapters to query.
-     * @param manga the manga of the chapter.
+     * @param episodes the chapters to query.
+     * @param anime the manga of the chapter.
      * @param source the source of the chapter.
      */
-    fun findChapterDirs(chapters: List<Chapter>, manga: Manga, source: AnimeSource): Pair<UniFile?, List<UniFile>> {
-        val mangaDir = findMangaDir(manga.title, source) ?: return null to emptyList()
-        return mangaDir to chapters.mapNotNull { chapter ->
+    fun findChapterDirs(episodes: List<Episode>, anime: Anime, source: AnimeSource): Pair<UniFile?, List<UniFile>> {
+        val mangaDir = findMangaDir(anime.title, source) ?: return null to emptyList()
+        return mangaDir to episodes.mapNotNull { chapter ->
             getValidChapterDirNames(chapter.name, chapter.scanlator).asSequence()
                 .mapNotNull { mangaDir.findFile(it) }
                 .firstOrNull()
@@ -164,9 +164,9 @@ class DownloadProvider(
         }
     }
 
-    fun isChapterDirNameChanged(oldChapter: Chapter, newChapter: Chapter): Boolean {
-        return oldChapter.name != newChapter.name ||
-            oldChapter.scanlator?.takeIf { it.isNotBlank() } != newChapter.scanlator?.takeIf { it.isNotBlank() }
+    fun isChapterDirNameChanged(oldEpisode: Episode, newEpisode: Episode): Boolean {
+        return oldEpisode.name != newEpisode.name ||
+            oldEpisode.scanlator?.takeIf { it.isNotBlank() } != newEpisode.scanlator?.takeIf { it.isNotBlank() }
     }
 
     /**

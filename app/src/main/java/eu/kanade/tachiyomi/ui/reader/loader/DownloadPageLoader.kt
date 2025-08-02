@@ -11,7 +11,7 @@ import eu.kanade.tachiyomi.animesource.model.Page
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import mihon.core.archive.archiveReader
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import uy.kohesive.injekt.injectLazy
 
 /**
@@ -19,7 +19,7 @@ import uy.kohesive.injekt.injectLazy
  */
 internal class DownloadPageLoader(
     private val chapter: ReaderChapter,
-    private val manga: Manga,
+    private val anime: Anime,
     private val source: AnimeSource,
     private val downloadManager: DownloadManager,
     private val downloadProvider: DownloadProvider,
@@ -33,7 +33,7 @@ internal class DownloadPageLoader(
 
     override suspend fun getPages(): List<ReaderPage> {
         val dbChapter = chapter.chapter
-        val chapterPath = downloadProvider.findChapterDir(dbChapter.name, dbChapter.scanlator, manga.title, source)
+        val chapterPath = downloadProvider.findChapterDir(dbChapter.name, dbChapter.scanlator, anime.title, source)
         return if (chapterPath?.isFile == true) {
             getPagesFromArchive(chapterPath)
         } else {
@@ -52,7 +52,7 @@ internal class DownloadPageLoader(
     }
 
     private fun getPagesFromDirectory(): List<ReaderPage> {
-        val pages = downloadManager.buildPageList(source, manga, chapter.chapter.toDomainChapter()!!)
+        val pages = downloadManager.buildPageList(source, anime, chapter.chapter.toDomainChapter()!!)
         return pages.map { page ->
             ReaderPage(page.index, page.url, page.imageUrl) {
                 context.contentResolver.openInputStream(page.uri ?: Uri.EMPTY)!!

@@ -59,7 +59,7 @@ import eu.kanade.tachiyomi.R
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import mihon.feature.migration.list.models.MigratingManga
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.Badge
 import tachiyomi.presentation.core.components.BadgeGroup
@@ -75,7 +75,7 @@ fun MigrationListScreenContent(
     items: ImmutableList<MigratingManga>,
     migrationComplete: Boolean,
     finishedCount: Int,
-    onItemClick: (Manga) -> Unit,
+    onItemClick: (Anime) -> Unit,
     onSearchManually: (MigratingManga) -> Unit,
     onSkip: (Long) -> Unit,
     onMigrate: (Long) -> Unit,
@@ -113,7 +113,7 @@ fun MigrationListScreenContent(
         },
     ) { contentPadding ->
         FastScrollLazyColumn(contentPadding = contentPadding + topSmallPaddingValues) {
-            items(items, key = { it.manga.id }) { item ->
+            items(items, key = { it.anime.id }) { item ->
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -131,11 +131,11 @@ fun MigrationListScreenContent(
                             .weight(1f)
                             .align(Alignment.Top)
                             .fillMaxHeight(),
-                        manga = item.manga,
+                        anime = item.anime,
                         source = item.source,
                         chapterCount = item.chapterCount,
                         latestChapter = item.latestChapter,
-                        onClick = { onItemClick(item.manga) },
+                        onClick = { onItemClick(item.anime) },
                     )
 
                     Icon(
@@ -158,9 +158,9 @@ fun MigrationListScreenContent(
                         modifier = Modifier.weight(0.2f),
                         result = result,
                         onSearchManually = { onSearchManually(item) },
-                        onSkip = { onSkip(item.manga.id) },
-                        onMigrate = { onMigrate(item.manga.id) },
-                        onCopy = { onCopy(item.manga.id) },
+                        onSkip = { onSkip(item.anime.id) },
+                        onMigrate = { onMigrate(item.anime.id) },
+                        onCopy = { onCopy(item.anime.id) },
                     )
                 }
             }
@@ -171,7 +171,7 @@ fun MigrationListScreenContent(
 @Composable
 fun MigrationListItem(
     modifier: Modifier,
-    manga: Manga,
+    anime: Anime,
     source: String,
     chapterCount: Int,
     latestChapter: Double?,
@@ -192,7 +192,7 @@ fun MigrationListItem(
         ) {
             MangaCover.Book(
                 modifier = Modifier.fillMaxWidth(),
-                data = manga,
+                data = anime,
             )
             Box(
                 modifier = Modifier
@@ -211,7 +211,7 @@ fun MigrationListItem(
                 modifier = Modifier
                     .padding(8.dp)
                     .align(Alignment.BottomStart),
-                text = manga.title,
+                text = anime.title,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2,
                 style = MaterialTheme.typography.labelMedium
@@ -253,7 +253,7 @@ fun MigrationListItem(
 fun MigrationListItemResult(
     modifier: Modifier,
     result: MigratingManga.SearchResult,
-    onItemClick: (Manga) -> Unit,
+    onItemClick: (Anime) -> Unit,
 ) {
     Box(modifier.height(IntrinsicSize.Min)) {
         when (result) {
@@ -294,11 +294,11 @@ fun MigrationListItemResult(
             is MigratingManga.SearchResult.Success -> {
                 MigrationListItem(
                     modifier = Modifier.fillMaxSize(),
-                    manga = result.manga,
+                    anime = result.anime,
                     source = result.source,
                     chapterCount = result.chapterCount,
                     latestChapter = result.latestChapter,
-                    onClick = { onItemClick(result.manga) },
+                    onClick = { onItemClick(result.anime) },
                 )
             }
         }

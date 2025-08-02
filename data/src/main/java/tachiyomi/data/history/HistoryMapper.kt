@@ -2,7 +2,7 @@ package tachiyomi.data.history
 
 import tachiyomi.domain.history.model.History
 import tachiyomi.domain.history.model.HistoryWithRelations
-import tachiyomi.domain.manga.model.MangaCover
+import tachiyomi.domain.anime.model.AnimeCover
 import java.util.Date
 
 object HistoryMapper {
@@ -13,8 +13,8 @@ object HistoryMapper {
         readDuration: Long,
     ): History = History(
         id = id,
-        chapterId = chapterId,
-        readAt = readAt,
+        episodeId = chapterId,
+        seenAt = readAt,
         readDuration = readDuration,
     )
 
@@ -32,16 +32,16 @@ object HistoryMapper {
         readDuration: Long,
     ): HistoryWithRelations = HistoryWithRelations(
         id = historyId,
-        chapterId = chapterId,
-        mangaId = mangaId,
+        episodeId = chapterId,
+        animeId = mangaId,
         title = title,
-        chapterNumber = chapterNumber,
-        readAt = readAt,
+        episodeNumber = chapterNumber,
+        seenAt = readAt,
         readDuration = readDuration,
-        coverData = MangaCover(
-            mangaId = mangaId,
+        coverData = AnimeCover(
+            animeId = mangaId,
             sourceId = sourceId,
-            isMangaFavorite = isFavorite,
+            isAnimeFavorite = isFavorite,
             url = thumbnailUrl,
             lastModified = coverLastModified,
         ),
