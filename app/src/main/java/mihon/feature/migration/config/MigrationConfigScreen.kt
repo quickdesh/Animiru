@@ -45,7 +45,7 @@ import eu.kanade.presentation.browse.components.SourceIcon
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.util.Screen
-import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.ui.browse.migration.search.MigrateSearchScreen
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import kotlinx.collections.immutable.persistentListOf
@@ -347,7 +347,7 @@ class MigrationConfigScreen(private val mangaIds: List<Long>) : Screen() {
                 .mapNotNull { it.toLongOrNull() }
             val sources = sourceManager.getCatalogueSources()
                 .asSequence()
-                .filterIsInstance<HttpSource>()
+                .filterIsInstance<AnimeHttpSource>()
                 .filter { it.lang in languages }
                 .map {
                     val source = Source(

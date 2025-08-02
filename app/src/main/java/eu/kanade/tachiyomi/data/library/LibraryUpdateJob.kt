@@ -24,8 +24,8 @@ import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.source.model.SManga
-import eu.kanade.tachiyomi.source.model.UpdateStrategy
+import eu.kanade.tachiyomi.animesource.model.SAnime
+import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.createFileInCacheDir
 import eu.kanade.tachiyomi.util.system.isConnectedToWifi
@@ -186,14 +186,14 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         mangaToUpdate = listToUpdate
             .filter {
                 when {
-                    it.manga.updateStrategy == UpdateStrategy.ONLY_FETCH_ONCE && it.totalChapters > 0L -> {
+                    it.manga.updateStrategy == AnimeUpdateStrategy.ONLY_FETCH_ONCE && it.totalChapters > 0L -> {
                         skippedUpdates.add(
                             it.manga to context.stringResource(MR.strings.skipped_reason_not_always_update),
                         )
                         false
                     }
 
-                    MANGA_NON_COMPLETED in restrictions && it.manga.status.toInt() == SManga.COMPLETED -> {
+                    MANGA_NON_COMPLETED in restrictions && it.manga.status.toInt() == SAnime.COMPLETED -> {
                         skippedUpdates.add(it.manga to context.stringResource(MR.strings.skipped_reason_completed))
                         false
                     }
@@ -342,11 +342,11 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
 
         // Update manga metadata if needed
         if (libraryPreferences.autoUpdateMetadata().get()) {
-            val networkManga = source.getMangaDetails(manga.toSManga())
+            val networkManga = source.getAnimeDetails(manga.toSManga())
             updateManga.awaitUpdateFromSource(manga, networkManga, manualFetch = false, coverCache)
         }
 
-        val chapters = source.getChapterList(manga.toSManga())
+        val chapters = source.getEpisodeList(manga.toSManga())
 
         // Get manga from database to account for if it was removed during the update and
         // to get latest data so it doesn't get overwritten later on

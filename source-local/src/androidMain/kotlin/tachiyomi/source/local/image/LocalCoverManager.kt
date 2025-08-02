@@ -2,7 +2,7 @@ package tachiyomi.source.local.image
 
 import android.content.Context
 import com.hippo.unifile.UniFile
-import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import tachiyomi.core.common.storage.nameWithoutExtension
 import tachiyomi.core.common.util.system.ImageUtil
@@ -25,7 +25,7 @@ actual class LocalCoverManager(
     }
 
     actual fun update(
-        anime: SManga,
+        anime: SAnime,
         inputStream: InputStream,
     ): UniFile? {
         val directory = fileSystem.getAnimeDirectory(anime.url)

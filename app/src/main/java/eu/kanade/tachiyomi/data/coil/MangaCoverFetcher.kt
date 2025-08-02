@@ -15,7 +15,7 @@ import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.coil.MangaCoverFetcher.Companion.USE_CUSTOM_COVER_KEY
 import eu.kanade.tachiyomi.network.await
-import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import logcat.LogPriority
 import okhttp3.CacheControl
 import okhttp3.Call
@@ -52,7 +52,7 @@ class MangaCoverFetcher(
     private val coverFileLazy: Lazy<File?>,
     private val customCoverFileLazy: Lazy<File>,
     private val diskCacheKeyLazy: Lazy<String>,
-    private val sourceLazy: Lazy<HttpSource?>,
+    private val sourceLazy: Lazy<AnimeHttpSource?>,
     private val callFactoryLazy: Lazy<Call.Factory>,
     private val imageLoader: ImageLoader,
 ) : Fetcher {
@@ -312,7 +312,7 @@ class MangaCoverFetcher(
                 coverFileLazy = lazy { coverCache.getCoverFile(data.thumbnailUrl) },
                 customCoverFileLazy = lazy { coverCache.getCustomCoverFile(data.id) },
                 diskCacheKeyLazy = lazy { imageLoader.components.key(data, options)!! },
-                sourceLazy = lazy { sourceManager.get(data.source) as? HttpSource },
+                sourceLazy = lazy { sourceManager.get(data.source) as? AnimeHttpSource },
                 callFactoryLazy = callFactoryLazy,
                 imageLoader = imageLoader,
             )
@@ -334,7 +334,7 @@ class MangaCoverFetcher(
                 coverFileLazy = lazy { coverCache.getCoverFile(data.url) },
                 customCoverFileLazy = lazy { coverCache.getCustomCoverFile(data.mangaId) },
                 diskCacheKeyLazy = lazy { imageLoader.components.key(data, options)!! },
-                sourceLazy = lazy { sourceManager.get(data.sourceId) as? HttpSource },
+                sourceLazy = lazy { sourceManager.get(data.sourceId) as? AnimeHttpSource },
                 callFactoryLazy = callFactoryLazy,
                 imageLoader = imageLoader,
             )

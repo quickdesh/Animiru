@@ -1,6 +1,6 @@
 package tachiyomi.data.manga
 
-import eu.kanade.tachiyomi.source.model.UpdateStrategy
+import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaWithChapterCount
@@ -25,7 +25,7 @@ object MangaMapper {
         chapterFlags: Long,
         coverLastModified: Long,
         dateAdded: Long,
-        updateStrategy: UpdateStrategy,
+        updateStrategy: AnimeUpdateStrategy,
         calculateInterval: Long,
         lastModifiedAt: Long,
         favoriteModifiedAt: Long?,
@@ -79,7 +79,7 @@ object MangaMapper {
         chapterFlags: Long,
         coverLastModified: Long,
         dateAdded: Long,
-        updateStrategy: UpdateStrategy,
+        updateStrategy: AnimeUpdateStrategy,
         calculateInterval: Long,
         lastModifiedAt: Long,
         favoriteModifiedAt: Long?,
@@ -149,7 +149,7 @@ object MangaMapper {
         chapterFlags: Long,
         coverLastModified: Long,
         dateAdded: Long,
-        updateStrategy: UpdateStrategy,
+        updateStrategy: AnimeUpdateStrategy,
         calculateInterval: Long,
         lastModifiedAt: Long,
         favoriteModifiedAt: Long?,

@@ -21,7 +21,7 @@ import eu.kanade.presentation.browse.components.BrowseSourceCompactGrid
 import eu.kanade.presentation.browse.components.BrowseSourceList
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.formattedMessage
-import eu.kanade.tachiyomi.source.Source
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.StateFlow
 import tachiyomi.core.common.i18n.stringResource
@@ -38,7 +38,7 @@ import tachiyomi.source.local.LocalSource
 
 @Composable
 fun BrowseSourceContent(
-    source: Source?,
+    source: AnimeSource?,
     mangaList: LazyPagingItems<StateFlow<Manga>>,
     columns: GridCells,
     displayMode: LibraryDisplayMode,

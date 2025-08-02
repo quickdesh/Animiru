@@ -37,7 +37,7 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.network.HttpException
-import eu.kanade.tachiyomi.source.Source
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.util.chapter.getNextUnread
 import eu.kanade.tachiyomi.util.removeCovers
@@ -129,7 +129,7 @@ class MangaScreenModel(
     val manga: Manga?
         get() = successState?.manga
 
-    val source: Source?
+    val source: AnimeSource?
         get() = successState?.source
 
     private val isFavorited: Boolean
@@ -272,7 +272,7 @@ class MangaScreenModel(
         val state = successState ?: return
         try {
             withIOContext {
-                val networkManga = state.source.getMangaDetails(state.manga.toSManga())
+                val networkManga = state.source.getAnimeDetails(state.manga.toSManga())
                 updateManga.awaitUpdateFromSource(state.manga, networkManga, manualFetch)
             }
         } catch (e: Throwable) {
@@ -551,7 +551,7 @@ class MangaScreenModel(
         val state = successState ?: return
         try {
             withIOContext {
-                val chapters = state.source.getChapterList(state.manga.toSManga())
+                val chapters = state.source.getEpisodeList(state.manga.toSManga())
 
                 val newChapters = syncChaptersWithSource.await(
                     chapters,
@@ -1117,7 +1117,7 @@ class MangaScreenModel(
         @Immutable
         data class Success(
             val manga: Manga,
-            val source: Source,
+            val source: AnimeSource,
             val isFromSource: Boolean,
             val chapters: List<ChapterList.Item>,
             val availableScanlators: Set<String>,

@@ -7,7 +7,7 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
-import eu.kanade.tachiyomi.source.Source
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
@@ -93,11 +93,11 @@ class Suwayomi(id: Long) : BaseTracker(id, "Suwayomi"), EnhancedTracker {
             null
         }
 
-    override fun isTrackFrom(track: DomainTrack, manga: DomainManga, source: Source?): Boolean = source?.let {
+    override fun isTrackFrom(track: DomainTrack, manga: DomainManga, source: AnimeSource?): Boolean = source?.let {
         accept(it)
     } == true
 
-    override fun migrateTrack(track: DomainTrack, manga: DomainManga, newSource: Source): DomainTrack? =
+    override fun migrateTrack(track: DomainTrack, manga: DomainManga, newSource: AnimeSource): DomainTrack? =
         if (accept(newSource)) {
             track.copy(remoteUrl = manga.url)
         } else {

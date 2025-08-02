@@ -2,11 +2,11 @@
 
 package eu.kanade.tachiyomi.data.database.models
 
-import eu.kanade.tachiyomi.source.model.SChapter
+import eu.kanade.tachiyomi.animesource.model.SEpisode
 import java.io.Serializable
 import tachiyomi.domain.chapter.model.Chapter as DomainChapter
 
-interface Chapter : SChapter, Serializable {
+interface Chapter : SEpisode, Serializable {
 
     var id: Long?
 
@@ -28,7 +28,7 @@ interface Chapter : SChapter, Serializable {
 }
 
 val Chapter.isRecognizedNumber: Boolean
-    get() = chapter_number >= 0f
+    get() = episode_number >= 0f
 
 fun Chapter.toDomainChapter(): DomainChapter? {
     if (id == null || manga_id == null) return null
@@ -43,7 +43,7 @@ fun Chapter.toDomainChapter(): DomainChapter? {
         url = url,
         name = name,
         dateUpload = date_upload,
-        chapterNumber = chapter_number.toDouble(),
+        chapterNumber = episode_number.toDouble(),
         scanlator = scanlator,
         lastModifiedAt = last_modified,
         version = version,

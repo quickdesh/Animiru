@@ -7,9 +7,9 @@ import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.manga.model.toSManga
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
-import eu.kanade.tachiyomi.source.Source
-import eu.kanade.tachiyomi.source.model.SChapter
-import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.animesource.AnimeSource
+import eu.kanade.tachiyomi.animesource.model.SEpisode
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import tachiyomi.data.chapter.ChapterSanitizer
 import tachiyomi.domain.chapter.interactor.GetChaptersByMangaId
 import tachiyomi.domain.chapter.interactor.ShouldUpdateDbChapter
@@ -47,9 +47,9 @@ class SyncChaptersWithSource(
      * @return Newly added chapters
      */
     suspend fun await(
-        rawSourceChapters: List<SChapter>,
+        rawSourceChapters: List<SEpisode>,
         manga: Manga,
-        source: Source,
+        source: AnimeSource,
         manualFetch: Boolean = false,
         fetchWindow: Pair<Long, Long> = Pair(0, 0),
     ): List<Chapter> {
@@ -87,9 +87,9 @@ class SyncChaptersWithSource(
             var chapter = sourceChapter
 
             // Update metadata from source if necessary.
-            if (source is HttpSource) {
+            if (source is AnimeHttpSource) {
                 val sChapter = chapter.toSChapter()
-                source.prepareNewChapter(sChapter, manga.toSManga())
+                source.prepareNewEpisode(sChapter, manga.toSManga())
                 chapter = chapter.copyFromSChapter(sChapter)
             }
 

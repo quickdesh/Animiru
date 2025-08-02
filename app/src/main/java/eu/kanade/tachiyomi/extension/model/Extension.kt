@@ -1,7 +1,7 @@
 package eu.kanade.tachiyomi.extension.model
 
 import android.graphics.drawable.Drawable
-import eu.kanade.tachiyomi.source.Source
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import tachiyomi.domain.source.model.StubSource
 
 sealed class Extension {
@@ -23,7 +23,7 @@ sealed class Extension {
         override val lang: String,
         override val isNsfw: Boolean,
         val pkgFactory: String?,
-        val sources: List<Source>,
+        val sources: List<AnimeSource>,
         val icon: Drawable?,
         val hasUpdate: Boolean = false,
         val isObsolete: Boolean = false,

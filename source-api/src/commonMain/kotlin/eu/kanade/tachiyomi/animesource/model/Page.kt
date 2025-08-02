@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.source.model
+package eu.kanade.tachiyomi.animesource.model
 
 import android.net.Uri
 import eu.kanade.tachiyomi.network.ProgressListener
@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
+// TODO(mihon): Remove
 @Serializable
 open class Page(
     val index: Int,

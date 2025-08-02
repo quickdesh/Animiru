@@ -46,7 +46,7 @@ class MigrateMangaUseCase(
         val flags = sourcePreferences.migrationFlags().get()
 
         try {
-            val chapters = targetSource.getChapterList(target.toSManga())
+            val chapters = targetSource.getEpisodeList(target.toSManga())
 
             try {
                 syncChaptersWithSource.await(chapters, target, targetSource)

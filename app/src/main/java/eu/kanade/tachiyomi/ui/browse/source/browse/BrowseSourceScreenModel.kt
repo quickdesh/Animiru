@@ -20,8 +20,8 @@ import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.presentation.util.ioCoroutineScope
 import eu.kanade.tachiyomi.data.cache.CoverCache
-import eu.kanade.tachiyomi.source.CatalogueSource
-import eu.kanade.tachiyomi.source.model.FilterList
+import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
+import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 import eu.kanade.tachiyomi.util.removeCovers
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -51,7 +51,7 @@ import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.time.Instant
-import eu.kanade.tachiyomi.source.model.Filter as SourceModelFilter
+import eu.kanade.tachiyomi.animesource.model.AnimeFilter as SourceModelFilter
 
 class BrowseSourceScreenModel(
     private val sourceId: Long,
@@ -76,7 +76,7 @@ class BrowseSourceScreenModel(
     val source = sourceManager.getOrStub(sourceId)
 
     init {
-        if (source is CatalogueSource) {
+        if (source is AnimeCatalogueSource) {
             mutableState.update {
                 var query: String? = null
                 var listing = it.listing
@@ -131,7 +131,7 @@ class BrowseSourceScreenModel(
     }
 
     fun resetFilters() {
-        if (source !is CatalogueSource) return
+        if (source !is AnimeCatalogueSource) return
 
         mutableState.update { it.copy(filters = source.getFilterList()) }
     }
@@ -140,8 +140,8 @@ class BrowseSourceScreenModel(
         mutableState.update { it.copy(listing = listing, toolbarQuery = null) }
     }
 
-    fun setFilters(filters: FilterList) {
-        if (source !is CatalogueSource) return
+    fun setFilters(filters: AnimeFilterList) {
+        if (source !is AnimeCatalogueSource) return
 
         mutableState.update {
             it.copy(
@@ -150,8 +150,8 @@ class BrowseSourceScreenModel(
         }
     }
 
-    fun search(query: String? = null, filters: FilterList? = null) {
-        if (source !is CatalogueSource) return
+    fun search(query: String? = null, filters: AnimeFilterList? = null) {
+        if (source !is AnimeCatalogueSource) return
 
         val input = state.value.listing as? Listing.Search
             ?: Listing.Search(query = null, filters = source.getFilterList())
@@ -168,7 +168,7 @@ class BrowseSourceScreenModel(
     }
 
     fun searchGenre(genreName: String) {
-        if (source !is CatalogueSource) return
+        if (source !is AnimeCatalogueSource) return
 
         val defaultFilters = source.getFilterList()
         var genreExists = false
@@ -314,12 +314,12 @@ class BrowseSourceScreenModel(
         mutableState.update { it.copy(toolbarQuery = query) }
     }
 
-    sealed class Listing(open val query: String?, open val filters: FilterList) {
-        data object Popular : Listing(query = GetRemoteManga.QUERY_POPULAR, filters = FilterList())
-        data object Latest : Listing(query = GetRemoteManga.QUERY_LATEST, filters = FilterList())
+    sealed class Listing(open val query: String?, open val filters: AnimeFilterList) {
+        data object Popular : Listing(query = GetRemoteManga.QUERY_POPULAR, filters = AnimeFilterList())
+        data object Latest : Listing(query = GetRemoteManga.QUERY_LATEST, filters = AnimeFilterList())
         data class Search(
             override val query: String?,
-            override val filters: FilterList,
+            override val filters: AnimeFilterList,
         ) : Listing(query = query, filters = filters)
 
         companion object {
@@ -327,7 +327,7 @@ class BrowseSourceScreenModel(
                 return when (query) {
                     GetRemoteManga.QUERY_POPULAR -> Popular
                     GetRemoteManga.QUERY_LATEST -> Latest
-                    else -> Search(query = query, filters = FilterList()) // filters are filled in later
+                    else -> Search(query = query, filters = AnimeFilterList()) // filters are filled in later
                 }
             }
         }
@@ -347,7 +347,7 @@ class BrowseSourceScreenModel(
     @Immutable
     data class State(
         val listing: Listing,
-        val filters: FilterList = FilterList(),
+        val filters: AnimeFilterList = AnimeFilterList(),
         val toolbarQuery: String? = null,
         val dialog: Dialog? = null,
     ) {

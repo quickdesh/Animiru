@@ -21,7 +21,7 @@ import eu.kanade.core.util.ifSourcesLoaded
 import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.components.SearchToolbar
 import eu.kanade.presentation.util.Screen
-import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.browse.SourceFilterDialog
 import eu.kanade.tachiyomi.ui.home.HomeScreen
@@ -103,7 +103,7 @@ data class MigrateSourceSearchScreen(
                 snackbarHostState = snackbarHostState,
                 contentPadding = paddingValues,
                 onWebViewClick = {
-                    val source = screenModel.source as? HttpSource ?: return@BrowseSourceContent
+                    val source = screenModel.source as? AnimeHttpSource ?: return@BrowseSourceContent
                     navigator.push(
                         WebViewScreen(
                             url = source.baseUrl,

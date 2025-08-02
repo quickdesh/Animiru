@@ -7,9 +7,9 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
-import eu.kanade.tachiyomi.source.ConfigurableSource
-import eu.kanade.tachiyomi.source.Source
-import eu.kanade.tachiyomi.source.sourcePreferences
+import eu.kanade.tachiyomi.animesource.ConfigurableAnimeSource
+import eu.kanade.tachiyomi.animesource.AnimeSource
+import eu.kanade.tachiyomi.animesource.sourcePreferences
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.domain.manga.model.Manga
@@ -104,10 +104,10 @@ class Kavita(id: Long) : BaseTracker(id, "Kavita"), EnhancedTracker {
             null
         }
 
-    override fun isTrackFrom(track: DomainTrack, manga: Manga, source: Source?): Boolean =
+    override fun isTrackFrom(track: DomainTrack, manga: Manga, source: AnimeSource?): Boolean =
         track.remoteUrl == manga.url && source?.let { accept(it) } == true
 
-    override fun migrateTrack(track: DomainTrack, manga: Manga, newSource: Source): DomainTrack? =
+    override fun migrateTrack(track: DomainTrack, manga: Manga, newSource: AnimeSource): DomainTrack? =
         if (accept(newSource)) {
             track.copy(remoteUrl = manga.url)
         } else {
@@ -124,7 +124,7 @@ class Kavita(id: Long) : BaseTracker(id, "Kavita"), EnhancedTracker {
                 (0..7).map { bytes[it].toLong() and 0xff shl 8 * (7 - it) }
                     .reduce(Long::or) and Long.MAX_VALUE
             }
-            val preferences = (sourceManager.get(sourceId) as ConfigurableSource).sourcePreferences()
+            val preferences = (sourceManager.get(sourceId) as ConfigurableAnimeSource).sourcePreferences()
 
             val prefApiUrl = preferences.getString("APIURL", "")
             val prefApiKey = preferences.getString("APIKEY", "")

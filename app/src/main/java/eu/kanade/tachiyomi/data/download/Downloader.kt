@@ -8,9 +8,9 @@ import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.library.LibraryUpdateNotifier
 import eu.kanade.tachiyomi.data.notification.NotificationHandler
-import eu.kanade.tachiyomi.source.UnmeteredSource
-import eu.kanade.tachiyomi.source.model.Page
-import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.animesource.UnmeteredSource
+import eu.kanade.tachiyomi.animesource.model.Page
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.DiskUtil.NOMEDIA_FILE
 import eu.kanade.tachiyomi.util.storage.saveTo
@@ -270,7 +270,7 @@ class Downloader(
     fun queueChapters(manga: Manga, chapters: List<Chapter>, autoStart: Boolean) {
         if (chapters.isEmpty()) return
 
-        val source = sourceManager.get(manga.source) as? HttpSource ?: return
+        val source = sourceManager.get(manga.source) as? AnimeHttpSource ?: return
         val wasEmpty = queueState.value.isEmpty()
         val chaptersToQueue = chapters.asSequence()
             // Filter out those already downloaded.
@@ -340,7 +340,7 @@ class Downloader(
             // If the page list already exists, start from the file
             val pageList = download.pages ?: run {
                 // Otherwise, pull page list from network and add them to download object
-                val pages = download.source.getPageList(download.chapter.toSChapter())
+                val pages = download.source.getVideoList(download.chapter.toSChapter())
 
                 if (pages.isEmpty()) {
                     throw Exception(context.stringResource(MR.strings.page_list_empty_error))
@@ -367,7 +367,7 @@ class Downloader(
                         if (page.imageUrl.isNullOrEmpty()) {
                             page.status = Page.State.LoadPage
                             try {
-                                page.imageUrl = download.source.getImageUrl(page)
+                                page.imageUrl = download.source.getVideoUrl(page)
                             } catch (e: Throwable) {
                                 page.status = Page.State.Error(e)
                             }
@@ -474,11 +474,11 @@ class Downloader(
      * @param tmpDir the temporary directory of the download.
      * @param filename the filename of the image.
      */
-    private suspend fun downloadImage(page: Page, source: HttpSource, tmpDir: UniFile, filename: String): UniFile {
+    private suspend fun downloadImage(page: Page, source: AnimeHttpSource, tmpDir: UniFile, filename: String): UniFile {
         page.status = Page.State.DownloadImage
         page.progress = 0
         return flow {
-            val response = source.getImage(page)
+            val response = source.getVideo(,)
             val file = tmpDir.createFile("$filename.tmp")!!
             try {
                 response.body.source().saveTo(file.openOutputStream())
@@ -609,14 +609,14 @@ class Downloader(
         dir: UniFile,
         manga: Manga,
         chapter: Chapter,
-        source: HttpSource,
+        source: AnimeHttpSource,
     ) {
         val categories = getCategories.await(manga.id).map { it.name.trim() }.takeUnless { it.isEmpty() }
         val urls = getTracks.await(manga.id)
             .mapNotNull { track ->
                 track.remoteUrl.takeUnless { url -> url.isBlank() }?.trim()
             }
-            .plus(source.getChapterUrl(chapter.toSChapter()).trim())
+            .plus(source.getEpisodeUrl(chapter.toSChapter()).trim())
             .distinct()
 
         val comicInfo = getComicInfo(

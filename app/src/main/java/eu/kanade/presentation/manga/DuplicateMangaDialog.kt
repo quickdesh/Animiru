@@ -61,8 +61,8 @@ import eu.kanade.presentation.components.TabbedDialogPaddings
 import eu.kanade.presentation.manga.components.MangaCover
 import eu.kanade.presentation.more.settings.LocalPreferenceMinHeight
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
-import eu.kanade.tachiyomi.source.Source
-import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.animesource.AnimeSource
+import eu.kanade.tachiyomi.animesource.model.SAnime
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaWithChapterCount
 import tachiyomi.domain.source.model.StubSource
@@ -171,7 +171,7 @@ fun DuplicateMangaDialog(
 @Composable
 private fun DuplicateMangaListItem(
     duplicate: MangaWithChapterCount,
-    getSource: () -> Source,
+    getSource: () -> AnimeSource,
     onDismissRequest: () -> Unit,
     onOpenManga: () -> Unit,
     onMigrate: () -> Unit,
@@ -244,21 +244,21 @@ private fun DuplicateMangaListItem(
 
         MangaDetailRow(
             text = when (manga.status) {
-                SManga.ONGOING.toLong() -> stringResource(MR.strings.ongoing)
-                SManga.COMPLETED.toLong() -> stringResource(MR.strings.completed)
-                SManga.LICENSED.toLong() -> stringResource(MR.strings.licensed)
-                SManga.PUBLISHING_FINISHED.toLong() -> stringResource(MR.strings.publishing_finished)
-                SManga.CANCELLED.toLong() -> stringResource(MR.strings.cancelled)
-                SManga.ON_HIATUS.toLong() -> stringResource(MR.strings.on_hiatus)
+                SAnime.ONGOING.toLong() -> stringResource(MR.strings.ongoing)
+                SAnime.COMPLETED.toLong() -> stringResource(MR.strings.completed)
+                SAnime.LICENSED.toLong() -> stringResource(MR.strings.licensed)
+                SAnime.PUBLISHING_FINISHED.toLong() -> stringResource(MR.strings.publishing_finished)
+                SAnime.CANCELLED.toLong() -> stringResource(MR.strings.cancelled)
+                SAnime.ON_HIATUS.toLong() -> stringResource(MR.strings.on_hiatus)
                 else -> stringResource(MR.strings.unknown)
             },
             iconImageVector = when (manga.status) {
-                SManga.ONGOING.toLong() -> Icons.Outlined.Schedule
-                SManga.COMPLETED.toLong() -> Icons.Outlined.DoneAll
-                SManga.LICENSED.toLong() -> Icons.Outlined.AttachMoney
-                SManga.PUBLISHING_FINISHED.toLong() -> Icons.Outlined.Done
-                SManga.CANCELLED.toLong() -> Icons.Outlined.Close
-                SManga.ON_HIATUS.toLong() -> Icons.Outlined.Pause
+                SAnime.ONGOING.toLong() -> Icons.Outlined.Schedule
+                SAnime.COMPLETED.toLong() -> Icons.Outlined.DoneAll
+                SAnime.LICENSED.toLong() -> Icons.Outlined.AttachMoney
+                SAnime.PUBLISHING_FINISHED.toLong() -> Icons.Outlined.Done
+                SAnime.CANCELLED.toLong() -> Icons.Outlined.Close
+                SAnime.ON_HIATUS.toLong() -> Icons.Outlined.Pause
                 else -> Icons.Outlined.Block
             },
         )

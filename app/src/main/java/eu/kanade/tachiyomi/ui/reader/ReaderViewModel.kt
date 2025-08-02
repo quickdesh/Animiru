@@ -22,8 +22,8 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.saver.Image
 import eu.kanade.tachiyomi.data.saver.ImageSaver
 import eu.kanade.tachiyomi.data.saver.Location
-import eu.kanade.tachiyomi.source.model.Page
-import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.animesource.model.Page
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.ui.reader.loader.ChapterLoader
 import eu.kanade.tachiyomi.ui.reader.loader.DownloadPageLoader
 import eu.kanade.tachiyomi.ui.reader.model.InsertPage
@@ -568,7 +568,7 @@ class ReaderViewModel @JvmOverloads constructor(
                 if (
                     !chapter.read &&
                     chapter.isRecognizedNumber &&
-                    chapter.chapterNumber.toFloat() == readerChapter.chapter.chapter_number
+                    chapter.chapterNumber.toFloat() == readerChapter.chapter.episode_number
                 ) {
                     ChapterUpdate(id = chapter.id, read = true)
                 } else {
@@ -627,14 +627,14 @@ class ReaderViewModel @JvmOverloads constructor(
         return state.value.currentChapter
     }
 
-    fun getSource() = manga?.source?.let { sourceManager.getOrStub(it) } as? HttpSource
+    fun getSource() = manga?.source?.let { sourceManager.getOrStub(it) } as? AnimeHttpSource
 
     fun getChapterUrl(): String? {
         val sChapter = getCurrentChapter()?.chapter ?: return null
         val source = getSource() ?: return null
 
         return try {
-            source.getChapterUrl(sChapter)
+            source.getEpisodeUrl(sChapter)
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)
             null
@@ -919,7 +919,7 @@ class ReaderViewModel @JvmOverloads constructor(
         val context = Injekt.get<Application>()
 
         viewModelScope.launchNonCancellable {
-            trackChapter.await(context, manga.id, readerChapter.chapter.chapter_number.toDouble())
+            trackChapter.await(context, manga.id, readerChapter.chapter.episode_number.toDouble())
         }
     }
 

@@ -12,7 +12,7 @@ import eu.kanade.presentation.components.SEARCH_DEBOUNCE_MILLIS
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.extension.model.InstallStep
-import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -69,7 +69,7 @@ class ExtensionsScreenModel(
                             extension.sources.any {
                                 it.name.contains(input, ignoreCase = true) ||
                                     it.id == input.toLongOrNull() ||
-                                    if (it is HttpSource) {
+                                    if (it is AnimeHttpSource) {
                                         it.baseUrl.contains(input, ignoreCase = true)
                                     } else {
                                         false

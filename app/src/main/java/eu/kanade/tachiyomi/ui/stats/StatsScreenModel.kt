@@ -11,7 +11,7 @@ import eu.kanade.presentation.more.stats.StatsScreenState
 import eu.kanade.presentation.more.stats.data.StatsData
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.track.TrackerManager
-import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.animesource.model.SAnime
 import kotlinx.coroutines.flow.update
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.history.interactor.GetTotalReadDuration
@@ -52,7 +52,7 @@ class StatsScreenModel(
             val overviewStatData = StatsData.Overview(
                 libraryMangaCount = distinctLibraryManga.size,
                 completedMangaCount = distinctLibraryManga.count {
-                    it.manga.status.toInt() == SManga.COMPLETED && it.unreadCount == 0L
+                    it.manga.status.toInt() == SAnime.COMPLETED && it.unreadCount == 0L
                 },
                 totalReadDuration = getTotalReadDuration.await(),
             )
@@ -108,7 +108,7 @@ class StatsScreenModel(
             .fastFilterNot { it.manga.id in excludedMangaIds }
             .fastDistinctBy { it.manga.id }
             .fastCountNot {
-                (MANGA_NON_COMPLETED in updateRestrictions && it.manga.status.toInt() == SManga.COMPLETED) ||
+                (MANGA_NON_COMPLETED in updateRestrictions && it.manga.status.toInt() == SAnime.COMPLETED) ||
                     (MANGA_HAS_UNREAD in updateRestrictions && it.unreadCount != 0L) ||
                     (MANGA_NON_READ in updateRestrictions && it.totalChapters > 0 && !it.hasStarted)
             }

@@ -2,8 +2,8 @@ package eu.kanade.tachiyomi.ui.reader.loader
 
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.database.models.toDomainChapter
-import eu.kanade.tachiyomi.source.model.Page
-import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.animesource.model.Page
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import kotlinx.coroutines.CancellationException
@@ -30,7 +30,7 @@ import kotlin.math.min
  */
 internal class HttpPageLoader(
     private val chapter: ReaderChapter,
-    private val source: HttpSource,
+    private val source: AnimeHttpSource,
     private val chapterCache: ChapterCache = Injekt.get(),
 ) : PageLoader() {
 
@@ -68,7 +68,7 @@ internal class HttpPageLoader(
             if (e is CancellationException) {
                 throw e
             }
-            source.getPageList(chapter.chapter)
+            source.getVideoList(chapter.chapter)
         }
         return pages.mapIndexed { index, page ->
             // Don't trust sources and use our own indexing
@@ -171,13 +171,13 @@ internal class HttpPageLoader(
         try {
             if (page.imageUrl.isNullOrEmpty()) {
                 page.status = Page.State.LoadPage
-                page.imageUrl = source.getImageUrl(page)
+                page.imageUrl = source.getVideoUrl(page)
             }
             val imageUrl = page.imageUrl!!
 
             if (!chapterCache.isImageInCache(imageUrl)) {
                 page.status = Page.State.DownloadImage
-                val imageResponse = source.getImage(page)
+                val imageResponse = source.getVideo(,)
                 chapterCache.putImageToCache(imageUrl, imageResponse)
             }
 

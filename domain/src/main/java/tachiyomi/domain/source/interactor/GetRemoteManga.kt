@@ -1,6 +1,6 @@
 package tachiyomi.domain.source.interactor
 
-import eu.kanade.tachiyomi.source.model.FilterList
+import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 import tachiyomi.domain.source.repository.SourcePagingSource
 import tachiyomi.domain.source.repository.SourceRepository
 
@@ -8,7 +8,7 @@ class GetRemoteManga(
     private val repository: SourceRepository,
 ) {
 
-    operator fun invoke(sourceId: Long, query: String, filterList: FilterList): SourcePagingSource {
+    operator fun invoke(sourceId: Long, query: String, filterList: AnimeFilterList): SourcePagingSource {
         return when (query) {
             QUERY_POPULAR -> repository.getPopular(sourceId)
             QUERY_LATEST -> repository.getLatest(sourceId)

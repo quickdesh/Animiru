@@ -2,7 +2,7 @@ package eu.kanade.domain.manga.model
 
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.tachiyomi.data.cache.CoverCache
-import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import tachiyomi.core.common.preference.TriState
@@ -35,7 +35,7 @@ fun Manga.chaptersFiltered(): Boolean {
         bookmarkedFilter != TriState.DISABLED
 }
 
-fun Manga.toSManga(): SManga = SManga.create().also {
+fun Manga.toSManga(): SAnime = SAnime.create().also {
     it.url = url
     it.title = title
     it.artist = artist
@@ -47,7 +47,7 @@ fun Manga.toSManga(): SManga = SManga.create().also {
     it.initialized = initialized
 }
 
-fun Manga.copyFrom(other: SManga): Manga {
+fun Manga.copyFrom(other: SAnime): Manga {
     val author = other.author ?: author
     val artist = other.artist ?: artist
     val description = other.description ?: description

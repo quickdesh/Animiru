@@ -1,7 +1,7 @@
 package eu.kanade.tachiyomi.data.download.model
 
-import eu.kanade.tachiyomi.source.model.Page
-import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.animesource.model.Page
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +19,7 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 data class Download(
-    val source: HttpSource,
+    val source: AnimeHttpSource,
     val manga: Manga,
     val chapter: Chapter,
 ) {
@@ -80,7 +80,7 @@ data class Download(
         ): Download? {
             val chapter = getChapter.await(chapterId) ?: return null
             val manga = getManga.await(chapter.mangaId) ?: return null
-            val source = sourceManager.get(manga.source) as? HttpSource ?: return null
+            val source = sourceManager.get(manga.source) as? AnimeHttpSource ?: return null
 
             return Download(source, manga, chapter)
         }

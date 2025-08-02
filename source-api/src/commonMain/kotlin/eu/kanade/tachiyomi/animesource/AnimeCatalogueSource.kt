@@ -1,11 +1,11 @@
-package eu.kanade.tachiyomi.source
+package eu.kanade.tachiyomi.animesource
 
-import eu.kanade.tachiyomi.source.model.FilterList
-import eu.kanade.tachiyomi.source.model.MangasPage
+import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
+import eu.kanade.tachiyomi.animesource.model.AnimesPage
 import rx.Observable
 import tachiyomi.core.common.util.lang.awaitSingle
 
-interface CatalogueSource : Source {
+interface AnimeCatalogueSource : AnimeSource {
 
     /**
      * An ISO 639-1 compliant language code (two letters in lower case).
@@ -18,18 +18,18 @@ interface CatalogueSource : Source {
     val supportsLatest: Boolean
 
     /**
-     * Get a page with a list of manga.
+     * Get a page with a list of anime.
      *
      * @since extensions-lib 1.5
      * @param page the page number to retrieve.
      */
     @Suppress("DEPRECATION")
-    suspend fun getPopularManga(page: Int): MangasPage {
-        return fetchPopularManga(page).awaitSingle()
+    suspend fun getPopularAnime(page: Int): AnimesPage {
+        return fetchPopularAnime(page).awaitSingle()
     }
 
     /**
-     * Get a page with a list of manga.
+     * Get a page with a list of anime.
      *
      * @since extensions-lib 1.5
      * @param page the page number to retrieve.
@@ -37,44 +37,41 @@ interface CatalogueSource : Source {
      * @param filters the list of filters to apply.
      */
     @Suppress("DEPRECATION")
-    suspend fun getSearchManga(page: Int, query: String, filters: FilterList): MangasPage {
-        return fetchSearchManga(page, query, filters).awaitSingle()
+    suspend fun getSearchAnime(page: Int, query: String, filters: AnimeFilterList): AnimesPage {
+        return fetchSearchAnime(page, query, filters).awaitSingle()
     }
 
     /**
-     * Get a page with a list of latest manga updates.
+     * Get a page with a list of latest anime updates.
      *
      * @since extensions-lib 1.5
      * @param page the page number to retrieve.
      */
     @Suppress("DEPRECATION")
-    suspend fun getLatestUpdates(page: Int): MangasPage {
+    suspend fun getLatestUpdates(page: Int): AnimesPage {
         return fetchLatestUpdates(page).awaitSingle()
     }
 
     /**
      * Returns the list of filters for the source.
      */
-    fun getFilterList(): FilterList
+    fun getFilterList(): AnimeFilterList
 
     @Deprecated(
         "Use the non-RxJava API instead",
-        ReplaceWith("getPopularManga"),
+        ReplaceWith("getPopularAnime"),
     )
-    fun fetchPopularManga(page: Int): Observable<MangasPage> =
-        throw IllegalStateException("Not used")
+    fun fetchPopularAnime(page: Int): Observable<AnimesPage>
 
     @Deprecated(
         "Use the non-RxJava API instead",
-        ReplaceWith("getSearchManga"),
+        ReplaceWith("getSearchAnime"),
     )
-    fun fetchSearchManga(page: Int, query: String, filters: FilterList): Observable<MangasPage> =
-        throw IllegalStateException("Not used")
+    fun fetchSearchAnime(page: Int, query: String, filters: AnimeFilterList): Observable<AnimesPage>
 
     @Deprecated(
         "Use the non-RxJava API instead",
         ReplaceWith("getLatestUpdates"),
     )
-    fun fetchLatestUpdates(page: Int): Observable<MangasPage> =
-        throw IllegalStateException("Not used")
+    fun fetchLatestUpdates(page: Int): Observable<AnimesPage>
 }

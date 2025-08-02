@@ -1,10 +1,10 @@
 @file:Suppress("PropertyName")
 
-package eu.kanade.tachiyomi.source.model
+package eu.kanade.tachiyomi.animesource.model
 
 import java.io.Serializable
 
-interface SChapter : Serializable {
+interface SEpisode : Serializable {
 
     var url: String
 
@@ -12,21 +12,21 @@ interface SChapter : Serializable {
 
     var date_upload: Long
 
-    var chapter_number: Float
+    var episode_number: Float
 
     var scanlator: String?
 
-    fun copyFrom(other: SChapter) {
+    fun copyFrom(other: SEpisode) {
         name = other.name
         url = other.url
         date_upload = other.date_upload
-        chapter_number = other.chapter_number
+        episode_number = other.episode_number
         scanlator = other.scanlator
     }
 
     companion object {
-        fun create(): SChapter {
-            return SChapterImpl()
+        fun create(): SEpisode {
+            return SEpisodeImpl()
         }
     }
 }

@@ -8,9 +8,9 @@ import eu.kanade.tachiyomi.data.backup.models.IntPreferenceValue
 import eu.kanade.tachiyomi.data.backup.models.LongPreferenceValue
 import eu.kanade.tachiyomi.data.backup.models.StringPreferenceValue
 import eu.kanade.tachiyomi.data.backup.models.StringSetPreferenceValue
-import eu.kanade.tachiyomi.source.ConfigurableSource
-import eu.kanade.tachiyomi.source.preferenceKey
-import eu.kanade.tachiyomi.source.sourcePreferences
+import eu.kanade.tachiyomi.animesource.ConfigurableAnimeSource
+import eu.kanade.tachiyomi.animesource.preferenceKey
+import eu.kanade.tachiyomi.animesource.sourcePreferences
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.domain.source.service.SourceManager
@@ -29,7 +29,7 @@ class PreferenceBackupCreator(
 
     fun createSource(includePrivatePreferences: Boolean): List<BackupSourcePreferences> {
         return sourceManager.getCatalogueSources()
-            .filterIsInstance<ConfigurableSource>()
+            .filterIsInstance<ConfigurableAnimeSource>()
             .map {
                 BackupSourcePreferences(
                     it.preferenceKey(),

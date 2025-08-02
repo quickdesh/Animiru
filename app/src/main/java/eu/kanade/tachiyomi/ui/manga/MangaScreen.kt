@@ -40,9 +40,9 @@ import eu.kanade.presentation.manga.components.SetIntervalDialog
 import eu.kanade.presentation.util.AssistContentScreen
 import eu.kanade.presentation.util.Screen
 import eu.kanade.presentation.util.isTabletUi
-import eu.kanade.tachiyomi.source.Source
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.source.isLocalOrStub
-import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
@@ -100,7 +100,7 @@ class MangaScreen(
         }
 
         val successState = state as MangaScreenModel.State.Success
-        val isHttpSource = remember { successState.source is HttpSource }
+        val isHttpSource = remember { successState.source is AnimeHttpSource }
 
         LaunchedEffect(successState.manga, screenModel.source) {
             if (isHttpSource) {
@@ -298,18 +298,18 @@ class MangaScreen(
         context.startActivity(ReaderActivity.newIntent(context, chapter.mangaId, chapter.id))
     }
 
-    private fun getMangaUrl(manga_: Manga?, source_: Source?): String? {
+    private fun getMangaUrl(manga_: Manga?, source_: AnimeSource?): String? {
         val manga = manga_ ?: return null
-        val source = source_ as? HttpSource ?: return null
+        val source = source_ as? AnimeHttpSource ?: return null
 
         return try {
-            source.getMangaUrl(manga.toSManga())
+            source.getAnimeUrl(manga.toSManga())
         } catch (e: Exception) {
             null
         }
     }
 
-    private fun openMangaInWebView(navigator: Navigator, manga_: Manga?, source_: Source?) {
+    private fun openMangaInWebView(navigator: Navigator, manga_: Manga?, source_: AnimeSource?) {
         getMangaUrl(manga_, source_)?.let { url ->
             navigator.push(
                 WebViewScreen(
@@ -321,7 +321,7 @@ class MangaScreen(
         }
     }
 
-    private fun shareManga(context: Context, manga_: Manga?, source_: Source?) {
+    private fun shareManga(context: Context, manga_: Manga?, source_: AnimeSource?) {
         try {
             getMangaUrl(manga_, source_)?.let { url ->
                 val intent = url.toUri().toShareIntent(context, type = "text/plain")
@@ -369,13 +369,13 @@ class MangaScreen(
      *
      * @param genreName the search genre to the parent controller
      */
-    private suspend fun performGenreSearch(navigator: Navigator, genreName: String, source: Source) {
+    private suspend fun performGenreSearch(navigator: Navigator, genreName: String, source: AnimeSource) {
         if (navigator.size < 2) {
             return
         }
 
         val previousController = navigator.items[navigator.size - 2]
-        if (previousController is BrowseSourceScreen && source is HttpSource) {
+        if (previousController is BrowseSourceScreen && source is AnimeHttpSource) {
             navigator.pop()
             previousController.searchGenre(genreName)
         } else {
@@ -386,10 +386,10 @@ class MangaScreen(
     /**
      * Copy Manga URL to Clipboard
      */
-    private fun copyMangaUrl(context: Context, manga_: Manga?, source_: Source?) {
+    private fun copyMangaUrl(context: Context, manga_: Manga?, source_: AnimeSource?) {
         val manga = manga_ ?: return
-        val source = source_ as? HttpSource ?: return
-        val url = source.getMangaUrl(manga.toSManga())
+        val source = source_ as? AnimeHttpSource ?: return
+        val url = source.getAnimeUrl(manga.toSManga())
         context.copyToClipboard(url, url)
     }
 }

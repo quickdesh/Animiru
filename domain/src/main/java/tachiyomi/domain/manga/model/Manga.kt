@@ -1,8 +1,8 @@
 package tachiyomi.domain.manga.model
 
 import androidx.compose.runtime.Immutable
-import eu.kanade.tachiyomi.source.model.SManga
-import eu.kanade.tachiyomi.source.model.UpdateStrategy
+import eu.kanade.tachiyomi.animesource.model.SAnime
+import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import tachiyomi.core.common.preference.TriState
 import java.io.Serializable
 import java.time.Instant
@@ -27,7 +27,7 @@ data class Manga(
     val genre: List<String>?,
     val status: Long,
     val thumbnailUrl: String?,
-    val updateStrategy: UpdateStrategy,
+    val updateStrategy: AnimeUpdateStrategy,
     val initialized: Boolean,
     val lastModifiedAt: Long,
     val favoriteModifiedAt: Long?,
@@ -37,7 +37,7 @@ data class Manga(
 
     val expectedNextUpdate: Instant?
         get() = nextUpdate
-            .takeIf { status != SManga.COMPLETED.toLong() }
+            .takeIf { status != SAnime.COMPLETED.toLong() }
             ?.let { Instant.ofEpochMilli(it) }
 
     val sorting: Long
@@ -122,7 +122,7 @@ data class Manga(
             genre = null,
             status = 0L,
             thumbnailUrl = null,
-            updateStrategy = UpdateStrategy.ALWAYS_UPDATE,
+            updateStrategy = AnimeUpdateStrategy.ALWAYS_UPDATE,
             initialized = false,
             lastModifiedAt = 0L,
             favoriteModifiedAt = null,

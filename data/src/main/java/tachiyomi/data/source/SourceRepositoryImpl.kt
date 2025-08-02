@@ -1,9 +1,9 @@
 package tachiyomi.data.source
 
-import eu.kanade.tachiyomi.source.CatalogueSource
-import eu.kanade.tachiyomi.source.Source
-import eu.kanade.tachiyomi.source.model.FilterList
-import eu.kanade.tachiyomi.source.online.HttpSource
+import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
+import eu.kanade.tachiyomi.animesource.AnimeSource
+import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -33,7 +33,7 @@ class SourceRepositoryImpl(
     override fun getOnlineSources(): Flow<List<DomainSource>> {
         return sourceManager.catalogueSources.map { sources ->
             sources
-                .filterIsInstance<HttpSource>()
+                .filterIsInstance<AnimeHttpSource>()
                 .map(::mapSourceToDomainSource)
         }
     }
@@ -71,23 +71,23 @@ class SourceRepositoryImpl(
     override fun search(
         sourceId: Long,
         query: String,
-        filterList: FilterList,
+        filterList: AnimeFilterList,
     ): SourcePagingSource {
-        val source = sourceManager.get(sourceId) as CatalogueSource
+        val source = sourceManager.get(sourceId) as AnimeCatalogueSource
         return SourceSearchPagingSource(source, query, filterList)
     }
 
     override fun getPopular(sourceId: Long): SourcePagingSource {
-        val source = sourceManager.get(sourceId) as CatalogueSource
+        val source = sourceManager.get(sourceId) as AnimeCatalogueSource
         return SourcePopularPagingSource(source)
     }
 
     override fun getLatest(sourceId: Long): SourcePagingSource {
-        val source = sourceManager.get(sourceId) as CatalogueSource
+        val source = sourceManager.get(sourceId) as AnimeCatalogueSource
         return SourceLatestPagingSource(source)
     }
 
-    private fun mapSourceToDomainSource(source: Source): DomainSource = DomainSource(
+    private fun mapSourceToDomainSource(source: AnimeSource): DomainSource = DomainSource(
         id = source.id,
         lang = source.lang,
         name = source.name,

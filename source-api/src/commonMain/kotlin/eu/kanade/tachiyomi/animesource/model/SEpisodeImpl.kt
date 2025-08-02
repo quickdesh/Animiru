@@ -1,8 +1,8 @@
 @file:Suppress("PropertyName")
 
-package eu.kanade.tachiyomi.source.model
+package eu.kanade.tachiyomi.animesource.model
 
-class SChapterImpl : SChapter {
+class SEpisodeImpl : SEpisode {
 
     override lateinit var url: String
 
@@ -10,7 +10,7 @@ class SChapterImpl : SChapter {
 
     override var date_upload: Long = 0
 
-    override var chapter_number: Float = -1f
+    override var episode_number: Float = -1f
 
     override var scanlator: String? = null
 }

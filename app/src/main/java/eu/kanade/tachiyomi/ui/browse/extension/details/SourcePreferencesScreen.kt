@@ -36,8 +36,8 @@ import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.SharedPreferencesDataStore
-import eu.kanade.tachiyomi.source.ConfigurableSource
-import eu.kanade.tachiyomi.source.sourcePreferences
+import eu.kanade.tachiyomi.animesource.ConfigurableAnimeSource
+import eu.kanade.tachiyomi.animesource.sourcePreferences
 import eu.kanade.tachiyomi.widget.TachiyomiTextInputEditText.Companion.setIncognito
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.presentation.core.components.material.Scaffold
@@ -136,7 +136,7 @@ class SourcePreferencesFragment : PreferenceFragmentCompat() {
         val source = Injekt.get<SourceManager>().getOrStub(sourceId)
         val sourceScreen = preferenceManager.createPreferenceScreen(requireContext())
 
-        if (source is ConfigurableSource) {
+        if (source is ConfigurableAnimeSource) {
             val dataStore = SharedPreferencesDataStore(source.sourcePreferences())
             preferenceManager.preferenceDataStore = dataStore
 

@@ -7,7 +7,7 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.databinding.DownloadListBinding
-import eu.kanade.tachiyomi.source.model.Page
+import eu.kanade.tachiyomi.animesource.model.Page
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

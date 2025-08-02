@@ -2,7 +2,7 @@ package eu.kanade.tachiyomi.data.backup.create.creators
 
 import eu.kanade.tachiyomi.data.backup.models.BackupManga
 import eu.kanade.tachiyomi.data.backup.models.BackupSource
-import eu.kanade.tachiyomi.source.Source
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -22,7 +22,7 @@ class SourcesBackupCreator(
     }
 }
 
-private fun Source.toBackupSource() =
+private fun AnimeSource.toBackupSource() =
     BackupSource(
         name = this.name,
         sourceId = this.id,

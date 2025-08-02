@@ -1,9 +1,9 @@
 package mihon.domain.manga.model
 
-import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.animesource.model.SAnime
 import tachiyomi.domain.manga.model.Manga
 
-fun SManga.toDomainManga(sourceId: Long): Manga {
+fun SAnime.toDomainManga(sourceId: Long): Manga {
     return Manga.create().copy(
         url = url,
         title = title,

@@ -1,6 +1,6 @@
 package tachiyomi.core.metadata.comicinfo
 
-import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.animesource.model.SAnime
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -8,7 +8,7 @@ import nl.adaptivity.xmlutil.serialization.XmlValue
 
 const val COMIC_INFO_FILE = "ComicInfo.xml"
 
-fun SManga.getComicInfo() = ComicInfo(
+fun SAnime.getComicInfo() = ComicInfo(
     series = ComicInfo.Series(title),
     summary = description?.let { ComicInfo.Summary(it) },
     writer = author?.let { ComicInfo.Writer(it) },
@@ -30,7 +30,7 @@ fun SManga.getComicInfo() = ComicInfo(
     source = null,
 )
 
-fun SManga.copyFromComicInfo(comicInfo: ComicInfo) {
+fun SAnime.copyFromComicInfo(comicInfo: ComicInfo) {
     comicInfo.series?.let { title = it.value }
     comicInfo.writer?.let { author = it.value }
     comicInfo.summary?.let { description = it.value }
@@ -166,13 +166,13 @@ enum class ComicInfoPublishingStatus(
     val comicInfoValue: String,
     val sMangaModelValue: Int,
 ) {
-    ONGOING("Ongoing", SManga.ONGOING),
-    COMPLETED("Completed", SManga.COMPLETED),
-    LICENSED("Licensed", SManga.LICENSED),
-    PUBLISHING_FINISHED("Publishing finished", SManga.PUBLISHING_FINISHED),
-    CANCELLED("Cancelled", SManga.CANCELLED),
-    ON_HIATUS("On hiatus", SManga.ON_HIATUS),
-    UNKNOWN("Unknown", SManga.UNKNOWN),
+    ONGOING("Ongoing", SAnime.ONGOING),
+    COMPLETED("Completed", SAnime.COMPLETED),
+    LICENSED("Licensed", SAnime.LICENSED),
+    PUBLISHING_FINISHED("Publishing finished", SAnime.PUBLISHING_FINISHED),
+    CANCELLED("Cancelled", SAnime.CANCELLED),
+    ON_HIATUS("On hiatus", SAnime.ON_HIATUS),
+    UNKNOWN("Unknown", SAnime.UNKNOWN),
     ;
 
     companion object {

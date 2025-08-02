@@ -3,7 +3,7 @@ package eu.kanade.domain.manga.interactor
 import eu.kanade.domain.manga.model.hasCustomCover
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.animesource.model.SAnime
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.FetchInterval
 import tachiyomi.domain.manga.model.Manga
@@ -30,7 +30,7 @@ class UpdateManga(
 
     suspend fun awaitUpdateFromSource(
         localManga: Manga,
-        remoteManga: SManga,
+        remoteManga: SAnime,
         manualFetch: Boolean,
         coverCache: CoverCache = Injekt.get(),
         libraryPreferences: LibraryPreferences = Injekt.get(),

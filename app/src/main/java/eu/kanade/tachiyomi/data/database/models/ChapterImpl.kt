@@ -24,7 +24,7 @@ class ChapterImpl : Chapter {
 
     override var date_upload: Long = 0
 
-    override var chapter_number: Float = 0f
+    override var episode_number: Float = 0f
 
     override var source_order: Int = 0
 

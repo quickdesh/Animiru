@@ -2,8 +2,8 @@ package eu.kanade.tachiyomi.data.download
 
 import android.content.Context
 import eu.kanade.tachiyomi.data.download.model.Download
-import eu.kanade.tachiyomi.source.Source
-import eu.kanade.tachiyomi.source.model.Page
+import eu.kanade.tachiyomi.animesource.AnimeSource
+import eu.kanade.tachiyomi.animesource.model.Page
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.drop
@@ -158,7 +158,7 @@ class DownloadManager(
      * @param chapter the downloaded chapter.
      * @return the list of pages from the chapter.
      */
-    fun buildPageList(source: Source, manga: Manga, chapter: Chapter): List<Page> {
+    fun buildPageList(source: AnimeSource, manga: Manga, chapter: Chapter): List<Page> {
         val chapterDir = provider.findChapterDir(chapter.name, chapter.scanlator, manga.title, source)
         val files = chapterDir?.listFiles().orEmpty()
             .filter { it.isFile && ImageUtil.isImage(it.name) { it.openInputStream() } }
@@ -219,7 +219,7 @@ class DownloadManager(
      * @param manga the manga of the chapters.
      * @param source the source of the chapters.
      */
-    fun deleteChapters(chapters: List<Chapter>, manga: Manga, source: Source) {
+    fun deleteChapters(chapters: List<Chapter>, manga: Manga, source: AnimeSource) {
         launchIO {
             val filteredChapters = getChaptersToDelete(chapters, manga)
             if (filteredChapters.isEmpty()) {
@@ -246,7 +246,7 @@ class DownloadManager(
      * @param source the source of the manga.
      * @param removeQueued whether to also remove queued downloads.
      */
-    fun deleteManga(manga: Manga, source: Source, removeQueued: Boolean = true) {
+    fun deleteManga(manga: Manga, source: AnimeSource, removeQueued: Boolean = true) {
         launchIO {
             if (removeQueued) {
                 downloader.removeFromQueue(manga)
@@ -307,7 +307,7 @@ class DownloadManager(
      * @param oldSource the old source.
      * @param newSource the new source.
      */
-    fun renameSource(oldSource: Source, newSource: Source) {
+    fun renameSource(oldSource: AnimeSource, newSource: AnimeSource) {
         val oldFolder = provider.findSourceDir(oldSource) ?: return
         val newName = provider.getSourceDirName(newSource)
 
@@ -367,7 +367,7 @@ class DownloadManager(
      * @param oldChapter the existing chapter with the old name.
      * @param newChapter the target chapter with the new name.
      */
-    suspend fun renameChapter(source: Source, manga: Manga, oldChapter: Chapter, newChapter: Chapter) {
+    suspend fun renameChapter(source: AnimeSource, manga: Manga, oldChapter: Chapter, newChapter: Chapter) {
         val oldNames = provider.getValidChapterDirNames(oldChapter.name, oldChapter.scanlator)
         val mangaDir = provider.getMangaDir(manga.title, source).getOrElse { e ->
             logcat(LogPriority.ERROR, e) { "Manga download folder doesn't exist. Skipping renaming after source sync" }
