@@ -17,7 +17,7 @@ val CoverWidth = 58.dp
 val CoverHeight = 87.dp
 
 @Composable
-fun UpdatesMangaCover(
+fun UpdatesAnimeCover(
     cover: Bitmap?,
     modifier: GlanceModifier = GlanceModifier,
 ) {
