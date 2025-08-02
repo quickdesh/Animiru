@@ -440,3 +440,30 @@ private fun BaseSettingsItem(
         )
     }
 }
+
+// AM (GROUPING) -->
+@Composable
+fun IconItem(
+    label: String,
+    icon: ImageVector,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    BaseSettingsItem(
+        label = label,
+        widget = {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+            )
+        },
+        onClick = onClick,
+    )
+}
+// <-- AM (GROUPING)
