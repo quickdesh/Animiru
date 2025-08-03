@@ -3,6 +3,7 @@ package tachiyomi.domain.category.interactor
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.category.model.CategoryUpdate
 import tachiyomi.domain.category.repository.CategoryRepository
+import tachiyomi.domain.library.model.LibraryGroup
 import tachiyomi.domain.library.model.LibrarySort
 import tachiyomi.domain.library.model.plus
 import tachiyomi.domain.library.service.LibraryPreferences
@@ -14,6 +15,13 @@ class SetSortModeForCategory(
 ) {
 
     suspend fun await(categoryId: Long?, type: LibrarySort.Type, direction: LibrarySort.Direction) {
+        // AM (GROUPING) -->
+        if (preferences.groupLibraryBy().get() != LibraryGroup.BY_DEFAULT) {
+            preferences.sortingMode().set(LibrarySort(type, direction))
+            return
+        }
+        // <-- AM (GROUPING)
+
         val category = categoryId?.let { categoryRepository.get(it) }
         val flags = (category?.flags ?: 0) + type + direction
         if (type == LibrarySort.Type.Random) {

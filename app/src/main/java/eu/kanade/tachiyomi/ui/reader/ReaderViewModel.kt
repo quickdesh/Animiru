@@ -168,8 +168,8 @@ class ReaderViewModel @JvmOverloads constructor(
                     when {
                         readerPreferences.skipRead().get() && it.seen -> true
                         readerPreferences.skipFiltered().get() -> {
-                            (manga.unreadFilterRaw == Anime.EPISODE_SHOW_SEEN && !it.seen) ||
-                                (manga.unreadFilterRaw == Anime.EPISODE_SHOW_UNSEEN && it.seen) ||
+                            (manga.unseenFilterRaw == Anime.EPISODE_SHOW_SEEN && !it.seen) ||
+                                (manga.unseenFilterRaw == Anime.EPISODE_SHOW_UNSEEN && it.seen) ||
                                 (
                                     manga.downloadedFilterRaw == Anime.EPISODE_SHOW_DOWNLOADED &&
                                         !downloadManager.isChapterDownloaded(

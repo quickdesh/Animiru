@@ -30,7 +30,7 @@ val Anime.downloadedFilter: TriState
         }
     }
 fun Anime.chaptersFiltered(): Boolean {
-    return unreadFilter != TriState.DISABLED ||
+    return unseenFilter != TriState.DISABLED ||
         downloadedFilter != TriState.DISABLED ||
         bookmarkedFilter != TriState.DISABLED
 }

@@ -22,6 +22,10 @@ kotlin {
 dependencies {
     implementation(projects.sourceApi)
     implementation(projects.core.common)
+    // AM (GROUPING) -->
+    implementation(projects.i18n)
+    implementation(projects.i18nAnimiru)
+    // <-- AM (GROUPING)
 
     implementation(platform(kotlinx.coroutines.bom))
     implementation(kotlinx.bundles.coroutines)

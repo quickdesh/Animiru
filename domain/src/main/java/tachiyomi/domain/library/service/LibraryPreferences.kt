@@ -7,6 +7,8 @@ import tachiyomi.core.common.preference.getEnum
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.model.LibrarySort
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.library.model.GroupLibraryMode
+import tachiyomi.domain.library.model.LibraryGroup
 
 // TODO(mihon): Migrate keys
 class LibraryPreferences(
@@ -82,6 +84,11 @@ class LibraryPreferences(
         TriState.DISABLED,
     )
 
+    // AM (FILLERMARK) -->
+    fun filterFillermarked() =
+        preferenceStore.getEnum("pref_filter_animelib_fillermarked_v2", TriState.DISABLED)
+    // <-- AM (FILLERMARK)
+
     fun filterCompleted() = preferenceStore.getEnum(
         "pref_filter_animelib_completed_v2",
         TriState.DISABLED,
@@ -149,6 +156,13 @@ class LibraryPreferences(
         Anime.SHOW_ALL,
     )
 
+    // AM (FILLERMARK) -->
+    fun filterEpisodeByFillermarked() = preferenceStore.getLong(
+        "default_episode_filter_by_fillermarked",
+        Anime.SHOW_ALL,
+    )
+    // <-- AM (FILLERMARK)
+
     // and upload date
     fun sortEpisodeBySourceOrNumber() = preferenceStore.getLong(
         "default_chapter_sort_by_source_or_number",
@@ -166,9 +180,12 @@ class LibraryPreferences(
     )
 
     fun setEpisodeSettingsDefault(anime: Anime) {
-        filterEpisodeBySeen().set(anime.unreadFilterRaw)
+        filterEpisodeBySeen().set(anime.unseenFilterRaw)
         filterEpisodeByDownloaded().set(anime.downloadedFilterRaw)
         filterEpisodeByBookmarked().set(anime.bookmarkedFilterRaw)
+        // AM (FILLERMARK) -->
+        filterEpisodeByFillermarked().set(anime.fillermarkedFilterRaw)
+        // <-- AM (FILLERMARK)
         sortEpisodeBySourceOrNumber().set(anime.sorting)
         displayEpisodeByNameOrNumber().set(anime.displayMode)
         sortEpisodeByAscendingOrDescending().set(
@@ -198,9 +215,18 @@ class LibraryPreferences(
     enum class EpisodeSwipeAction {
         ToggleRead,
         ToggleBookmark,
+        // AM (FILLERMARK) -->
+        ToggleFillermark,
+        // <-- AM (FILLERMARK)
         Download,
         Disabled,
     }
+
+    // AM (GROUPING) -->
+    fun groupLibraryUpdateType() = preferenceStore.getEnum("group_library_update_type", GroupLibraryMode.GLOBAL)
+
+    fun groupLibraryBy() = preferenceStore.getInt("group_library_by", LibraryGroup.BY_DEFAULT)
+    // <-- AM (GROUPING)
 
     companion object {
         const val DEVICE_ONLY_ON_WIFI = "wifi"

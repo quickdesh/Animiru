@@ -35,6 +35,17 @@ class SetAnimeEpisodeFlags(
         )
     }
 
+    // AM (FILLERMARK) -->
+    suspend fun awaitSetFillermarkFilter(anime: Anime, flag: Long): Boolean {
+        return animeRepository.update(
+            AnimeUpdate(
+                id = anime.id,
+                episodeFlags = anime.episodeFlags.setFlag(flag, Anime.EPISODE_FILLERMARKED_MASK),
+            ),
+        )
+    }
+    // <-- AM (FILLERMARK)
+
     suspend fun awaitSetDisplayMode(anime: Anime, flag: Long): Boolean {
         return animeRepository.update(
             AnimeUpdate(
@@ -74,6 +85,9 @@ class SetAnimeEpisodeFlags(
         unseenFilter: Long,
         downloadedFilter: Long,
         bookmarkedFilter: Long,
+        // AM (FILLERMARK) -->
+        fillermarkedFilter: Long,
+        // <-- AM (FILLERMARK)
         sortingMode: Long,
         sortingDirection: Long,
         displayMode: Long,
@@ -84,6 +98,9 @@ class SetAnimeEpisodeFlags(
                 episodeFlags = 0L.setFlag(unseenFilter, Anime.EPISODE_UNSEEN_MASK)
                     .setFlag(downloadedFilter, Anime.EPISODE_DOWNLOADED_MASK)
                     .setFlag(bookmarkedFilter, Anime.EPISODE_BOOKMARKED_MASK)
+                    // AM (FILLERMARK) -->
+                    .setFlag(fillermarkedFilter, Anime.EPISODE_FILLERMARKED_MASK)
+                    // <-- AM (FILLERMARK)
                     .setFlag(sortingMode, Anime.EPISODE_SORTING_MASK)
                     .setFlag(sortingDirection, Anime.EPISODE_SORT_DIR_MASK)
                     .setFlag(displayMode, Anime.EPISODE_DISPLAY_MASK),

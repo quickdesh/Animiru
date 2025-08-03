@@ -10,11 +10,19 @@ interface CategoryRepository {
 
     suspend fun getAll(): List<Category>
 
+    suspend fun getAllVisible(): List<Category>
+
     fun getAllAsFlow(): Flow<List<Category>>
+
+    fun getAllVisibleAsFlow(): Flow<List<Category>>
 
     suspend fun getCategoriesByAnimeId(animeId: Long): List<Category>
 
+    suspend fun getVisibleCategoriesByAnimeId(animeId: Long): List<Category>
+
     fun getCategoriesByAnimeIdAsFlow(animeId: Long): Flow<List<Category>>
+
+    fun getVisibleCategoriesByAnimeIdAsFlow(animeId: Long): Flow<List<Category>>
 
     suspend fun insert(category: Category)
 

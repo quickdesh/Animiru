@@ -22,6 +22,10 @@ interface EpisodeRepository {
 
     suspend fun getBookmarkedEpisodesByAnimeId(animeId: Long): List<Episode>
 
+    // AM (FILLERMARK) -->
+    suspend fun getFillermarkedEpisodesByAnimeId(animeId: Long): List<Episode>
+    // <-- AM (FILLERMARK)
+
     suspend fun getEpisodeById(id: Long): Episode?
 
     suspend fun getEpisodeByAnimeIdAsFlow(animeId: Long, applyScanlatorFilter: Boolean = false): Flow<List<Episode>>

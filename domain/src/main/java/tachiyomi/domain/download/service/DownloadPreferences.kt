@@ -32,6 +32,10 @@ class DownloadPreferences(
 
     fun removeBookmarkedEpisodes() = preferenceStore.getBoolean("pref_remove_bookmarked", false)
 
+    // AM (FILLERMARK) -->
+    fun notDownloadFillermarkedItems() = preferenceStore.getBoolean("pref_no_download_fillermarked", false)
+    // <-- AM (FILLERMARK)
+
     fun removeExcludeCategories() = preferenceStore.getStringSet(REMOVE_EXCLUDE_CATEGORIES_PREF_KEY, emptySet())
 
     fun downloadNewEpisodes() = preferenceStore.getBoolean("download_new_episode", false)

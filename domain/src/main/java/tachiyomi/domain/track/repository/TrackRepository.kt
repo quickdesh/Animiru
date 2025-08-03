@@ -18,4 +18,8 @@ interface TrackRepository {
     suspend fun insert(track: Track)
 
     suspend fun insertAll(tracks: List<Track>)
+
+    // AM (GROUPING) -->
+    suspend fun getTracks(): List<Track>
+    // <-- AM (GROUPING)
 }

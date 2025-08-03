@@ -103,7 +103,7 @@ fun ChapterSettingsDialog(
                         downloadFilter = anime?.downloadedFilter ?: TriState.DISABLED,
                         onDownloadFilterChanged = onDownloadFilterChanged
                             .takeUnless { downloadedOnly },
-                        unreadFilter = anime?.unreadFilter ?: TriState.DISABLED,
+                        unreadFilter = anime?.unseenFilter ?: TriState.DISABLED,
                         onUnreadFilterChanged = onUnreadFilterChanged,
                         bookmarkedFilter = anime?.bookmarkedFilter ?: TriState.DISABLED,
                         onBookmarkedFilterChanged = onBookmarkedFilterChanged,

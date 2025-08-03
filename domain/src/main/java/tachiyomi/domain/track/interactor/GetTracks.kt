@@ -31,4 +31,15 @@ class GetTracks(
     fun subscribe(animeId: Long): Flow<List<Track>> {
         return trackRepository.getTracksByAnimeIdAsFlow(animeId)
     }
+
+    // AM (GROUPING) -->
+    suspend fun await(): List<Track> {
+        return try {
+            trackRepository.getTracks()
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e)
+            emptyList()
+        }
+    }
+    // <-- AM (GROUPING)
 }

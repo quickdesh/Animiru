@@ -15,7 +15,7 @@ import tachiyomi.source.local.isLocal
  */
 fun List<Episode>.applyFilters(anime: Anime, downloadManager: DownloadManager): List<Episode> {
     val isLocalManga = anime.isLocal()
-    val unreadFilter = anime.unreadFilter
+    val unreadFilter = anime.unseenFilter
     val downloadedFilter = anime.downloadedFilter
     val bookmarkedFilter = anime.bookmarkedFilter
 
@@ -41,7 +41,7 @@ fun List<Episode>.applyFilters(anime: Anime, downloadManager: DownloadManager): 
  */
 fun List<ChapterList.Item>.applyFilters(anime: Anime): Sequence<ChapterList.Item> {
     val isLocalManga = anime.isLocal()
-    val unreadFilter = anime.unreadFilter
+    val unreadFilter = anime.unseenFilter
     val downloadedFilter = anime.downloadedFilter
     val bookmarkedFilter = anime.bookmarkedFilter
     return asSequence()
