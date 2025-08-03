@@ -77,7 +77,7 @@ class BackupCreator(
                 throw IllegalStateException(context.stringResource(MR.strings.create_backup_file_error))
             }
 
-            val nonFavoriteManga = if (options.readEntries) animeRepository.getWatchedAnimeNotInLibrary() else emptyList()
+            val nonFavoriteManga = if (options.readEntries) animeRepository.getSeenAnimeNotInLibrary() else emptyList()
             val backupManga = backupMangas(getFavorites.await() + nonFavoriteManga, options)
 
             val backup = Backup(

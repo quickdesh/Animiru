@@ -1,4 +1,4 @@
-package tachiyomi.data.manga
+package tachiyomi.data.anime
 
 import kotlinx.coroutines.flow.Flow
 import logcat.LogPriority
@@ -14,74 +14,74 @@ import tachiyomi.domain.anime.repository.AnimeRepository
 import java.time.LocalDate
 import java.time.ZoneId
 
-class MangaRepositoryImpl(
+class AnimeRepositoryImpl(
     private val handler: DatabaseHandler,
 ) : AnimeRepository {
 
     override suspend fun getAnimeById(id: Long): Anime {
-        return handler.awaitOne { mangasQueries.getMangaById(id, MangaMapper::mapManga) }
+        return handler.awaitOne { animesQueries.getAnimeById(id, AnimeMapper::mapAnime) }
     }
 
     override suspend fun getAnimeByIdAsFlow(id: Long): Flow<Anime> {
-        return handler.subscribeToOne { mangasQueries.getMangaById(id, MangaMapper::mapManga) }
+        return handler.subscribeToOne { animesQueries.getAnimeById(id, AnimeMapper::mapAnime) }
     }
 
     override suspend fun getAnimeByUrlAndSourceId(url: String, sourceId: Long): Anime? {
         return handler.awaitOneOrNull {
-            mangasQueries.getMangaByUrlAndSource(
+            animesQueries.getAnimeByUrlAndSource(
                 url,
                 sourceId,
-                MangaMapper::mapManga,
+                AnimeMapper::mapAnime,
             )
         }
     }
 
     override fun getAnimeByUrlAndSourceIdAsFlow(url: String, sourceId: Long): Flow<Anime?> {
         return handler.subscribeToOneOrNull {
-            mangasQueries.getMangaByUrlAndSource(
+            animesQueries.getAnimeByUrlAndSource(
                 url,
                 sourceId,
-                MangaMapper::mapManga,
+                AnimeMapper::mapAnime,
             )
         }
     }
 
     override suspend fun getFavorites(): List<Anime> {
-        return handler.awaitList { mangasQueries.getFavorites(MangaMapper::mapManga) }
+        return handler.awaitList { animesQueries.getFavorites(AnimeMapper::mapAnime) }
     }
 
-    override suspend fun getWatchedAnimeNotInLibrary(): List<Anime> {
-        return handler.awaitList { mangasQueries.getReadMangaNotInLibrary(MangaMapper::mapManga) }
+    override suspend fun getSeenAnimeNotInLibrary(): List<Anime> {
+        return handler.awaitList { animesQueries.getSeenAnimeNotInLibrary(AnimeMapper::mapAnime) }
     }
 
     override suspend fun getLibraryAnime(): List<LibraryAnime> {
-        return handler.awaitList { libraryViewQueries.library(MangaMapper::mapLibraryManga) }
+        return handler.awaitList { libraryViewQueries.library(AnimeMapper::mapLibraryAnime) }
     }
 
     override fun getLibraryAnimeAsFlow(): Flow<List<LibraryAnime>> {
-        return handler.subscribeToList { libraryViewQueries.library(MangaMapper::mapLibraryManga) }
+        return handler.subscribeToList { libraryViewQueries.library(AnimeMapper::mapLibraryAnime) }
     }
 
     override fun getFavoritesBySourceId(sourceId: Long): Flow<List<Anime>> {
-        return handler.subscribeToList { mangasQueries.getFavoriteBySourceId(sourceId, MangaMapper::mapManga) }
+        return handler.subscribeToList { animesQueries.getFavoriteBySourceId(sourceId, AnimeMapper::mapAnime) }
     }
 
     override suspend fun getDuplicateLibraryAnime(id: Long, title: String): List<AnimeWithEpisodeCount> {
         return handler.awaitList {
-            mangasQueries.getDuplicateLibraryManga(id, title, MangaMapper::mapMangaWithChapterCount)
+            animesQueries.getDuplicateLibraryAnime(id, title, AnimeMapper::mapAnimeWithEpisodeCount)
         }
     }
 
     override suspend fun getUpcomingAnime(statuses: Set<Long>): Flow<List<Anime>> {
         val epochMillis = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
         return handler.subscribeToList {
-            mangasQueries.getUpcomingManga(epochMillis, statuses, MangaMapper::mapManga)
+            animesQueries.getUpcomingAnime(epochMillis, statuses, AnimeMapper::mapAnime)
         }
     }
 
     override suspend fun resetViewerFlags(): Boolean {
         return try {
-            handler.await { mangasQueries.resetViewerFlags() }
+            handler.await { animesQueries.resetViewerFlags() }
             true
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)
@@ -91,9 +91,9 @@ class MangaRepositoryImpl(
 
     override suspend fun setAnimeCategories(animeId: Long, categoryIds: List<Long>) {
         handler.await(inTransaction = true) {
-            mangas_categoriesQueries.deleteMangaCategoryByMangaId(animeId)
+            animes_categoriesQueries.deleteAnimeCategoryByAnimeId(animeId)
             categoryIds.map { categoryId ->
-                mangas_categoriesQueries.insert(animeId, categoryId)
+                animes_categoriesQueries.insert(animeId, categoryId)
             }
         }
     }
@@ -121,7 +121,7 @@ class MangaRepositoryImpl(
     override suspend fun insertNetworkAnime(anime: List<Anime>): List<Anime> {
         return handler.await(inTransaction = true) {
             anime.map {
-                mangasQueries.insertNetworkManga(
+                animesQueries.insertNetworkAnime(
                     source = it.source,
                     url = it.url,
                     artist = it.artist,
@@ -137,7 +137,7 @@ class MangaRepositoryImpl(
                     calculateInterval = it.fetchInterval.toLong(),
                     initialized = it.initialized,
                     viewerFlags = it.viewerFlags,
-                    chapterFlags = it.episodeFlags,
+                    episodeFlags = it.episodeFlags,
                     coverLastModified = it.coverLastModified,
                     dateAdded = it.dateAdded,
                     updateStrategy = it.updateStrategy,
@@ -145,7 +145,7 @@ class MangaRepositoryImpl(
                     updateTitle = it.title.isNotBlank(),
                     updateCover = !it.thumbnailUrl.isNullOrBlank(),
                     updateDetails = it.initialized,
-                    mapper = MangaMapper::mapManga,
+                    mapper = AnimeMapper::mapAnime,
                 )
                     .executeAsOne()
             }
@@ -155,7 +155,7 @@ class MangaRepositoryImpl(
     private suspend fun partialUpdate(vararg animeUpdates: AnimeUpdate) {
         handler.await(inTransaction = true) {
             animeUpdates.forEach { value ->
-                mangasQueries.update(
+                animesQueries.update(
                     source = value.source,
                     url = value.url,
                     artist = value.artist,
@@ -171,10 +171,10 @@ class MangaRepositoryImpl(
                     calculateInterval = value.fetchInterval?.toLong(),
                     initialized = value.initialized,
                     viewer = value.viewerFlags,
-                    chapterFlags = value.episodeFlags,
+                    episodeFlags = value.episodeFlags,
                     coverLastModified = value.coverLastModified,
                     dateAdded = value.dateAdded,
-                    mangaId = value.id,
+                    animeId = value.id,
                     updateStrategy = value.updateStrategy?.let(UpdateStrategyColumnAdapter::encode),
                     version = value.version,
                     isSyncing = 0,

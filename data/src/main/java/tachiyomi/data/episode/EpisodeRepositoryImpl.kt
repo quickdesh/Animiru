@@ -1,4 +1,4 @@
-package tachiyomi.data.chapter
+package tachiyomi.data.episode
 
 import kotlinx.coroutines.flow.Flow
 import logcat.LogPriority
@@ -9,30 +9,31 @@ import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.episode.model.EpisodeUpdate
 import tachiyomi.domain.episode.repository.EpisodeRepository
 
-class ChapterRepositoryImpl(
+class EpisodeRepositoryImpl(
     private val handler: DatabaseHandler,
 ) : EpisodeRepository {
 
     override suspend fun addAll(episodes: List<Episode>): List<Episode> {
         return try {
             handler.await(inTransaction = true) {
-                episodes.map { chapter ->
-                    chaptersQueries.insert(
-                        chapter.animeId,
-                        chapter.url,
-                        chapter.name,
-                        chapter.scanlator,
-                        chapter.seen,
-                        chapter.bookmark,
-                        chapter.lastSecondSeen,
-                        chapter.episodeNumber,
-                        chapter.sourceOrder,
-                        chapter.dateFetch,
-                        chapter.dateUpload,
-                        chapter.version,
+                episodes.map { episode ->
+                    episodesQueries.insert(
+                        episode.animeId,
+                        episode.url,
+                        episode.name,
+                        episode.scanlator,
+                        episode.seen,
+                        episode.bookmark,
+                        episode.lastSecondSeen,
+                        episode.totalSeconds,
+                        episode.episodeNumber,
+                        episode.sourceOrder,
+                        episode.dateFetch,
+                        episode.dateUpload,
+                        episode.version,
                     )
-                    val lastInsertId = chaptersQueries.selectLastInsertedRowId().executeAsOne()
-                    chapter.copy(id = lastInsertId)
+                    val lastInsertId = episodesQueries.selectLastInsertedRowId().executeAsOne()
+                    episode.copy(id = lastInsertId)
                 }
             }
         } catch (e: Exception) {
@@ -51,21 +52,22 @@ class ChapterRepositoryImpl(
 
     private suspend fun partialUpdate(vararg episodeUpdates: EpisodeUpdate) {
         handler.await(inTransaction = true) {
-            episodeUpdates.forEach { chapterUpdate ->
-                chaptersQueries.update(
-                    mangaId = chapterUpdate.animeId,
-                    url = chapterUpdate.url,
-                    name = chapterUpdate.name,
-                    scanlator = chapterUpdate.scanlator,
-                    read = chapterUpdate.seen,
-                    bookmark = chapterUpdate.bookmark,
-                    lastPageRead = chapterUpdate.lastSecondSeen,
-                    chapterNumber = chapterUpdate.episodeNumber,
-                    sourceOrder = chapterUpdate.sourceOrder,
-                    dateFetch = chapterUpdate.dateFetch,
-                    dateUpload = chapterUpdate.dateUpload,
-                    chapterId = chapterUpdate.id,
-                    version = chapterUpdate.version,
+            episodeUpdates.forEach { episodeUpdate ->
+                episodesQueries.update(
+                    animeId = episodeUpdate.animeId,
+                    url = episodeUpdate.url,
+                    name = episodeUpdate.name,
+                    scanlator = episodeUpdate.scanlator,
+                    seen = episodeUpdate.seen,
+                    bookmark = episodeUpdate.bookmark,
+                    lastSecondSeen = episodeUpdate.lastSecondSeen,
+                    totalSeconds = episodeUpdate.totalSeconds,
+                    episodeNumber = episodeUpdate.episodeNumber,
+                    sourceOrder = episodeUpdate.sourceOrder,
+                    dateFetch = episodeUpdate.dateFetch,
+                    dateUpload = episodeUpdate.dateUpload,
+                    episodeId = episodeUpdate.id,
+                    version = episodeUpdate.version,
                     isSyncing = 0,
                 )
             }
@@ -74,7 +76,7 @@ class ChapterRepositoryImpl(
 
     override suspend fun removeEpisodesWithIds(episodeIds: List<Long>) {
         try {
-            handler.await { chaptersQueries.removeChaptersWithIds(episodeIds) }
+            handler.await { episodesQueries.removeEpisodesWithIds(episodeIds) }
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)
         }
@@ -82,61 +84,62 @@ class ChapterRepositoryImpl(
 
     override suspend fun getEpisodeByAnimeId(animeId: Long, applyScanlatorFilter: Boolean): List<Episode> {
         return handler.awaitList {
-            chaptersQueries.getChaptersByMangaId(animeId, applyScanlatorFilter.toLong(), ::mapChapter)
+            episodesQueries.getEpisodesByAnimeId(animeId, applyScanlatorFilter.toLong(), ::mapEpisode)
         }
     }
 
     override suspend fun getScanlatorsByAnimeId(animeId: Long): List<String> {
         return handler.awaitList {
-            chaptersQueries.getScanlatorsByMangaId(animeId) { it.orEmpty() }
+            episodesQueries.getScanlatorsByAnimeId(animeId) { it.orEmpty() }
         }
     }
 
     override fun getScanlatorsByAnimeIdAsFlow(animeId: Long): Flow<List<String>> {
         return handler.subscribeToList {
-            chaptersQueries.getScanlatorsByMangaId(animeId) { it.orEmpty() }
+            episodesQueries.getScanlatorsByAnimeId(animeId) { it.orEmpty() }
         }
     }
 
     override suspend fun getBookmarkedEpisodesByAnimeId(animeId: Long): List<Episode> {
         return handler.awaitList {
-            chaptersQueries.getBookmarkedChaptersByMangaId(
+            episodesQueries.getBookmarkedEpisodesByAnimeId(
                 animeId,
-                ::mapChapter,
+                ::mapEpisode,
             )
         }
     }
 
     override suspend fun getEpisodeById(id: Long): Episode? {
-        return handler.awaitOneOrNull { chaptersQueries.getChapterById(id, ::mapChapter) }
+        return handler.awaitOneOrNull { episodesQueries.getEpisodeById(id, ::mapEpisode) }
     }
 
     override suspend fun getEpisodeByAnimeIdAsFlow(animeId: Long, applyScanlatorFilter: Boolean): Flow<List<Episode>> {
         return handler.subscribeToList {
-            chaptersQueries.getChaptersByMangaId(animeId, applyScanlatorFilter.toLong(), ::mapChapter)
+            episodesQueries.getEpisodesByAnimeId(animeId, applyScanlatorFilter.toLong(), ::mapEpisode)
         }
     }
 
     override suspend fun getEpisodeByUrlAndAnimeId(url: String, animeId: Long): Episode? {
         return handler.awaitOneOrNull {
-            chaptersQueries.getChapterByUrlAndMangaId(
+            episodesQueries.getEpisodeByUrlAndAnimeId(
                 url,
                 animeId,
-                ::mapChapter,
+                ::mapEpisode,
             )
         }
     }
 
-    private fun mapChapter(
+    private fun mapEpisode(
         id: Long,
-        mangaId: Long,
+        animeId: Long,
         url: String,
         name: String,
         scanlator: String?,
-        read: Boolean,
+        seen: Boolean,
         bookmark: Boolean,
-        lastPageRead: Long,
-        chapterNumber: Double,
+        lastSecondSeen: Long,
+        totalSeconds: Long,
+        episodeNumber: Double,
         sourceOrder: Long,
         dateFetch: Long,
         dateUpload: Long,
@@ -146,16 +149,17 @@ class ChapterRepositoryImpl(
         isSyncing: Long,
     ): Episode = Episode(
         id = id,
-        animeId = mangaId,
-        seen = read,
+        animeId = animeId,
+        seen = seen,
         bookmark = bookmark,
-        lastSecondSeen = lastPageRead,
+        lastSecondSeen = lastSecondSeen,
+        totalSeconds = totalSeconds,
         dateFetch = dateFetch,
         sourceOrder = sourceOrder,
         url = url,
         name = name,
         dateUpload = dateUpload,
-        episodeNumber = chapterNumber,
+        episodeNumber = episodeNumber,
         scanlator = scanlator,
         lastModifiedAt = lastModifiedAt,
         version = version,

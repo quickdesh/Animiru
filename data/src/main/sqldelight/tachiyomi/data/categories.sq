@@ -31,16 +31,16 @@ flags
 FROM categories
 ORDER BY sort;
 
-getCategoriesByMangaId:
+getCategoriesByAnimeId:
 SELECT
 C._id AS id,
 C.name,
 C.sort AS `order`,
 C.flags
 FROM categories C
-JOIN mangas_categories MC
-ON C._id = MC.category_id
-WHERE MC.manga_id = :mangaId;
+JOIN animes_categories AC
+ON C._id = AC.category_id
+WHERE AC.anime_id = :animeId;
 
 insert:
 INSERT INTO categories(name, sort, flags)

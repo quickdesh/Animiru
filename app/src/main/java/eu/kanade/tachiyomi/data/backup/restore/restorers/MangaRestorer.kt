@@ -219,7 +219,7 @@ class MangaRestorer(
                     url = null,
                     name = null,
                     scanlator = null,
-                    read = chapter.seen,
+                    seen = chapter.seen,
                     bookmark = chapter.bookmark,
                     lastPageRead = chapter.lastSecondSeen,
                     chapterNumber = null,
@@ -339,8 +339,8 @@ class MangaRestorer(
             // Update history entry
             item.copy(
                 id = dbHistory._id,
-                episodeId = dbHistory.chapter_id,
-                seenAt = max(item.seenAt?.time ?: 0L, dbHistory.last_read?.time ?: 0L)
+                episodeId = dbHistory.episode_id,
+                seenAt = max(item.seenAt?.time ?: 0L, dbHistory.last_seen?.time ?: 0L)
                     .takeIf { it > 0L }
                     ?.let { Date(it) },
                 readDuration = max(item.readDuration, dbHistory.time_read) - dbHistory.time_read,

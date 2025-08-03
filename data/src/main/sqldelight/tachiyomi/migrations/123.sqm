@@ -1,4 +1,6 @@
-CREATE VIEW updatesView AS
+DROP VIEW IF EXISTS animeupdatesView;
+
+CREATE VIEW animeupdatesView AS
 SELECT
     animes._id AS animeId,
     animes.title AS animeTitle,
@@ -7,6 +9,9 @@ SELECT
     episodes.scanlator,
     episodes.seen,
     episodes.bookmark,
+    -- AM (FILLERMARK) -->
+    episodes.fillermark,
+    -- <-- AM (FILLERMARK)
     episodes.last_second_seen,
     episodes.total_seconds AS totalSeconds,
     animes.source,
@@ -20,16 +25,3 @@ ON animes._id = episodes.anime_id
 WHERE favorite = 1
 AND date_fetch > date_added
 ORDER BY date_fetch DESC;
-
-getRecentUpdates:
-SELECT *
-FROM updatesView
-WHERE dateUpload > :after
-LIMIT :limit;
-
-getUpdatesBySeenStatus:
-SELECT *
-FROM updatesView
-WHERE seen = :seen
-AND dateUpload > :after
-LIMIT :limit;

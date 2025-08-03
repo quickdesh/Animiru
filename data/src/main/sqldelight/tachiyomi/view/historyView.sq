@@ -1,64 +1,61 @@
 CREATE VIEW historyView AS
 SELECT
     history._id AS id,
-    mangas._id AS mangaId,
-    chapters._id AS chapterId,
-    mangas.title,
-    mangas.thumbnail_url AS thumbnailUrl,
-    mangas.source,
-    mangas.favorite,
-    mangas.cover_last_modified,
-    chapters.chapter_number AS chapterNumber,
-    history.last_read AS readAt,
-    history.time_read AS readDuration,
-    max_last_read.last_read AS maxReadAt,
-    max_last_read.chapter_id AS maxReadAtChapterId
-FROM mangas
-JOIN chapters
-ON mangas._id = chapters.manga_id
+    animes._id AS animeId,
+    episodes._id AS episodeId,
+    animes.title,
+    animes.thumbnail_url AS thumbnailUrl,
+    animes.source,
+    animes.favorite,
+    animes.cover_last_modified,
+    episodes.episode_number AS episodeNumber,
+    history.last_seen AS seenAt,
+    max_last_seen.last_seen AS maxSeenAt,
+    max_last_seen.episode_id AS maxSeenAtEpisodeId
+FROM animes
+JOIN episodes
+ON animes._id = episodes.anime_id
 JOIN history
-ON chapters._id = history.chapter_id
+ON episodes._id = history.episode_id
 JOIN (
-    SELECT chapters.manga_id,chapters._id AS chapter_id, MAX(history.last_read) AS last_read
-    FROM chapters JOIN history
-    ON chapters._id = history.chapter_id
-    GROUP BY chapters.manga_id
-) AS max_last_read
-ON chapters.manga_id = max_last_read.manga_id;
+    SELECT episodes.anime_id,episodes._id AS episode_id, MAX(history.last_seen) AS last_seen
+    FROM episodes JOIN history
+    ON episodes._id = history.episode_id
+    GROUP BY episodes.anime_id
+) AS max_last_seen
+ON episodes.anime_id = max_last_seen.anime_id;
 
 history:
 SELECT
 id,
-mangaId,
-chapterId,
+animeId,
+episodeId,
 title,
 thumbnailUrl,
 source,
 favorite,
 cover_last_modified,
-chapterNumber,
-readAt,
-readDuration
+episodeNumber,
+seenAt
 FROM historyView
-WHERE historyView.readAt > 0
-AND maxReadAtChapterId = historyView.chapterId
+WHERE historyView.seenAt > 0
+AND maxSeenAtEpisodeId = historyView.episodeId
 AND lower(historyView.title) LIKE ('%' || :query || '%')
-ORDER BY readAt DESC;
+ORDER BY seenAt DESC;
 
 getLatestHistory:
 SELECT
 id,
-mangaId,
-chapterId,
+animeId,
+episodeId,
 title,
 thumbnailUrl,
 source,
 favorite,
 cover_last_modified,
-chapterNumber,
-readAt,
-readDuration
+episodeNumber,
+seenAt
 FROM historyView
-WHERE historyView.readAt > 0
-ORDER BY readAt DESC
+WHERE historyView.seenAt > 0
+ORDER BY seenAt DESC
 LIMIT 1;

@@ -38,9 +38,9 @@ import mihon.domain.extensionrepo.service.ExtensionRepoService
 import mihon.domain.migration.usecases.MigrateMangaUseCase
 import mihon.domain.upcoming.interactor.GetUpcomingAnime
 import tachiyomi.data.category.CategoryRepositoryImpl
-import tachiyomi.data.chapter.ChapterRepositoryImpl
+import tachiyomi.data.episode.EpisodeRepositoryImpl
 import tachiyomi.data.history.HistoryRepositoryImpl
-import tachiyomi.data.manga.MangaRepositoryImpl
+import tachiyomi.data.anime.AnimeRepositoryImpl
 import tachiyomi.data.release.ReleaseServiceImpl
 import tachiyomi.data.source.SourceRepositoryImpl
 import tachiyomi.data.source.StubSourceRepositoryImpl
@@ -114,7 +114,7 @@ class DomainModule : InjektModule {
         addFactory { UpdateCategory(get()) }
         addFactory { DeleteCategory(get(), get(), get()) }
 
-        addSingletonFactory<AnimeRepository> { MangaRepositoryImpl(get()) }
+        addSingletonFactory<AnimeRepository> { AnimeRepositoryImpl(get()) }
         addFactory { GetDuplicateLibraryAnime(get()) }
         addFactory { GetFavorites(get()) }
         addFactory { GetLibraryAnime(get()) }
@@ -153,7 +153,7 @@ class DomainModule : InjektModule {
         addFactory { InsertTrack(get()) }
         addFactory { SyncChapterProgressWithTrack(get(), get(), get()) }
 
-        addSingletonFactory<EpisodeRepository> { ChapterRepositoryImpl(get()) }
+        addSingletonFactory<EpisodeRepository> { EpisodeRepositoryImpl(get()) }
         addFactory { GetEpisode(get()) }
         addFactory { GetEpisodesByAnimeId(get()) }
         addFactory { GetEpisodeByUrlAndAnimeId(get()) }

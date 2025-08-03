@@ -39,7 +39,7 @@ abstract class BaseSourcePagingSource(
     private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
 ) : SourcePagingSource() {
 
-    private val seenManga = hashSetOf<String>()
+    private val seenAnime = hashSetOf<String>()
 
     abstract suspend fun requestNextPage(currentPage: Int): AnimesPage
 
@@ -47,21 +47,21 @@ abstract class BaseSourcePagingSource(
         val page = params.key ?: 1
 
         return try {
-            val mangasPage = withIOContext {
+            val animesPage = withIOContext {
                 requestNextPage(page.toInt())
                     .takeIf { it.animes.isNotEmpty() }
                     ?: throw NoResultsException()
             }
 
-            val manga = mangasPage.animes
+            val anime = animesPage.animes
                 .map { it.toDomainAnime(source.id) }
-                .filter { seenManga.add(it.url) }
+                .filter { seenAnime.add(it.url) }
                 .let { networkToLocalAnime(it) }
 
             LoadResult.Page(
-                data = manga,
+                data = anime,
                 prevKey = null,
-                nextKey = if (mangasPage.hasNextPage) page + 1 else null,
+                nextKey = if (animesPage.hasNextPage) page + 1 else null,
             )
         } catch (e: Exception) {
             LoadResult.Error(e)

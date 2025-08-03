@@ -1,12 +1,12 @@
-package tachiyomi.data.manga
+package tachiyomi.data.anime
 
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
 
-object MangaMapper {
-    fun mapManga(
+object AnimeMapper {
+    fun mapAnime(
         id: Long,
         source: Long,
         url: String,
@@ -22,7 +22,7 @@ object MangaMapper {
         nextUpdate: Long?,
         initialized: Boolean,
         viewerFlags: Long,
-        chapterFlags: Long,
+        episodeFlags: Long,
         coverLastModified: Long,
         dateAdded: Long,
         updateStrategy: AnimeUpdateStrategy,
@@ -42,7 +42,7 @@ object MangaMapper {
         fetchInterval = calculateInterval.toInt(),
         dateAdded = dateAdded,
         viewerFlags = viewerFlags,
-        episodeFlags = chapterFlags,
+        episodeFlags = episodeFlags,
         coverLastModified = coverLastModified,
         url = url,
         title = title,
@@ -60,7 +60,7 @@ object MangaMapper {
         notes = notes,
     )
 
-    fun mapLibraryManga(
+    fun mapLibraryAnime(
         id: Long,
         source: Long,
         url: String,
@@ -76,7 +76,7 @@ object MangaMapper {
         nextUpdate: Long?,
         initialized: Boolean,
         viewerFlags: Long,
-        chapterFlags: Long,
+        episodeFlags: Long,
         coverLastModified: Long,
         dateAdded: Long,
         updateStrategy: AnimeUpdateStrategy,
@@ -87,14 +87,14 @@ object MangaMapper {
         isSyncing: Long,
         notes: String,
         totalCount: Long,
-        readCount: Double,
+        seenCount: Double,
         latestUpload: Long,
-        chapterFetchedAt: Long,
-        lastRead: Long,
+        episodeFetchedAt: Long,
+        lastSeen: Long,
         bookmarkCount: Double,
         category: Long,
     ): LibraryAnime = LibraryAnime(
-        anime = mapManga(
+        anime = mapAnime(
             id,
             source,
             url,
@@ -110,7 +110,7 @@ object MangaMapper {
             nextUpdate,
             initialized,
             viewerFlags,
-            chapterFlags,
+            episodeFlags,
             coverLastModified,
             dateAdded,
             updateStrategy,
@@ -123,14 +123,14 @@ object MangaMapper {
         ),
         category = category,
         totalEpisodes = totalCount,
-        seenCount = readCount.toLong(),
+        seenCount = seenCount.toLong(),
         bookmarkCount = bookmarkCount.toLong(),
         latestUpload = latestUpload,
-        episodeFetchedAt = chapterFetchedAt,
-        lastSeen = lastRead,
+        episodeFetchedAt = episodeFetchedAt,
+        lastSeen = lastSeen,
     )
 
-    fun mapMangaWithChapterCount(
+    fun mapAnimeWithEpisodeCount(
         id: Long,
         source: Long,
         url: String,
@@ -146,7 +146,7 @@ object MangaMapper {
         nextUpdate: Long?,
         initialized: Boolean,
         viewerFlags: Long,
-        chapterFlags: Long,
+        episodeFlags: Long,
         coverLastModified: Long,
         dateAdded: Long,
         updateStrategy: AnimeUpdateStrategy,
@@ -158,7 +158,7 @@ object MangaMapper {
         notes: String,
         totalCount: Long,
     ): AnimeWithEpisodeCount = AnimeWithEpisodeCount(
-        anime = mapManga(
+        anime = mapAnime(
             id,
             source,
             url,
@@ -174,7 +174,7 @@ object MangaMapper {
             nextUpdate,
             initialized,
             viewerFlags,
-            chapterFlags,
+            episodeFlags,
             coverLastModified,
             dateAdded,
             updateStrategy,

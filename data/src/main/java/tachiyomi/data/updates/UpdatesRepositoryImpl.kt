@@ -16,8 +16,8 @@ class UpdatesRepositoryImpl(
         limit: Long,
     ): List<UpdatesWithRelations> {
         return databaseHandler.awaitList {
-            updatesViewQueries.getUpdatesByReadStatus(
-                read = seen,
+            updatesViewQueries.getUpdatesBySeenStatus(
+                seen = seen,
                 after = after,
                 limit = limit,
                 mapper = ::mapUpdatesWithRelations,
@@ -37,8 +37,8 @@ class UpdatesRepositoryImpl(
         limit: Long,
     ): Flow<List<UpdatesWithRelations>> {
         return databaseHandler.subscribeToList {
-            updatesViewQueries.getUpdatesByReadStatus(
-                read = seen,
+            updatesViewQueries.getUpdatesBySeenStatus(
+                seen = seen,
                 after = after,
                 limit = limit,
                 mapper = ::mapUpdatesWithRelations,
@@ -47,14 +47,15 @@ class UpdatesRepositoryImpl(
     }
 
     private fun mapUpdatesWithRelations(
-        mangaId: Long,
-        mangaTitle: String,
-        chapterId: Long,
-        chapterName: String,
+        animeId: Long,
+        animeTitle: String,
+        episodeId: Long,
+        episodeName: String,
         scanlator: String?,
-        read: Boolean,
+        seen: Boolean,
         bookmark: Boolean,
-        lastPageRead: Long,
+        lastSecondSeen: Long,
+        totalSeconds: Long,
         sourceId: Long,
         favorite: Boolean,
         thumbnailUrl: String?,
@@ -62,18 +63,19 @@ class UpdatesRepositoryImpl(
         dateUpload: Long,
         dateFetch: Long,
     ): UpdatesWithRelations = UpdatesWithRelations(
-        animeId = mangaId,
-        animeTitle = mangaTitle,
-        episodeId = chapterId,
-        episodeName = chapterName,
+        animeId = animeId,
+        animeTitle = animeTitle,
+        episodeId = episodeId,
+        episodeName = episodeName,
         scanlator = scanlator,
-        seen = read,
+        seen = seen,
         bookmark = bookmark,
-        lastSecondSeen = lastPageRead,
+        lastSecondSeen = lastSecondSeen,
+        totalSeconds = totalSeconds,
         sourceId = sourceId,
         dateFetch = dateFetch,
         coverData = AnimeCover(
-            animeId = mangaId,
+            animeId = animeId,
             sourceId = sourceId,
             isAnimeFavorite = favorite,
             url = thumbnailUrl,

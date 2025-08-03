@@ -32,7 +32,7 @@ import tachiyomi.data.Database
 import tachiyomi.data.DatabaseHandler
 import tachiyomi.data.DateColumnAdapter
 import tachiyomi.data.History
-import tachiyomi.data.Mangas
+import tachiyomi.data.Animes
 import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
 import tachiyomi.domain.source.service.SourceManager
@@ -82,7 +82,7 @@ class AppModule(val app: Application) : InjektModule {
                 historyAdapter = History.Adapter(
                     last_readAdapter = DateColumnAdapter,
                 ),
-                mangasAdapter = Mangas.Adapter(
+                mangasAdapter = Animes.Adapter(
                     genreAdapter = StringListColumnAdapter,
                     update_strategyAdapter = UpdateStrategyColumnAdapter,
                 ),

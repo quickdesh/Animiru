@@ -2,53 +2,50 @@ import java.util.Date;
 
 CREATE TABLE history(
     _id INTEGER NOT NULL PRIMARY KEY,
-    chapter_id INTEGER NOT NULL UNIQUE,
-    last_read INTEGER AS Date,
-    time_read INTEGER NOT NULL,
-    FOREIGN KEY(chapter_id) REFERENCES chapters (_id)
+    episode_id INTEGER NOT NULL UNIQUE,
+    last_seen INTEGER AS Date,
+    FOREIGN KEY(episode_id) REFERENCES episodes (_id)
     ON DELETE CASCADE
 );
 
-CREATE INDEX history_history_chapter_id_index ON history(chapter_id);
+CREATE INDEX history_history_episode_id_index ON history(episode_id);
 
-getHistoryByMangaId:
+getHistoryByAnimeId:
 SELECT
 H._id,
-H.chapter_id,
-H.last_read,
-H.time_read
+H.episode_id,
+H.last_seen
 FROM history H
-JOIN chapters C
-ON H.chapter_id = C._id
-WHERE C.manga_id = :mangaId AND C._id = H.chapter_id;
+JOIN episodes EP
+ON H.episode_id = EP._id
+WHERE EP.anime_id = :animeId AND EP._id = H.episode_id;
 
-getHistoryByChapterUrl:
+getHistoryByEpisodeUrl:
 SELECT
 H._id,
-H.chapter_id,
-H.last_read,
-H.time_read
+H.episode_id,
+H.last_seen
 FROM history H
-JOIN chapters C
-ON H.chapter_id = C._id
-WHERE C.url = :chapterUrl AND C._id = H.chapter_id;
+JOIN episodes EP
+ON H.episode_id = EP._id
+WHERE EP.url = :episodeUrl AND EP._id = H.episode_id;
 
 resetHistoryById:
 UPDATE history
-SET last_read = 0
+SET last_seen = 0
 WHERE _id = :historyId;
 
-resetHistoryByMangaId:
+resetHistoryByAnimeId:
 UPDATE history
-SET last_read = 0
+SET last_seen = 0
 WHERE _id IN (
     SELECT H._id
-    FROM mangas M
-    INNER JOIN chapters C
-    ON M._id = C.manga_id
+    FROM animes A
+    INNER JOIN episodes EP
+    ON A._id = EP.anime_id
     INNER JOIN history H
-    ON C._id = H.chapter_id
-    WHERE M._id = :mangaId
+    ON EP._id = H.episode_id
+    WHERE A._id = :animeId
 );
 
 removeAllHistory:
@@ -56,18 +53,13 @@ DELETE FROM history;
 
 removeResettedHistory:
 DELETE FROM history
-WHERE last_read = 0;
+WHERE last_seen = 0;
 
 upsert:
-INSERT INTO history(chapter_id, last_read, time_read)
-VALUES (:chapterId, :readAt, :time_read)
-ON CONFLICT(chapter_id)
+INSERT INTO history(episode_id, last_seen)
+VALUES (:episodeId, :seenAt)
+ON CONFLICT(episode_id)
 DO UPDATE
 SET
-    last_read = :readAt,
-    time_read = time_read + :time_read
-WHERE chapter_id = :chapterId;
-
-getReadDuration:
-SELECT coalesce(sum(time_read), 0)
-FROM history;
+    last_seen = :seenAt
+WHERE episode_id = :episodeId;

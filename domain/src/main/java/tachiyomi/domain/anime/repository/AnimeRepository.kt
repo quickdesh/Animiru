@@ -18,7 +18,7 @@ interface AnimeRepository {
 
     suspend fun getFavorites(): List<Anime>
 
-    suspend fun getWatchedAnimeNotInLibrary(): List<Anime>
+    suspend fun getSeenAnimeNotInLibrary(): List<Anime>
 
     suspend fun getLibraryAnime(): List<LibraryAnime>
 
