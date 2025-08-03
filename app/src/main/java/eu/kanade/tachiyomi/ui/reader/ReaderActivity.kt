@@ -559,8 +559,8 @@ class ReaderActivity : BaseActivity() {
         viewModel.anime?.id?.let { id ->
             startActivity(
                 Intent(this, MainActivity::class.java).apply {
-                    action = Constants.SHORTCUT_MANGA
-                    putExtra(Constants.MANGA_EXTRA, id)
+                    action = Constants.SHORTCUT_ANIME
+                    putExtra(Constants.ANIME_EXTRA, id)
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 },
             )

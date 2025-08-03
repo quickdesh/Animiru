@@ -82,7 +82,7 @@ object DiskUtil {
     }
 
     /**
-     * Don't display downloaded chapters in gallery apps creating `.nomedia`.
+     * Don't display downloaded episodes in gallery apps creating `.nomedia`.
      */
     fun createNoMediaFile(dir: UniFile?, context: Context?) {
         if (dir != null && dir.exists()) {

@@ -30,7 +30,9 @@ dependencies {
     api(libs.okhttp.dnsoverhttps)
     api(libs.okio)
 
+    // AM (REMOVE_LIBRARIES) -->
     implementation(libs.image.decoder)
+    // <-- AM (REMOVE_LIBRARIES)
 
     implementation(libs.unifile)
     implementation(libs.libarchive)
@@ -48,6 +50,9 @@ dependencies {
 
     // JavaScript engine
     implementation(libs.bundles.js.engine)
+
+    // FFmpeg-kit
+    implementation(aniyomilibs.ffmpeg.kit)
 
     testImplementation(libs.bundles.test)
     testRuntimeOnly(libs.junit.platform.launcher)
