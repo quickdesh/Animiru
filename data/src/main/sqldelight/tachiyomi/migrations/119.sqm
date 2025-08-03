@@ -1,4 +1,4 @@
-CREATE VIEW animeupdatesView AS
+CREATE VIEW updatesView AS
 SELECT
     animes._id AS animeId,
     animes.title AS animeTitle,

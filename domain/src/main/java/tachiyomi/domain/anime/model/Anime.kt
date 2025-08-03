@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import tachiyomi.core.common.preference.TriState
+import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import uy.kohesive.injekt.injectLazy
 import java.io.Serializable
 import java.time.Instant

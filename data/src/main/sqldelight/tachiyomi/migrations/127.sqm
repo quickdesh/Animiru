@@ -39,7 +39,7 @@ END;
 
 -- anime_categories table
 DROP TRIGGER IF EXISTS insert_anime_category_update_version;
-CREATE TRIGGER insert_anime_category_update_version AFTER INSERT ON animes_categories
+CREATE TRIGGER insert_anime_category_update_version AFTER INSERT ON categories
 BEGIN
     UPDATE animes
     SET version = version + 1

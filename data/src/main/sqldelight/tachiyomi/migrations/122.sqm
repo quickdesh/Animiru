@@ -1,16 +1,16 @@
-DROP VIEW IF EXISTS animelibView;
+DROP VIEW IF EXISTS libraryView;
 
-CREATE VIEW animelibView AS
+CREATE VIEW libraryView AS
 SELECT
     A.*,
-    coalesce(E.total, 0) AS totalCount,
-    coalesce(E.seenCount, 0) AS seenCount,
-    coalesce(E.latestUpload, 0) AS latestUpload,
-    coalesce(E.fetchedAt, 0) AS episodeFetchedAt,
-    coalesce(E.lastSeen, 0) AS lastSeen,
-    coalesce(E.bookmarkCount, 0) AS bookmarkCount,
+    coalesce(EP.total, 0) AS totalCount,
+    coalesce(EP.seenCount, 0) AS seenCount,
+    coalesce(EP.latestUpload, 0) AS latestUpload,
+    coalesce(EP.fetchedAt, 0) AS episodeFetchedAt,
+    coalesce(EP.lastSeen, 0) AS lastSeen,
+    coalesce(EP.bookmarkCount, 0) AS bookmarkCount,
     -- AM (FILLERMARK) -->
-    coalesce(E.fillermarkCount, 0) AS fillermarkCount,
+    coalesce(EP.fillermarkCount, 0) AS fillermarkCount,
     -- <-- AM (FILLERMARK)
     coalesce(AC.category_id, 0) AS category
 FROM animes A
@@ -20,18 +20,18 @@ LEFT JOIN(
         count(*) AS total,
         sum(seen) AS seenCount,
         coalesce(max(episodes.date_upload), 0) AS latestUpload,
-        coalesce(max(animehistory.last_seen), 0) AS lastSeen,
+        coalesce(max(history.last_seen), 0) AS lastSeen,
         coalesce(max(episodes.date_fetch), 0) AS fetchedAt,
         sum(episodes.bookmark) AS bookmarkCount,
         -- AM (FILLERMARK) -->
         sum(episodes.fillermark) AS fillermarkCount
         -- <-- AM (FILLERMARK)
     FROM episodes
-    LEFT JOIN animehistory
-    ON episodes._id = animehistory.episode_id
+    LEFT JOIN history
+    ON episodes._id = history.episode_id
     GROUP BY episodes.anime_id
-) AS E
-ON A._id = E.anime_id
-LEFT JOIN animes_categories AS AC
+) AS EP
+ON A._id = EP.anime_id
+LEFT JOIN categories AS AC
 ON AC.anime_id = A._id
 WHERE A.favorite = 1;

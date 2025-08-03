@@ -13,17 +13,19 @@ import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 import logcat.LogPriority
+import rx.Observable
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.extension
 import tachiyomi.core.common.storage.nameWithoutExtension
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.core.metadata.tachiyomi.EpisodeDetails
-import tachiyomi.core.metadata.tachiyomi.MangaDetails
+import tachiyomi.core.metadata.tachiyomi.AnimeDetails
 import tachiyomi.domain.episode.service.EpisodeRecognition
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
@@ -130,6 +132,23 @@ actual class LocalSource(
         AnimesPage(animes, false)
     }
 
+    // Old fetch functions
+
+    // TODO: Should be replaced when Anime Extensions get to 1.15
+
+    @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getPopularAnime"))
+    override fun fetchPopularAnime(page: Int) = fetchSearchAnime(page, "", PopularFilters)
+
+    @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getLatestUpdates"))
+    override fun fetchLatestUpdates(page: Int) = fetchSearchAnime(page, "", LatestFilters)
+
+    @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getSearchAnime"))
+    override fun fetchSearchAnime(page: Int, query: String, filters: AnimeFilterList): Observable<AnimesPage> {
+        return runBlocking {
+            Observable.just(getSearchAnime(page, query, filters))
+        }
+    }
+
     // AM (CUSTOM_INFORMATION) -->
     fun updateAnimeInfo(anime: SAnime) {
         val directory = fileSystem.getAnimeDirectory(anime.url) ?: return
@@ -142,8 +161,8 @@ actual class LocalSource(
         }
     }
 
-    private fun SAnime.toJson(): MangaDetails {
-        return MangaDetails(title, author, artist, description, genre?.split(", "), status)
+    private fun SAnime.toJson(): AnimeDetails {
+        return AnimeDetails(title, author, artist, description, genre?.split(", "), status)
     }
     // <-- AM (CUSTOM_INFORMATION)
 
@@ -160,7 +179,7 @@ actual class LocalSource(
             animeDirFiles
                 .firstOrNull { it.extension == "json" && it.nameWithoutExtension == "details" }
                 ?.let { file ->
-                    json.decodeFromStream<MangaDetails>(file.openInputStream()).run {
+                    json.decodeFromStream<AnimeDetails>(file.openInputStream()).run {
                         title?.let { anime.title = it }
                         author?.let { anime.author = it }
                         artist?.let { anime.artist = it }

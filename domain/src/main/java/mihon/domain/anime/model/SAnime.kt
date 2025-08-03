@@ -6,12 +6,14 @@ import tachiyomi.domain.anime.model.Anime
 fun SAnime.toDomainAnime(sourceId: Long): Anime {
     return Anime.create().copy(
         url = url,
-        title = title,
-        artist = artist,
-        author = author,
-        description = description,
-        genre = getGenres(),
-        status = status.toLong(),
+        // AM (CUSTOM_INFORMATION) -->
+        ogTitle = title,
+        ogArtist = artist,
+        ogAuthor = author,
+        ogDescription = description,
+        ogGenre = getGenres(),
+        ogStatus = status.toLong(),
+        // <-- AM (CUSTOM_INFORMATION)
         thumbnailUrl = thumbnail_url,
         updateStrategy = update_strategy,
         initialized = initialized,
