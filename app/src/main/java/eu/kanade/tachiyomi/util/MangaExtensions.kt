@@ -1,8 +1,8 @@
 package eu.kanade.tachiyomi.util
 
-import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.hasCustomCover
-import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.domain.anime.interactor.UpdateAnime
+import eu.kanade.domain.anime.model.hasCustomCover
+import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import tachiyomi.domain.anime.model.Anime
@@ -52,14 +52,14 @@ fun Anime.removeCovers(coverCache: CoverCache = Injekt.get()): Anime {
 suspend fun Anime.editCover(
     coverManager: LocalCoverManager,
     stream: InputStream,
-    updateManga: UpdateManga = Injekt.get(),
+    updateAnime: UpdateAnime = Injekt.get(),
     coverCache: CoverCache = Injekt.get(),
 ) {
     if (isLocal()) {
-        coverManager.update(toSManga(), stream)
-        updateManga.awaitUpdateCoverLastModified(id)
+        coverManager.update(toSAnime(), stream)
+        updateAnime.awaitUpdateCoverLastModified(id)
     } else if (favorite) {
         coverCache.setCustomCoverToCache(this, stream)
-        updateManga.awaitUpdateCoverLastModified(id)
+        updateAnime.awaitUpdateCoverLastModified(id)
     }
 }

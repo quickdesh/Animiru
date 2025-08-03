@@ -14,7 +14,7 @@ class RefreshTracks(
     private val getTracks: GetTracks,
     private val trackerManager: TrackerManager,
     private val insertTrack: InsertTrack,
-    private val syncChapterProgressWithTrack: SyncChapterProgressWithTrack,
+    private val syncEpisodeProgressWithTrack: SyncEpisodeProgressWithTrack,
 ) {
 
     /**
@@ -22,9 +22,9 @@ class RefreshTracks(
      *
      * @return Failed updates.
      */
-    suspend fun await(mangaId: Long): List<Pair<Tracker?, Throwable>> {
+    suspend fun await(animeId: Long): List<Pair<Tracker?, Throwable>> {
         return supervisorScope {
-            return@supervisorScope getTracks.await(mangaId)
+            return@supervisorScope getTracks.await(animeId)
                 .map { it to trackerManager.get(it.trackerId) }
                 .filter { (_, service) -> service?.isLoggedIn == true }
                 .map { (track, service) ->
@@ -32,7 +32,7 @@ class RefreshTracks(
                         return@async try {
                             val updatedTrack = service!!.refresh(track.toDbTrack()).toDomainTrack()!!
                             insertTrack.await(updatedTrack)
-                            syncChapterProgressWithTrack.await(mangaId, updatedTrack, service)
+                            syncEpisodeProgressWithTrack.await(animeId, updatedTrack, service)
                             null
                         } catch (e: Throwable) {
                             service to e

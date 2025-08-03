@@ -206,7 +206,7 @@ class NotificationReceiver : BroadcastReceiver() {
                         if (manga != null) {
                             val source = sourceManager.get(manga.source)
                             if (source != null) {
-                                downloadManager.deleteChapters(listOf(it), manga, source)
+                                downloadManager.deleteEpisodes(listOf(it), manga, source)
                             }
                         }
                     }

@@ -1,9 +1,9 @@
 package mihon.domain.migration.usecases
 
-import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
-import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.hasCustomCover
-import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.domain.episode.interactor.SyncChaptersWithSource
+import eu.kanade.domain.anime.interactor.UpdateAnime
+import eu.kanade.domain.anime.model.hasCustomCover
+import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -28,7 +28,7 @@ class MigrateMangaUseCase(
     private val trackerManager: TrackerManager,
     private val sourceManager: SourceManager,
     private val downloadManager: DownloadManager,
-    private val updateManga: UpdateManga,
+    private val updateAnime: UpdateAnime,
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
     private val syncChaptersWithSource: SyncChaptersWithSource,
     private val updateEpisode: UpdateEpisode,
@@ -46,7 +46,7 @@ class MigrateMangaUseCase(
         val flags = sourcePreferences.migrationFlags().get()
 
         try {
-            val chapters = targetSource.getEpisodeList(target.toSManga())
+            val chapters = targetSource.getEpisodeList(target.toSAnime())
 
             try {
                 syncChaptersWithSource.await(chapters, target, targetSource)
@@ -135,7 +135,7 @@ class MigrateMangaUseCase(
                 notes = if (MigrationFlag.NOTES in flags) current.notes else null,
             )
 
-            updateManga.awaitAll(listOfNotNull(currentAnimeUpdate, targetAnimeUpdate))
+            updateAnime.awaitAll(listOfNotNull(currentAnimeUpdate, targetAnimeUpdate))
         } catch (e: Throwable) {
             if (e is CancellationException) {
                 throw e

@@ -3,8 +3,8 @@ package eu.kanade.tachiyomi.ui.deeplink
 import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
-import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.domain.episode.interactor.SyncChaptersWithSource
+import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.SEpisode
 import eu.kanade.tachiyomi.animesource.online.ResolvableAnimeSource
@@ -62,7 +62,7 @@ class DeepLinkScreenModel(
         val localChapter = getEpisodeByUrlAndAnimeId.await(sEpisode.url, anime.id)
 
         return if (localChapter == null) {
-            val sourceChapters = source.getEpisodeList(anime.toSManga())
+            val sourceChapters = source.getEpisodeList(anime.toSAnime())
             val newChapters = syncChaptersWithSource.await(sourceChapters, anime, source, false)
             newChapters.find { it.url == sEpisode.url }
         } else {

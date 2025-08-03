@@ -14,18 +14,18 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.core.preference.asState
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
-import eu.kanade.domain.chapter.interactor.GetAvailableScanlators
-import eu.kanade.domain.chapter.interactor.SetReadStatus
-import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
-import eu.kanade.domain.manga.interactor.GetExcludedScanlators
-import eu.kanade.domain.manga.interactor.SetExcludedScanlators
-import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.chaptersFiltered
-import eu.kanade.domain.manga.model.downloadedFilter
-import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.domain.episode.interactor.GetAvailableScanlators
+import eu.kanade.domain.episode.interactor.SetReadStatus
+import eu.kanade.domain.episode.interactor.SyncChaptersWithSource
+import eu.kanade.domain.anime.interactor.GetExcludedScanlators
+import eu.kanade.domain.anime.interactor.SetExcludedScanlators
+import eu.kanade.domain.anime.interactor.UpdateAnime
+import eu.kanade.domain.anime.model.chaptersFiltered
+import eu.kanade.domain.anime.model.downloadedFilter
+import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.domain.track.interactor.RefreshTracks
-import eu.kanade.domain.track.interactor.TrackChapter
+import eu.kanade.domain.track.interactor.TrackEpisode
 import eu.kanade.domain.track.model.AutoTrackState
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.presentation.manga.DownloadAction
@@ -100,7 +100,7 @@ class MangaScreenModel(
     private val trackPreferences: TrackPreferences = Injekt.get(),
     readerPreferences: ReaderPreferences = Injekt.get(),
     private val trackerManager: TrackerManager = Injekt.get(),
-    private val trackChapter: TrackChapter = Injekt.get(),
+    private val trackEpisode: TrackEpisode = Injekt.get(),
     private val downloadManager: DownloadManager = Injekt.get(),
     private val downloadCache: DownloadCache = Injekt.get(),
     private val getMangaAndChapters: GetAnimeWithEpisodes = Injekt.get(),
@@ -112,7 +112,7 @@ class MangaScreenModel(
     private val setAnimeDefaultEpisodeFlags: SetAnimeDefaultEpisodeFlags = Injekt.get(),
     private val setReadStatus: SetReadStatus = Injekt.get(),
     private val updateEpisode: UpdateEpisode = Injekt.get(),
-    private val updateManga: UpdateManga = Injekt.get(),
+    private val updateAnime: UpdateAnime = Injekt.get(),
     private val syncChaptersWithSource: SyncChaptersWithSource = Injekt.get(),
     private val getCategories: GetCategories = Injekt.get(),
     private val getTracks: GetTracks = Injekt.get(),
@@ -272,8 +272,8 @@ class MangaScreenModel(
         val state = successState ?: return
         try {
             withIOContext {
-                val networkManga = state.source.getAnimeDetails(state.anime.toSManga())
-                updateManga.awaitUpdateFromSource(state.anime, networkManga, manualFetch)
+                val networkManga = state.source.getAnimeDetails(state.anime.toSAnime())
+                updateAnime.awaitUpdateFromSource(state.anime, networkManga, manualFetch)
             }
         } catch (e: Throwable) {
             // Ignore early hints "errors" that aren't handled by OkHttp
@@ -317,10 +317,10 @@ class MangaScreenModel(
 
             if (isFavorited) {
                 // Remove from library
-                if (updateManga.awaitUpdateFavorite(manga.id, false)) {
+                if (updateAnime.awaitUpdateFavorite(manga.id, false)) {
                     // Remove covers and update last modified in db
                     if (manga.removeCovers() != manga) {
-                        updateManga.awaitUpdateCoverLastModified(manga.id)
+                        updateAnime.awaitUpdateCoverLastModified(manga.id)
                     }
                     withUIContext { onRemoved() }
                 }
@@ -343,14 +343,14 @@ class MangaScreenModel(
                 when {
                     // Default category set
                     defaultCategory != null -> {
-                        val result = updateManga.awaitUpdateFavorite(manga.id, true)
+                        val result = updateAnime.awaitUpdateFavorite(manga.id, true)
                         if (!result) return@launchIO
                         moveMangaToCategory(defaultCategory)
                     }
 
                     // Automatic 'Default' or no categories
                     defaultCategoryId == 0L || categories.isEmpty() -> {
-                        val result = updateManga.awaitUpdateFavorite(manga.id, true)
+                        val result = updateAnime.awaitUpdateFavorite(manga.id, true)
                         if (!result) return@launchIO
                         moveMangaToCategory(null)
                     }
@@ -391,7 +391,7 @@ class MangaScreenModel(
     fun setFetchInterval(anime: Anime, interval: Int) {
         screenModelScope.launchIO {
             if (
-                updateManga.awaitUpdateFetchInterval(
+                updateAnime.awaitUpdateFetchInterval(
                     // Custom intervals are negative
                     anime.copy(fetchInterval = -interval),
                 )
@@ -443,7 +443,7 @@ class MangaScreenModel(
         if (anime.favorite) return
 
         screenModelScope.launchIO {
-            updateManga.awaitUpdateFavorite(anime.id, true)
+            updateAnime.awaitUpdateFavorite(anime.id, true)
         }
     }
 
@@ -527,7 +527,7 @@ class MangaScreenModel(
             val downloaded = if (isLocal) {
                 true
             } else {
-                downloadManager.isChapterDownloaded(chapter.name, chapter.scanlator, anime.title, anime.source)
+                downloadManager.isEpisodeDownloaded(chapter.name, chapter.scanlator, anime.title, anime.source)
             }
             val downloadState = when {
                 activeDownload != null -> activeDownload.status
@@ -551,7 +551,7 @@ class MangaScreenModel(
         val state = successState ?: return
         try {
             withIOContext {
-                val chapters = state.source.getEpisodeList(state.anime.toSManga())
+                val chapters = state.source.getEpisodeList(state.anime.toSAnime())
 
                 val newChapters = syncChaptersWithSource.await(
                     chapters,
@@ -752,7 +752,7 @@ class MangaScreenModel(
 
             if (!shouldPromptTrackingUpdate) return@launchIO
             if (autoTrackState == AutoTrackState.ALWAYS) {
-                trackChapter.await(context, mangaId, maxChapterNumber)
+                trackEpisode.await(context, mangaId, maxChapterNumber)
                 withUIContext {
                     context.toast(context.stringResource(MR.strings.trackers_updated_summary, maxChapterNumber.toInt()))
                 }
@@ -767,7 +767,7 @@ class MangaScreenModel(
             )
 
             if (result == SnackbarResult.ActionPerformed) {
-                trackChapter.await(context, mangaId, maxChapterNumber)
+                trackEpisode.await(context, mangaId, maxChapterNumber)
             }
         }
     }
@@ -826,7 +826,7 @@ class MangaScreenModel(
         screenModelScope.launchNonCancellable {
             try {
                 successState?.let { state ->
-                    downloadManager.deleteChapters(
+                    downloadManager.deleteEpisodes(
                         episodes,
                         state.anime,
                         state.source,

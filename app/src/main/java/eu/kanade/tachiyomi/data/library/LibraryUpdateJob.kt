@@ -18,9 +18,9 @@ import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
-import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.domain.episode.interactor.SyncChaptersWithSource
+import eu.kanade.domain.anime.interactor.UpdateAnime
+import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.notification.Notifications
@@ -86,7 +86,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     private val coverCache: CoverCache = Injekt.get()
     private val getLibraryAnime: GetLibraryAnime = Injekt.get()
     private val getAnime: GetAnime = Injekt.get()
-    private val updateManga: UpdateManga = Injekt.get()
+    private val updateAnime: UpdateAnime = Injekt.get()
     private val syncChaptersWithSource: SyncChaptersWithSource = Injekt.get()
     private val fetchInterval: FetchInterval = Injekt.get()
     private val filterEpisodesForDownload: FilterEpisodesForDownload = Injekt.get()
@@ -236,7 +236,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     /**
      * Method that updates manga in [mangaToUpdate]. It's called in a background thread, so it's safe
      * to do heavy operations or network calls here.
-     * For each manga it calls [updateManga] and updates the notification showing the current
+     * For each manga it calls [updateAnime] and updates the notification showing the current
      * progress.
      *
      * @return an observable delivering the progress of each update.
@@ -342,11 +342,11 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
 
         // Update manga metadata if needed
         if (libraryPreferences.autoUpdateMetadata().get()) {
-            val networkManga = source.getAnimeDetails(anime.toSManga())
-            updateManga.awaitUpdateFromSource(anime, networkManga, manualFetch = false, coverCache)
+            val networkManga = source.getAnimeDetails(anime.toSAnime())
+            updateAnime.awaitUpdateFromSource(anime, networkManga, manualFetch = false, coverCache)
         }
 
-        val chapters = source.getEpisodeList(anime.toSManga())
+        val chapters = source.getEpisodeList(anime.toSAnime())
 
         // Get manga from database to account for if it was removed during the update and
         // to get latest data so it doesn't get overwritten later on

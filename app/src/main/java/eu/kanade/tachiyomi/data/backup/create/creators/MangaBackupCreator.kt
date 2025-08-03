@@ -31,7 +31,7 @@ class MangaBackupCreator(
         val mangaObject = anime.toBackupManga()
 
         mangaObject.excludedScanlators = handler.awaitList {
-            excluded_scanlatorsQueries.getExcludedScanlatorsByMangaId(anime.id)
+            excluded_scanlatorsQueries.getExcludedScanlatorsByAnimeId(anime.id)
         }
 
         if (options.chapters) {

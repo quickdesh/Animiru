@@ -77,7 +77,7 @@ class ChapterLoader(
      */
     private fun getPageLoader(chapter: ReaderChapter): PageLoader {
         val dbChapter = chapter.chapter
-        val isDownloaded = downloadManager.isChapterDownloaded(
+        val isDownloaded = downloadManager.isEpisodeDownloaded(
             dbChapter.name,
             dbChapter.scanlator,
             anime.title,

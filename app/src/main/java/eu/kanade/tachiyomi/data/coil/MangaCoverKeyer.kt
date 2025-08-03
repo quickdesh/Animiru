@@ -2,7 +2,7 @@ package eu.kanade.tachiyomi.data.coil
 
 import coil3.key.Keyer
 import coil3.request.Options
-import eu.kanade.domain.manga.model.hasCustomCover
+import eu.kanade.domain.anime.model.hasCustomCover
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import tachiyomi.domain.anime.model.AnimeCover
 import uy.kohesive.injekt.Injekt

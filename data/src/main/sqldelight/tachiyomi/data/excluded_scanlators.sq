@@ -5,18 +5,18 @@ CREATE TABLE excluded_scanlators(
     ON DELETE CASCADE
 );
 
-CREATE INDEX excluded_scanlators_manga_id_index ON excluded_scanlators(anime_id);
+CREATE INDEX excluded_scanlators_anime_id_index ON excluded_scanlators(anime_id);
 
 insert:
 INSERT INTO excluded_scanlators(anime_id, scanlator)
-VALUES (:mangaId, :scanlator);
+VALUES (:animeId, :scanlator);
 
 remove:
 DELETE FROM excluded_scanlators
-WHERE anime_id = :mangaId
+WHERE anime_id = :animeId
 AND scanlator IN :scanlators;
 
-getExcludedScanlatorsByMangaId:
+getExcludedScanlatorsByAnimeId:
 SELECT scanlator
 FROM excluded_scanlators
-WHERE anime_id = :mangaId;
+WHERE anime_id = :animeId;

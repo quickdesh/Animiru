@@ -5,7 +5,7 @@ import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.core.util.insertSeparators
-import eu.kanade.domain.manga.interactor.UpdateManga
+import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.presentation.history.HistoryUiModel
 import eu.kanade.tachiyomi.util.lang.toLocalDate
@@ -55,7 +55,7 @@ class HistoryScreenModel(
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
     private val removeHistory: RemoveHistory = Injekt.get(),
     private val setAnimeCategories: SetAnimeCategories = Injekt.get(),
-    private val updateManga: UpdateManga = Injekt.get(),
+    private val updateAnime: UpdateAnime = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
     private val sourceManager: SourceManager = Injekt.get(),
 ) : StateScreenModel<HistoryScreenModel.State>(State()) {
@@ -162,7 +162,7 @@ class HistoryScreenModel(
         if (anime.favorite) return
 
         screenModelScope.launchIO {
-            updateManga.awaitUpdateFavorite(anime.id, true)
+            updateAnime.awaitUpdateFavorite(anime.id, true)
         }
     }
 
@@ -195,14 +195,14 @@ class HistoryScreenModel(
             when {
                 // Default category set
                 defaultCategory != null -> {
-                    val result = updateManga.awaitUpdateFavorite(anime.id, true)
+                    val result = updateAnime.awaitUpdateFavorite(anime.id, true)
                     if (!result) return@launchIO
                     moveMangaToCategory(anime.id, defaultCategory)
                 }
 
                 // Automatic 'Default' or no categories
                 defaultCategoryId == 0L || categories.isEmpty() -> {
-                    val result = updateManga.awaitUpdateFavorite(anime.id, true)
+                    val result = updateAnime.awaitUpdateFavorite(anime.id, true)
                     if (!result) return@launchIO
                     moveMangaToCategory(anime.id, null)
                 }

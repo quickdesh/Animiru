@@ -7,6 +7,7 @@ import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
 
+// TODO(mihon): Migrate keys
 class TrackPreferences(
     private val preferenceStore: PreferenceStore,
 ) {
@@ -37,6 +38,13 @@ class TrackPreferences(
     fun anilistScoreType() = preferenceStore.getString("anilist_score_type", Anilist.POINT_10)
 
     fun autoUpdateTrack() = preferenceStore.getBoolean("pref_auto_update_manga_sync_key", true)
+
+    fun trackOnAddingToLibrary() = preferenceStore.getBoolean("track_on_adding_to_library", true)
+
+    fun showNextEpisodeAiringTime() = preferenceStore.getBoolean(
+        "show_next_episode_airing_time",
+        true,
+    )
 
     fun autoUpdateTrackOnMarkRead() = preferenceStore.getEnum(
         "pref_auto_update_manga_on_mark_read",

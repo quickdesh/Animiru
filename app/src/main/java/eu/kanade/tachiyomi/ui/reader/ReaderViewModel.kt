@@ -8,12 +8,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.kanade.domain.base.BasePreferences
-import eu.kanade.domain.chapter.model.toDbChapter
-import eu.kanade.domain.manga.interactor.SetMangaViewerFlags
-import eu.kanade.domain.manga.model.readerOrientation
-import eu.kanade.domain.manga.model.readingMode
+import eu.kanade.domain.episode.model.toDbEpisode
+import eu.kanade.domain.anime.interactor.SetAnimeViewerFlags
+import eu.kanade.domain.anime.model.readerOrientation
+import eu.kanade.domain.anime.model.readingMode
 import eu.kanade.domain.source.interactor.GetIncognitoState
-import eu.kanade.domain.track.interactor.TrackChapter
+import eu.kanade.domain.track.interactor.TrackEpisode
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.tachiyomi.data.database.models.toDomainChapter
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -93,13 +93,13 @@ class ReaderViewModel @JvmOverloads constructor(
     private val basePreferences: BasePreferences = Injekt.get(),
     private val downloadPreferences: DownloadPreferences = Injekt.get(),
     private val trackPreferences: TrackPreferences = Injekt.get(),
-    private val trackChapter: TrackChapter = Injekt.get(),
+    private val trackEpisode: TrackEpisode = Injekt.get(),
     private val getAnime: GetAnime = Injekt.get(),
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
     private val getNextEpisodes: GetNextEpisodes = Injekt.get(),
     private val upsertHistory: UpsertHistory = Injekt.get(),
     private val updateEpisode: UpdateEpisode = Injekt.get(),
-    private val setMangaViewerFlags: SetMangaViewerFlags = Injekt.get(),
+    private val setAnimeViewerFlags: SetAnimeViewerFlags = Injekt.get(),
     private val getIncognitoState: GetIncognitoState = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
 ) : ViewModel() {
@@ -172,7 +172,7 @@ class ReaderViewModel @JvmOverloads constructor(
                                 (manga.unseenFilterRaw == Anime.EPISODE_SHOW_UNSEEN && it.seen) ||
                                 (
                                     manga.downloadedFilterRaw == Anime.EPISODE_SHOW_DOWNLOADED &&
-                                        !downloadManager.isChapterDownloaded(
+                                        !downloadManager.isEpisodeDownloaded(
                                             it.name,
                                             it.scanlator,
                                             manga.title,
@@ -181,7 +181,7 @@ class ReaderViewModel @JvmOverloads constructor(
                                     ) ||
                                 (
                                     manga.downloadedFilterRaw == Anime.EPISODE_SHOW_NOT_DOWNLOADED &&
-                                        downloadManager.isChapterDownloaded(
+                                        downloadManager.isEpisodeDownloaded(
                                             it.name,
                                             it.scanlator,
                                             manga.title,
@@ -220,7 +220,7 @@ class ReaderViewModel @JvmOverloads constructor(
                     this
                 }
             }
-            .map { it.toDbChapter() }
+            .map { it.toDbEpisode() }
             .map(::ReaderChapter)
     }
 
@@ -394,7 +394,7 @@ class ReaderViewModel @JvmOverloads constructor(
         if (chapter.pageLoader?.isLocal == false) {
             val manga = anime ?: return
             val dbChapter = chapter.chapter
-            val isDownloaded = downloadManager.isChapterDownloaded(
+            val isDownloaded = downloadManager.isEpisodeDownloaded(
                 dbChapter.name,
                 dbChapter.scanlator,
                 manga.title,
@@ -470,7 +470,7 @@ class ReaderViewModel @JvmOverloads constructor(
         val nextChapter = state.value.viewerChapters?.nextChapter?.chapter ?: return
 
         viewModelScope.launchIO {
-            val isNextChapterDownloaded = downloadManager.isChapterDownloaded(
+            val isNextChapterDownloaded = downloadManager.isEpisodeDownloaded(
                 nextChapter.name,
                 nextChapter.scanlator,
                 manga.title,
@@ -683,7 +683,7 @@ class ReaderViewModel @JvmOverloads constructor(
     fun setMangaReadingMode(readingMode: ReadingMode) {
         val manga = anime ?: return
         runBlocking(Dispatchers.IO) {
-            setMangaViewerFlags.awaitSetReadingMode(manga.id, readingMode.flagValue.toLong())
+            setAnimeViewerFlags.awaitSetReadingMode(manga.id, readingMode.flagValue.toLong())
             val currChapters = state.value.viewerChapters
             if (currChapters != null) {
                 // Save current page
@@ -719,7 +719,7 @@ class ReaderViewModel @JvmOverloads constructor(
     fun setMangaOrientationType(orientation: ReaderOrientation) {
         val manga = anime ?: return
         viewModelScope.launchIO {
-            setMangaViewerFlags.awaitSetOrientation(manga.id, orientation.flagValue.toLong())
+            setAnimeViewerFlags.awaitSetOrientation(manga.id, orientation.flagValue.toLong())
             val currChapters = state.value.viewerChapters
             if (currChapters != null) {
                 // Save current page
@@ -919,7 +919,7 @@ class ReaderViewModel @JvmOverloads constructor(
         val context = Injekt.get<Application>()
 
         viewModelScope.launchNonCancellable {
-            trackChapter.await(context, manga.id, readerChapter.chapter.episode_number.toDouble())
+            trackEpisode.await(context, manga.id, readerChapter.chapter.episode_number.toDouble())
         }
     }
 

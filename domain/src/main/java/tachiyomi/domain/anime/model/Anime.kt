@@ -118,6 +118,15 @@ data class Anime(
             else -> TriState.DISABLED
         }
 
+    // AM (FILLERMARK) -->
+    val fillermarkedFilter: TriState
+        get() = when (fillermarkedFilterRaw) {
+            EPISODE_SHOW_FILLERMARKED -> TriState.ENABLED_IS
+            EPISODE_SHOW_NOT_FILLERMARKED -> TriState.ENABLED_NOT
+            else -> TriState.DISABLED
+        }
+    // <-- AM (FILLERMARK)
+
     fun sortDescending(): Boolean {
         return episodeFlags and EPISODE_SORT_DIR_MASK == EPISODE_SORT_DESC
     }

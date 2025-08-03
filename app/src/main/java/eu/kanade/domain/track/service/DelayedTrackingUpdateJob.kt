@@ -8,7 +8,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkerParameters
-import eu.kanade.domain.track.interactor.TrackChapter
+import eu.kanade.domain.track.interactor.TrackEpisode
 import eu.kanade.domain.track.store.DelayedTrackingStore
 import eu.kanade.tachiyomi.util.system.workManager
 import logcat.LogPriority
@@ -28,7 +28,7 @@ class DelayedTrackingUpdateJob(private val context: Context, workerParams: Worke
         }
 
         val getTracks = Injekt.get<GetTracks>()
-        val trackChapter = Injekt.get<TrackChapter>()
+        val trackEpisode = Injekt.get<TrackEpisode>()
 
         val delayedTrackingStore = Injekt.get<DelayedTrackingStore>()
 
@@ -39,13 +39,13 @@ class DelayedTrackingUpdateJob(private val context: Context, workerParams: Worke
                     if (track == null) {
                         delayedTrackingStore.remove(it.trackId)
                     }
-                    track?.copy(lastEpisodeSeen = it.lastChapterRead.toDouble())
+                    track?.copy(lastEpisodeSeen = it.lastEpisodeSeen.toDouble())
                 }
                 .forEach { track ->
                     logcat(LogPriority.DEBUG) {
-                        "Updating delayed track item: ${track.animeId}, last chapter read: ${track.lastEpisodeSeen}"
+                        "Updating delayed track item: ${track.animeId}, last episode seen: ${track.lastEpisodeSeen}"
                     }
-                    trackChapter.await(context, track.animeId, track.lastEpisodeSeen, setupJobOnFailure = false)
+                    trackEpisode.await(context, track.animeId, track.lastEpisodeSeen, setupJobOnFailure = false)
                 }
         }
 

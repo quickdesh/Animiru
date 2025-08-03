@@ -25,8 +25,8 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.core.util.ifSourcesLoaded
-import eu.kanade.domain.manga.model.hasCustomCover
-import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.domain.anime.model.hasCustomCover
+import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
 import eu.kanade.presentation.components.NavigatorAdaptiveSheet
 import eu.kanade.presentation.manga.ChapterSettingsDialog
@@ -303,7 +303,7 @@ class MangaScreen(
         val source = source_ as? AnimeHttpSource ?: return null
 
         return try {
-            source.getAnimeUrl(manga.toSManga())
+            source.getAnimeUrl(manga.toSAnime())
         } catch (e: Exception) {
             null
         }
@@ -389,7 +389,7 @@ class MangaScreen(
     private fun copyMangaUrl(context: Context, anime_: Anime?, source_: AnimeSource?) {
         val manga = anime_ ?: return
         val source = source_ as? AnimeHttpSource ?: return
-        val url = source.getAnimeUrl(manga.toSManga())
+        val url = source.getAnimeUrl(manga.toSAnime())
         context.copyToClipboard(url, url)
     }
 }

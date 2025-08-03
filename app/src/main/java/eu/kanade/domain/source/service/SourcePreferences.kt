@@ -9,6 +9,7 @@ import tachiyomi.core.common.preference.getEnum
 import tachiyomi.core.common.preference.getLongArray
 import tachiyomi.domain.library.model.LibraryDisplayMode
 
+// TODO(mihon): Migrate keys
 class SourcePreferences(
     private val preferenceStore: PreferenceStore,
 ) {
@@ -44,7 +45,7 @@ class SourcePreferences(
 
     fun hideInLibraryItems() = preferenceStore.getBoolean("browse_hide_in_library_items", false)
 
-    fun extensionRepos() = preferenceStore.getStringSet("extension_repos", emptySet())
+    fun extensionRepos() = preferenceStore.getStringSet("anime_extension_repos", emptySet())
 
     fun extensionUpdatesCount() = preferenceStore.getInt("ext_updates_count", 0)
 

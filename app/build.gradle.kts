@@ -170,6 +170,8 @@ kotlin {
 
 dependencies {
     implementation(projects.i18n)
+    implementation(projects.i18nAniyomi)
+    implementation(projects.i18nAnimiru)
     implementation(projects.core.archive)
     implementation(projects.core.common)
     implementation(projects.coreMetadata)
@@ -212,7 +214,9 @@ dependencies {
     implementation(androidx.corektx)
     implementation(androidx.splashscreen)
     implementation(androidx.recyclerview)
-    implementation(androidx.viewpager)
+    // AM (REMOVE_LIBRARIES) -->
+    // implementation(androidx.viewpager)
+    // <-- AM (REMOVE_LIBRARIES)
     implementation(androidx.profileinstaller)
 
     implementation(androidx.bundles.lifecycle)
@@ -250,16 +254,20 @@ dependencies {
     implementation(libs.subsamplingscaleimageview) {
         exclude(module = "image-decoder")
     }
-    implementation(libs.image.decoder)
+    // AM (REMOVE_LIBRARIES) -->
+    // implementation(libs.image.decoder)
+    // <-- AM (REMOVE_LIBRARIES)
 
     // UI libraries
     implementation(libs.material)
     implementation(libs.flexible.adapter.core)
-    implementation(libs.photoview)
-    implementation(libs.directionalviewpager) {
-        exclude(group = "androidx.viewpager", module = "viewpager")
-    }
-    implementation(libs.insetter)
+    // AM (REMOVE_LIBRARIES) -->
+    // implementation(libs.photoview)
+    // implementation(libs.directionalviewpager) {
+    //     exclude(group = "androidx.viewpager", module = "viewpager")
+    // }
+    // implementation(libs.insetter)
+    // <-- AM (REMOVE_LIBRARIES)
     implementation(libs.richeditor.compose)
     implementation(libs.aboutLibraries.compose)
     implementation(libs.bundles.voyager)
@@ -285,7 +293,27 @@ dependencies {
 
     // For detecting memory leaks; see https://square.github.io/leakcanary/
     // debugImplementation(libs.leakcanary.android)
-    implementation(libs.leakcanary.plumber)
+    // AM (REMOVE_LIBRARIES) -->
+    // implementation(libs.leakcanary.plumber)
+    // <-- AM (REMOVE_LIBRARIES)
+
+    // mpv-android
+    implementation(aniyomilibs.aniyomi.mpv)
+
+    // FFmpeg-kit
+    implementation(aniyomilibs.ffmpeg.kit)
+    implementation(aniyomilibs.arthenica.smartexceptions)
+
+    // seeker seek bar
+    implementation(aniyomilibs.seeker)
+
+    // true type parser
+    implementation(aniyomilibs.truetypeparser)
+
+    // AM (SYNC_DRIVE) -->
+    implementation(aniyomilibs.google.api.services.drive)
+    implementation(aniyomilibs.google.api.client.oauth)
+    // <-- AM (SYNC_DRIVE)
 
     testImplementation(kotlinx.coroutines.test)
 }

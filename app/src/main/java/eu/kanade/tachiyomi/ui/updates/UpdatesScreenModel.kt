@@ -9,7 +9,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.core.preference.asState
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
-import eu.kanade.domain.chapter.interactor.SetReadStatus
+import eu.kanade.domain.episode.interactor.SetReadStatus
 import eu.kanade.presentation.manga.components.ChapterDownloadAction
 import eu.kanade.presentation.updates.UpdatesUiModel
 import eu.kanade.tachiyomi.data.download.DownloadCache
@@ -104,7 +104,7 @@ class UpdatesScreenModel(
         return this
             .map { update ->
                 val activeDownload = downloadManager.getQueuedDownloadOrNull(update.episodeId)
-                val downloaded = downloadManager.isChapterDownloaded(
+                val downloaded = downloadManager.isEpisodeDownloaded(
                     update.episodeName,
                     update.scanlator,
                     update.animeTitle,
@@ -253,7 +253,7 @@ class UpdatesScreenModel(
                     val manga = getAnime.await(mangaId) ?: return@forEach
                     val source = sourceManager.get(manga.source) ?: return@forEach
                     val chapters = updates.mapNotNull { getEpisode.await(it.update.episodeId) }
-                    downloadManager.deleteChapters(chapters, manga, source)
+                    downloadManager.deleteEpisodes(chapters, manga, source)
                 }
         }
         toggleAllSelection(false)

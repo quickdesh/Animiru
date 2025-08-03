@@ -15,8 +15,8 @@ import eu.kanade.core.preference.asState
 import eu.kanade.core.util.fastFilterNot
 import eu.kanade.core.util.fastPartition
 import eu.kanade.domain.base.BasePreferences
-import eu.kanade.domain.chapter.interactor.SetReadStatus
-import eu.kanade.domain.manga.interactor.UpdateManga
+import eu.kanade.domain.episode.interactor.SetReadStatus
+import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.presentation.components.SEARCH_DEBOUNCE_MILLIS
 import eu.kanade.presentation.library.components.LibraryToolbarTitle
 import eu.kanade.presentation.manga.DownloadAction
@@ -86,7 +86,7 @@ class LibraryScreenModel(
     private val getNextEpisodes: GetNextEpisodes = Injekt.get(),
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
     private val setReadStatus: SetReadStatus = Injekt.get(),
-    private val updateManga: UpdateManga = Injekt.get(),
+    private val updateAnime: UpdateAnime = Injekt.get(),
     private val setAnimeCategories: SetAnimeCategories = Injekt.get(),
     private val preferences: BasePreferences = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
@@ -468,7 +468,7 @@ class LibraryScreenModel(
                 val chapters = getNextEpisodes.await(manga.id)
                     .fastFilterNot { chapter ->
                         downloadManager.getQueuedDownloadOrNull(chapter.id) != null ||
-                            downloadManager.isChapterDownloaded(
+                            downloadManager.isEpisodeDownloaded(
                                 chapter.name,
                                 chapter.scanlator,
                                 manga.title,
@@ -517,7 +517,7 @@ class LibraryScreenModel(
                         id = it.id,
                     )
                 }
-                updateManga.awaitAll(toDelete)
+                updateAnime.awaitAll(toDelete)
             }
 
             if (deleteChapters) {

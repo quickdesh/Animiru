@@ -3,9 +3,9 @@ package mihon.feature.migration.list
 import androidx.annotation.FloatRange
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import eu.kanade.domain.chapter.interactor.SyncChaptersWithSource
-import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.domain.episode.interactor.SyncChaptersWithSource
+import eu.kanade.domain.anime.interactor.UpdateAnime
+import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
 import eu.kanade.tachiyomi.source.getNameForMangaInfo
@@ -49,7 +49,7 @@ class MigrationListScreenModel(
     private val sourceManager: SourceManager = Injekt.get(),
     private val getAnime: GetAnime = Injekt.get(),
     private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
-    private val updateManga: UpdateManga = Injekt.get(),
+    private val updateAnime: UpdateAnime = Injekt.get(),
     private val syncChaptersWithSource: SyncChaptersWithSource = Injekt.get(),
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
     private val migrateManga: MigrateMangaUseCase = Injekt.get(),
@@ -152,8 +152,8 @@ class MigrationListScreenModel(
 
             if (result != null && result.first.thumbnailUrl == null) {
                 try {
-                    val newManga = sourceManager.getOrStub(result.first.source).getAnimeDetails(result.first.toSManga())
-                    updateManga.awaitUpdateFromSource(result.first, newManga, true)
+                    val newManga = sourceManager.getOrStub(result.first.source).getAnimeDetails(result.first.toSAnime())
+                    updateAnime.awaitUpdateFromSource(result.first, newManga, true)
                 } catch (e: CancellationException) {
                     throw e
                 } catch (_: Exception) {
@@ -192,7 +192,7 @@ class MigrationListScreenModel(
 
             val localManga = networkToLocalAnime(searchResult)
             try {
-                val chapters = source.getEpisodeList(localManga.toSManga())
+                val chapters = source.getEpisodeList(localManga.toSAnime())
                 syncChaptersWithSource.await(chapters, localManga, source)
             } catch (e: Exception) {
                 logcat(LogPriority.ERROR, e)
@@ -228,7 +228,7 @@ class MigrationListScreenModel(
                 val manga = getAnime.await(target) ?: return@async null
                 try {
                     val source = sourceManager.get(manga.source)!!
-                    val chapters = source.getEpisodeList(manga.toSManga())
+                    val chapters = source.getEpisodeList(manga.toSAnime())
                     syncChaptersWithSource.await(chapters, manga, source)
                 } catch (_: Exception) {
                     return@async null
@@ -244,8 +244,8 @@ class MigrationListScreenModel(
             }
 
             try {
-                val newManga = sourceManager.getOrStub(result.source).getAnimeDetails(result.toSManga())
-                updateManga.awaitUpdateFromSource(result, newManga, true)
+                val newManga = sourceManager.getOrStub(result.source).getAnimeDetails(result.toSAnime())
+                updateAnime.awaitUpdateFromSource(result, newManga, true)
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {

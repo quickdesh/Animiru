@@ -6,6 +6,8 @@ ffmpeg-kit = "1.17"
 media = "1.7.0"
 seeker = "1.2.2"
 truetypeparser = "2.1.4"
+google-api-drive = "v3-rev197-1.25.0"
+google-api-oauth = "1.34.1"
 
 [libraries]
 aniyomi-mpv = { module = "com.github.aniyomiorg:aniyomi-mpv-lib", version.ref = "aniyomi-mpv-lib" }
@@ -15,3 +17,8 @@ ffmpeg-kit = { module = "com.github.jmir1:ffmpeg-kit", version.ref = "ffmpeg-kit
 mediasession = { module = "androidx.media:media", version.ref = "media" }
 seeker = { module = "io.github.2307vivek:seeker", version.ref = "seeker" }
 truetypeparser = { module = "io.github.yubyf:truetypeparser-light", version.ref = "truetypeparser" }
+
+# AM (SYNC_DRIVE) -->
+google-api-services-drive = { module = "com.google.apis:google-api-services-drive", version.ref = "google-api-drive" }
+google-api-client-oauth = { module = "com.google.oauth-client:google-oauth-client", version.ref = "google-api-oauth" }
+# <-- AM (SYNC_DRIVE)

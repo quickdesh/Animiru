@@ -1,10 +1,10 @@
-package eu.kanade.domain.chapter.interactor
+package eu.kanade.domain.episode.interactor
 
-import eu.kanade.domain.chapter.model.copyFromSChapter
-import eu.kanade.domain.chapter.model.toSChapter
-import eu.kanade.domain.manga.interactor.GetExcludedScanlators
-import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.domain.episode.model.copyFromSEpisode
+import eu.kanade.domain.episode.model.toSEpisode
+import eu.kanade.domain.anime.interactor.GetExcludedScanlators
+import eu.kanade.domain.anime.interactor.UpdateAnime
+import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.animesource.AnimeSource
@@ -31,7 +31,7 @@ class SyncChaptersWithSource(
     private val downloadProvider: DownloadProvider,
     private val episodeRepository: EpisodeRepository,
     private val shouldUpdateDbEpisode: ShouldUpdateDbEpisode,
-    private val updateManga: UpdateManga,
+    private val updateAnime: UpdateAnime,
     private val updateEpisode: UpdateEpisode,
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
     private val getExcludedScanlators: GetExcludedScanlators,
@@ -64,7 +64,7 @@ class SyncChaptersWithSource(
             .distinctBy { it.url }
             .mapIndexed { i, sChapter ->
                 Episode.create()
-                    .copyFromSChapter(sChapter)
+                    .copyFromSEpisode(sChapter)
                     .copy(name = with(EpisodeSanitizer) { sChapter.name.sanitize(anime.title) })
                     .copy(animeId = anime.id, sourceOrder = i.toLong())
             }
@@ -88,9 +88,9 @@ class SyncChaptersWithSource(
 
             // Update metadata from source if necessary.
             if (source is AnimeHttpSource) {
-                val sChapter = chapter.toSChapter()
-                source.prepareNewEpisode(sChapter, anime.toSManga())
-                chapter = chapter.copyFromSChapter(sChapter)
+                val sChapter = chapter.toSEpisode()
+                source.prepareNewEpisode(sChapter, anime.toSAnime())
+                chapter = chapter.copyFromSEpisode(sChapter)
             }
 
             // Recognize chapter number for the chapter.
@@ -111,7 +111,7 @@ class SyncChaptersWithSource(
             } else {
                 if (shouldUpdateDbEpisode.await(dbChapter, chapter)) {
                     val shouldRenameChapter = downloadProvider.isChapterDirNameChanged(dbChapter, chapter) &&
-                        downloadManager.isChapterDownloaded(
+                        downloadManager.isEpisodeDownloaded(
                             dbChapter.name,
                             dbChapter.scanlator,
                             anime.title,
@@ -138,7 +138,7 @@ class SyncChaptersWithSource(
         // Return if there's nothing to add, delete, or update to avoid unnecessary db transactions.
         if (newEpisodes.isEmpty() && removedChapters.isEmpty() && updatedEpisodes.isEmpty()) {
             if (manualFetch || anime.fetchInterval == 0 || anime.nextUpdate < fetchWindow.first) {
-                updateManga.awaitUpdateFetchInterval(
+                updateAnime.awaitUpdateFetchInterval(
                     anime,
                     now,
                     fetchWindow,
@@ -212,11 +212,11 @@ class SyncChaptersWithSource(
             val chapterUpdates = updatedEpisodes.map { it.toEpisodeUpdate() }
             updateEpisode.awaitAll(chapterUpdates)
         }
-        updateManga.awaitUpdateFetchInterval(anime, now, fetchWindow)
+        updateAnime.awaitUpdateFetchInterval(anime, now, fetchWindow)
 
         // Set this manga as updated since chapters were changed
         // Note that last_update actually represents last time the chapter list changed at all
-        updateManga.awaitUpdateLastUpdate(anime.id)
+        updateAnime.awaitUpdateLastUpdate(anime.id)
 
         val excludedScanlators = getExcludedScanlators.await(anime.id).toHashSet()
 

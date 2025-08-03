@@ -10,9 +10,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
-import eu.kanade.domain.manga.interactor.UpdateManga
-import eu.kanade.domain.manga.model.copyFrom
-import eu.kanade.domain.manga.model.toSManga
+import eu.kanade.domain.anime.interactor.UpdateAnime
+import eu.kanade.domain.anime.model.copyFrom
+import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.util.prepUpdateCover
@@ -48,7 +48,7 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
     private val sourceManager: SourceManager = Injekt.get()
     private val coverCache: CoverCache = Injekt.get()
     private val getLibraryAnime: GetLibraryAnime = Injekt.get()
-    private val updateManga: UpdateManga = Injekt.get()
+    private val updateAnime: UpdateAnime = Injekt.get()
 
     private val notifier = LibraryUpdateNotifier(context)
 
@@ -120,11 +120,11 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
                                 ) {
                                     val source = sourceManager.get(manga.source) ?: return@withUpdateNotification
                                     try {
-                                        val networkManga = source.getAnimeDetails(manga.toSManga())
+                                        val networkManga = source.getAnimeDetails(manga.toSAnime())
                                         val updatedManga = manga.prepUpdateCover(coverCache, networkManga, true)
                                             .copyFrom(networkManga)
                                         try {
-                                            updateManga.await(updatedManga.toAnimeUpdate())
+                                            updateAnime.await(updatedManga.toAnimeUpdate())
                                         } catch (e: Exception) {
                                             logcat(LogPriority.ERROR) { "Manga doesn't exist anymore" }
                                         }

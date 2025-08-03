@@ -1,4 +1,4 @@
-package eu.kanade.domain.chapter.interactor
+package eu.kanade.domain.episode.interactor
 
 import eu.kanade.domain.download.interactor.DeleteDownload
 import logcat.LogPriority

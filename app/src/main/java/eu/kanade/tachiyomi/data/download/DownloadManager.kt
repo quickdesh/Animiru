@@ -182,7 +182,7 @@ class DownloadManager(
      * @param sourceId the id of the source of the chapter.
      * @param skipCache whether to skip the directory cache and check in the filesystem.
      */
-    fun isChapterDownloaded(
+    fun isEpisodeDownloaded(
         chapterName: String,
         chapterScanlator: String?,
         mangaTitle: String,
@@ -219,7 +219,7 @@ class DownloadManager(
      * @param anime the manga of the chapters.
      * @param source the source of the chapters.
      */
-    fun deleteChapters(episodes: List<Episode>, anime: Anime, source: AnimeSource) {
+    fun deleteEpisodes(episodes: List<Episode>, anime: Anime, source: AnimeSource) {
         launchIO {
             val filteredChapters = getChaptersToDelete(episodes, anime)
             if (filteredChapters.isEmpty()) {
@@ -297,7 +297,7 @@ class DownloadManager(
         val pendingChapters = pendingDeleter.getPendingChapters()
         for ((manga, chapters) in pendingChapters) {
             val source = sourceManager.get(manga.source) ?: continue
-            deleteChapters(chapters, manga, source)
+            deleteEpisodes(chapters, manga, source)
         }
     }
 
@@ -333,7 +333,7 @@ class DownloadManager(
      * @param anime the manga
      * @param newTitle the new manga title.
      */
-    suspend fun renameManga(anime: Anime, newTitle: String) {
+    suspend fun renameAnime(anime: Anime, newTitle: String) {
         val source = sourceManager.getOrStub(anime.source)
         val oldFolder = provider.findMangaDir(anime.title, source) ?: return
         val newName = provider.getMangaDirName(newTitle)

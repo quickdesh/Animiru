@@ -1,12 +1,12 @@
-package eu.kanade.domain.chapter.model
+package eu.kanade.domain.episode.model
 
-import eu.kanade.tachiyomi.data.database.models.ChapterImpl
+import eu.kanade.tachiyomi.data.database.models.EpisodeImpl
 import eu.kanade.tachiyomi.animesource.model.SEpisode
 import tachiyomi.domain.episode.model.Episode
 import eu.kanade.tachiyomi.data.database.models.Chapter as DbChapter
 
 // TODO: Remove when all deps are migrated
-fun Episode.toSChapter(): SEpisode {
+fun Episode.toSEpisode(): SEpisode {
     return SEpisode.create().also {
         it.url = url
         it.name = name
@@ -16,7 +16,7 @@ fun Episode.toSChapter(): SEpisode {
     }
 }
 
-fun Episode.copyFromSChapter(sEpisode: SEpisode): Episode {
+fun Episode.copyFromSEpisode(sEpisode: SEpisode): Episode {
     return this.copy(
         name = sEpisode.name,
         url = sEpisode.url,
@@ -26,7 +26,7 @@ fun Episode.copyFromSChapter(sEpisode: SEpisode): Episode {
     )
 }
 
-fun Episode.toDbChapter(): DbChapter = ChapterImpl().also {
+fun Episode.toDbEpisode(): DbChapter = EpisodeImpl().also {
     it.id = id
     it.manga_id = animeId
     it.url = url
@@ -34,9 +34,16 @@ fun Episode.toDbChapter(): DbChapter = ChapterImpl().also {
     it.scanlator = scanlator
     it.read = seen
     it.bookmark = bookmark
+    // AM (FILLERMARK) -->
+    it.fillermark = fillermark
+    // <-- AM (FILLERMARK)
     it.last_page_read = lastSecondSeen.toInt()
     it.date_fetch = dateFetch
     it.date_upload = dateUpload
     it.episode_number = episodeNumber.toFloat()
     it.source_order = sourceOrder.toInt()
+    // AM (SYNC) -->
+    it.last_modified = lastModifiedAt
+    it.version = version
+    // <-- AM (SYNC)
 }

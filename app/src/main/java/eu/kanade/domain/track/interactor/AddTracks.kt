@@ -22,46 +22,46 @@ import java.time.ZoneOffset
 
 class AddTracks(
     private val insertTrack: InsertTrack,
-    private val syncChapterProgressWithTrack: SyncChapterProgressWithTrack,
+    private val syncEpisodeProgressWithTrack: SyncEpisodeProgressWithTrack,
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
     private val trackerManager: TrackerManager,
 ) {
 
     // TODO: update all trackers based on common data
-    suspend fun bind(tracker: Tracker, item: Track, mangaId: Long) = withNonCancellableContext {
+    suspend fun bind(tracker: Tracker, item: Track, animeId: Long) = withNonCancellableContext {
         withIOContext {
-            val allChapters = getEpisodesByAnimeId.await(mangaId)
-            val hasReadChapters = allChapters.any { it.seen }
-            tracker.bind(item, hasReadChapters)
+            val allEpisodes = getEpisodesByAnimeId.await(animeId)
+            val hasSeenEpisodes = allEpisodes.any { it.seen }
+            tracker.bind(item, hasSeenEpisodes)
 
             var track = item.toDomainTrack(idRequired = false) ?: return@withIOContext
 
             insertTrack.await(track)
 
             // TODO: merge into [SyncChapterProgressWithTrack]?
-            // Update chapter progress if newer chapters marked read locally
-            if (hasReadChapters) {
-                val latestLocalReadChapterNumber = allChapters
+            // Update episode progress if newer episodes marked seen locally
+            if (hasSeenEpisodes) {
+                val latestLocalSeenEpisodeNumber = allEpisodes
                     .sortedBy { it.episodeNumber }
                     .takeWhile { it.seen }
                     .lastOrNull()
                     ?.episodeNumber ?: -1.0
 
-                if (latestLocalReadChapterNumber > track.lastEpisodeSeen) {
+                if (latestLocalSeenEpisodeNumber > track.lastEpisodeSeen) {
                     track = track.copy(
-                        lastEpisodeSeen = latestLocalReadChapterNumber,
+                        lastEpisodeSeen = latestLocalSeenEpisodeNumber,
                     )
-                    tracker.setRemoteLastChapterRead(track.toDbTrack(), latestLocalReadChapterNumber.toInt())
+                    tracker.setRemoteLastChapterRead(track.toDbTrack(), latestLocalSeenEpisodeNumber.toInt())
                 }
 
                 if (track.startDate <= 0) {
-                    val firstReadChapterDate = Injekt.get<GetHistory>().await(mangaId)
+                    val firstSeenEpisodeDate = Injekt.get<GetHistory>().await(animeId)
                         .sortedBy { it.seenAt }
                         .firstOrNull()
                         ?.seenAt
 
-                    firstReadChapterDate?.let {
-                        val startDate = firstReadChapterDate.time.convertEpochMillisZone(
+                    firstSeenEpisodeDate?.let {
+                        val startDate = firstSeenEpisodeDate.time.convertEpochMillisZone(
                             ZoneOffset.systemDefault(),
                             ZoneOffset.UTC,
                         )
@@ -73,7 +73,7 @@ class AddTracks(
                 }
             }
 
-            syncChapterProgressWithTrack.await(mangaId, track, tracker)
+            syncEpisodeProgressWithTrack.await(animeId, track, tracker)
         }
     }
 
@@ -89,7 +89,7 @@ class AddTracks(
                             (service as Tracker).bind(track)
                             insertTrack.await(track.toDomainTrack(idRequired = false)!!)
 
-                            syncChapterProgressWithTrack.await(
+                            syncEpisodeProgressWithTrack.await(
                                 anime.id,
                                 track.toDomainTrack(idRequired = false)!!,
                                 service,
@@ -99,7 +99,7 @@ class AddTracks(
                         logcat(
                             LogPriority.WARN,
                             e,
-                        ) { "Could not match manga: ${anime.title} with service $service" }
+                        ) { "Could not match anime: ${anime.title} with service $service" }
                     }
                 }
         }

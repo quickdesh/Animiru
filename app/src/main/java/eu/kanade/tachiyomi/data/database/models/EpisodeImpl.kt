@@ -2,7 +2,7 @@
 
 package eu.kanade.tachiyomi.data.database.models
 
-class ChapterImpl : Chapter {
+class EpisodeImpl : Chapter {
 
     override var id: Long? = null
 
