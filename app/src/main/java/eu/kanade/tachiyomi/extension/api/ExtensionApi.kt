@@ -116,7 +116,7 @@ internal class ExtensionApi {
             }
             .map {
                 Extension.Available(
-                    name = it.name.substringAfter("Tachiyomi: "),
+                    name = it.name.substringAfter("Aniyomi: "),
                     pkgName = it.pkg,
                     versionName = it.version,
                     versionCode = it.code,

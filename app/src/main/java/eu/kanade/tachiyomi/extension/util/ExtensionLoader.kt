@@ -46,12 +46,12 @@ internal object ExtensionLoader {
         preferences.showNsfwSource().get()
     }
 
-    private const val EXTENSION_FEATURE = "tachiyomi.extension"
-    private const val METADATA_SOURCE_CLASS = "tachiyomi.extension.class"
-    private const val METADATA_SOURCE_FACTORY = "tachiyomi.extension.factory"
-    private const val METADATA_NSFW = "tachiyomi.extension.nsfw"
-    const val LIB_VERSION_MIN = 1.4
-    const val LIB_VERSION_MAX = 1.5
+    private const val EXTENSION_FEATURE = "tachiyomi.animeextension"
+    private const val METADATA_SOURCE_CLASS = "tachiyomi.animeextension.class"
+    private const val METADATA_SOURCE_FACTORY = "tachiyomi.animeextension.factory"
+    private const val METADATA_NSFW = "tachiyomi.animeextension.nsfw"
+    const val LIB_VERSION_MIN = 12
+    const val LIB_VERSION_MAX = 15
 
     @Suppress("DEPRECATION")
     private val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or
@@ -229,7 +229,7 @@ internal object ExtensionLoader {
         val appInfo = pkgInfo.applicationInfo!!
         val pkgName = pkgInfo.packageName
 
-        val extName = pkgManager.getApplicationLabel(appInfo).toString().substringAfter("Tachiyomi: ")
+        val extName = pkgManager.getApplicationLabel(appInfo).toString().substringAfter("Aniyomi: ")
         val versionName = pkgInfo.versionName
         val versionCode = PackageInfoCompat.getLongVersionCode(pkgInfo)
 
