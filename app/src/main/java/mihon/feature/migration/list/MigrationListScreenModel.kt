@@ -8,7 +8,7 @@ import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
-import eu.kanade.tachiyomi.source.getNameForMangaInfo
+import eu.kanade.tachiyomi.source.getNameForAnimeInfo
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -79,7 +79,7 @@ class MigrationListScreenModel(
                             anime = manga,
                             chapterCount = chapterInfo.chapterCount,
                             latestChapter = chapterInfo.latestChapter,
-                            source = sourceManager.getOrStub(manga.source).getNameForMangaInfo(),
+                            source = sourceManager.getOrStub(manga.source).getNameForAnimeInfo(),
                             parentContext = screenModelScope.coroutineContext,
                         )
                     }
@@ -100,7 +100,7 @@ class MigrationListScreenModel(
 
     private suspend fun Anime.toSuccessSearchResult(): SearchResult.Success {
         val chapterInfo = getChapterInfo(id)
-        val source = sourceManager.getOrStub(source).getNameForMangaInfo()
+        val source = sourceManager.getOrStub(source).getNameForAnimeInfo()
         return SearchResult.Success(
             anime = this,
             chapterCount = chapterInfo.chapterCount,

@@ -7,14 +7,14 @@ import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-fun AnimeSource.getNameForMangaInfo(): String {
+fun AnimeSource.getNameForAnimeInfo(): String {
     val preferences = Injekt.get<SourcePreferences>()
     val enabledLanguages = preferences.enabledLanguages().get()
         .filterNot { it in listOf("all", "other") }
     val hasOneActiveLanguages = enabledLanguages.size == 1
     val isInEnabledLanguages = lang in enabledLanguages
     return when {
-        // For edge cases where user disables a source they got manga of in their library.
+        // For edge cases where user disables a source they got anime of in their library.
         hasOneActiveLanguages && !isInEnabledLanguages -> toString()
         // Hide the language tag when only one language is used.
         hasOneActiveLanguages && isInEnabledLanguages -> name
