@@ -11,6 +11,8 @@ import eu.kanade.domain.track.store.DelayedTrackingStore
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
+import eu.kanade.tachiyomi.data.connection.ConnectionManager
+import eu.kanade.tachiyomi.data.connection.syncmiru.service.GoogleDriveService
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
@@ -35,6 +37,7 @@ import tachiyomi.data.History
 import tachiyomi.data.Animes
 import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
+import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.source.local.image.LocalCoverManager
@@ -54,7 +57,7 @@ class AppModule(val app: Application) : InjektModule {
             AndroidSqliteDriver(
                 schema = Database.Schema,
                 context = app,
-                name = "tachiyomi.db",
+                name = "tachiyomi.animedb",
                 factory = if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     // Support database inspector in Android Studio
                     FrameworkSQLiteOpenHelperFactory()
@@ -80,9 +83,9 @@ class AppModule(val app: Application) : InjektModule {
             Database(
                 driver = get(),
                 historyAdapter = History.Adapter(
-                    last_readAdapter = DateColumnAdapter,
+                    last_seenAdapter = DateColumnAdapter,
                 ),
-                mangasAdapter = Animes.Adapter(
+                animesAdapter = Animes.Adapter(
                     genreAdapter = StringListColumnAdapter,
                     update_strategyAdapter = UpdateStrategyColumnAdapter,
                 ),
@@ -111,7 +114,6 @@ class AppModule(val app: Application) : InjektModule {
             ProtoBuf
         }
 
-        addSingletonFactory { ChapterCache(app, get()) }
         addSingletonFactory { CoverCache(app) }
 
         addSingletonFactory { NetworkHelper(app, get()) }
@@ -127,12 +129,22 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { TrackerManager() }
         addSingletonFactory { DelayedTrackingStore(app) }
 
+        // AM (CONNECTION) -->
+        addSingletonFactory { ConnectionManager() }
+        // <-- AM (CONNECTION)
+
         addSingletonFactory { ImageSaver(app) }
 
         addSingletonFactory { AndroidStorageFolderProvider(app) }
         addSingletonFactory { LocalSourceFileSystem(get()) }
         addSingletonFactory { LocalCoverManager(app, get()) }
         addSingletonFactory { StorageManager(app, get()) }
+
+        addSingletonFactory { ExternalIntents() }
+
+        // AM (SYNC_DRIVE) -->
+        addSingletonFactory { GoogleDriveService(app) }
+        // <-- AM (SYNC_DRIVE)
 
         // Asynchronously init expensive components for a faster cold start
         ContextCompat.getMainExecutor(app).execute {
@@ -143,6 +155,10 @@ class AppModule(val app: Application) : InjektModule {
             get<Database>()
 
             get<DownloadManager>()
+
+            // AM (CUSTOM_INFORMATION) -->
+            get<GetCustomAnimeInfo>()
+            // <-- AM (CUSTOM_INFORMATION)
         }
     }
 }

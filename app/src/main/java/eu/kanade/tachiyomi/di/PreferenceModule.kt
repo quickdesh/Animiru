@@ -2,12 +2,19 @@ package eu.kanade.tachiyomi.di
 
 import android.app.Application
 import eu.kanade.domain.base.BasePreferences
+import eu.kanade.domain.connection.SyncPreferences
+import eu.kanade.domain.connection.service.ConnectionPreferences
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.network.NetworkPreferences
-import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
+import eu.kanade.tachiyomi.ui.player.settings.AdvancedPlayerPreferences
+import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
+import eu.kanade.tachiyomi.ui.player.settings.DecoderPreferences
+import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
+import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
+import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
 import eu.kanade.tachiyomi.util.system.isDebugBuildType
 import tachiyomi.core.common.preference.AndroidPreferenceStore
 import tachiyomi.core.common.preference.PreferenceStore
@@ -43,17 +50,42 @@ class PreferenceModule(val app: Application) : InjektModule {
             LibraryPreferences(get())
         }
         addSingletonFactory {
-            ReaderPreferences(get())
+            PlayerPreferences(get())
+        }
+        addSingletonFactory {
+            GesturePreferences(get())
+        }
+        addSingletonFactory {
+            DecoderPreferences(get())
+        }
+        addSingletonFactory {
+            SubtitlePreferences(get())
+        }
+        addSingletonFactory {
+            AudioPreferences(get())
+        }
+        addSingletonFactory {
+            AdvancedPlayerPreferences(get())
         }
         addSingletonFactory {
             TrackPreferences(get())
         }
+        // AM (CONNECTION) -->
+        addSingletonFactory {
+            ConnectionPreferences(get())
+        }
+        // <-- AM (CONNECTION)
         addSingletonFactory {
             DownloadPreferences(get())
         }
         addSingletonFactory {
             BackupPreferences(get())
         }
+        // AM (SYNC) -->
+        addSingletonFactory {
+            SyncPreferences(get())
+        }
+        // <-- AM (SYNC)
         addSingletonFactory {
             StoragePreferences(
                 folderProvider = get<AndroidStorageFolderProvider>(),
