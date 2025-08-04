@@ -3,7 +3,7 @@ package eu.kanade.tachiyomi.ui.deeplink
 import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import eu.kanade.domain.episode.interactor.SyncChaptersWithSource
+import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.SEpisode
@@ -25,7 +25,7 @@ class DeepLinkScreenModel(
     private val sourceManager: SourceManager = Injekt.get(),
     private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
     private val getEpisodeByUrlAndAnimeId: GetEpisodeByUrlAndAnimeId = Injekt.get(),
-    private val syncChaptersWithSource: SyncChaptersWithSource = Injekt.get(),
+    private val syncEpisodesWithSource: SyncEpisodesWithSource = Injekt.get(),
 ) : StateScreenModel<DeepLinkScreenModel.State>(State.Loading) {
 
     init {
@@ -63,7 +63,7 @@ class DeepLinkScreenModel(
 
         return if (localChapter == null) {
             val sourceChapters = source.getEpisodeList(anime.toSAnime())
-            val newChapters = syncChaptersWithSource.await(sourceChapters, anime, source, false)
+            val newChapters = syncEpisodesWithSource.await(sourceChapters, anime, source, false)
             newChapters.find { it.url == sEpisode.url }
         } else {
             localChapter

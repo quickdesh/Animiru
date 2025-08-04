@@ -38,13 +38,13 @@ class BangumiApi(
 
     private val authClient = client.newBuilder().addInterceptor(interceptor).build()
 
-    suspend fun addLibManga(track: Track): Track {
+    suspend fun addLibAnime(track: Track): Track {
         return withIOContext {
             val url = "$API_URL/v0/users/-/collections/${track.remote_id}"
             val body = buildJsonObject {
                 put("type", track.toApiStatus())
                 put("rate", track.score.toInt().coerceIn(0, 10))
-                put("ep_status", track.last_chapter_read.toInt())
+                put("ep_status", track.last_episode_seen.toInt())
                 put("private", track.private)
             }
                 .toString()
@@ -56,13 +56,13 @@ class BangumiApi(
         }
     }
 
-    suspend fun updateLibManga(track: Track): Track {
+    suspend fun updateLibAnime(track: Track): Track {
         return withIOContext {
             val url = "$API_URL/v0/users/-/collections/${track.remote_id}"
             val body = buildJsonObject {
                 put("type", track.toApiStatus())
                 put("rate", track.score.toInt().coerceIn(0, 10))
-                put("ep_status", track.last_chapter_read.toInt())
+                put("ep_status", track.last_episode_seen.toInt())
                 put("private", track.private)
             }
                 .toString()
@@ -93,7 +93,7 @@ class BangumiApi(
                 put("sort", "match")
                 putJsonObject("filter") {
                     putJsonArray("type") {
-                        add(1) // "Book" (书籍) type
+                        add(2) // "Anime" (动画) type
                     }
                 }
             }
@@ -104,13 +104,12 @@ class BangumiApi(
                     .awaitSuccess()
                     .parseAs<BGMSearchResult>()
                     .data
-                    .filter { it.platform == null || it.platform == "漫画" }
                     .map { it.toTrackSearch(trackId) }
             }
         }
     }
 
-    suspend fun statusLibManga(track: Track, username: String): Track? {
+    suspend fun statusLibAnime(track: Track, username: String): Track? {
         return withIOContext {
             val url = "$API_URL/v0/users/$username/collections/${track.remote_id}"
             with(json) {
@@ -120,9 +119,9 @@ class BangumiApi(
                         .parseAs<BGMCollectionResponse>()
                         .let {
                             track.status = it.getStatus()
-                            track.last_chapter_read = it.epStatus?.toDouble() ?: 0.0
+                            track.last_episode_seen = it.epStatus?.toDouble() ?: 0.0
                             track.score = it.rate?.toDouble() ?: 0.0
-                            track.total_chapters = it.subject?.eps?.toLong() ?: 0L
+                            track.total_episodes = it.subject?.eps?.toLong() ?: 0L
                             track
                         }
                 } catch (e: HttpException) {
@@ -165,14 +164,14 @@ class BangumiApi(
     }
 
     companion object {
-        private const val CLIENT_ID = "bgm291665acbd06a4c28"
-        private const val CLIENT_SECRET = "43e5ce36b207de16e5d3cfd3e79118db"
+        private const val CLIENT_ID = "bgm2204622cb426b1e78"
+        private const val CLIENT_SECRET = "5c9fd8953ebe3d10d6ea3f5e2d5f8508"
 
         private const val API_URL = "https://api.bgm.tv"
         private const val OAUTH_URL = "https://bgm.tv/oauth/access_token"
         private const val LOGIN_URL = "https://bgm.tv/oauth/authorize"
 
-        private const val REDIRECT_URL = "mihon://bangumi-auth"
+        private const val REDIRECT_URL = "animiru://bangumi-auth"
 
         private const val APP_JSON = "application/json"
 

@@ -5,10 +5,12 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.NotificationManagerCompat.IMPORTANCE_DEFAULT
 import androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH
 import androidx.core.app.NotificationManagerCompat.IMPORTANCE_LOW
+import eu.kanade.tachiyomi.data.connection.discord.RICH_PRESENCE_TAG
 import eu.kanade.tachiyomi.util.system.buildNotificationChannel
 import eu.kanade.tachiyomi.util.system.buildNotificationChannelGroup
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 
 /**
  * Class to manage the basic information of all the notifications used in the app.
@@ -36,16 +38,16 @@ object Notifications {
      */
     private const val GROUP_DOWNLOADER = "group_downloader"
     const val CHANNEL_DOWNLOADER_PROGRESS = "downloader_progress_channel"
-    const val ID_DOWNLOAD_CHAPTER_PROGRESS = -201
+    const val ID_DOWNLOAD_EPISODE_PROGRESS = -201
     const val CHANNEL_DOWNLOADER_ERROR = "downloader_error_channel"
-    const val ID_DOWNLOAD_CHAPTER_ERROR = -202
+    const val ID_DOWNLOAD_EPISODE_ERROR = -202
 
     /**
      * Notification channel and ids used by the library updater.
      */
-    const val CHANNEL_NEW_CHAPTERS = "new_chapters_channel"
-    const val ID_NEW_CHAPTERS = -301
-    const val GROUP_NEW_CHAPTERS = "eu.kanade.tachiyomi.NEW_CHAPTERS"
+    const val CHANNEL_NEW_EPISODES = "new_episodes_channel"
+    const val ID_NEW_EPISODES = -301
+    const val GROUP_NEW_EPISODES = "eu.kanade.tachiyomi.NEW_EPISODES"
 
     /**
      * Notification channel and ids used by the backup/restore system.
@@ -63,6 +65,14 @@ object Notifications {
      */
     const val CHANNEL_INCOGNITO_MODE = "incognito_mode_channel"
     const val ID_INCOGNITO_MODE = -701
+
+    // AM (DISCORD_RPC) -->
+    /**
+     * Notification channel used for Discord RPC
+     */
+    const val CHANNEL_DISCORD_RPC = "${RICH_PRESENCE_TAG}_channel"
+    const val ID_DISCORD_RPC = -1701
+    // <-- AM (DISCORD_RPC)
 
     /**
      * Notification channel and ids used for app and extension updates.
@@ -86,6 +96,9 @@ object Notifications {
         "downloader_cache_renewal",
         "crash_logs_channel",
         "library_skipped_channel",
+        // AM (DISCORD_RPC) -->
+        "Discord RPC",
+        // <-- AM (DISCORD_RPC)
     )
 
     /**
@@ -132,7 +145,7 @@ object Notifications {
                     setGroup(GROUP_LIBRARY)
                     setShowBadge(false)
                 },
-                buildNotificationChannel(CHANNEL_NEW_CHAPTERS, IMPORTANCE_DEFAULT) {
+                buildNotificationChannel(CHANNEL_NEW_EPISODES, IMPORTANCE_DEFAULT) {
                     setName(context.stringResource(MR.strings.channel_new_chapters))
                 },
                 buildNotificationChannel(CHANNEL_DOWNLOADER_PROGRESS, IMPORTANCE_LOW) {
@@ -159,6 +172,11 @@ object Notifications {
                 buildNotificationChannel(CHANNEL_INCOGNITO_MODE, IMPORTANCE_LOW) {
                     setName(context.stringResource(MR.strings.pref_incognito_mode))
                 },
+                // AM (DISCORD_RPC) -->
+                buildNotificationChannel(CHANNEL_DISCORD_RPC, IMPORTANCE_LOW) {
+                    setName(context.stringResource(AMMR.strings.pref_discord_rpc))
+                },
+                // <-- AM (DISCORD_RPC)
                 buildNotificationChannel(CHANNEL_APP_UPDATE, IMPORTANCE_DEFAULT) {
                     setGroup(GROUP_APK_UPDATES)
                     setName(context.stringResource(MR.strings.channel_app_updates))

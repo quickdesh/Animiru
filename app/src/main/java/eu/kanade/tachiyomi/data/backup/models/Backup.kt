@@ -5,11 +5,13 @@ import kotlinx.serialization.protobuf.ProtoNumber
 
 @Serializable
 data class Backup(
-    @ProtoNumber(1) val backupManga: List<BackupManga>,
-    @ProtoNumber(2) var backupCategories: List<BackupCategory> = emptyList(),
+    @ProtoNumber(3) val backupAnime: List<BackupAnime>,
+    @ProtoNumber(4) var backupCategories: List<BackupCategory> = emptyList(),
     // @ProtoNumber(100) var backupBrokenSources, legacy source model with non-compliant proto number,
-    @ProtoNumber(101) var backupSources: List<BackupSource> = emptyList(),
+    @ProtoNumber(103) var backupSources: List<BackupSource> = emptyList(),
     @ProtoNumber(104) var backupPreferences: List<BackupPreference> = emptyList(),
     @ProtoNumber(105) var backupSourcePreferences: List<BackupSourcePreferences> = emptyList(),
-    @ProtoNumber(106) var backupExtensionRepo: List<BackupExtensionRepos> = emptyList(),
+    @ProtoNumber(106) var backupExtensions: List<BackupExtension> = emptyList(),
+    @ProtoNumber(107) var backupExtensionRepo: List<BackupExtensionRepos> = emptyList(),
+    @ProtoNumber(109) var backupCustomButton: List<BackupCustomButtons> = emptyList(),
 )

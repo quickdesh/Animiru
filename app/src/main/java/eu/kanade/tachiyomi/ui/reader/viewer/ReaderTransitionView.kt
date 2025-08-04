@@ -33,11 +33,11 @@ class ReaderTransitionView @JvmOverloads constructor(context: Context, attrs: At
                 transition = transition,
                 currChapterDownloaded = transition.from.pageLoader?.isLocal == true,
                 goingToChapterDownloaded = anime.isLocal() ||
-                    transition.to?.chapter?.let { goingToChapter ->
+                    transition.to?.episode?.let { goingToChapter ->
                         downloadManager.isEpisodeDownloaded(
-                            chapterName = goingToChapter.name,
-                            chapterScanlator = goingToChapter.scanlator,
-                            mangaTitle = anime.title,
+                            episodeName = goingToChapter.name,
+                            episodeScanlator = goingToChapter.scanlator,
+                            animeTitle = anime.title,
                             sourceId = anime.source,
                             skipCache = true,
                         )

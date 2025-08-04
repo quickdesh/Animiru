@@ -32,11 +32,11 @@ class CoverCache(private val context: Context) {
     /**
      * Returns the cover from cache.
      *
-     * @param mangaThumbnailUrl thumbnail url for the manga.
+     * @param animeThumbnailUrl thumbnail url for the anime.
      * @return cover image.
      */
-    fun getCoverFile(mangaThumbnailUrl: String?): File? {
-        return mangaThumbnailUrl?.let {
+    fun getCoverFile(animeThumbnailUrl: String?): File? {
+        return animeThumbnailUrl?.let {
             File(cacheDir, DiskUtil.hashKeyForDisk(it))
         }
     }
@@ -44,17 +44,17 @@ class CoverCache(private val context: Context) {
     /**
      * Returns the custom cover from cache.
      *
-     * @param mangaId the manga id.
+     * @param animeId the anime id.
      * @return cover image.
      */
-    fun getCustomCoverFile(mangaId: Long?): File {
-        return File(customCoverCacheDir, DiskUtil.hashKeyForDisk(mangaId.toString()))
+    fun getCustomCoverFile(animeId: Long?): File {
+        return File(customCoverCacheDir, DiskUtil.hashKeyForDisk(animeId.toString()))
     }
 
     /**
-     * Saves the given stream as the manga's custom cover to cache.
+     * Saves the given stream as the anime's custom cover to cache.
      *
-     * @param anime the manga.
+     * @param anime the anime.
      * @param inputStream the stream to copy.
      * @throws IOException if there's any error.
      */
@@ -66,9 +66,9 @@ class CoverCache(private val context: Context) {
     }
 
     /**
-     * Delete the cover files of the manga from the cache.
+     * Delete the cover files of the anime from the cache.
      *
-     * @param anime the manga.
+     * @param anime the anime.
      * @param deleteCustomCover whether the custom cover should be deleted.
      * @return number of files that were deleted.
      */
@@ -87,13 +87,13 @@ class CoverCache(private val context: Context) {
     }
 
     /**
-     * Delete custom cover of the manga from the cache
+     * Delete custom cover of the anime from the cache
      *
-     * @param mangaId the manga id.
+     * @param animeId the anime id.
      * @return whether the cover was deleted.
      */
-    fun deleteCustomCover(mangaId: Long?): Boolean {
-        return getCustomCoverFile(mangaId).let {
+    fun deleteCustomCover(animeId: Long?): Boolean {
+        return getCustomCoverFile(animeId).let {
             it.exists() && it.delete()
         }
     }

@@ -16,17 +16,17 @@ fun Track.copyPersonalFrom(other: Track): Track {
 
 fun Track.toDbTrack(): DbTrack = DbTrack.create(trackerId).also {
     it.id = id
-    it.manga_id = animeId
+    it.anime_id = animeId
     it.remote_id = remoteId
     it.library_id = libraryId
     it.title = title
-    it.last_chapter_read = lastEpisodeSeen
-    it.total_chapters = totalEpisodes
+    it.last_episode_seen = lastEpisodeSeen
+    it.total_episodes = totalEpisodes
     it.status = status
     it.score = score
     it.tracking_url = remoteUrl
-    it.started_reading_date = startDate
-    it.finished_reading_date = finishDate
+    it.started_watching_date = startDate
+    it.finished_watching_date = finishDate
     it.private = private
 }
 
@@ -34,18 +34,18 @@ fun DbTrack.toDomainTrack(idRequired: Boolean = true): Track? {
     val trackId = id ?: if (!idRequired) -1 else return null
     return Track(
         id = trackId,
-        animeId = manga_id,
+        animeId = anime_id,
         trackerId = tracker_id,
         remoteId = remote_id,
         libraryId = library_id,
         title = title,
-        lastEpisodeSeen = last_chapter_read,
-        totalEpisodes = total_chapters,
+        lastEpisodeSeen = last_episode_seen,
+        totalEpisodes = total_episodes,
         status = status,
         score = score,
         remoteUrl = tracking_url,
-        startDate = started_reading_date,
-        finishDate = finished_reading_date,
+        startDate = started_watching_date,
+        finishDate = finished_watching_date,
         private = private,
     )
 }

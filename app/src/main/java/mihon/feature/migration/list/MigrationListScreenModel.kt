@@ -3,7 +3,7 @@ package mihon.feature.migration.list
 import androidx.annotation.FloatRange
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import eu.kanade.domain.episode.interactor.SyncChaptersWithSource
+import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.domain.source.service.SourcePreferences
@@ -50,7 +50,7 @@ class MigrationListScreenModel(
     private val getAnime: GetAnime = Injekt.get(),
     private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
     private val updateAnime: UpdateAnime = Injekt.get(),
-    private val syncChaptersWithSource: SyncChaptersWithSource = Injekt.get(),
+    private val syncEpisodesWithSource: SyncEpisodesWithSource = Injekt.get(),
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
     private val migrateManga: MigrateMangaUseCase = Injekt.get(),
 ) : StateScreenModel<MigrationListScreenModel.State>(State()) {
@@ -193,7 +193,7 @@ class MigrationListScreenModel(
             val localManga = networkToLocalAnime(searchResult)
             try {
                 val chapters = source.getEpisodeList(localManga.toSAnime())
-                syncChaptersWithSource.await(chapters, localManga, source)
+                syncEpisodesWithSource.await(chapters, localManga, source)
             } catch (e: Exception) {
                 logcat(LogPriority.ERROR, e)
             }
@@ -229,7 +229,7 @@ class MigrationListScreenModel(
                 try {
                     val source = sourceManager.get(manga.source)!!
                     val chapters = source.getEpisodeList(manga.toSAnime())
-                    syncChaptersWithSource.await(chapters, manga, source)
+                    syncEpisodesWithSource.await(chapters, manga, source)
                 } catch (_: Exception) {
                     return@async null
                 }

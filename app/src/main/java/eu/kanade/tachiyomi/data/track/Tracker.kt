@@ -34,9 +34,9 @@ interface Tracker {
 
     fun getStatus(status: Long): StringResource?
 
-    fun getReadingStatus(): Long
+    fun getWatchingStatus(): Long
 
-    fun getRereadingStatus(): Long
+    fun getRewatchingStatus(): Long
 
     fun getCompletionStatus(): Long
 
@@ -49,9 +49,9 @@ interface Tracker {
 
     fun displayScore(track: DomainTrack): String
 
-    suspend fun update(track: Track, didReadChapter: Boolean = false): Track
+    suspend fun update(track: Track, didWatchEpisode: Boolean = false): Track
 
-    suspend fun bind(track: Track, hasReadChapters: Boolean = false): Track
+    suspend fun bind(track: Track, hasSeenEpisodes: Boolean = false): Track
 
     suspend fun search(query: String): List<TrackSearch>
 
@@ -73,11 +73,11 @@ interface Tracker {
     fun saveCredentials(username: String, password: String)
 
     // TODO: move this to an interactor, and update all trackers based on common data
-    suspend fun register(item: Track, mangaId: Long)
+    suspend fun register(item: Track, animeId: Long)
 
     suspend fun setRemoteStatus(track: Track, status: Long)
 
-    suspend fun setRemoteLastChapterRead(track: Track, chapterNumber: Int)
+    suspend fun setRemoteLastEpisodeSeen(track: Track, episodeNumber: Int)
 
     suspend fun setRemoteScore(track: Track, scoreString: String)
 

@@ -41,11 +41,11 @@ object LibraryExporter {
             .count { it }
 
         val rows = buildList(favorites.size) {
-            favorites.forEach { manga ->
+            favorites.forEach { anime ->
                 buildList(columnSize) {
-                    if (options.includeTitle) add(manga.title)
-                    if (options.includeAuthor) add(manga.author)
-                    if (options.includeArtist) add(manga.artist)
+                    if (options.includeTitle) add(anime.title)
+                    if (options.includeAuthor) add(anime.author)
+                    if (options.includeArtist) add(anime.artist)
                 }
                     .let(::add)
             }

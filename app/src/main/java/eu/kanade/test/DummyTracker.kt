@@ -50,9 +50,9 @@ data class DummyTracker(
         else -> null
     }
 
-    override fun getReadingStatus(): Long = valReadingStatus
+    override fun getWatchingStatus(): Long = valReadingStatus
 
-    override fun getRereadingStatus(): Long = valRereadingStatus
+    override fun getRewatchingStatus(): Long = valRereadingStatus
 
     override fun getCompletionStatus(): Long = valCompletionStatus
 
@@ -67,12 +67,12 @@ data class DummyTracker(
 
     override suspend fun update(
         track: eu.kanade.tachiyomi.data.database.models.Track,
-        didReadChapter: Boolean,
+        didWatchEpisode: Boolean,
     ): eu.kanade.tachiyomi.data.database.models.Track = track
 
     override suspend fun bind(
         track: eu.kanade.tachiyomi.data.database.models.Track,
-        hasReadChapters: Boolean,
+        hasSeenEpisodes: Boolean,
     ): eu.kanade.tachiyomi.data.database.models.Track = track
 
     override suspend fun search(query: String): List<TrackSearch> = valSearchResults
@@ -93,7 +93,7 @@ data class DummyTracker(
 
     override suspend fun register(
         item: eu.kanade.tachiyomi.data.database.models.Track,
-        mangaId: Long,
+        animeId: Long,
     ) = Unit
 
     override suspend fun setRemoteStatus(
@@ -101,9 +101,9 @@ data class DummyTracker(
         status: Long,
     ) = Unit
 
-    override suspend fun setRemoteLastChapterRead(
+    override suspend fun setRemoteLastEpisodeSeen(
         track: eu.kanade.tachiyomi.data.database.models.Track,
-        chapterNumber: Int,
+        episodeNumber: Int,
     ) = Unit
 
     override suspend fun setRemoteScore(

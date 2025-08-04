@@ -98,13 +98,13 @@ class DownloadStore(
         val downloads = mutableListOf<Download>()
         if (objs.isNotEmpty()) {
             val cachedAnime = mutableMapOf<Long, Anime?>()
-            for ((mangaId, chapterId) in objs) {
-                val manga = cachedAnime.getOrPut(mangaId) {
-                    runBlocking { getAnime.await(mangaId) }
+            for ((animeId, episodeId) in objs) {
+                val anime = cachedAnime.getOrPut(animeId) {
+                    runBlocking { getAnime.await(animeId) }
                 } ?: continue
-                val source = sourceManager.get(manga.source) as? AnimeHttpSource ?: continue
-                val chapter = runBlocking { getEpisode.await(chapterId) } ?: continue
-                downloads.add(Download(source, manga, chapter))
+                val source = sourceManager.get(anime.source) as? AnimeHttpSource ?: continue
+                val episode = runBlocking { getEpisode.await(episodeId) } ?: continue
+                downloads.add(Download(source, anime, episode))
             }
         }
 
@@ -140,9 +140,9 @@ class DownloadStore(
 /**
  * Class used for download serialization
  *
- * @param mangaId the id of the manga.
- * @param chapterId the id of the chapter.
+ * @param animeId the id of the anime.
+ * @param episodeId the id of the episode.
  * @param order the order of the download in the queue.
  */
 @Serializable
-private data class DownloadObject(val mangaId: Long, val chapterId: Long, val order: Int)
+private data class DownloadObject(val animeId: Long, val episodeId: Long, val order: Int)

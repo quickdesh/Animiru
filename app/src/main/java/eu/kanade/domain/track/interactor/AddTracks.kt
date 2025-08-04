@@ -51,7 +51,7 @@ class AddTracks(
                     track = track.copy(
                         lastEpisodeSeen = latestLocalSeenEpisodeNumber,
                     )
-                    tracker.setRemoteLastChapterRead(track.toDbTrack(), latestLocalSeenEpisodeNumber.toInt())
+                    tracker.setRemoteLastEpisodeSeen(track.toDbTrack(), latestLocalSeenEpisodeNumber.toInt())
                 }
 
                 if (track.startDate <= 0) {
@@ -85,7 +85,7 @@ class AddTracks(
                 .forEach { service ->
                     try {
                         service.match(anime)?.let { track ->
-                            track.manga_id = anime.id
+                            track.anime_id = anime.id
                             (service as Tracker).bind(track)
                             insertTrack.await(track.toDomainTrack(idRequired = false)!!)
 

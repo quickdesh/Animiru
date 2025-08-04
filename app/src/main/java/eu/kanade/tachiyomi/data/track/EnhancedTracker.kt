@@ -31,12 +31,12 @@ interface EnhancedTracker {
     suspend fun match(anime: Anime): TrackSearch?
 
     /**
-     * Checks whether the provided source/track/manga triplet is from this [Tracker]
+     * Checks whether the provided source/track/anime triplet is from this [Tracker]
      */
     fun isTrackFrom(track: Track, anime: Anime, source: AnimeSource?): Boolean
 
     /**
-     * Migrates the given track for the manga to the newSource, if possible
+     * Migrates the given track for the anime to the newSource, if possible
      */
     fun migrateTrack(track: Track, anime: Anime, newSource: AnimeSource): Track?
 }

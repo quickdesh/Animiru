@@ -6,12 +6,12 @@ import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 fun Track.toApiStatus() = when (status) {
-    Anilist.READING -> "CURRENT"
+    Anilist.WATCHING -> "CURRENT"
     Anilist.COMPLETED -> "COMPLETED"
     Anilist.ON_HOLD -> "PAUSED"
     Anilist.DROPPED -> "DROPPED"
-    Anilist.PLAN_TO_READ -> "PLANNING"
-    Anilist.REREADING -> "REPEATING"
+    Anilist.PLAN_TO_WATCH -> "PLANNING"
+    Anilist.REWATCHING -> "REPEATING"
     else -> throw NotImplementedError("Unknown status: $status")
 }
 

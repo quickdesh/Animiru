@@ -3,7 +3,7 @@ package eu.kanade.tachiyomi.ui.reader.loader
 import android.app.Application
 import android.net.Uri
 import com.hippo.unifile.UniFile
-import eu.kanade.tachiyomi.data.database.models.toDomainChapter
+import eu.kanade.tachiyomi.data.database.models.toDomainEpisode
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.animesource.AnimeSource
@@ -32,8 +32,8 @@ internal class DownloadPageLoader(
     override var isLocal: Boolean = true
 
     override suspend fun getPages(): List<ReaderPage> {
-        val dbChapter = chapter.chapter
-        val chapterPath = downloadProvider.findChapterDir(dbChapter.name, dbChapter.scanlator, anime.title, source)
+        val dbChapter = chapter.episode
+        val chapterPath = downloadProvider.findEpisodeDir(dbChapter.name, dbChapter.scanlator, anime.title, source)
         return if (chapterPath?.isFile == true) {
             getPagesFromArchive(chapterPath)
         } else {
@@ -52,7 +52,7 @@ internal class DownloadPageLoader(
     }
 
     private fun getPagesFromDirectory(): List<ReaderPage> {
-        val pages = downloadManager.buildPageList(source, anime, chapter.chapter.toDomainChapter()!!)
+        val pages = downloadManager.buildVideo(source, anime, chapter.episode.toDomainEpisode()!!)
         return pages.map { page ->
             ReaderPage(page.index, page.url, page.imageUrl) {
                 context.contentResolver.openInputStream(page.uri ?: Uri.EMPTY)!!

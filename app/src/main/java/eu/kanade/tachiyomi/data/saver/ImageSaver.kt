@@ -153,6 +153,7 @@ sealed class Image(
         override val location: Location,
     ) : Image(name, location)
 
+    // TODO(mihon): Change to screenshot (?)
     data class Page(
         val inputStream: () -> InputStream,
         override val name: String,

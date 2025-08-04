@@ -8,7 +8,7 @@ interface Track : Serializable {
 
     var id: Long?
 
-    var manga_id: Long
+    var anime_id: Long
 
     var tracker_id: Long
 
@@ -18,28 +18,28 @@ interface Track : Serializable {
 
     var title: String
 
-    var last_chapter_read: Double
+    var last_episode_seen: Double
 
-    var total_chapters: Long
+    var total_episodes: Long
 
     var score: Double
 
     var status: Long
 
-    var started_reading_date: Long
+    var started_watching_date: Long
 
-    var finished_reading_date: Long
+    var finished_watching_date: Long
 
     var tracking_url: String
 
     var private: Boolean
 
     fun copyPersonalFrom(other: Track, copyRemotePrivate: Boolean = true) {
-        last_chapter_read = other.last_chapter_read
+        last_episode_seen = other.last_episode_seen
         score = other.score
         status = other.status
-        started_reading_date = other.started_reading_date
-        finished_reading_date = other.finished_reading_date
+        started_watching_date = other.started_watching_date
+        finished_watching_date = other.finished_watching_date
         if (copyRemotePrivate) private = other.private
     }
 

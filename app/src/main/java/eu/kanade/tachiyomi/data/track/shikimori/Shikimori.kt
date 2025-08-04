@@ -10,21 +10,21 @@ import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMOAuth
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
 
     companion object {
-        const val READING = 1L
+        const val WATCHING = 1L
         const val COMPLETED = 2L
         const val ON_HOLD = 3L
         const val DROPPED = 4L
-        const val PLAN_TO_READ = 5L
-        const val REREADING = 6L
+        const val PLAN_TO_WATCH = 5L
+        const val REWATCHING = 6L
 
         private val SCORE_LIST = IntRange(0, 10)
             .map(Int::toString)
@@ -44,42 +44,42 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
     }
 
     private suspend fun add(track: Track): Track {
-        return api.addLibManga(track, getUsername())
+        return api.addLibAnime(track, getUsername())
     }
 
-    override suspend fun update(track: Track, didReadChapter: Boolean): Track {
+    override suspend fun update(track: Track, didWatchEpisode: Boolean): Track {
         if (track.status != COMPLETED) {
-            if (didReadChapter) {
-                if (track.last_chapter_read.toLong() == track.total_chapters && track.total_chapters > 0) {
+            if (didWatchEpisode) {
+                if (track.last_episode_seen.toLong() == track.total_episodes && track.total_episodes > 0) {
                     track.status = COMPLETED
-                } else if (track.status != REREADING) {
-                    track.status = READING
+                } else if (track.status != REWATCHING) {
+                    track.status = WATCHING
                 }
             }
         }
 
-        return api.updateLibManga(track, getUsername())
+        return api.updateLibAnime(track, getUsername())
     }
 
     override suspend fun delete(track: DomainTrack) {
-        api.deleteLibManga(track)
+        api.deleteLibAnime(track)
     }
 
-    override suspend fun bind(track: Track, hasReadChapters: Boolean): Track {
-        val remoteTrack = api.findLibManga(track, getUsername())
+    override suspend fun bind(track: Track, hasSeenEpisodes: Boolean): Track {
+        val remoteTrack = api.findLibAnime(track, getUsername())
         return if (remoteTrack != null) {
             track.copyPersonalFrom(remoteTrack)
             track.library_id = remoteTrack.library_id
 
             if (track.status != COMPLETED) {
-                val isRereading = track.status == REREADING
-                track.status = if (!isRereading && hasReadChapters) READING else track.status
+                val isRewatching = track.status == REWATCHING
+                track.status = if (!isRewatching && hasSeenEpisodes) WATCHING else track.status
             }
 
             update(track)
         } else {
             // Set default fields if it's not found in the list
-            track.status = if (hasReadChapters) READING else PLAN_TO_READ
+            track.status = if (hasSeenEpisodes) WATCHING else PLAN_TO_WATCH
             track.score = 0.0
             add(track)
         }
@@ -90,11 +90,11 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
     }
 
     override suspend fun refresh(track: Track): Track {
-        api.findLibManga(track, getUsername())?.let { remoteTrack ->
+        api.findLibAnime(track, getUsername())?.let { remoteTrack ->
             track.library_id = remoteTrack.library_id
             track.copyPersonalFrom(remoteTrack)
-            track.total_chapters = remoteTrack.total_chapters
-        } ?: throw Exception("Could not find manga")
+            track.total_episodes = remoteTrack.total_episodes
+        } ?: throw Exception("Could not find anime")
         return track
     }
 
@@ -103,22 +103,22 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
     override fun getLogoColor() = Color.rgb(40, 40, 40)
 
     override fun getStatusList(): List<Long> {
-        return listOf(READING, COMPLETED, ON_HOLD, DROPPED, PLAN_TO_READ, REREADING)
+        return listOf(WATCHING, COMPLETED, ON_HOLD, DROPPED, PLAN_TO_WATCH, REWATCHING)
     }
 
     override fun getStatus(status: Long): StringResource? = when (status) {
-        READING -> MR.strings.reading
-        PLAN_TO_READ -> MR.strings.plan_to_read
+        WATCHING -> AYMR.strings.watching
+        PLAN_TO_WATCH -> AYMR.strings.plan_to_watch
         COMPLETED -> MR.strings.completed
         ON_HOLD -> MR.strings.on_hold
         DROPPED -> MR.strings.dropped
-        REREADING -> MR.strings.repeating
+        REWATCHING -> AYMR.strings.repeating_anime
         else -> null
     }
 
-    override fun getReadingStatus(): Long = READING
+    override fun getWatchingStatus(): Long = WATCHING
 
-    override fun getRereadingStatus(): Long = REREADING
+    override fun getRewatchingStatus(): Long = REWATCHING
 
     override fun getCompletionStatus(): Long = COMPLETED
 

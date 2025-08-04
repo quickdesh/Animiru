@@ -167,7 +167,7 @@ class ReaderActivity : BaseActivity() {
                 finish()
                 return
             }
-            NotificationReceiver.dismissNotification(this, manga.hashCode(), Notifications.ID_NEW_CHAPTERS)
+            NotificationReceiver.dismissNotification(this, manga.hashCode(), Notifications.ID_NEW_EPISODES)
 
             lifecycleScope.launchNonCancellable {
                 val initResult = viewModel.init(manga, chapter)
@@ -385,7 +385,7 @@ class ReaderActivity : BaseActivity() {
                 fullscreen = isFullscreen,
 
                 mangaTitle = state.anime?.title,
-                chapterTitle = state.currentChapter?.chapter?.name,
+                chapterTitle = state.currentChapter?.episode?.name,
                 navigateUp = onBackPressedDispatcher::onBackPressed,
                 onClickTopAppBar = ::openMangaScreen,
                 bookmarked = state.bookmarked,
@@ -728,7 +728,7 @@ class ReaderActivity : BaseActivity() {
      */
     private fun onShareImageResult(uri: Uri, page: ReaderPage) {
         val manga = viewModel.anime ?: return
-        val chapter = page.chapter.chapter
+        val chapter = page.chapter.episode
 
         val intent = uri.toShareIntent(
             context = applicationContext,

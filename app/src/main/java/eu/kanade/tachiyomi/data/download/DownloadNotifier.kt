@@ -16,11 +16,12 @@ import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notify
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.injectLazy
 import java.util.regex.Pattern
 
 /**
- * DownloadNotifier is used to show notifications when downloading one or multiple chapters.
+ * DownloadNotifier is used to show notifications when downloading one or multiple episodes.
  *
  * @param context context of application
  */
@@ -61,7 +62,7 @@ internal class DownloadNotifier(private val context: Context) {
      * those can only be dismissed by the user.
      */
     fun dismissProgress() {
-        context.cancelNotification(Notifications.ID_DOWNLOAD_CHAPTER_PROGRESS)
+        context.cancelNotification(Notifications.ID_DOWNLOAD_EPISODE_PROGRESS)
     }
 
     /**
@@ -77,10 +78,10 @@ internal class DownloadNotifier(private val context: Context) {
                 // Open download manager when clicked
                 setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))
                 isDownloading = true
-                // Pause action
+                // Stop action
                 addAction(
                     R.drawable.ic_pause_24dp,
-                    context.stringResource(MR.strings.action_pause),
+                    context.stringResource(AYMR.strings.action_stop),
                     NotificationReceiver.pauseDownloadsPendingBroadcast(context),
                 )
                 addAction(
@@ -90,11 +91,11 @@ internal class DownloadNotifier(private val context: Context) {
                 )
             }
 
-            val downloadingProgressText = context.stringResource(
-                MR.strings.chapter_downloading_progress,
-                download.downloadedImages,
-                download.pages!!.size,
-            )
+            val downloadingProgressText = if (download.progress == 0) {
+                context.stringResource(MR.strings.update_check_notification_download_in_progress)
+            } else {
+                context.stringResource(AYMR.strings.episode_downloading_progress, download.progress)
+            }
 
             if (preferences.hideNotificationContent().get()) {
                 setContentTitle(downloadingProgressText)
@@ -102,18 +103,18 @@ internal class DownloadNotifier(private val context: Context) {
             } else {
                 val title = download.anime.title.chop(15)
                 val quotedTitle = Pattern.quote(title)
-                val chapter = download.episode.name.replaceFirst(
+                val episode = download.episode.name.replaceFirst(
                     "$quotedTitle[\\s]*[-]*[\\s]*".toRegex(RegexOption.IGNORE_CASE),
                     "",
                 )
-                setContentTitle("$title - $chapter".chop(30))
+                setContentTitle("$title - $episode".chop(30))
                 setContentText(downloadingProgressText)
             }
 
-            setProgress(download.pages!!.size, download.downloadedImages, false)
+            setProgress(100, download.progress, download.progress == 0)
             setOngoing(true)
 
-            show(Notifications.ID_DOWNLOAD_CHAPTER_PROGRESS)
+            show(Notifications.ID_DOWNLOAD_EPISODE_PROGRESS)
         }
     }
 
@@ -143,7 +144,7 @@ internal class DownloadNotifier(private val context: Context) {
                 NotificationReceiver.clearDownloadsPendingBroadcast(context),
             )
 
-            show(Notifications.ID_DOWNLOAD_CHAPTER_PROGRESS)
+            show(Notifications.ID_DOWNLOAD_EPISODE_PROGRESS)
         }
 
         // Reset initial values
@@ -165,10 +166,10 @@ internal class DownloadNotifier(private val context: Context) {
      *
      * @param reason the text to show.
      * @param timeout duration after which to automatically dismiss the notification.
-     * @param mangaId the id of the entry being warned about
+     * @param animeId the id of the entry being warned about
      * Only works on Android 8+.
      */
-    fun onWarning(reason: String, timeout: Long? = null, contentIntent: PendingIntent? = null, mangaId: Long? = null) {
+    fun onWarning(reason: String, timeout: Long? = null, contentIntent: PendingIntent? = null, animeId: Long? = null) {
         with(errorNotificationBuilder) {
             setContentTitle(context.stringResource(MR.strings.download_notifier_downloader_title))
             setStyle(NotificationCompat.BigTextStyle().bigText(reason))
@@ -176,18 +177,18 @@ internal class DownloadNotifier(private val context: Context) {
             setAutoCancel(true)
             clearActions()
             setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))
-            if (mangaId != null) {
+            if (animeId != null) {
                 addAction(
                     R.drawable.ic_book_24dp,
                     context.stringResource(MR.strings.action_show_manga),
-                    NotificationReceiver.openEntryPendingActivity(context, mangaId),
+                    NotificationReceiver.openEntryPendingActivity(context, animeId),
                 )
             }
             setProgress(0, 0, false)
             timeout?.let { setTimeoutAfter(it) }
             contentIntent?.let { setContentIntent(it) }
 
-            show(Notifications.ID_DOWNLOAD_CHAPTER_ERROR)
+            show(Notifications.ID_DOWNLOAD_EPISODE_ERROR)
         }
 
         // Reset download information
@@ -199,29 +200,29 @@ internal class DownloadNotifier(private val context: Context) {
      * being overwritten.
      *
      * @param error string containing error information.
-     * @param chapter string containing chapter title.
-     * @param mangaId the id of the entry that the error occurred on
+     * @param episode string containing episode title.
+     * @param animeId the id of the entry that the error occurred on
      */
-    fun onError(error: String? = null, chapter: String? = null, mangaTitle: String? = null, mangaId: Long? = null) {
+    fun onError(error: String? = null, episode: String? = null, animeTitle: String? = null, animeId: Long? = null) {
         // Create notification
         with(errorNotificationBuilder) {
             setContentTitle(
-                mangaTitle?.plus(": $chapter") ?: context.stringResource(MR.strings.download_notifier_downloader_title),
+                animeTitle?.plus(": $episode") ?: context.stringResource(MR.strings.download_notifier_downloader_title),
             )
             setContentText(error ?: context.stringResource(MR.strings.download_notifier_unknown_error))
             setSmallIcon(R.drawable.ic_warning_white_24dp)
             clearActions()
             setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))
-            if (mangaId != null) {
+            if (animeId != null) {
                 addAction(
                     R.drawable.ic_book_24dp,
                     context.stringResource(MR.strings.action_show_manga),
-                    NotificationReceiver.openEntryPendingActivity(context, mangaId),
+                    NotificationReceiver.openEntryPendingActivity(context, animeId),
                 )
             }
             setProgress(0, 0, false)
 
-            show(Notifications.ID_DOWNLOAD_CHAPTER_ERROR)
+            show(Notifications.ID_DOWNLOAD_EPISODE_ERROR)
         }
 
         // Reset download information

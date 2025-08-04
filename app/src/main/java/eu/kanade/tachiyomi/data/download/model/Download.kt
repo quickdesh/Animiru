@@ -1,15 +1,9 @@
 package eu.kanade.tachiyomi.data.download.model
 
-import eu.kanade.tachiyomi.animesource.model.Page
+import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import tachiyomi.domain.episode.interactor.GetEpisode
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.anime.interactor.GetAnime
@@ -22,14 +16,9 @@ data class Download(
     val source: AnimeHttpSource,
     val anime: Anime,
     val episode: Episode,
+    val changeDownloader: Boolean = false,
+    var video: Video? = null,
 ) {
-    var pages: List<Page>? = null
-
-    val totalProgress: Int
-        get() = pages?.sumOf(Page::progress) ?: 0
-
-    val downloadedImages: Int
-        get() = pages?.count { it.status == Page.State.Ready } ?: 0
 
     @Transient
     private val _statusFlow = MutableStateFlow(State.NOT_DOWNLOADED)
@@ -43,24 +32,14 @@ data class Download(
         }
 
     @Transient
-    val progressFlow = flow {
-        if (pages == null) {
-            emit(0)
-            while (pages == null) {
-                delay(50)
-            }
-        }
+    private val progressStateFlow = MutableStateFlow(0)
 
-        val progressFlows = pages!!.map(Page::progressFlow)
-        emitAll(combine(progressFlows) { it.average().toInt() })
-    }
-        .distinctUntilChanged()
-        .debounce(50)
-
-    val progress: Int
-        get() {
-            val pages = pages ?: return 0
-            return pages.map(Page::progress).average().toInt()
+    @Transient
+    val progressFlow = progressStateFlow.asStateFlow()
+    var progress: Int
+        get() = progressStateFlow.value
+        set(value) {
+            progressStateFlow.value = value
         }
 
     enum class State(val value: Int) {
@@ -72,17 +51,17 @@ data class Download(
     }
 
     companion object {
-        suspend fun fromChapterId(
-            chapterId: Long,
+        suspend fun fromEpisodeId(
+            episodeId: Long,
             getEpisode: GetEpisode = Injekt.get(),
             getAnime: GetAnime = Injekt.get(),
             sourceManager: SourceManager = Injekt.get(),
         ): Download? {
-            val chapter = getEpisode.await(chapterId) ?: return null
-            val manga = getAnime.await(chapter.animeId) ?: return null
-            val source = sourceManager.get(manga.source) as? AnimeHttpSource ?: return null
+            val episode = getEpisode.await(episodeId) ?: return null
+            val anime = getAnime.await(episode.animeId) ?: return null
+            val source = sourceManager.get(anime.source) as? AnimeHttpSource ?: return null
 
-            return Download(source, manga, chapter)
+            return Download(source, anime, episode)
         }
     }
 }

@@ -11,6 +11,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
@@ -31,39 +32,39 @@ class Bangumi(id: Long) : BaseTracker(id, "Bangumi") {
     }
 
     private suspend fun add(track: Track): Track {
-        return api.addLibManga(track)
+        return api.addLibAnime(track)
     }
 
-    override suspend fun update(track: Track, didReadChapter: Boolean): Track {
+    override suspend fun update(track: Track, didWatchEpisode: Boolean): Track {
         if (track.status != COMPLETED) {
-            if (didReadChapter) {
-                if (track.last_chapter_read.toLong() == track.total_chapters && track.total_chapters > 0) {
+            if (didWatchEpisode) {
+                if (track.last_episode_seen.toLong() == track.total_episodes && track.total_episodes > 0) {
                     track.status = COMPLETED
                 } else {
-                    track.status = READING
+                    track.status = WATCHING
                 }
             }
         }
 
-        return api.updateLibManga(track)
+        return api.updateLibAnime(track)
     }
 
-    override suspend fun bind(track: Track, hasReadChapters: Boolean): Track {
-        val statusTrack = api.statusLibManga(track, getUsername())
+    override suspend fun bind(track: Track, hasSeenEpisodes: Boolean): Track {
+        val statusTrack = api.statusLibAnime(track, getUsername())
         return if (statusTrack != null) {
             track.copyPersonalFrom(statusTrack, copyRemotePrivate = false)
             track.library_id = statusTrack.library_id
             track.score = statusTrack.score
-            track.last_chapter_read = statusTrack.last_chapter_read
-            track.total_chapters = statusTrack.total_chapters
+            track.last_episode_seen = statusTrack.last_episode_seen
+            track.total_episodes = statusTrack.total_episodes
             if (track.status != COMPLETED) {
-                track.status = if (hasReadChapters) READING else statusTrack.status
+                track.status = if (hasSeenEpisodes) WATCHING else statusTrack.status
             }
 
             update(track)
         } else {
             // Set default fields if it's not found in the list
-            track.status = if (hasReadChapters) READING else PLAN_TO_READ
+            track.status = if (hasSeenEpisodes) WATCHING else PLAN_TO_WATCH
             track.score = 0.0
             add(track)
         }
@@ -74,7 +75,7 @@ class Bangumi(id: Long) : BaseTracker(id, "Bangumi") {
     }
 
     override suspend fun refresh(track: Track): Track {
-        val remoteStatusTrack = api.statusLibManga(track, getUsername()) ?: throw Exception("Could not find manga")
+        val remoteStatusTrack = api.statusLibAnime(track, getUsername()) ?: throw Exception("Could not find anime")
         track.copyPersonalFrom(remoteStatusTrack)
         return track
     }
@@ -84,21 +85,21 @@ class Bangumi(id: Long) : BaseTracker(id, "Bangumi") {
     override fun getLogoColor() = Color.rgb(240, 145, 153)
 
     override fun getStatusList(): List<Long> {
-        return listOf(READING, COMPLETED, ON_HOLD, DROPPED, PLAN_TO_READ)
+        return listOf(WATCHING, COMPLETED, ON_HOLD, DROPPED, PLAN_TO_WATCH)
     }
 
     override fun getStatus(status: Long): StringResource? = when (status) {
-        READING -> MR.strings.reading
-        PLAN_TO_READ -> MR.strings.plan_to_read
+        WATCHING -> AYMR.strings.watching
+        PLAN_TO_WATCH -> AYMR.strings.plan_to_watch
         COMPLETED -> MR.strings.completed
         ON_HOLD -> MR.strings.on_hold
         DROPPED -> MR.strings.dropped
         else -> null
     }
 
-    override fun getReadingStatus(): Long = READING
+    override fun getWatchingStatus(): Long = WATCHING
 
-    override fun getRereadingStatus(): Long = -1
+    override fun getRewatchingStatus(): Long = -1
 
     override fun getCompletionStatus(): Long = COMPLETED
 
@@ -137,9 +138,9 @@ class Bangumi(id: Long) : BaseTracker(id, "Bangumi") {
     }
 
     companion object {
-        const val PLAN_TO_READ = 1L
+        const val PLAN_TO_WATCH = 1L
         const val COMPLETED = 2L
-        const val READING = 3L
+        const val WATCHING = 3L
         const val ON_HOLD = 4L
         const val DROPPED = 5L
 

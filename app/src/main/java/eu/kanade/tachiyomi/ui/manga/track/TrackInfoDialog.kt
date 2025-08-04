@@ -372,7 +372,7 @@ private data class TrackChapterSelectorScreen(
 
         fun setChapter() {
             screenModelScope.launchNonCancellable {
-                tracker.setRemoteLastChapterRead(track.toDbTrack(), state.value.selection)
+                tracker.setRemoteLastEpisodeSeen(track.toDbTrack(), state.value.selection)
             }
         }
 

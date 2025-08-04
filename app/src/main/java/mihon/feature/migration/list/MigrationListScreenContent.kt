@@ -53,7 +53,7 @@ import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.manga.components.MangaCover
 import eu.kanade.presentation.util.animateItemFastScroll
-import eu.kanade.presentation.util.formatChapterNumber
+import eu.kanade.presentation.util.formatEpisodeNumber
 import eu.kanade.presentation.util.rememberResourceBitmapPainter
 import eu.kanade.tachiyomi.R
 import kotlinx.collections.immutable.ImmutableList
@@ -234,7 +234,7 @@ fun MigrationListItem(
                 style = MaterialTheme.typography.titleSmall,
             )
             val formattedLatestChapters = remember(latestChapter) {
-                latestChapter?.let(::formatChapterNumber)
+                latestChapter?.let(::formatEpisodeNumber)
             }
             Text(
                 text = stringResource(

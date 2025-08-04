@@ -52,12 +52,12 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
 
     private val notifier = LibraryUpdateNotifier(context)
 
-    private var mangaToUpdate: List<LibraryAnime> = mutableListOf()
+    private var animeToUpdate: List<LibraryAnime> = mutableListOf()
 
     override suspend fun doWork(): Result {
         setForegroundSafely()
 
-        addMangaToQueue()
+        addAnimeToQueue()
 
         return withIOContext {
             try {
@@ -91,11 +91,11 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
     }
 
     /**
-     * Adds list of manga to be updated.
+     * Adds list of anime to be updated.
      */
-    private suspend fun addMangaToQueue() {
-        mangaToUpdate = getLibraryAnime.await()
-        notifier.showQueueSizeWarningNotificationIfNeeded(mangaToUpdate)
+    private suspend fun addAnimeToQueue() {
+        animeToUpdate = getLibraryAnime.await()
+        notifier.showQueueSizeWarningNotificationIfNeeded(animeToUpdate)
     }
 
     private suspend fun updateMetadata() {
@@ -104,29 +104,29 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
         val currentlyUpdatingAnime = CopyOnWriteArrayList<Anime>()
 
         coroutineScope {
-            mangaToUpdate.groupBy { it.anime.source }
+            animeToUpdate.groupBy { it.anime.source }
                 .values
-                .map { mangaInSource ->
+                .map { animeInSource ->
                     async {
                         semaphore.withPermit {
-                            mangaInSource.forEach { libraryManga ->
-                                val manga = libraryManga.anime
+                            animeInSource.forEach { libraryAnime ->
+                                val anime = libraryAnime.anime
                                 ensureActive()
 
                                 withUpdateNotification(
                                     currentlyUpdatingAnime,
                                     progressCount,
-                                    manga,
+                                    anime,
                                 ) {
-                                    val source = sourceManager.get(manga.source) ?: return@withUpdateNotification
+                                    val source = sourceManager.get(anime.source) ?: return@withUpdateNotification
                                     try {
-                                        val networkManga = source.getAnimeDetails(manga.toSAnime())
-                                        val updatedManga = manga.prepUpdateCover(coverCache, networkManga, true)
-                                            .copyFrom(networkManga)
+                                        val networkAnime = source.getAnimeDetails(anime.toSAnime())
+                                        val updatedAnime = anime.prepUpdateCover(coverCache, networkAnime, true)
+                                            .copyFrom(networkAnime)
                                         try {
-                                            updateAnime.await(updatedManga.toAnimeUpdate())
+                                            updateAnime.await(updatedAnime.toAnimeUpdate())
                                         } catch (e: Exception) {
-                                            logcat(LogPriority.ERROR) { "Manga doesn't exist anymore" }
+                                            logcat(LogPriority.ERROR) { "Anime doesn't exist anymore" }
                                         }
                                     } catch (e: Throwable) {
                                         // Ignore errors and continue
@@ -155,7 +155,7 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
         notifier.showProgressNotification(
             updatingAnime,
             completed.load(),
-            mangaToUpdate.size,
+            animeToUpdate.size,
         )
 
         block()
@@ -167,7 +167,7 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
         notifier.showProgressNotification(
             updatingAnime,
             completed.load(),
-            mangaToUpdate.size,
+            animeToUpdate.size,
         )
     }
 
@@ -175,7 +175,7 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
         private const val TAG = "MetadataUpdate"
         private const val WORK_NAME_MANUAL = "MetadataUpdate"
 
-        private const val MANGA_PER_SOURCE_QUEUE_WARNING_THRESHOLD = 60
+        private const val ANIME_PER_SOURCE_QUEUE_WARNING_THRESHOLD = 60
 
         fun startNow(context: Context): Boolean {
             val wm = context.workManager

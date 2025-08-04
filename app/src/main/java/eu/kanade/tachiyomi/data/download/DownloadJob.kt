@@ -43,7 +43,7 @@ class DownloadJob(context: Context, workerParams: WorkerParameters) : CoroutineW
             setSmallIcon(android.R.drawable.stat_sys_download)
         }.build()
         return ForegroundInfo(
-            Notifications.ID_DOWNLOAD_CHAPTER_PROGRESS,
+            Notifications.ID_DOWNLOAD_EPISODE_PROGRESS,
             notification,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC

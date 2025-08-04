@@ -1,6 +1,6 @@
 package mihon.domain.migration.usecases
 
-import eu.kanade.domain.episode.interactor.SyncChaptersWithSource
+import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.anime.model.hasCustomCover
 import eu.kanade.domain.anime.model.toSAnime
@@ -30,7 +30,7 @@ class MigrateMangaUseCase(
     private val downloadManager: DownloadManager,
     private val updateAnime: UpdateAnime,
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
-    private val syncChaptersWithSource: SyncChaptersWithSource,
+    private val syncEpisodesWithSource: SyncEpisodesWithSource,
     private val updateEpisode: UpdateEpisode,
     private val getCategories: GetCategories,
     private val setAnimeCategories: SetAnimeCategories,
@@ -49,7 +49,7 @@ class MigrateMangaUseCase(
             val chapters = targetSource.getEpisodeList(target.toSAnime())
 
             try {
-                syncChaptersWithSource.await(chapters, target, targetSource)
+                syncEpisodesWithSource.await(chapters, target, targetSource)
             } catch (_: Exception) {
                 // Worst case, chapters won't be synced
             }
@@ -112,7 +112,7 @@ class MigrateMangaUseCase(
 
             // Delete downloaded
             if (MigrationFlag.REMOVE_DOWNLOAD in flags && currentSource != null) {
-                downloadManager.deleteManga(current, currentSource)
+                downloadManager.deleteAnime(current, currentSource)
             }
 
             // Update custom cover (recheck if custom cover exists)

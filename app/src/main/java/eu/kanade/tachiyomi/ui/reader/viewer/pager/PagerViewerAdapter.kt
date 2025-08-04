@@ -166,7 +166,7 @@ class PagerViewerAdapter(private val viewer: PagerViewer) : ViewPagerAdapter() {
         val currentIndex = items.indexOf(currentPage)
 
         // Put aside preprocessed pages for next chapter so they don't get removed when changing chapter
-        if (currentPage.chapter.chapter.id != currentChapter?.chapter?.id) {
+        if (currentPage.chapter.episode.id != currentChapter?.episode?.id) {
             preprocessed[newPage.index] = newPage
             return
         }

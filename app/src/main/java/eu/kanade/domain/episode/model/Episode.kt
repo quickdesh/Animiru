@@ -3,7 +3,7 @@ package eu.kanade.domain.episode.model
 import eu.kanade.tachiyomi.data.database.models.EpisodeImpl
 import eu.kanade.tachiyomi.animesource.model.SEpisode
 import tachiyomi.domain.episode.model.Episode
-import eu.kanade.tachiyomi.data.database.models.Chapter as DbChapter
+import eu.kanade.tachiyomi.data.database.models.Episode as DbChapter
 
 // TODO: Remove when all deps are migrated
 fun Episode.toSEpisode(): SEpisode {
@@ -28,16 +28,16 @@ fun Episode.copyFromSEpisode(sEpisode: SEpisode): Episode {
 
 fun Episode.toDbEpisode(): DbChapter = EpisodeImpl().also {
     it.id = id
-    it.manga_id = animeId
+    it.anime_id = animeId
     it.url = url
     it.name = name
     it.scanlator = scanlator
-    it.read = seen
+    it.seen = seen
     it.bookmark = bookmark
     // AM (FILLERMARK) -->
     it.fillermark = fillermark
     // <-- AM (FILLERMARK)
-    it.last_page_read = lastSecondSeen.toInt()
+    it.last_second_seen = lastSecondSeen.toInt()
     it.date_fetch = dateFetch
     it.date_upload = dateUpload
     it.episode_number = episodeNumber.toFloat()

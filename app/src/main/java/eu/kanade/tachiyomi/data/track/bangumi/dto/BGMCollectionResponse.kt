@@ -17,9 +17,9 @@ data class BGMCollectionResponse(
     val subject: BGMSlimSubject? = null,
 ) {
     fun getStatus(): Long = when (type) {
-        1 -> Bangumi.PLAN_TO_READ
+        1 -> Bangumi.PLAN_TO_WATCH
         2 -> Bangumi.COMPLETED
-        3 -> Bangumi.READING
+        3 -> Bangumi.WATCHING
         4 -> Bangumi.ON_HOLD
         5 -> Bangumi.DROPPED
         else -> throw NotImplementedError("Unknown status: $type")

@@ -15,8 +15,8 @@ import eu.kanade.core.preference.asState
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
 import eu.kanade.domain.episode.interactor.GetAvailableScanlators
-import eu.kanade.domain.episode.interactor.SetReadStatus
-import eu.kanade.domain.episode.interactor.SyncChaptersWithSource
+import eu.kanade.domain.episode.interactor.SetSeenStatus
+import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.anime.interactor.GetExcludedScanlators
 import eu.kanade.domain.anime.interactor.SetExcludedScanlators
 import eu.kanade.domain.anime.interactor.UpdateAnime
@@ -110,10 +110,10 @@ class MangaScreenModel(
     private val setExcludedScanlators: SetExcludedScanlators = Injekt.get(),
     private val setAnimeEpisodeFlags: SetAnimeEpisodeFlags = Injekt.get(),
     private val setAnimeDefaultEpisodeFlags: SetAnimeDefaultEpisodeFlags = Injekt.get(),
-    private val setReadStatus: SetReadStatus = Injekt.get(),
+    private val setSeenStatus: SetSeenStatus = Injekt.get(),
     private val updateEpisode: UpdateEpisode = Injekt.get(),
     private val updateAnime: UpdateAnime = Injekt.get(),
-    private val syncChaptersWithSource: SyncChaptersWithSource = Injekt.get(),
+    private val syncEpisodesWithSource: SyncEpisodesWithSource = Injekt.get(),
     private val getCategories: GetCategories = Injekt.get(),
     private val getTracks: GetTracks = Injekt.get(),
     private val addTracks: AddTracks = Injekt.get(),
@@ -415,7 +415,7 @@ class MangaScreenModel(
      */
     private fun deleteDownloads() {
         val state = successState ?: return
-        downloadManager.deleteManga(state.anime, state.source)
+        downloadManager.deleteAnime(state.anime, state.source)
     }
 
     /**
@@ -553,7 +553,7 @@ class MangaScreenModel(
             withIOContext {
                 val chapters = state.source.getEpisodeList(state.anime.toSAnime())
 
-                val newChapters = syncChaptersWithSource.await(
+                val newChapters = syncEpisodesWithSource.await(
                     chapters,
                     state.anime,
                     state.source,
@@ -735,8 +735,8 @@ class MangaScreenModel(
         toggleAllSelection(false)
         if (episodes.isEmpty()) return
         screenModelScope.launchIO {
-            setReadStatus.await(
-                read = read,
+            setSeenStatus.await(
+                seen = read,
                 episodes = episodes.toTypedArray(),
             )
 
@@ -799,7 +799,7 @@ class MangaScreenModel(
      */
     private fun downloadChapters(episodes: List<Episode>) {
         val manga = successState?.anime ?: return
-        downloadManager.downloadChapters(manga, episodes)
+        downloadManager.downloadEpisodes(manga, episodes)
         toggleAllSelection(false)
     }
 

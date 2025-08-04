@@ -16,15 +16,15 @@ data class BackupTracking(
     // trackingUrl is called mediaUrl in 1.x
     @ProtoNumber(4) var trackingUrl: String = "",
     @ProtoNumber(5) var title: String = "",
-    // lastChapterRead is called last read, and it has been changed to a float in 1.x
-    @ProtoNumber(6) var lastChapterRead: Float = 0F,
-    @ProtoNumber(7) var totalChapters: Int = 0,
+    // lastEpisodeSeen is called last seen, and it has been changed to a float in 1.x
+    @ProtoNumber(6) var lastEpisodeSeen: Float = 0F,
+    @ProtoNumber(7) var totalEpisodes: Int = 0,
     @ProtoNumber(8) var score: Float = 0F,
     @ProtoNumber(9) var status: Int = 0,
-    // startedReadingDate is called startReadTime in 1.x
-    @ProtoNumber(10) var startedReadingDate: Long = 0,
-    // finishedReadingDate is called endReadTime in 1.x
-    @ProtoNumber(11) var finishedReadingDate: Long = 0,
+    // startedWatchingDate is called startWatchTime in 1.x
+    @ProtoNumber(10) var startedWatchingDate: Long = 0,
+    // finishedWatchingDate is called endWatchTime in 1.x
+    @ProtoNumber(11) var finishedWatchingDate: Long = 0,
     @ProtoNumber(12) var private: Boolean = false,
     @ProtoNumber(100) var mediaId: Long = 0,
 ) {
@@ -42,12 +42,12 @@ data class BackupTracking(
             },
             libraryId = this@BackupTracking.libraryId,
             title = this@BackupTracking.title,
-            lastEpisodeSeen = this@BackupTracking.lastChapterRead.toDouble(),
-            totalEpisodes = this@BackupTracking.totalChapters.toLong(),
+            lastEpisodeSeen = this@BackupTracking.lastEpisodeSeen.toDouble(),
+            totalEpisodes = this@BackupTracking.totalEpisodes.toLong(),
             score = this@BackupTracking.score.toDouble(),
             status = this@BackupTracking.status.toLong(),
-            startDate = this@BackupTracking.startedReadingDate,
-            finishDate = this@BackupTracking.finishedReadingDate,
+            startDate = this@BackupTracking.startedWatchingDate,
+            finishDate = this@BackupTracking.finishedWatchingDate,
             remoteUrl = this@BackupTracking.trackingUrl,
             private = this@BackupTracking.private,
         )
@@ -61,8 +61,8 @@ val backupTrackMapper = {
         mediaId: Long,
         libraryId: Long?,
         title: String,
-        lastChapterRead: Double,
-        totalChapters: Long,
+        lastEpisodeSeen: Double,
+        totalEpisodes: Long,
         status: Long,
         score: Double,
         remoteUrl: String,
@@ -76,12 +76,12 @@ val backupTrackMapper = {
         // forced not null so its compatible with 1.x backup system
         libraryId = libraryId ?: 0,
         title = title,
-        lastChapterRead = lastChapterRead.toFloat(),
-        totalChapters = totalChapters.toInt(),
+        lastEpisodeSeen = lastEpisodeSeen.toFloat(),
+        totalEpisodes = totalEpisodes.toInt(),
         score = score.toFloat(),
         status = status.toInt(),
-        startedReadingDate = startDate,
-        finishedReadingDate = finishDate,
+        startedWatchingDate = startDate,
+        finishedWatchingDate = finishDate,
         trackingUrl = remoteUrl,
         private = private,
     )

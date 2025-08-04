@@ -2,11 +2,11 @@
 
 package eu.kanade.tachiyomi.data.database.models
 
-class EpisodeImpl : Chapter {
+class EpisodeImpl : Episode {
 
     override var id: Long? = null
 
-    override var manga_id: Long? = null
+    override var anime_id: Long? = null
 
     override lateinit var url: String
 
@@ -14,11 +14,17 @@ class EpisodeImpl : Chapter {
 
     override var scanlator: String? = null
 
-    override var read: Boolean = false
+    override var seen: Boolean = false
 
     override var bookmark: Boolean = false
 
-    override var last_page_read: Int = 0
+    // AM (FILLERMARK) -->
+    override var fillermark: Boolean = false
+    // <-- AM (FILLERMARK)
+
+    override var last_second_seen: Long = 0
+
+    override var total_seconds: Long = 0
 
     override var date_fetch: Long = 0
 
@@ -36,9 +42,9 @@ class EpisodeImpl : Chapter {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
 
-        val chapter = other as Chapter
-        if (url != chapter.url) return false
-        return id == chapter.id
+        val episode = other as Episode
+        if (url != episode.url) return false
+        return id == episode.id
     }
 
     override fun hashCode(): Int {

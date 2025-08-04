@@ -8,20 +8,20 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SMUserListEntry(
     val id: Long,
-    val chapters: Double,
+    val episodes: Double,
     val score: Int,
     val status: String,
 ) {
-    fun toTrack(trackId: Long, manga: SMManga): Track {
+    fun toTrack(trackId: Long, anime: SMAnime): Track {
         return Track.create(trackId).apply {
-            title = manga.name
+            title = anime.name
             remote_id = this@SMUserListEntry.id
-            total_chapters = manga.chapters
+            total_episodes = anime.episodes
             library_id = this@SMUserListEntry.id
-            last_chapter_read = this@SMUserListEntry.chapters
+            last_episode_seen = this@SMUserListEntry.episodes
             score = this@SMUserListEntry.score.toDouble()
             status = toTrackStatus(this@SMUserListEntry.status)
-            tracking_url = ShikimoriApi.BASE_URL + manga.url
+            tracking_url = ShikimoriApi.BASE_URL + anime.url
         }
     }
 }

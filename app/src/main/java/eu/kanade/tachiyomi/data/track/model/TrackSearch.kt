@@ -8,7 +8,7 @@ class TrackSearch : Track {
 
     override var id: Long? = null
 
-    override var manga_id: Long = 0
+    override var anime_id: Long = 0
 
     override var tracker_id: Long = 0
 
@@ -18,17 +18,17 @@ class TrackSearch : Track {
 
     override lateinit var title: String
 
-    override var last_chapter_read: Double = 0.0
+    override var last_episode_seen: Double = 0.0
 
-    override var total_chapters: Long = 0
+    override var total_episodes: Long = 0
 
     override var score: Double = -1.0
 
     override var status: Long = 0
 
-    override var started_reading_date: Long = 0
+    override var started_watching_date: Long = 0
 
-    override var finished_reading_date: Long = 0
+    override var finished_watching_date: Long = 0
 
     override var private: Boolean = false
 
@@ -54,7 +54,7 @@ class TrackSearch : Track {
 
         other as TrackSearch
 
-        if (manga_id != other.manga_id) return false
+        if (anime_id != other.anime_id) return false
         if (tracker_id != other.tracker_id) return false
         if (remote_id != other.remote_id) return false
 
@@ -62,7 +62,7 @@ class TrackSearch : Track {
     }
 
     override fun hashCode(): Int {
-        var result = manga_id.hashCode()
+        var result = anime_id.hashCode()
         result = 31 * result + tracker_id.hashCode()
         result = 31 * result + remote_id.hashCode()
         return result

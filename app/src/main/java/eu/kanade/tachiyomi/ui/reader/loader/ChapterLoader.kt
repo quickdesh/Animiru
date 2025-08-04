@@ -39,7 +39,7 @@ class ChapterLoader(
 
         chapter.state = ReaderChapter.State.Loading
         withIOContext {
-            logcat { "Loading pages for ${chapter.chapter.name}" }
+            logcat { "Loading pages for ${chapter.episode.name}" }
             try {
                 val loader = getPageLoader(chapter)
                 chapter.pageLoader = loader
@@ -53,8 +53,8 @@ class ChapterLoader(
 
                 // If the chapter is partially read, set the starting page to the last the user read
                 // otherwise use the requested page.
-                if (!chapter.chapter.read) {
-                    chapter.requestedPage = chapter.chapter.last_page_read
+                if (!chapter.episode.seen) {
+                    chapter.requestedPage = chapter.episode.last_second_seen
                 }
 
                 chapter.state = ReaderChapter.State.Loaded(pages)
@@ -76,7 +76,7 @@ class ChapterLoader(
      * Returns the page loader to use for this [chapter].
      */
     private fun getPageLoader(chapter: ReaderChapter): PageLoader {
-        val dbChapter = chapter.chapter
+        val dbChapter = chapter.episode
         val isDownloaded = downloadManager.isEpisodeDownloaded(
             dbChapter.name,
             dbChapter.scanlator,
@@ -92,7 +92,7 @@ class ChapterLoader(
                 downloadManager,
                 downloadProvider,
             )
-            source is LocalSource -> source.getFormat(chapter.chapter).let { format ->
+            source is LocalSource -> source.getFormat(chapter.episode).let { format ->
                 when (format) {
                     is Format.Directory -> DirectoryPageLoader(format.file)
                     is Format.Archive -> ArchivePageLoader(format.file.archiveReader(context))

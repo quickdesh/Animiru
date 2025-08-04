@@ -2,8 +2,8 @@ package eu.kanade.domain
 
 import android.app.Application
 import eu.kanade.domain.episode.interactor.GetAvailableScanlators
-import eu.kanade.domain.episode.interactor.SetReadStatus
-import eu.kanade.domain.episode.interactor.SyncChaptersWithSource
+import eu.kanade.domain.episode.interactor.SetSeenStatus
+import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.download.interactor.DeleteDownload
 import eu.kanade.domain.extension.interactor.GetExtensionLanguages
 import eu.kanade.domain.extension.interactor.GetExtensionSources
@@ -171,9 +171,9 @@ class DomainModule : InjektModule {
         addFactory { GetEpisodesByAnimeId(get()) }
         addFactory { GetEpisodeByUrlAndAnimeId(get()) }
         addFactory { UpdateEpisode(get()) }
-        addFactory { SetReadStatus(get(), get(), get(), get()) }
+        addFactory { SetSeenStatus(get(), get(), get(), get()) }
         addFactory { ShouldUpdateDbEpisode() }
-        addFactory { SyncChaptersWithSource(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+        addFactory { SyncEpisodesWithSource(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
         addFactory { GetAvailableScanlators(get()) }
         addFactory { FilterEpisodesForDownload(get(), get(), get()) }
 

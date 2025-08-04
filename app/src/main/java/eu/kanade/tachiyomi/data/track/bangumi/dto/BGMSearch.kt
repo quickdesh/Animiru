@@ -38,7 +38,7 @@ data class BGMSubject(
         }
         score = rating?.score ?: -1.0
         tracking_url = "https://bangumi.tv/subject/${this@BGMSubject.id}"
-        total_chapters = eps
+        total_episodes = eps
         start_date = date ?: ""
     }
 }

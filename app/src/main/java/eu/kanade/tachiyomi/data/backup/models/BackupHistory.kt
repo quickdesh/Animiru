@@ -8,13 +8,11 @@ import java.util.Date
 @Serializable
 data class BackupHistory(
     @ProtoNumber(1) var url: String,
-    @ProtoNumber(2) var lastRead: Long,
-    @ProtoNumber(3) var readDuration: Long = 0,
+    @ProtoNumber(2) var lastSeen: Long,
 ) {
     fun getHistoryImpl(): History {
         return History.create().copy(
-            seenAt = Date(lastRead),
-            readDuration = readDuration,
+            seenAt = Date(lastSeen),
         )
     }
 }

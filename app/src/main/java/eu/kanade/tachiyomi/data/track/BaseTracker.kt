@@ -74,10 +74,10 @@ abstract class BaseTracker(
         trackPreferences.setCredentials(this, username, password)
     }
 
-    override suspend fun register(item: Track, mangaId: Long) {
-        item.manga_id = mangaId
+    override suspend fun register(item: Track, animeId: Long) {
+        item.anime_id = animeId
         try {
-            addTracks.bind(this, item, mangaId)
+            addTracks.bind(this, item, animeId)
         } catch (e: Throwable) {
             withUIContext { Injekt.get<Application>().toast(e.message) }
         }
@@ -85,24 +85,24 @@ abstract class BaseTracker(
 
     override suspend fun setRemoteStatus(track: Track, status: Long) {
         track.status = status
-        if (track.status == getCompletionStatus() && track.total_chapters != 0L) {
-            track.last_chapter_read = track.total_chapters.toDouble()
+        if (track.status == getCompletionStatus() && track.total_episodes != 0L) {
+            track.last_episode_seen = track.total_episodes.toDouble()
         }
         updateRemote(track)
     }
 
-    override suspend fun setRemoteLastChapterRead(track: Track, chapterNumber: Int) {
+    override suspend fun setRemoteLastEpisodeSeen(track: Track, episodeNumber: Int) {
         if (
-            track.last_chapter_read == 0.0 &&
-            track.last_chapter_read < chapterNumber &&
-            track.status != getRereadingStatus()
+            track.last_episode_seen == 0.0 &&
+            track.last_episode_seen < episodeNumber &&
+            track.status != getRewatchingStatus()
         ) {
-            track.status = getReadingStatus()
+            track.status = getWatchingStatus()
         }
-        track.last_chapter_read = chapterNumber.toDouble()
-        if (track.total_chapters != 0L && track.last_chapter_read.toLong() == track.total_chapters) {
+        track.last_episode_seen = episodeNumber.toDouble()
+        if (track.total_episodes != 0L && track.last_episode_seen.toLong() == track.total_episodes) {
             track.status = getCompletionStatus()
-            track.finished_reading_date = System.currentTimeMillis()
+            track.finished_watching_date = System.currentTimeMillis()
         }
         updateRemote(track)
     }
@@ -113,12 +113,12 @@ abstract class BaseTracker(
     }
 
     override suspend fun setRemoteStartDate(track: Track, epochMillis: Long) {
-        track.started_reading_date = epochMillis
+        track.started_watching_date = epochMillis
         updateRemote(track)
     }
 
     override suspend fun setRemoteFinishDate(track: Track, epochMillis: Long) {
-        track.finished_reading_date = epochMillis
+        track.finished_watching_date = epochMillis
         updateRemote(track)
     }
 

@@ -9,7 +9,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.core.preference.asState
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
-import eu.kanade.domain.episode.interactor.SetReadStatus
+import eu.kanade.domain.episode.interactor.SetSeenStatus
 import eu.kanade.presentation.manga.components.ChapterDownloadAction
 import eu.kanade.presentation.updates.UpdatesUiModel
 import eu.kanade.tachiyomi.data.download.DownloadCache
@@ -52,7 +52,7 @@ class UpdatesScreenModel(
     private val downloadManager: DownloadManager = Injekt.get(),
     private val downloadCache: DownloadCache = Injekt.get(),
     private val updateEpisode: UpdateEpisode = Injekt.get(),
-    private val setReadStatus: SetReadStatus = Injekt.get(),
+    private val setSeenStatus: SetSeenStatus = Injekt.get(),
     private val getUpdates: GetUpdates = Injekt.get(),
     private val getAnime: GetAnime = Injekt.get(),
     private val getEpisode: GetEpisode = Injekt.get(),
@@ -197,8 +197,8 @@ class UpdatesScreenModel(
      */
     fun markUpdatesRead(updates: List<UpdatesItem>, read: Boolean) {
         screenModelScope.launchIO {
-            setReadStatus.await(
-                read = read,
+            setSeenStatus.await(
+                seen = read,
                 episodes = updates
                     .mapNotNull { getEpisode.await(it.update.episodeId) }
                     .toTypedArray(),
@@ -234,7 +234,7 @@ class UpdatesScreenModel(
                 // Don't download if source isn't available
                 sourceManager.get(manga.source) ?: continue
                 val chapters = updates.mapNotNull { getEpisode.await(it.update.episodeId) }
-                downloadManager.downloadChapters(manga, chapters)
+                downloadManager.downloadEpisodes(manga, chapters)
             }
         }
     }

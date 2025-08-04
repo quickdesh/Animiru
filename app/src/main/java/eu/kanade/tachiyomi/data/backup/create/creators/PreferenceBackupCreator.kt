@@ -44,6 +44,9 @@ class PreferenceBackupCreator(
     private fun Map<String, *>.toBackupPreferences(): List<BackupPreference> {
         return this
             .filterKeys { !Preference.isAppState(it) }
+            // AM (CONNECTION) -->
+            .filterKeys { !it.contains("connection") }
+            // <-- AM (CONNECTION)
             .mapNotNull { (key, value) ->
                 when (value) {
                     is Int -> BackupPreference(key, IntPreferenceValue(value))

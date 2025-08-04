@@ -15,7 +15,7 @@ import eu.kanade.core.preference.asState
 import eu.kanade.core.util.fastFilterNot
 import eu.kanade.core.util.fastPartition
 import eu.kanade.domain.base.BasePreferences
-import eu.kanade.domain.episode.interactor.SetReadStatus
+import eu.kanade.domain.episode.interactor.SetSeenStatus
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.presentation.components.SEARCH_DEBOUNCE_MILLIS
 import eu.kanade.presentation.library.components.LibraryToolbarTitle
@@ -85,7 +85,7 @@ class LibraryScreenModel(
     private val getTracksPerAnime: GetTracksPerAnime = Injekt.get(),
     private val getNextEpisodes: GetNextEpisodes = Injekt.get(),
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
-    private val setReadStatus: SetReadStatus = Injekt.get(),
+    private val setSeenStatus: SetSeenStatus = Injekt.get(),
     private val updateAnime: UpdateAnime = Injekt.get(),
     private val setAnimeCategories: SetAnimeCategories = Injekt.get(),
     private val preferences: BasePreferences = Injekt.get(),
@@ -477,7 +477,7 @@ class LibraryScreenModel(
                     }
                     .let { if (amount != null) it.take(amount) else it }
 
-                downloadManager.downloadChapters(manga, chapters)
+                downloadManager.downloadEpisodes(manga, chapters)
             }
         }
     }
@@ -489,9 +489,9 @@ class LibraryScreenModel(
         val mangas = state.value.selection.toList()
         screenModelScope.launchNonCancellable {
             mangas.forEach { manga ->
-                setReadStatus.await(
+                setSeenStatus.await(
                     anime = manga.anime,
-                    read = read,
+                    seen = read,
                 )
             }
         }
@@ -524,7 +524,7 @@ class LibraryScreenModel(
                 mangaToDelete.forEach { manga ->
                     val source = sourceManager.get(manga.source) as? AnimeHttpSource
                     if (source != null) {
-                        downloadManager.deleteManga(manga, source)
+                        downloadManager.deleteAnime(manga, source)
                     }
                 }
             }

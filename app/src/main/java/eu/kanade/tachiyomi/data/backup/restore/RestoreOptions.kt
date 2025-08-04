@@ -3,13 +3,16 @@ package eu.kanade.tachiyomi.data.backup.restore
 import dev.icerock.moko.resources.StringResource
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 
 data class RestoreOptions(
     val libraryEntries: Boolean = true,
     val categories: Boolean = true,
     val appSettings: Boolean = true,
     val extensionRepoSettings: Boolean = true,
+    val customButtons: Boolean = true,
     val sourceSettings: Boolean = true,
+    val extensions: Boolean = false,
 ) {
 
     fun asBooleanArray() = booleanArrayOf(
@@ -17,10 +20,18 @@ data class RestoreOptions(
         categories,
         appSettings,
         extensionRepoSettings,
+        customButtons,
         sourceSettings,
+        extensions,
     )
 
-    fun canRestore() = libraryEntries || categories || appSettings || extensionRepoSettings || sourceSettings
+    fun canRestore() = libraryEntries ||
+        categories ||
+        appSettings ||
+        extensionRepoSettings ||
+        customButtons ||
+        sourceSettings ||
+        extensions
 
     companion object {
         val options = persistentListOf(
@@ -45,9 +56,19 @@ data class RestoreOptions(
                 setter = { options, enabled -> options.copy(extensionRepoSettings = enabled) },
             ),
             Entry(
+                label = AYMR.strings.custom_button_settings,
+                getter = RestoreOptions::customButtons,
+                setter = { options, enabled -> options.copy(customButtons = enabled) },
+            ),
+            Entry(
                 label = MR.strings.source_settings,
                 getter = RestoreOptions::sourceSettings,
                 setter = { options, enabled -> options.copy(sourceSettings = enabled) },
+            ),
+            Entry(
+                label = MR.strings.label_extensions,
+                getter = RestoreOptions::extensions,
+                setter = { options, enabled -> options.copy(extensions = enabled) },
             ),
         )
 
@@ -56,7 +77,9 @@ data class RestoreOptions(
             categories = array[1],
             appSettings = array[2],
             extensionRepoSettings = array[3],
-            sourceSettings = array[4],
+            customButtons = array[4],
+            sourceSettings = array[5],
+            extensions = array[6],
         )
     }
 
