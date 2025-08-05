@@ -14,8 +14,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import eu.kanade.presentation.library.components.CommonMangaItemDefaults
-import eu.kanade.presentation.library.components.MangaComfortableGridItem
+import eu.kanade.presentation.library.components.CommonAnimeItemDefaults
+import eu.kanade.presentation.library.components.AnimeComfortableGridItem
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeCover
 import tachiyomi.domain.anime.model.asAnimeCover
@@ -61,14 +61,14 @@ private fun AnimeItem(
     onLongClick: () -> Unit,
 ) {
     Box(modifier = Modifier.width(96.dp)) {
-        MangaComfortableGridItem(
+        AnimeComfortableGridItem(
             title = title,
             titleMaxLines = 3,
             coverData = cover,
             coverBadgeStart = {
                 InLibraryBadge(enabled = isFavorite)
             },
-            coverAlpha = if (isFavorite) CommonMangaItemDefaults.BrowseFavoriteCoverAlpha else 1f,
+            coverAlpha = if (isFavorite) CommonAnimeItemDefaults.BrowseFavoriteCoverAlpha else 1f,
             onClick = onClick,
             onLongClick = onLongClick,
         )

@@ -16,8 +16,8 @@ import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
-fun DeleteLibraryMangaDialog(
-    containsLocalManga: Boolean,
+fun DeleteLibraryAnimeDialog(
+    containsLocalAnime: Boolean,
     onDismissRequest: () -> Unit,
     onConfirm: (Boolean, Boolean) -> Unit,
 ) {
@@ -25,7 +25,7 @@ fun DeleteLibraryMangaDialog(
         mutableStateOf(
             buildList<CheckboxState.State<StringResource>> {
                 add(CheckboxState.State.None(MR.strings.manga_from_library))
-                if (!containsLocalManga) {
+                if (!containsLocalAnime) {
                     add(CheckboxState.State.None(MR.strings.downloaded_chapters))
                 }
             },

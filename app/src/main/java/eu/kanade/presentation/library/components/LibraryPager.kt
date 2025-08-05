@@ -14,8 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import eu.kanade.core.preference.PreferenceMutableState
@@ -31,18 +33,22 @@ fun LibraryPager(
     state: PagerState,
     contentPadding: PaddingValues,
     hasActiveFilters: Boolean,
-    selectedManga: List<LibraryAnime>,
+    selectedAnime: List<LibraryAnime>,
     searchQuery: String?,
     onGlobalSearchClicked: () -> Unit,
     getDisplayMode: (Int) -> PreferenceMutableState<LibraryDisplayMode>,
     getColumnsForOrientation: (Boolean) -> PreferenceMutableState<Int>,
     getLibraryForPage: (Int) -> List<LibraryItem>,
-    onClickManga: (LibraryAnime) -> Unit,
-    onLongClickManga: (LibraryAnime) -> Unit,
-    onClickContinueReading: ((LibraryAnime) -> Unit)?,
+    onClickAnime: (LibraryAnime) -> Unit,
+    onLongClickAnime: (LibraryAnime) -> Unit,
+    onClickContinueWatching: ((LibraryAnime) -> Unit)?,
 ) {
+    var containerHeight by remember { mutableIntStateOf(0) }
     HorizontalPager(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
+            .onGloballyPositioned { layoutCoordinates ->
+                containerHeight = layoutCoordinates.size.height
+            },
         state = state,
         verticalAlignment = Alignment.Top,
     ) { page ->
@@ -63,24 +69,21 @@ fun LibraryPager(
         }
 
         val displayMode by getDisplayMode(page)
-        val columns by if (displayMode != LibraryDisplayMode.List) {
-            val configuration = LocalConfiguration.current
-            val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-            remember(isLandscape) { getColumnsForOrientation(isLandscape) }
-        } else {
-            remember { mutableIntStateOf(0) }
-        }
+        val configuration = LocalConfiguration.current
+        val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val columns by remember(isLandscape) { getColumnsForOrientation(isLandscape) }
 
         when (displayMode) {
             LibraryDisplayMode.List -> {
                 LibraryList(
                     items = library,
+                    entries = columns,
+                    containerHeight = containerHeight,
                     contentPadding = contentPadding,
-                    selection = selectedManga,
-                    onClick = onClickManga,
-                    onLongClick = onLongClickManga,
-                    onClickContinueReading = onClickContinueReading,
+                    selection = selectedAnime,
+                    onClick = onClickAnime,
+                    onLongClick = onLongClickAnime,
+                    onClickContinueWatching = onClickContinueWatching,
                     searchQuery = searchQuery,
                     onGlobalSearchClicked = onGlobalSearchClicked,
                 )
@@ -91,10 +94,10 @@ fun LibraryPager(
                     showTitle = displayMode is LibraryDisplayMode.CompactGrid,
                     columns = columns,
                     contentPadding = contentPadding,
-                    selection = selectedManga,
-                    onClick = onClickManga,
-                    onLongClick = onLongClickManga,
-                    onClickContinueReading = onClickContinueReading,
+                    selection = selectedAnime,
+                    onClick = onClickAnime,
+                    onLongClick = onLongClickAnime,
+                    onClickContinueWatching = onClickContinueWatching,
                     searchQuery = searchQuery,
                     onGlobalSearchClicked = onGlobalSearchClicked,
                 )
@@ -104,10 +107,10 @@ fun LibraryPager(
                     items = library,
                     columns = columns,
                     contentPadding = contentPadding,
-                    selection = selectedManga,
-                    onClick = onClickManga,
-                    onLongClick = onLongClickManga,
-                    onClickContinueReading = onClickContinueReading,
+                    selection = selectedAnime,
+                    onClick = onClickAnime,
+                    onLongClick = onLongClickAnime,
+                    onClickContinueWatching = onClickContinueWatching,
                     searchQuery = searchQuery,
                     onGlobalSearchClicked = onGlobalSearchClicked,
                 )

@@ -28,7 +28,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
-import eu.kanade.presentation.library.DeleteLibraryMangaDialog
+import eu.kanade.presentation.library.DeleteLibraryAnimeDialog
 import eu.kanade.presentation.library.LibrarySettingsDialog
 import eu.kanade.presentation.library.components.LibraryContent
 import eu.kanade.presentation.library.components.LibraryToolbar
@@ -123,7 +123,7 @@ data object LibraryTab : Tab {
                     onClickFilter = screenModel::showSettingsDialog,
                     onClickRefresh = { onClickRefresh(state.categories[screenModel.activeCategoryIndex]) },
                     onClickGlobalUpdate = { onClickRefresh(null) },
-                    onClickOpenRandomManga = {
+                    onClickOpenRandomAnime = {
                         scope.launch {
                             val randomItem = screenModel.getRandomLibraryItemForCurrentCategory()
                             if (randomItem != null) {
@@ -179,8 +179,8 @@ data object LibraryTab : Tab {
                         hasActiveFilters = state.hasActiveFilters,
                         showPageTabs = state.showCategoryTabs || !state.searchQuery.isNullOrEmpty(),
                         onChangeCurrentPage = { screenModel.activeCategoryIndex = it },
-                        onMangaClicked = { navigator.push(MangaScreen(it)) },
-                        onContinueReadingClicked = { it: LibraryAnime ->
+                        onAnimeClicked = { navigator.push(MangaScreen(it)) },
+                        onContinueWatchingClicked = { it: LibraryAnime ->
                             scope.launchIO {
                                 val chapter = screenModel.getNextUnreadChapter(it.anime)
                                 if (chapter != null) {
@@ -202,7 +202,7 @@ data object LibraryTab : Tab {
                         onGlobalSearchClicked = {
                             navigator.push(GlobalSearchScreen(screenModel.state.value.searchQuery ?: ""))
                         },
-                        getNumberOfMangaForCategory = { state.getMangaCountForCategory(it) },
+                        getNumberOfAnimeForCategory = { state.getMangaCountForCategory(it) },
                         getDisplayMode = { screenModel.getDisplayMode() },
                         getColumnsForOrientation = { screenModel.getColumnsPreferenceForCurrentOrientation(it) },
                     ) { state.getLibraryItemsByPage(it) }
@@ -239,8 +239,8 @@ data object LibraryTab : Tab {
                 )
             }
             is LibraryScreenModel.Dialog.DeleteManga -> {
-                DeleteLibraryMangaDialog(
-                    containsLocalManga = dialog.anime.any(Anime::isLocal),
+                DeleteLibraryAnimeDialog(
+                    containsLocalAnime = dialog.anime.any(Anime::isLocal),
                     onDismissRequest = onDismissRequest,
                     onConfirm = { deleteManga, deleteChapter ->
                         screenModel.removeMangas(dialog.anime, deleteManga, deleteChapter)

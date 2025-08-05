@@ -18,7 +18,7 @@ internal fun LibraryComfortableGrid(
     selection: List<LibraryAnime>,
     onClick: (LibraryAnime) -> Unit,
     onLongClick: (LibraryAnime) -> Unit,
-    onClickContinueReading: ((LibraryAnime) -> Unit)?,
+    onClickContinueWatching: ((LibraryAnime) -> Unit)?,
     searchQuery: String?,
     onGlobalSearchClicked: () -> Unit,
 ) {
@@ -33,20 +33,20 @@ internal fun LibraryComfortableGrid(
             items = items,
             contentType = { "library_comfortable_grid_item" },
         ) { libraryItem ->
-            val manga = libraryItem.libraryAnime.anime
-            MangaComfortableGridItem(
+            val anime = libraryItem.libraryAnime.anime
+            AnimeComfortableGridItem(
                 isSelected = selection.fastAny { it.id == libraryItem.libraryAnime.id },
-                title = manga.title,
+                title = anime.title,
                 coverData = AnimeCover(
-                    animeId = manga.id,
-                    sourceId = manga.source,
-                    isAnimeFavorite = manga.favorite,
-                    url = manga.thumbnailUrl,
-                    lastModified = manga.coverLastModified,
+                    animeId = anime.id,
+                    sourceId = anime.source,
+                    isAnimeFavorite = anime.favorite,
+                    url = anime.thumbnailUrl,
+                    lastModified = anime.coverLastModified,
                 ),
                 coverBadgeStart = {
                     DownloadsBadge(count = libraryItem.downloadCount)
-                    UnreadBadge(count = libraryItem.unreadCount)
+                    UnseenBadge(count = libraryItem.unreadCount)
                 },
                 coverBadgeEnd = {
                     LanguageBadge(
@@ -56,8 +56,8 @@ internal fun LibraryComfortableGrid(
                 },
                 onLongClick = { onLongClick(libraryItem.libraryAnime) },
                 onClick = { onClick(libraryItem.libraryAnime) },
-                onClickContinueReading = if (onClickContinueReading != null && libraryItem.unreadCount > 0) {
-                    { onClickContinueReading(libraryItem.libraryAnime) }
+                onClickContinueWatching = if (onClickContinueWatching != null && libraryItem.unreadCount > 0) {
+                    { onClickContinueWatching(libraryItem.libraryAnime) }
                 } else {
                     null
                 },

@@ -17,11 +17,13 @@ import tachiyomi.presentation.core.util.plus
 @Composable
 internal fun LibraryList(
     items: List<LibraryItem>,
+    entries: Int,
+    containerHeight: Int,
     contentPadding: PaddingValues,
     selection: List<LibraryAnime>,
     onClick: (LibraryAnime) -> Unit,
     onLongClick: (LibraryAnime) -> Unit,
-    onClickContinueReading: ((LibraryAnime) -> Unit)?,
+    onClickContinueWatching: ((LibraryAnime) -> Unit)?,
     searchQuery: String?,
     onGlobalSearchClicked: () -> Unit,
 ) {
@@ -43,20 +45,20 @@ internal fun LibraryList(
             items = items,
             contentType = { "library_list_item" },
         ) { libraryItem ->
-            val manga = libraryItem.libraryAnime.anime
-            MangaListItem(
+            val anime = libraryItem.libraryAnime.anime
+            AnimeListItem(
                 isSelected = selection.fastAny { it.id == libraryItem.libraryAnime.id },
-                title = manga.title,
+                title = anime.title,
                 coverData = AnimeCover(
-                    animeId = manga.id,
-                    sourceId = manga.source,
-                    isAnimeFavorite = manga.favorite,
-                    url = manga.thumbnailUrl,
-                    lastModified = manga.coverLastModified,
+                    animeId = anime.id,
+                    sourceId = anime.source,
+                    isAnimeFavorite = anime.favorite,
+                    url = anime.thumbnailUrl,
+                    lastModified = anime.coverLastModified,
                 ),
                 badge = {
                     DownloadsBadge(count = libraryItem.downloadCount)
-                    UnreadBadge(count = libraryItem.unreadCount)
+                    UnseenBadge(count = libraryItem.unreadCount)
                     LanguageBadge(
                         isLocal = libraryItem.isLocal,
                         sourceLanguage = libraryItem.sourceLanguage,
@@ -64,11 +66,13 @@ internal fun LibraryList(
                 },
                 onLongClick = { onLongClick(libraryItem.libraryAnime) },
                 onClick = { onClick(libraryItem.libraryAnime) },
-                onClickContinueReading = if (onClickContinueReading != null && libraryItem.unreadCount > 0) {
-                    { onClickContinueReading(libraryItem.libraryAnime) }
+                onClickContinueWatching = if (onClickContinueWatching != null && libraryItem.unreadCount > 0) {
+                    { onClickContinueWatching(libraryItem.libraryAnime) }
                 } else {
                     null
                 },
+                entries = entries,
+                containerHeight = containerHeight,
             )
         }
     }
