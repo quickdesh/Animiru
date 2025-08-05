@@ -10,7 +10,7 @@ import eu.kanade.presentation.browse.MigrateSearchScreen
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchScreenModel
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
-import mihon.feature.migration.dialog.MigrateMangaDialog
+import mihon.feature.migration.dialog.MigrateAnimeDialog
 import mihon.feature.migration.list.MigrationListScreen
 
 class MigrateSearchScreen(private val mangaId: Long) : Screen() {
@@ -49,7 +49,7 @@ class MigrateSearchScreen(private val mangaId: Long) : Screen() {
 
         when (val dialog = state.dialog) {
             is SearchScreenModel.Dialog.Migrate -> {
-                MigrateMangaDialog(
+                MigrateAnimeDialog(
                     current = dialog.current,
                     target = dialog.target,
                     // Initiated from the context of [dialog.current] so we show [dialog.target].

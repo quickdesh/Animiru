@@ -58,7 +58,7 @@ import eu.kanade.presentation.util.rememberResourceBitmapPainter
 import eu.kanade.tachiyomi.R
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import mihon.feature.migration.list.models.MigratingManga
+import mihon.feature.migration.list.models.MigratingAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.Badge
@@ -72,11 +72,11 @@ import tachiyomi.presentation.core.util.plus
 
 @Composable
 fun MigrationListScreenContent(
-    items: ImmutableList<MigratingManga>,
+    items: ImmutableList<MigratingAnime>,
     migrationComplete: Boolean,
     finishedCount: Int,
     onItemClick: (Anime) -> Unit,
-    onSearchManually: (MigratingManga) -> Unit,
+    onSearchManually: (MigratingAnime) -> Unit,
     onSkip: (Long) -> Unit,
     onMigrate: (Long) -> Unit,
     onCopy: (Long) -> Unit,
@@ -133,8 +133,8 @@ fun MigrationListScreenContent(
                             .fillMaxHeight(),
                         anime = item.anime,
                         source = item.source,
-                        chapterCount = item.chapterCount,
-                        latestChapter = item.latestChapter,
+                        episodeCount = item.episodeCount,
+                        latestEpisode = item.latestEpisode,
                         onClick = { onItemClick(item.anime) },
                     )
 
@@ -173,8 +173,8 @@ fun MigrationListItem(
     modifier: Modifier,
     anime: Anime,
     source: String,
-    chapterCount: Int,
-    latestChapter: Double?,
+    episodeCount: Int,
+    latestEpisode: Double?,
     onClick: () -> Unit,
 ) {
     Column(
@@ -218,7 +218,7 @@ fun MigrationListItem(
                     .merge(shadow = Shadow(color = Color.Black, blurRadius = 4f)),
             )
             BadgeGroup(modifier = Modifier.padding(4.dp)) {
-                Badge(text = "$chapterCount")
+                Badge(text = "$episodeCount")
             }
         }
 
@@ -233,13 +233,13 @@ fun MigrationListItem(
                 maxLines = 1,
                 style = MaterialTheme.typography.titleSmall,
             )
-            val formattedLatestChapters = remember(latestChapter) {
-                latestChapter?.let(::formatEpisodeNumber)
+            val formattedLatestEpisodes = remember(latestEpisode) {
+                latestEpisode?.let(::formatEpisodeNumber)
             }
             Text(
                 text = stringResource(
                     MR.strings.migrationListScreen_latestChapterLabel,
-                    formattedLatestChapters ?: stringResource(MR.strings.migrationListScreen_unknownLatestChapter),
+                    formattedLatestEpisodes ?: stringResource(MR.strings.migrationListScreen_unknownLatestChapter),
                 ),
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
@@ -252,12 +252,12 @@ fun MigrationListItem(
 @Composable
 fun MigrationListItemResult(
     modifier: Modifier,
-    result: MigratingManga.SearchResult,
+    result: MigratingAnime.SearchResult,
     onItemClick: (Anime) -> Unit,
 ) {
     Box(modifier.height(IntrinsicSize.Min)) {
         when (result) {
-            MigratingManga.SearchResult.Searching -> {
+            MigratingAnime.SearchResult.Searching -> {
                 Box(
                     modifier = Modifier
                         .widthIn(max = 150.dp)
@@ -268,7 +268,7 @@ fun MigrationListItemResult(
                     CircularProgressIndicator()
                 }
             }
-            MigratingManga.SearchResult.NotFound -> {
+            MigratingAnime.SearchResult.NotFound -> {
                 Column(
                     Modifier
                         .widthIn(max = 150.dp)
@@ -291,13 +291,13 @@ fun MigrationListItemResult(
                     )
                 }
             }
-            is MigratingManga.SearchResult.Success -> {
+            is MigratingAnime.SearchResult.Success -> {
                 MigrationListItem(
                     modifier = Modifier.fillMaxSize(),
                     anime = result.anime,
                     source = result.source,
-                    chapterCount = result.chapterCount,
-                    latestChapter = result.latestChapter,
+                    episodeCount = result.episodeCount,
+                    latestEpisode = result.latestEpisode,
                     onClick = { onItemClick(result.anime) },
                 )
             }
@@ -308,7 +308,7 @@ fun MigrationListItemResult(
 @Composable
 private fun MigrationListItemAction(
     modifier: Modifier,
-    result: MigratingManga.SearchResult,
+    result: MigratingAnime.SearchResult,
     onSearchManually: () -> Unit,
     onSkip: () -> Unit,
     onMigrate: () -> Unit,
@@ -318,7 +318,7 @@ private fun MigrationListItemAction(
     val closeMenu = { menuExpanded = false }
     Box(modifier) {
         when (result) {
-            MigratingManga.SearchResult.Searching -> {
+            MigratingAnime.SearchResult.Searching -> {
                 IconButton(onClick = onSkip) {
                     Icon(
                         imageVector = Icons.Outlined.Close,
@@ -326,7 +326,7 @@ private fun MigrationListItemAction(
                     )
                 }
             }
-            MigratingManga.SearchResult.NotFound, is MigratingManga.SearchResult.Success -> {
+            MigratingAnime.SearchResult.NotFound, is MigratingAnime.SearchResult.Success -> {
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(
                         imageVector = Icons.Outlined.MoreVert,
@@ -352,7 +352,7 @@ private fun MigrationListItemAction(
                             onSkip()
                         },
                     )
-                    if (result is MigratingManga.SearchResult.Success) {
+                    if (result is MigratingAnime.SearchResult.Success) {
                         DropdownMenuItem(
                             text = { Text(stringResource(MR.strings.migrationListScreen_migrateNowActionLabel)) },
                             onClick = {

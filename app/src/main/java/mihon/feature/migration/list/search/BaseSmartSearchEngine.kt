@@ -28,8 +28,8 @@ abstract class BaseSmartSearchEngine<T>(
         val queries = getDeepSearchQueries(cleanedTitle)
 
         return baseSearch(searchAction, queries) {
-            val cleanedMangaTitle = cleanDeepSearchTitle(getTitle(it))
-            normalizedLevenshtein.similarity(cleanedTitle, cleanedMangaTitle)
+            val cleanedAnimeTitle = cleanDeepSearchTitle(getTitle(it))
+            normalizedLevenshtein.similarity(cleanedTitle, cleanedAnimeTitle)
         }
     }
 
@@ -38,7 +38,7 @@ abstract class BaseSmartSearchEngine<T>(
         queries: List<String>,
         calculateDistance: (T) -> Double,
     ): T? {
-        val eligibleManga = supervisorScope {
+        val eligibleAnime = supervisorScope {
             queries.map { query ->
                 async(Dispatchers.Default) {
                     val builtQuery = if (extraSearchParams != null) {
@@ -63,7 +63,7 @@ abstract class BaseSmartSearchEngine<T>(
                 .flatMap { it.await() }
         }
 
-        return eligibleManga.maxByOrNull { it.distance }?.entry
+        return eligibleAnime.maxByOrNull { it.distance }?.entry
     }
 
     private fun cleanDeepSearchTitle(title: String): String {
@@ -75,8 +75,8 @@ abstract class BaseSmartSearchEngine<T>(
             cleanedTitle = removeTextInBrackets(preTitle, false)
         }
 
-        // Strip chapter reference RU
-        cleanedTitle = cleanedTitle.replace(chapterRefCyrillicRegexp, " ").trim()
+        // Strip episode reference RU
+        cleanedTitle = cleanedTitle.replace(episodeRefCyrillicRegexp, " ").trim()
 
         // Strip non-special characters
         val cleanedTitleEng = cleanedTitle.replace(titleRegex, " ")
@@ -145,7 +145,7 @@ abstract class BaseSmartSearchEngine<T>(
         private val titleRegex = Regex("[^a-zA-Z0-9- ]")
         private val titleCyrillicRegex = Regex("[^\\p{L}0-9- ]")
         private val consecutiveSpacesRegex = Regex(" +")
-        private val chapterRefCyrillicRegexp = Regex("""((- часть|- глава) \d*)""")
+        private val episodeRefCyrillicRegexp = Regex("""((- часть|- глава) \d*)""")
     }
 }
 

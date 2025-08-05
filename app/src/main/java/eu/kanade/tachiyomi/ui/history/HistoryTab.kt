@@ -30,7 +30,7 @@ import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
-import mihon.feature.migration.dialog.MigrateMangaDialog
+import mihon.feature.migration.dialog.MigrateAnimeDialog
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.i18n.MR
@@ -115,7 +115,7 @@ data object HistoryTab : Tab {
                 )
             }
             is HistoryScreenModel.Dialog.Migrate -> {
-                MigrateMangaDialog(
+                MigrateAnimeDialog(
                     current = dialog.current,
                     target = dialog.target,
                     // Initiated from the context of [dialog.target] so we show [dialog.current].

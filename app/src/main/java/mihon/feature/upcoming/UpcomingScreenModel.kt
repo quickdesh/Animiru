@@ -42,16 +42,16 @@ class UpcomingScreenModel(
     }
 
     private fun List<Anime>.toUpcomingUIModels(): ImmutableList<UpcomingUIModel> {
-        var mangaCount = 0
+        var animeCount = 0
         return fastMap { UpcomingUIModel.Item(it) }
             .insertSeparatorsReversed { before, after ->
-                if (after != null) mangaCount++
+                if (after != null) animeCount++
 
                 val beforeDate = before?.anime?.expectedNextUpdate?.toLocalDate()
                 val afterDate = after?.anime?.expectedNextUpdate?.toLocalDate()
 
                 if (beforeDate != afterDate && afterDate != null) {
-                    UpcomingUIModel.Header(afterDate, mangaCount).also { mangaCount = 0 }
+                    UpcomingUIModel.Header(afterDate, animeCount).also { animeCount = 0 }
                 } else {
                     null
                 }
@@ -61,7 +61,7 @@ class UpcomingScreenModel(
 
     private fun List<UpcomingUIModel>.toEvents(): ImmutableMap<LocalDate, Int> {
         return filterIsInstance<UpcomingUIModel.Header>()
-            .associate { it.date to it.mangaCount }
+            .associate { it.date to it.animeCount }
             .toImmutableMap()
     }
 

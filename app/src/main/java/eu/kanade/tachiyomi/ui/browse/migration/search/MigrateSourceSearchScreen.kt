@@ -28,7 +28,7 @@ import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.ui.webview.WebViewScreen
 import kotlinx.coroutines.launch
-import mihon.feature.migration.dialog.MigrateMangaDialog
+import mihon.feature.migration.dialog.MigrateAnimeDialog
 import mihon.feature.migration.list.MigrationListScreen
 import mihon.presentation.core.util.collectAsLazyPagingItems
 import tachiyomi.core.common.Constants
@@ -131,7 +131,7 @@ data class MigrateSourceSearchScreen(
                 )
             }
             is BrowseSourceScreenModel.Dialog.Migrate -> {
-                MigrateMangaDialog(
+                MigrateAnimeDialog(
                     current = currentAnime,
                     target = dialog.target,
                     // Initiated from the context of [currentManga] so we show [dialog.target].

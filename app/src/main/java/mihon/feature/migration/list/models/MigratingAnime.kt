@@ -7,10 +7,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import tachiyomi.domain.anime.model.Anime
 import kotlin.coroutines.CoroutineContext
 
-class MigratingManga(
+class MigratingAnime(
     val anime: Anime,
-    val chapterCount: Int,
-    val latestChapter: Double?,
+    val episodeCount: Int,
+    val latestEpisode: Double?,
     val source: String,
     parentContext: CoroutineContext,
 ) {
@@ -23,8 +23,8 @@ class MigratingManga(
         data object NotFound : SearchResult
         data class Success(
             val anime: Anime,
-            val chapterCount: Int,
-            val latestChapter: Double?,
+            val episodeCount: Int,
+            val latestEpisode: Double?,
             val source: String,
         ) : SearchResult
     }

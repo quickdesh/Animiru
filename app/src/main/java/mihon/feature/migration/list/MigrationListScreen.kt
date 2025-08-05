@@ -15,11 +15,11 @@ import eu.kanade.tachiyomi.ui.browse.migration.search.MigrateSearchScreen
 import eu.kanade.tachiyomi.ui.manga.MangaScreen
 import eu.kanade.tachiyomi.util.system.toast
 import mihon.feature.migration.list.components.MigrationExitDialog
-import mihon.feature.migration.list.components.MigrationMangaDialog
+import mihon.feature.migration.list.components.MigrationAnimeDialog
 import mihon.feature.migration.list.components.MigrationProgressDialog
 import tachiyomi.i18n.MR
 
-class MigrationListScreen(private val mangaIds: List<Long>, private val extraSearchQuery: String?) : Screen() {
+class MigrationListScreen(private val animeIds: List<Long>, private val extraSearchQuery: String?) : Screen() {
 
     private var matchOverride: Pair<Long, Long>? = null
 
@@ -30,16 +30,16 @@ class MigrationListScreen(private val mangaIds: List<Long>, private val extraSea
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { MigrationListScreenModel(mangaIds, extraSearchQuery) }
+        val screenModel = rememberScreenModel { MigrationListScreenModel(animeIds, extraSearchQuery) }
         val state by screenModel.state.collectAsState()
         val context = LocalContext.current
 
         LaunchedEffect(matchOverride) {
             val (current, target) = matchOverride ?: return@LaunchedEffect
-            screenModel.useMangaForMigration(
+            screenModel.useAnimeForMigration(
                 current = current,
                 target = target,
-                onMissingChapters = {
+                onMissingEpisodes = {
                     context.toast(MR.strings.migrationListScreen_matchWithoutChapterToast, Toast.LENGTH_LONG)
                 },
             )
@@ -61,24 +61,24 @@ class MigrationListScreen(private val mangaIds: List<Long>, private val extraSea
             onSearchManually = { migrationItem ->
                 navigator push MigrateSearchScreen(migrationItem.anime.id)
             },
-            onSkip = { screenModel.removeManga(it) },
-            onMigrate = { screenModel.migrateNow(mangaId = it, replace = true) },
-            onCopy = { screenModel.migrateNow(mangaId = it, replace = false) },
+            onSkip = { screenModel.removeAnime(it) },
+            onMigrate = { screenModel.migrateNow(animeId = it, replace = true) },
+            onCopy = { screenModel.migrateNow(animeId = it, replace = false) },
             openMigrationDialog = screenModel::showMigrateDialog,
         )
 
         when (val dialog = state.dialog) {
             is MigrationListScreenModel.Dialog.Migrate -> {
-                MigrationMangaDialog(
+                MigrationAnimeDialog(
                     onDismissRequest = screenModel::dismissDialog,
                     copy = dialog.copy,
                     totalCount = dialog.totalCount,
                     skippedCount = dialog.skippedCount,
                     onMigrate = {
                         if (dialog.copy) {
-                            screenModel.copyMangas()
+                            screenModel.copyAnimes()
                         } else {
-                            screenModel.migrateMangas()
+                            screenModel.migrateAnimes()
                         }
                     },
                 )

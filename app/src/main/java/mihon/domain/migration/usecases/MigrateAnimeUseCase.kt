@@ -23,7 +23,7 @@ import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
 import java.time.Instant
 
-class MigrateMangaUseCase(
+class MigrateAnimeUseCase(
     private val sourcePreferences: SourcePreferences,
     private val trackerManager: TrackerManager,
     private val sourceManager: SourceManager,
@@ -46,50 +46,50 @@ class MigrateMangaUseCase(
         val flags = sourcePreferences.migrationFlags().get()
 
         try {
-            val chapters = targetSource.getEpisodeList(target.toSAnime())
+            val episodes = targetSource.getEpisodeList(target.toSAnime())
 
             try {
-                syncEpisodesWithSource.await(chapters, target, targetSource)
+                syncEpisodesWithSource.await(episodes, target, targetSource)
             } catch (_: Exception) {
-                // Worst case, chapters won't be synced
+                // Worst case, episodes won't be synced
             }
 
-            // Update chapters read, bookmark and dateFetch
-            if (MigrationFlag.CHAPTER in flags) {
-                val prevMangaChapters = getEpisodesByAnimeId.await(current.id)
-                val mangaChapters = getEpisodesByAnimeId.await(target.id)
+            // Update episodes seen, bookmark and dateFetch
+            if (MigrationFlag.EPISODE in flags) {
+                val prevAnimeEpisodes = getEpisodesByAnimeId.await(current.id)
+                val animeEpisodes = getEpisodesByAnimeId.await(target.id)
 
-                val maxChapterRead = prevMangaChapters
+                val maxEpisodeSeen = prevAnimeEpisodes
                     .filter { it.seen }
                     .maxOfOrNull { it.episodeNumber }
 
-                val updatedMangaChapters = mangaChapters.map { mangaChapter ->
-                    var updatedChapter = mangaChapter
-                    if (updatedChapter.isRecognizedNumber) {
-                        val prevChapter = prevMangaChapters
-                            .find { it.isRecognizedNumber && it.episodeNumber == updatedChapter.episodeNumber }
+                val updatedAnimeEpisodes = animeEpisodes.map { animeEpisode ->
+                    var updatedEpisode = animeEpisode
+                    if (updatedEpisode.isRecognizedNumber) {
+                        val prevEpisode = prevAnimeEpisodes
+                            .find { it.isRecognizedNumber && it.episodeNumber == updatedEpisode.episodeNumber }
 
-                        if (prevChapter != null) {
-                            updatedChapter = updatedChapter.copy(
-                                dateFetch = prevChapter.dateFetch,
-                                bookmark = prevChapter.bookmark,
+                        if (prevEpisode != null) {
+                            updatedEpisode = updatedEpisode.copy(
+                                dateFetch = prevEpisode.dateFetch,
+                                bookmark = prevEpisode.bookmark,
                             )
                         }
 
-                        if (maxChapterRead != null && updatedChapter.episodeNumber <= maxChapterRead) {
-                            updatedChapter = updatedChapter.copy(seen = true)
+                        if (maxEpisodeSeen != null && updatedEpisode.episodeNumber <= maxEpisodeSeen) {
+                            updatedEpisode = updatedEpisode.copy(seen = true)
                         }
                     }
 
-                    updatedChapter
+                    updatedEpisode
                 }
 
-                val chapterUpdates = updatedMangaChapters.map { it.toEpisodeUpdate() }
-                updateEpisode.awaitAll(chapterUpdates)
+                val episodeUpdates = updatedAnimeEpisodes.map { it.toEpisodeUpdate() }
+                updateEpisode.awaitAll(episodeUpdates)
             }
 
             // Update categories
-            if (MigrationFlag.CHAPTER in flags) {
+            if (MigrationFlag.EPISODE in flags) {
                 val categoryIds = getCategories.await(current.id).map { it.id }
                 setAnimeCategories.await(target.id, categoryIds)
             }

@@ -54,7 +54,7 @@ import eu.kanade.tachiyomi.ui.webview.WebViewScreen
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
-import mihon.feature.migration.dialog.MigrateMangaDialog
+import mihon.feature.migration.dialog.MigrateAnimeDialog
 import mihon.presentation.core.util.collectAsLazyPagingItems
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.util.lang.launchIO
@@ -259,7 +259,7 @@ data class BrowseSourceScreen(
             }
 
             is BrowseSourceScreenModel.Dialog.Migrate -> {
-                MigrateMangaDialog(
+                MigrateAnimeDialog(
                     current = dialog.current,
                     target = dialog.target,
                     // Initiated from the context of [dialog.target] so we show [dialog.current].

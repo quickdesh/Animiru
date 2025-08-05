@@ -8,7 +8,7 @@ import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.library.service.LibraryPreferences
 
 class CategoryPreferencesCleanupMigration : Migration {
-    override val version: Float = 10f
+    override val version: Float = 129f
 
     override suspend fun invoke(migrationContext: MigrationContext): Boolean = withIOContext {
         val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return@withIOContext false

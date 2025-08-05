@@ -26,7 +26,7 @@ import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import kotlinx.coroutines.flow.update
 import mihon.domain.migration.models.MigrationFlag
-import mihon.domain.migration.usecases.MigrateMangaUseCase
+import mihon.domain.migration.usecases.MigrateAnimeUseCase
 import mihon.feature.common.utils.getLabel
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withUIContext
@@ -40,7 +40,7 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 @Composable
-internal fun Screen.MigrateMangaDialog(
+internal fun Screen.MigrateAnimeDialog(
     current: Anime,
     target: Anime,
     onClickTitle: () -> Unit,
@@ -95,7 +95,7 @@ internal fun Screen.MigrateMangaDialog(
                 TextButton(
                     onClick = {
                         scope.launchIO {
-                            screenModel.migrateManga(replace = false)
+                            screenModel.migrateAnime(replace = false)
                             withUIContext { onComplete() }
                         }
                     },
@@ -105,7 +105,7 @@ internal fun Screen.MigrateMangaDialog(
                 TextButton(
                     onClick = {
                         scope.launchIO {
-                            screenModel.migrateManga(replace = true)
+                            screenModel.migrateAnime(replace = true)
                             withUIContext { onComplete() }
                         }
                     },
@@ -123,14 +123,14 @@ private class MigrateDialogScreenModel(
     private val sourcePreference: SourcePreferences = Injekt.get(),
     private val coverCache: CoverCache = Injekt.get(),
     private val downloadManager: DownloadManager = Injekt.get(),
-    private val migrateManga: MigrateMangaUseCase = Injekt.get(),
+    private val migrateAnime: MigrateAnimeUseCase = Injekt.get(),
 ) : StateScreenModel<MigrateDialogScreenModel.State>(State()) {
 
     init {
         val applicableFlags = buildList {
             MigrationFlag.entries.forEach {
                 val applicable = when (it) {
-                    MigrationFlag.CHAPTER -> true
+                    MigrationFlag.EPISODE -> true
                     MigrationFlag.CATEGORY -> true
                     MigrationFlag.CUSTOM_COVER -> current.hasCustomCover(coverCache)
                     MigrationFlag.NOTES -> current.notes.isNotBlank()
@@ -152,10 +152,10 @@ private class MigrateDialogScreenModel(
         }
     }
 
-    suspend fun migrateManga(replace: Boolean) {
+    suspend fun migrateAnime(replace: Boolean) {
         sourcePreference.migrationFlags().set(state.value.selectedFlags)
         mutableState.update { it.copy(isMigrating = true) }
-        migrateManga(current, target, replace)
+        migrateAnime(current, target, replace)
         mutableState.update { it.copy(isMigrating = false) }
     }
 

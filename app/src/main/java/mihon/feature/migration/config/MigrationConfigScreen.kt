@@ -70,9 +70,9 @@ import tachiyomi.presentation.core.util.shouldExpandFAB
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class MigrationConfigScreen(private val mangaIds: List<Long>) : Screen() {
+class MigrationConfigScreen(private val animeIds: List<Long>) : Screen() {
 
-    constructor(mangaId: Long) : this(listOf(mangaId))
+    constructor(animeId: Long) : this(listOf(animeId))
 
     @Composable
     override fun Content() {
@@ -84,15 +84,15 @@ class MigrationConfigScreen(private val mangaIds: List<Long>) : Screen() {
         var migrationSheetOpen by rememberSaveable { mutableStateOf(false) }
 
         fun continueMigration(openSheet: Boolean, extraSearchQuery: String?) {
-            val mangaId = mangaIds.singleOrNull()
-            if (mangaId == null && openSheet) {
+            val animeId = animeIds.singleOrNull()
+            if (animeId == null && openSheet) {
                 migrationSheetOpen = true
                 return
             }
-            val screen = if (mangaId == null) {
-                MigrationListScreen(mangaIds, extraSearchQuery)
+            val screen = if (animeId == null) {
+                MigrationListScreen(animeIds, extraSearchQuery)
             } else {
-                MigrateSearchScreen(mangaId)
+                MigrateSearchScreen(animeId)
             }
             navigator.replace(screen)
         }

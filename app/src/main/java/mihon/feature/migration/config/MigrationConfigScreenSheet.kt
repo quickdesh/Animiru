@@ -157,7 +157,7 @@ fun MigrationConfigScreenSheet(
                 MigrationSheetSwitchItem(
                     title = stringResource(MR.strings.migrationConfigScreen_prioritizeByChaptersTitle),
                     subtitle = stringResource(MR.strings.migrationConfigScreen_prioritizeByChaptersSubtitle),
-                    preference = preferences.migrationPrioritizeByChapters(),
+                    preference = preferences.migrationPrioritizeByEpisodes(),
                 )
             }
             HorizontalDivider()

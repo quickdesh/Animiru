@@ -109,7 +109,7 @@ private fun UpcomingToolbar() {
 @Composable
 private fun DateHeading(
     date: LocalDate,
-    mangaCount: Int,
+    animeCount: Int,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -128,7 +128,7 @@ private fun DateHeading(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
         ) {
-            Text("$mangaCount")
+            Text("$animeCount")
         }
     }
 }
@@ -176,7 +176,7 @@ private fun UpcomingScreenSmallImpl(
                 is UpcomingUIModel.Header -> {
                     DateHeading(
                         date = item.date,
-                        mangaCount = item.mangaCount,
+                        animeCount = item.animeCount,
                     )
                 }
             }
@@ -227,7 +227,7 @@ private fun UpcomingScreenLargeImpl(
                         is UpcomingUIModel.Header -> {
                             DateHeading(
                                 date = item.date,
-                                mangaCount = item.mangaCount,
+                                animeCount = item.animeCount,
                             )
                         }
                     }
