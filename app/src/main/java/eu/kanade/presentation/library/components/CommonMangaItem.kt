@@ -38,7 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import eu.kanade.presentation.manga.components.MangaCover
+import eu.kanade.presentation.anime.components.AnimeCover
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.BadgeGroup
 import tachiyomi.presentation.core.i18n.stringResource
@@ -87,7 +87,7 @@ fun MangaCompactGridItem(
     ) {
         MangaGridCover(
             cover = {
-                MangaCover.Book(
+                AnimeCover.Book(
                     modifier = Modifier
                         .fillMaxWidth()
                         .alpha(if (isSelected) GRID_SELECTED_COVER_ALPHA else coverAlpha),
@@ -194,7 +194,7 @@ fun MangaComfortableGridItem(
         Column {
             MangaGridCover(
                 cover = {
-                    MangaCover.Book(
+                    AnimeCover.Book(
                         modifier = Modifier
                             .fillMaxWidth()
                             .alpha(if (isSelected) GRID_SELECTED_COVER_ALPHA else coverAlpha),
@@ -241,7 +241,7 @@ private fun MangaGridCover(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(MangaCover.Book.ratio),
+            .aspectRatio(AnimeCover.Book.ratio),
     ) {
         cover()
         content?.invoke(this)
@@ -350,7 +350,7 @@ fun MangaListItem(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MangaCover.Square(
+        AnimeCover.Square(
             modifier = Modifier
                 .fillMaxHeight()
                 .alpha(coverAlpha),

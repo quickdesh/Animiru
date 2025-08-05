@@ -28,8 +28,8 @@ import eu.kanade.domain.track.interactor.RefreshTracks
 import eu.kanade.domain.track.interactor.TrackEpisode
 import eu.kanade.domain.track.model.AutoTrackState
 import eu.kanade.domain.track.service.TrackPreferences
-import eu.kanade.presentation.manga.DownloadAction
-import eu.kanade.presentation.manga.components.ChapterDownloadAction
+import eu.kanade.presentation.anime.DownloadAction
+import eu.kanade.presentation.anime.components.EpisodeDownloadAction
 import eu.kanade.presentation.util.formattedMessage
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -598,21 +598,21 @@ class MangaScreenModel(
     ) {
         val chapter = chapterItem.episode
         when (swipeAction) {
-            LibraryPreferences.EpisodeSwipeAction.ToggleRead -> {
+            LibraryPreferences.EpisodeSwipeAction.ToggleSeen -> {
                 markChaptersRead(listOf(chapter), !chapter.seen)
             }
             LibraryPreferences.EpisodeSwipeAction.ToggleBookmark -> {
                 bookmarkChapters(listOf(chapter), !chapter.bookmark)
             }
             LibraryPreferences.EpisodeSwipeAction.Download -> {
-                val downloadAction: ChapterDownloadAction = when (chapterItem.downloadState) {
+                val downloadAction: EpisodeDownloadAction = when (chapterItem.downloadState) {
                     Download.State.ERROR,
                     Download.State.NOT_DOWNLOADED,
-                    -> ChapterDownloadAction.START_NOW
+                    -> EpisodeDownloadAction.START_NOW
                     Download.State.QUEUE,
                     Download.State.DOWNLOADING,
-                    -> ChapterDownloadAction.CANCEL
-                    Download.State.DOWNLOADED -> ChapterDownloadAction.DELETE
+                    -> EpisodeDownloadAction.CANCEL
+                    Download.State.DOWNLOADED -> EpisodeDownloadAction.DELETE
                 }
                 runChapterDownloadActions(
                     items = listOf(chapterItem),
@@ -676,24 +676,24 @@ class MangaScreenModel(
 
     fun runChapterDownloadActions(
         items: List<ChapterList.Item>,
-        action: ChapterDownloadAction,
+        action: EpisodeDownloadAction,
     ) {
         when (action) {
-            ChapterDownloadAction.START -> {
+            EpisodeDownloadAction.START -> {
                 startDownload(items.map { it.episode }, false)
                 if (items.any { it.downloadState == Download.State.ERROR }) {
                     downloadManager.startDownloads()
                 }
             }
-            ChapterDownloadAction.START_NOW -> {
+            EpisodeDownloadAction.START_NOW -> {
                 val chapter = items.singleOrNull()?.episode ?: return
                 startDownload(listOf(chapter), true)
             }
-            ChapterDownloadAction.CANCEL -> {
+            EpisodeDownloadAction.CANCEL -> {
                 val chapterId = items.singleOrNull()?.id ?: return
                 cancelDownload(chapterId)
             }
-            ChapterDownloadAction.DELETE -> {
+            EpisodeDownloadAction.DELETE -> {
                 deleteChapters(items.map { it.episode })
             }
         }
@@ -701,11 +701,11 @@ class MangaScreenModel(
 
     fun runDownloadAction(action: DownloadAction) {
         val chaptersToDownload = when (action) {
-            DownloadAction.NEXT_1_CHAPTER -> getUnreadChaptersSorted().take(1)
-            DownloadAction.NEXT_5_CHAPTERS -> getUnreadChaptersSorted().take(5)
-            DownloadAction.NEXT_10_CHAPTERS -> getUnreadChaptersSorted().take(10)
-            DownloadAction.NEXT_25_CHAPTERS -> getUnreadChaptersSorted().take(25)
-            DownloadAction.UNREAD_CHAPTERS -> getUnreadChapters()
+            DownloadAction.NEXT_1_EPISODE -> getUnreadChaptersSorted().take(1)
+            DownloadAction.NEXT_5_EPISODES -> getUnreadChaptersSorted().take(5)
+            DownloadAction.NEXT_10_EPISODES -> getUnreadChaptersSorted().take(10)
+            DownloadAction.NEXT_25_EPISODES -> getUnreadChaptersSorted().take(25)
+            DownloadAction.UNSEEN_EPISODES -> getUnreadChapters()
         }
         if (chaptersToDownload.isNotEmpty()) {
             startDownload(chaptersToDownload, false)

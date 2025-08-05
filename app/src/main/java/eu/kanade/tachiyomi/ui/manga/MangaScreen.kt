@@ -29,14 +29,14 @@ import eu.kanade.domain.anime.model.hasCustomCover
 import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
 import eu.kanade.presentation.components.NavigatorAdaptiveSheet
-import eu.kanade.presentation.manga.ChapterSettingsDialog
-import eu.kanade.presentation.manga.DuplicateMangaDialog
-import eu.kanade.presentation.manga.EditCoverAction
-import eu.kanade.presentation.manga.MangaScreen
-import eu.kanade.presentation.manga.components.DeleteChaptersDialog
-import eu.kanade.presentation.manga.components.MangaCoverDialog
-import eu.kanade.presentation.manga.components.ScanlatorFilterDialog
-import eu.kanade.presentation.manga.components.SetIntervalDialog
+import eu.kanade.presentation.anime.EpisodeSettingsDialog
+import eu.kanade.presentation.anime.DuplicateAnimeDialog
+import eu.kanade.presentation.anime.EditCoverAction
+import eu.kanade.presentation.anime.AnimeScreen
+import eu.kanade.presentation.anime.components.DeleteEpisodesDialog
+import eu.kanade.presentation.anime.components.AnimeCoverDialog
+import eu.kanade.presentation.anime.components.ScanlatorFilterDialog
+import eu.kanade.presentation.anime.components.SetIntervalDialog
 import eu.kanade.presentation.util.AssistContentScreen
 import eu.kanade.presentation.util.Screen
 import eu.kanade.presentation.util.isTabletUi
@@ -114,16 +114,16 @@ class MangaScreen(
             }
         }
 
-        MangaScreen(
+        AnimeScreen(
             state = successState,
             snackbarHostState = screenModel.snackbarHostState,
             nextUpdate = successState.anime.expectedNextUpdate,
             isTabletUi = isTabletUi(),
-            chapterSwipeStartAction = screenModel.chapterSwipeStartAction,
-            chapterSwipeEndAction = screenModel.chapterSwipeEndAction,
+            episodeSwipeStartAction = screenModel.chapterSwipeStartAction,
+            episodeSwipeEndAction = screenModel.chapterSwipeEndAction,
             navigateUp = navigator::pop,
-            onChapterClicked = { openChapter(context, it) },
-            onDownloadChapter = screenModel::runChapterDownloadActions.takeIf { !successState.source.isLocalOrStub() },
+            onEpisodeClicked = { openChapter(context, it) },
+            onDownloadEpisode = screenModel::runChapterDownloadActions.takeIf { !successState.source.isLocalOrStub() },
             onAddToLibraryClicked = {
                 screenModel.toggleFavorite()
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -152,7 +152,7 @@ class MangaScreen(
             onTagSearch = { scope.launch { performGenreSearch(navigator, it, screenModel.source!!) } },
             onFilterButtonClicked = screenModel::showSettingsDialog,
             onRefresh = screenModel::fetchAllFromSource,
-            onContinueReading = { continueReading(context, screenModel.getNextUnreadChapter()) },
+            onContinueWatching = { continueReading(context, screenModel.getNextUnreadChapter()) },
             onSearch = { query, global -> scope.launch { performSearch(navigator, query, global) } },
             onCoverClicked = screenModel::showCoverDialog,
             onShareClicked = { shareManga(context, screenModel.anime, screenModel.source) }.takeIf { isHttpSource },
@@ -166,12 +166,12 @@ class MangaScreen(
             }.takeIf { successState.anime.favorite },
             onEditNotesClicked = { navigator.push(MangaNotesScreen(anime = successState.anime)) },
             onMultiBookmarkClicked = screenModel::bookmarkChapters,
-            onMultiMarkAsReadClicked = screenModel::markChaptersRead,
-            onMarkPreviousAsReadClicked = screenModel::markPreviousChapterRead,
+            onMultiMarkAsSeenClicked = screenModel::markChaptersRead,
+            onMarkPreviousAsSeenClicked = screenModel::markPreviousChapterRead,
             onMultiDeleteClicked = screenModel::showDeleteChapterDialog,
-            onChapterSwipe = screenModel::chapterSwipe,
-            onChapterSelected = screenModel::toggleSelection,
-            onAllChapterSelected = screenModel::toggleAllSelection,
+            onEpisodeSwipe = screenModel::chapterSwipe,
+            onEpisodeSelected = screenModel::toggleSelection,
+            onAllEpisodeSelected = screenModel::toggleAllSelection,
             onInvertSelection = screenModel::invertSelection,
         )
 
@@ -191,7 +191,7 @@ class MangaScreen(
                 )
             }
             is MangaScreenModel.Dialog.DeleteChapters -> {
-                DeleteChaptersDialog(
+                DeleteEpisodesDialog(
                     onDismissRequest = onDismissRequest,
                     onConfirm = {
                         screenModel.toggleAllSelection(false)
@@ -201,11 +201,11 @@ class MangaScreen(
             }
 
             is MangaScreenModel.Dialog.DuplicateManga -> {
-                DuplicateMangaDialog(
+                DuplicateAnimeDialog(
                     duplicates = dialog.duplicates,
                     onDismissRequest = onDismissRequest,
                     onConfirm = { screenModel.toggleFavorite(onRemoved = {}, checkDuplicate = false) },
-                    onOpenManga = { navigator.push(MangaScreen(it.id)) },
+                    onOpenAnime = { navigator.push(MangaScreen(it.id)) },
                     onMigrate = { screenModel.showMigrateDialog(it) },
                 )
             }
@@ -219,11 +219,11 @@ class MangaScreen(
                     onDismissRequest = onDismissRequest,
                 )
             }
-            MangaScreenModel.Dialog.SettingsSheet -> ChapterSettingsDialog(
+            MangaScreenModel.Dialog.SettingsSheet -> EpisodeSettingsDialog(
                 onDismissRequest = onDismissRequest,
                 anime = successState.anime,
                 onDownloadFilterChanged = screenModel::setDownloadedFilter,
-                onUnreadFilterChanged = screenModel::setUnreadFilter,
+                onUnseenFilterChanged = screenModel::setUnreadFilter,
                 onBookmarkedFilterChanged = screenModel::setBookmarkedFilter,
                 onSortModeChanged = screenModel::setSorting,
                 onDisplayModeChanged = screenModel::setDisplayMode,
@@ -251,7 +251,7 @@ class MangaScreen(
                         if (it == null) return@rememberLauncherForActivityResult
                         sm.editCover(context, it)
                     }
-                    MangaCoverDialog(
+                    AnimeCoverDialog(
                         anime = manga!!,
                         snackbarHostState = sm.snackbarHostState,
                         isCustomCover = remember(manga) { manga!!.hasCustomCover() },

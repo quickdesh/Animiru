@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
-import eu.kanade.presentation.manga.components.MangaCover
+import eu.kanade.presentation.anime.components.AnimeCover
 import eu.kanade.presentation.util.animateItemFastScroll
 import eu.kanade.presentation.util.formatEpisodeNumber
 import eu.kanade.presentation.util.rememberResourceBitmapPainter
@@ -188,9 +188,9 @@ fun MigrationListItem(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(MangaCover.Book.ratio),
+                .aspectRatio(AnimeCover.Book.ratio),
         ) {
-            MangaCover.Book(
+            AnimeCover.Book(
                 modifier = Modifier.fillMaxWidth(),
                 data = anime,
             )
@@ -262,7 +262,7 @@ fun MigrationListItemResult(
                     modifier = Modifier
                         .widthIn(max = 150.dp)
                         .fillMaxSize()
-                        .aspectRatio(MangaCover.Book.ratio),
+                        .aspectRatio(AnimeCover.Book.ratio),
                     contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator()
@@ -280,7 +280,7 @@ fun MigrationListItemResult(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(MangaCover.Book.ratio)
+                            .aspectRatio(AnimeCover.Book.ratio)
                             .clip(MaterialTheme.shapes.extraSmall),
                         contentScale = ContentScale.Crop,
                     )

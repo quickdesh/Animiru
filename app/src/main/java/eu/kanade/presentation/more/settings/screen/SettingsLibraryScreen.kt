@@ -225,7 +225,7 @@ object SettingsLibraryScreen : SearchableSettings {
                             stringResource(MR.strings.disabled),
                         LibraryPreferences.EpisodeSwipeAction.ToggleBookmark to
                             stringResource(MR.strings.action_bookmark),
-                        LibraryPreferences.EpisodeSwipeAction.ToggleRead to
+                        LibraryPreferences.EpisodeSwipeAction.ToggleSeen to
                             stringResource(MR.strings.action_mark_as_read),
                         LibraryPreferences.EpisodeSwipeAction.Download to
                             stringResource(MR.strings.action_download),
@@ -239,7 +239,7 @@ object SettingsLibraryScreen : SearchableSettings {
                             stringResource(MR.strings.disabled),
                         LibraryPreferences.EpisodeSwipeAction.ToggleBookmark to
                             stringResource(MR.strings.action_bookmark),
-                        LibraryPreferences.EpisodeSwipeAction.ToggleRead to
+                        LibraryPreferences.EpisodeSwipeAction.ToggleSeen to
                             stringResource(MR.strings.action_mark_as_read),
                         LibraryPreferences.EpisodeSwipeAction.Download to
                             stringResource(MR.strings.action_download),

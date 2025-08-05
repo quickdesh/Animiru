@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Download
@@ -20,14 +20,16 @@ import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.AppBarTitle
 import eu.kanade.presentation.components.DownloadDropdownMenu
-import eu.kanade.presentation.manga.DownloadAction
+import eu.kanade.presentation.anime.DownloadAction
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.theme.active
 
 @Composable
-fun MangaToolbar(
+fun AnimeToolbar(
     title: String,
     hasFilters: Boolean,
     navigateUp: () -> Unit,
@@ -37,7 +39,12 @@ fun MangaToolbar(
     onClickEditCategory: (() -> Unit)?,
     onClickRefresh: () -> Unit,
     onClickMigrate: (() -> Unit)?,
+    onClickSettings: (() -> Unit)?,
+    onClickSkipIntro: (() -> Unit)?,
     onClickEditNotes: () -> Unit,
+    // AM (CUSTOM_INFORMATION) -->
+    onClickEditInfo: (() -> Unit)?,
+    // <-- AM (CUSTOM_INFORMATION)
 
     // For action mode
     actionModeCounter: Int,
@@ -111,6 +118,14 @@ fun MangaToolbar(
                             onClick = onClickFilter,
                         ),
                     )
+                    if (onClickSkipIntro != null) {
+                        add(
+                            AppBar.OverflowAction(
+                                title = stringResource(AYMR.strings.action_change_intro_length),
+                                onClick = onClickSkipIntro,
+                            ),
+                        )
+                    }
                     add(
                         AppBar.OverflowAction(
                             title = stringResource(MR.strings.action_webview_refresh),
@@ -141,6 +156,16 @@ fun MangaToolbar(
                             ),
                         )
                     }
+                    // AM (CUSTOM_INFORMATION) -->
+                    if (onClickEditInfo != null) {
+                        add(
+                            AppBar.OverflowAction(
+                                title = stringResource(AMMR.strings.action_edit_info),
+                                onClick = onClickEditInfo,
+                            ),
+                        )
+                    }
+                    // <-- AM (CUSTOM_INFORMATION)
                     add(
                         AppBar.OverflowAction(
                             title = stringResource(MR.strings.action_notes),

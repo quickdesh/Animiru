@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Input
 import androidx.compose.material.icons.automirrored.outlined.Label
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.BookmarkAdd
 import androidx.compose.material.icons.outlined.BookmarkRemove
 import androidx.compose.material.icons.outlined.Delete
@@ -50,27 +52,35 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.DownloadDropdownMenu
-import eu.kanade.presentation.manga.DownloadAction
+import eu.kanade.presentation.anime.DownloadAction
 import eu.kanade.tachiyomi.R
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
-fun MangaBottomActionMenu(
+fun AnimeBottomActionMenu(
     visible: Boolean,
     modifier: Modifier = Modifier,
     onBookmarkClicked: (() -> Unit)? = null,
     onRemoveBookmarkClicked: (() -> Unit)? = null,
-    onMarkAsReadClicked: (() -> Unit)? = null,
-    onMarkAsUnreadClicked: (() -> Unit)? = null,
-    onMarkPreviousAsReadClicked: (() -> Unit)? = null,
+    // AM (FILLERMARK) -->
+    onFillermarkClicked: (() -> Unit)? = null,
+    onRemoveFillermarkClicked: (() -> Unit)? = null,
+    // <-- AM (FILLERMARK)
+    onMarkAsSeenClicked: (() -> Unit)? = null,
+    onMarkAsUnseenClicked: (() -> Unit)? = null,
+    onMarkPreviousAsSeenClicked: (() -> Unit)? = null,
     onDownloadClicked: (() -> Unit)? = null,
     onDeleteClicked: (() -> Unit)? = null,
+    onExternalClicked: (() -> Unit)? = null,
+    onInternalClicked: (() -> Unit)? = null,
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -84,11 +94,16 @@ fun MangaBottomActionMenu(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             val haptic = LocalHapticFeedback.current
-            val confirm = remember { mutableStateListOf(false, false, false, false, false, false, false) }
+            // AM (FILLERMARK) -->
+            val confirm = remember {
+                mutableStateListOf(false, false, false, false, false, false, false, false, false, false, false)
+            }
+            val confirmRange = 0..<11
+            // <-- AM (FILLERMARK)
             var resetJob: Job? = remember { null }
             val onLongClickItem: (Int) -> Unit = { toConfirmIndex ->
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                (0..<7).forEach { i -> confirm[i] = i == toConfirmIndex }
+                (confirmRange).forEach { i -> confirm[i] = i == toConfirmIndex }
                 resetJob?.cancel()
                 resetJob = scope.launch {
                     delay(1.seconds)
@@ -122,39 +137,59 @@ fun MangaBottomActionMenu(
                         onClick = onRemoveBookmarkClicked,
                     )
                 }
-                if (onMarkAsReadClicked != null) {
+                // AM (FILLERMARK) -->
+                if (onFillermarkClicked != null) {
+                    Button(
+                        title = stringResource(AMMR.strings.action_fillermark_episode),
+                        icon = ImageVector.vectorResource(id = R.drawable.ic_fillermark_24dp),
+                        toConfirm = confirm[2],
+                        onLongClick = { onLongClickItem(2) },
+                        onClick = onFillermarkClicked,
+                    )
+                }
+                if (onRemoveFillermarkClicked != null) {
+                    Button(
+                        title = stringResource(AMMR.strings.action_remove_fillermark_episode),
+                        icon = ImageVector.vectorResource(id = R.drawable.ic_fillermark_border_24dp),
+                        toConfirm = confirm[3],
+                        onLongClick = { onLongClickItem(3) },
+                        onClick = onRemoveFillermarkClicked,
+                    )
+                }
+                // <-- AM (FILLERMARK)
+                if (onMarkAsSeenClicked != null) {
                     Button(
                         title = stringResource(MR.strings.action_mark_as_read),
                         icon = Icons.Outlined.DoneAll,
-                        toConfirm = confirm[2],
-                        onLongClick = { onLongClickItem(2) },
-                        onClick = onMarkAsReadClicked,
+                        toConfirm = confirm[4],
+                        onLongClick = { onLongClickItem(4) },
+                        onClick = onMarkAsSeenClicked,
                     )
                 }
-                if (onMarkAsUnreadClicked != null) {
+                if (onMarkAsUnseenClicked != null) {
                     Button(
                         title = stringResource(MR.strings.action_mark_as_unread),
                         icon = Icons.Outlined.RemoveDone,
-                        toConfirm = confirm[3],
-                        onLongClick = { onLongClickItem(3) },
-                        onClick = onMarkAsUnreadClicked,
+                        toConfirm = confirm[5],
+                        onLongClick = { onLongClickItem(5) },
+                        onClick = onMarkAsUnseenClicked,
                     )
                 }
-                if (onMarkPreviousAsReadClicked != null) {
+                if (onMarkPreviousAsSeenClicked != null) {
                     Button(
                         title = stringResource(MR.strings.action_mark_previous_as_read),
                         icon = ImageVector.vectorResource(R.drawable.ic_done_prev_24dp),
-                        toConfirm = confirm[4],
-                        onLongClick = { onLongClickItem(4) },
-                        onClick = onMarkPreviousAsReadClicked,
+                        toConfirm = confirm[6],
+                        onLongClick = { onLongClickItem(6) },
+                        onClick = onMarkPreviousAsSeenClicked,
                     )
                 }
                 if (onDownloadClicked != null) {
                     Button(
                         title = stringResource(MR.strings.action_download),
                         icon = Icons.Outlined.Download,
-                        toConfirm = confirm[5],
-                        onLongClick = { onLongClickItem(5) },
+                        toConfirm = confirm[7],
+                        onLongClick = { onLongClickItem(7) },
                         onClick = onDownloadClicked,
                     )
                 }
@@ -162,9 +197,28 @@ fun MangaBottomActionMenu(
                     Button(
                         title = stringResource(MR.strings.action_delete),
                         icon = Icons.Outlined.Delete,
-                        toConfirm = confirm[6],
-                        onLongClick = { onLongClickItem(6) },
+                        toConfirm = confirm[8],
+                        onLongClick = { onLongClickItem(8) },
                         onClick = onDeleteClicked,
+                    )
+                }
+
+                if (onExternalClicked != null && !playerPreferences.alwaysUseExternalPlayer().get()) {
+                    Button(
+                        title = stringResource(AYMR.strings.action_play_externally),
+                        icon = Icons.AutoMirrored.Outlined.OpenInNew,
+                        toConfirm = confirm[9],
+                        onLongClick = { onLongClickItem(9) },
+                        onClick = onExternalClicked,
+                    )
+                }
+                if (onInternalClicked != null && playerPreferences.alwaysUseExternalPlayer().get()) {
+                    Button(
+                        title = stringResource(AYMR.strings.action_play_internally),
+                        icon = Icons.AutoMirrored.Outlined.Input,
+                        toConfirm = confirm[10],
+                        onLongClick = { onLongClickItem(10) },
+                        onClick = onInternalClicked,
                     )
                 }
             }
@@ -222,8 +276,8 @@ private fun RowScope.Button(
 fun LibraryBottomActionMenu(
     visible: Boolean,
     onChangeCategoryClicked: () -> Unit,
-    onMarkAsReadClicked: () -> Unit,
-    onMarkAsUnreadClicked: () -> Unit,
+    onMarkAsSeenClicked: () -> Unit,
+    onMarkAsUnseenClicked: () -> Unit,
     onDownloadClicked: ((DownloadAction) -> Unit)?,
     onDeleteClicked: () -> Unit,
     modifier: Modifier = Modifier,
@@ -271,14 +325,14 @@ fun LibraryBottomActionMenu(
                     icon = Icons.Outlined.DoneAll,
                     toConfirm = confirm[1],
                     onLongClick = { onLongClickItem(1) },
-                    onClick = onMarkAsReadClicked,
+                    onClick = onMarkAsSeenClicked,
                 )
                 Button(
                     title = stringResource(MR.strings.action_mark_as_unread),
                     icon = Icons.Outlined.RemoveDone,
                     toConfirm = confirm[2],
                     onLongClick = { onLongClickItem(2) },
-                    onClick = onMarkAsUnreadClicked,
+                    onClick = onMarkAsUnseenClicked,
                 )
                 if (onDownloadClicked != null) {
                     var downloadExpanded by remember { mutableStateOf(false) }

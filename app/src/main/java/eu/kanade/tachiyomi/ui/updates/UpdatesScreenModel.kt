@@ -10,7 +10,7 @@ import eu.kanade.core.preference.asState
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
 import eu.kanade.domain.episode.interactor.SetSeenStatus
-import eu.kanade.presentation.manga.components.ChapterDownloadAction
+import eu.kanade.presentation.anime.components.EpisodeDownloadAction
 import eu.kanade.presentation.updates.UpdatesUiModel
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -154,25 +154,25 @@ class UpdatesScreenModel(
         }
     }
 
-    fun downloadChapters(items: List<UpdatesItem>, action: ChapterDownloadAction) {
+    fun downloadChapters(items: List<UpdatesItem>, action: EpisodeDownloadAction) {
         if (items.isEmpty()) return
         screenModelScope.launch {
             when (action) {
-                ChapterDownloadAction.START -> {
+                EpisodeDownloadAction.START -> {
                     downloadChapters(items)
                     if (items.any { it.downloadStateProvider() == Download.State.ERROR }) {
                         downloadManager.startDownloads()
                     }
                 }
-                ChapterDownloadAction.START_NOW -> {
+                EpisodeDownloadAction.START_NOW -> {
                     val chapterId = items.singleOrNull()?.update?.episodeId ?: return@launch
                     startDownloadingNow(chapterId)
                 }
-                ChapterDownloadAction.CANCEL -> {
+                EpisodeDownloadAction.CANCEL -> {
                     val chapterId = items.singleOrNull()?.update?.episodeId ?: return@launch
                     cancelDownload(chapterId)
                 }
-                ChapterDownloadAction.DELETE -> {
+                EpisodeDownloadAction.DELETE -> {
                     deleteChapters(items)
                 }
             }

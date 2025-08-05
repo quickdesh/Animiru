@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -59,7 +59,7 @@ private const val MAX_LENGTH = 250
 private const val MAX_LENGTH_WARN = MAX_LENGTH * 0.9
 
 @Composable
-fun MangaNotesTextArea(
+fun AnimeNotesTextArea(
     state: MangaNotesScreen.State,
     onUpdate: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -131,21 +131,21 @@ fun MangaNotesTextArea(
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 item {
-                    MangaNotesTextAreaButton(
+                    AnimeNotesTextAreaButton(
                         onClick = { richTextState.toggleSpanStyle(SpanStyle(fontWeight = FontWeight.Bold)) },
                         isSelected = richTextState.currentSpanStyle.fontWeight == FontWeight.Bold,
                         icon = Icons.Outlined.FormatBold,
                     )
                 }
                 item {
-                    MangaNotesTextAreaButton(
+                    AnimeNotesTextAreaButton(
                         onClick = { richTextState.toggleSpanStyle(SpanStyle(fontStyle = FontStyle.Italic)) },
                         isSelected = richTextState.currentSpanStyle.fontStyle == FontStyle.Italic,
                         icon = Icons.Outlined.FormatItalic,
                     )
                 }
                 item {
-                    MangaNotesTextAreaButton(
+                    AnimeNotesTextAreaButton(
                         onClick = {
                             richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.Underline))
                         },
@@ -163,14 +163,14 @@ fun MangaNotesTextArea(
                     )
                 }
                 item {
-                    MangaNotesTextAreaButton(
+                    AnimeNotesTextAreaButton(
                         onClick = { richTextState.toggleUnorderedList() },
                         isSelected = richTextState.isUnorderedList,
                         icon = Icons.AutoMirrored.Outlined.FormatListBulleted,
                     )
                 }
                 item {
-                    MangaNotesTextAreaButton(
+                    AnimeNotesTextAreaButton(
                         onClick = { richTextState.toggleOrderedList() },
                         isSelected = richTextState.isOrderedList,
                         icon = Icons.Outlined.FormatListNumbered,
@@ -196,7 +196,7 @@ fun MangaNotesTextArea(
 }
 
 @Composable
-fun MangaNotesTextAreaButton(
+fun AnimeNotesTextAreaButton(
     onClick: () -> Unit,
     icon: ImageVector,
     isSelected: Boolean,

@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -18,7 +18,7 @@ import tachiyomi.domain.anime.model.Anime
 import tachiyomi.presentation.core.components.material.padding
 
 @Composable
-fun BaseMangaListItem(
+fun BaseAnimeListItem(
     anime: Anime,
     modifier: Modifier = Modifier,
     onClickItem: () -> Unit = {},
@@ -40,12 +40,12 @@ fun BaseMangaListItem(
     }
 }
 
-private val defaultCover: @Composable RowScope.(Anime, () -> Unit) -> Unit = { manga, onClick ->
-    MangaCover.Square(
+private val defaultCover: @Composable RowScope.(Anime, () -> Unit) -> Unit = { anime, onClick ->
+    AnimeCover.Square(
         modifier = Modifier
             .padding(vertical = MaterialTheme.padding.small)
             .fillMaxHeight(),
-        data = manga,
+        data = anime,
         onClick = onClick,
     )
 }

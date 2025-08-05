@@ -205,7 +205,7 @@ class LibraryPreferences(
 
     fun swipeToEndAction() = preferenceStore.getEnum(
         "pref_chapter_swipe_start_action",
-        EpisodeSwipeAction.ToggleRead,
+        EpisodeSwipeAction.ToggleSeen,
     )
 
     fun updateAnimeTitles() = preferenceStore.getBoolean("pref_update_library_manga_titles", false)
@@ -213,7 +213,7 @@ class LibraryPreferences(
     // endregion
 
     enum class EpisodeSwipeAction {
-        ToggleRead,
+        ToggleSeen,
         ToggleBookmark,
         // AM (FILLERMARK) -->
         ToggleFillermark,

@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga
+package eu.kanade.presentation.anime
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -58,7 +58,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import eu.kanade.presentation.components.AdaptiveSheet
 import eu.kanade.presentation.components.TabbedDialogPaddings
-import eu.kanade.presentation.manga.components.MangaCover
+import eu.kanade.presentation.anime.components.AnimeCover
 import eu.kanade.presentation.more.settings.LocalPreferenceMinHeight
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.tachiyomi.animesource.AnimeSource
@@ -78,11 +78,11 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 @Composable
-fun DuplicateMangaDialog(
+fun DuplicateAnimeDialog(
     duplicates: List<AnimeWithEpisodeCount>,
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
-    onOpenManga: (anime: Anime) -> Unit,
+    onOpenAnime: (anime: Anime) -> Unit,
     onMigrate: (anime: Anime) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -118,19 +118,19 @@ fun DuplicateMangaDialog(
 
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
-                modifier = Modifier.height(getMaximumMangaCardHeight(duplicates)),
+                modifier = Modifier.height(getMaximumAnimeCardHeight(duplicates)),
                 contentPadding = horizontalPadding,
             ) {
                 items(
                     items = duplicates,
                     key = { it.anime.id },
                 ) {
-                    DuplicateMangaListItem(
+                    DuplicateAnimeListItem(
                         duplicate = it,
                         getSource = { sourceManager.getOrStub(it.anime.source) },
                         onMigrate = { onMigrate(it.anime) },
                         onDismissRequest = onDismissRequest,
-                        onOpenManga = { onOpenManga(it.anime) },
+                        onOpenAnime = { onOpenAnime(it.anime) },
                     )
                 }
             }
@@ -169,22 +169,22 @@ fun DuplicateMangaDialog(
 }
 
 @Composable
-private fun DuplicateMangaListItem(
+private fun DuplicateAnimeListItem(
     duplicate: AnimeWithEpisodeCount,
     getSource: () -> AnimeSource,
     onDismissRequest: () -> Unit,
-    onOpenManga: () -> Unit,
+    onOpenAnime: () -> Unit,
     onMigrate: () -> Unit,
 ) {
     val source = getSource()
-    val manga = duplicate.anime
+    val anime = duplicate.anime
     Column(
         modifier = Modifier
-            .width(MangaCardWidth)
+            .width(AnimeCardWidth)
             .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surface)
             .combinedClickable(
-                onLongClick = { onOpenManga() },
+                onLongClick = { onOpenAnime() },
                 onClick = {
                     onDismissRequest()
                     onMigrate()
@@ -193,9 +193,9 @@ private fun DuplicateMangaListItem(
             .padding(MaterialTheme.padding.small),
     ) {
         Box {
-            MangaCover.Book(
+            AnimeCover.Book(
                 data = ImageRequest.Builder(LocalContext.current)
-                    .data(manga)
+                    .data(anime)
                     .crossfade(true)
                     .build(),
                 modifier = Modifier.fillMaxWidth(),
@@ -220,30 +220,30 @@ private fun DuplicateMangaListItem(
         Spacer(modifier = Modifier.height(MaterialTheme.padding.extraSmall))
 
         Text(
-            text = manga.title,
+            text = anime.title,
             style = MaterialTheme.typography.titleSmall,
             overflow = TextOverflow.Ellipsis,
             maxLines = 2,
         )
 
-        if (!manga.author.isNullOrBlank()) {
-            MangaDetailRow(
-                text = manga.author!!,
+        if (!anime.author.isNullOrBlank()) {
+            AnimeDetailRow(
+                text = anime.author!!,
                 iconImageVector = Icons.Filled.PersonOutline,
                 maxLines = 2,
             )
         }
 
-        if (!manga.artist.isNullOrBlank() && manga.author != manga.artist) {
-            MangaDetailRow(
-                text = manga.artist!!,
+        if (!anime.artist.isNullOrBlank() && anime.author != anime.artist) {
+            AnimeDetailRow(
+                text = anime.artist!!,
                 iconImageVector = Icons.Filled.Brush,
                 maxLines = 2,
             )
         }
 
-        MangaDetailRow(
-            text = when (manga.status) {
+        AnimeDetailRow(
+            text = when (anime.status) {
                 SAnime.ONGOING.toLong() -> stringResource(MR.strings.ongoing)
                 SAnime.COMPLETED.toLong() -> stringResource(MR.strings.completed)
                 SAnime.LICENSED.toLong() -> stringResource(MR.strings.licensed)
@@ -252,7 +252,7 @@ private fun DuplicateMangaListItem(
                 SAnime.ON_HIATUS.toLong() -> stringResource(MR.strings.on_hiatus)
                 else -> stringResource(MR.strings.unknown)
             },
-            iconImageVector = when (manga.status) {
+            iconImageVector = when (anime.status) {
                 SAnime.ONGOING.toLong() -> Icons.Outlined.Schedule
                 SAnime.COMPLETED.toLong() -> Icons.Outlined.DoneAll
                 SAnime.LICENSED.toLong() -> Icons.Outlined.AttachMoney
@@ -288,7 +288,7 @@ private fun DuplicateMangaListItem(
 }
 
 @Composable
-private fun MangaDetailRow(
+private fun AnimeDetailRow(
     text: String,
     iconImageVector: ImageVector,
     maxLines: Int = 1,
@@ -303,7 +303,7 @@ private fun MangaDetailRow(
         Icon(
             imageVector = iconImageVector,
             contentDescription = null,
-            modifier = Modifier.size(MangaDetailsIconWidth),
+            modifier = Modifier.size(AnimeDetailsIconWidth),
         )
         Text(
             text = text,
@@ -315,7 +315,7 @@ private fun MangaDetailRow(
 }
 
 @Composable
-private fun getMaximumMangaCardHeight(duplicates: List<AnimeWithEpisodeCount>): Dp {
+private fun getMaximumAnimeCardHeight(duplicates: List<AnimeWithEpisodeCount>): Dp {
     val density = LocalDensity.current
     val typography = MaterialTheme.typography
     val textMeasurer = rememberTextMeasurer()
@@ -323,10 +323,10 @@ private fun getMaximumMangaCardHeight(duplicates: List<AnimeWithEpisodeCount>): 
     val smallPadding = with(density) { MaterialTheme.padding.small.roundToPx() }
     val extraSmallPadding = with(density) { MaterialTheme.padding.extraSmall.roundToPx() }
 
-    val width = with(density) { MangaCardWidth.roundToPx() - (2 * smallPadding) }
-    val iconWidth = with(density) { MangaDetailsIconWidth.roundToPx() }
+    val width = with(density) { AnimeCardWidth.roundToPx() - (2 * smallPadding) }
+    val iconWidth = with(density) { AnimeDetailsIconWidth.roundToPx() }
 
-    val coverHeight = width / MangaCover.Book.ratio
+    val coverHeight = width / AnimeCover.Book.ratio
     val constraints = Constraints(maxWidth = width)
     val detailsConstraints = Constraints(maxWidth = width - iconWidth - extraSmallPadding)
 
@@ -342,7 +342,7 @@ private fun getMaximumMangaCardHeight(duplicates: List<AnimeWithEpisodeCount>): 
         detailsConstraints,
     ) {
         duplicates.fastMaxOfOrNull {
-            calculateMangaCardHeight(
+            calculateAnimeCardHeight(
                 anime = it.anime,
                 density = density,
                 typography = typography,
@@ -358,7 +358,7 @@ private fun getMaximumMangaCardHeight(duplicates: List<AnimeWithEpisodeCount>): 
     }
 }
 
-private fun calculateMangaCardHeight(
+private fun calculateAnimeCardHeight(
     anime: Anime,
     density: Density,
     typography: Typography,
@@ -402,5 +402,5 @@ private fun TextMeasurer.measureHeight(
     .size
     .height
 
-private val MangaCardWidth = 150.dp
-private val MangaDetailsIconWidth = 16.dp
+private val AnimeCardWidth = 150.dp
+private val AnimeDetailsIconWidth = 16.dp

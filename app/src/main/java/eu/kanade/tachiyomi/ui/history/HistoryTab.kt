@@ -20,7 +20,7 @@ import eu.kanade.presentation.category.components.ChangeCategoryDialog
 import eu.kanade.presentation.history.HistoryScreen
 import eu.kanade.presentation.history.components.HistoryDeleteAllDialog
 import eu.kanade.presentation.history.components.HistoryDeleteDialog
-import eu.kanade.presentation.manga.DuplicateMangaDialog
+import eu.kanade.presentation.anime.DuplicateAnimeDialog
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
@@ -96,11 +96,11 @@ data object HistoryTab : Tab {
                 )
             }
             is HistoryScreenModel.Dialog.DuplicateManga -> {
-                DuplicateMangaDialog(
+                DuplicateAnimeDialog(
                     duplicates = dialog.duplicates,
                     onDismissRequest = onDismissRequest,
                     onConfirm = { screenModel.addFavorite(dialog.anime) },
-                    onOpenManga = { navigator.push(MangaScreen(it.id)) },
+                    onOpenAnime = { navigator.push(MangaScreen(it.id)) },
                     onMigrate = { screenModel.showMigrateDialog(dialog.anime, it) },
                 )
             }

@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,16 +12,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.SECONDARY_ALPHA
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
-fun ChapterHeader(
+fun EpisodeHeader(
     enabled: Boolean,
-    chapterCount: Int?,
-    missingChapterCount: Int,
+    episodeCount: Int?,
+    missingEpisodeCount: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -36,21 +37,21 @@ fun ChapterHeader(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
     ) {
         Text(
-            text = if (chapterCount == null) {
-                stringResource(MR.strings.chapters)
+            text = if (episodeCount == null) {
+                stringResource(AYMR.strings.episodes)
             } else {
-                pluralStringResource(MR.plurals.manga_num_chapters, count = chapterCount, chapterCount)
+                pluralStringResource(MR.plurals.manga_num_chapters, count = episodeCount, episodeCount)
             },
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground,
         )
 
-        MissingChaptersWarning(missingChapterCount)
+        MissingEpisodesWarning(missingEpisodeCount)
     }
 }
 
 @Composable
-private fun MissingChaptersWarning(count: Int) {
+private fun MissingEpisodesWarning(count: Int) {
     if (count == 0) {
         return
     }

@@ -9,7 +9,7 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import eu.kanade.presentation.manga.MangaNotesScreen
+import eu.kanade.presentation.anime.AnimeNotesScreen
 import eu.kanade.presentation.util.Screen
 import kotlinx.coroutines.flow.update
 import tachiyomi.core.common.util.lang.launchNonCancellable
@@ -28,7 +28,7 @@ class MangaNotesScreen(
         val screenModel = rememberScreenModel { Model(anime) }
         val state by screenModel.state.collectAsState()
 
-        MangaNotesScreen(
+        AnimeNotesScreen(
             state = state,
             navigateUp = navigator::pop,
             onUpdate = screenModel::updateNotes,

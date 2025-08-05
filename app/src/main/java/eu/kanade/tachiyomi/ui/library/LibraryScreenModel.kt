@@ -19,7 +19,7 @@ import eu.kanade.domain.episode.interactor.SetSeenStatus
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.presentation.components.SEARCH_DEBOUNCE_MILLIS
 import eu.kanade.presentation.library.components.LibraryToolbarTitle
-import eu.kanade.presentation.manga.DownloadAction
+import eu.kanade.presentation.anime.DownloadAction
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -447,11 +447,11 @@ class LibraryScreenModel(
         val selection = state.value.selection
         val mangas = selection.map { it.anime }.toList()
         when (action) {
-            DownloadAction.NEXT_1_CHAPTER -> downloadUnreadChapters(mangas, 1)
-            DownloadAction.NEXT_5_CHAPTERS -> downloadUnreadChapters(mangas, 5)
-            DownloadAction.NEXT_10_CHAPTERS -> downloadUnreadChapters(mangas, 10)
-            DownloadAction.NEXT_25_CHAPTERS -> downloadUnreadChapters(mangas, 25)
-            DownloadAction.UNREAD_CHAPTERS -> downloadUnreadChapters(mangas, null)
+            DownloadAction.NEXT_1_EPISODE -> downloadUnreadChapters(mangas, 1)
+            DownloadAction.NEXT_5_EPISODES -> downloadUnreadChapters(mangas, 5)
+            DownloadAction.NEXT_10_EPISODES -> downloadUnreadChapters(mangas, 10)
+            DownloadAction.NEXT_25_EPISODES -> downloadUnreadChapters(mangas, 25)
+            DownloadAction.UNSEEN_EPISODES -> downloadUnreadChapters(mangas, null)
         }
         clearSelection()
     }

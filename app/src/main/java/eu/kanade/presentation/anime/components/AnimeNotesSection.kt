@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,7 +26,7 @@ import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
-fun MangaNotesSection(
+fun AnimeNotesSection(
     content: String,
     expanded: Boolean,
     onEditNotes: () -> Unit,
@@ -37,7 +37,7 @@ fun MangaNotesSection(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        MangaNotesDisplay(
+        AnimeNotesDisplay(
             content = content,
             modifier = modifier.fillMaxWidth(),
         )
@@ -81,8 +81,8 @@ fun MangaNotesSection(
 
 @PreviewLightDark
 @Composable
-private fun MangaNotesSectionPreview() {
-    MangaNotesSection(
+private fun AnimeNotesSectionPreview() {
+    AnimeNotesSection(
         onEditNotes = {},
         expanded = true,
         content = "# Hello world\ntest1234 hi there!",

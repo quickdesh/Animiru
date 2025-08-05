@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
@@ -97,7 +97,7 @@ import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
 
 @Composable
-fun MangaInfoBox(
+fun AnimeInfoBox(
     isTabletUi: Boolean,
     appBarPadding: Dp,
     anime: Anime,
@@ -132,10 +132,10 @@ fun MangaInfoBox(
                 .alpha(0.2f),
         )
 
-        // Manga & source info
+        // Anime & source info
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
             if (!isTabletUi) {
-                MangaAndSourceTitlesSmall(
+                AnimeAndSourceTitlesSmall(
                     appBarPadding = appBarPadding,
                     anime = anime,
                     sourceName = sourceName,
@@ -144,7 +144,7 @@ fun MangaInfoBox(
                     doSearch = doSearch,
                 )
             } else {
-                MangaAndSourceTitlesLarge(
+                AnimeAndSourceTitlesLarge(
                     appBarPadding = appBarPadding,
                     anime = anime,
                     sourceName = sourceName,
@@ -158,7 +158,7 @@ fun MangaInfoBox(
 }
 
 @Composable
-fun MangaActionRow(
+fun AnimeActionRow(
     favorite: Boolean,
     trackingCount: Int,
     nextUpdate: Instant?,
@@ -184,7 +184,7 @@ fun MangaActionRow(
     }
 
     Row(modifier = modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp)) {
-        MangaActionButton(
+        AnimeActionButton(
             title = if (favorite) {
                 stringResource(MR.strings.in_library)
             } else {
@@ -195,7 +195,7 @@ fun MangaActionRow(
             onClick = onAddToLibraryClicked,
             onLongClick = onEditCategory,
         )
-        MangaActionButton(
+        AnimeActionButton(
             title = when (nextUpdateDays) {
                 null -> stringResource(MR.strings.not_applicable)
                 0 -> stringResource(MR.strings.manga_interval_expected_update_soon)
@@ -209,7 +209,7 @@ fun MangaActionRow(
             color = if (isUserIntervalMode) MaterialTheme.colorScheme.primary else defaultActionButtonColor,
             onClick = { onEditIntervalClicked?.invoke() },
         )
-        MangaActionButton(
+        AnimeActionButton(
             title = if (trackingCount == 0) {
                 stringResource(MR.strings.manga_tracking_tab)
             } else {
@@ -220,7 +220,7 @@ fun MangaActionRow(
             onClick = onTrackingClicked,
         )
         if (onWebViewClicked != null) {
-            MangaActionButton(
+            AnimeActionButton(
                 title = stringResource(MR.strings.action_web_view),
                 icon = Icons.Outlined.Public,
                 color = defaultActionButtonColor,
@@ -232,7 +232,7 @@ fun MangaActionRow(
 }
 
 @Composable
-fun ExpandableMangaDescription(
+fun ExpandableAnimeDescription(
     defaultExpandState: Boolean,
     description: String?,
     tagsProvider: () -> List<String>?,
@@ -249,7 +249,7 @@ fun ExpandableMangaDescription(
         val desc =
             description.takeIf { !it.isNullOrBlank() } ?: stringResource(MR.strings.description_placeholder)
 
-        MangaSummary(
+        AnimeSummary(
             description = desc,
             expanded = expanded,
             notes = notes,
@@ -328,7 +328,7 @@ fun ExpandableMangaDescription(
 }
 
 @Composable
-private fun MangaAndSourceTitlesLarge(
+private fun AnimeAndSourceTitlesLarge(
     appBarPadding: Dp,
     anime: Anime,
     sourceName: String,
@@ -342,7 +342,7 @@ private fun MangaAndSourceTitlesLarge(
             .padding(start = 16.dp, top = appBarPadding + 16.dp, end = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        MangaCover.Book(
+        AnimeCover.Book(
             modifier = Modifier.fillMaxWidth(0.65f),
             data = ImageRequest.Builder(LocalContext.current)
                 .data(anime)
@@ -352,7 +352,7 @@ private fun MangaAndSourceTitlesLarge(
             onClick = onCoverClick,
         )
         Spacer(modifier = Modifier.height(16.dp))
-        MangaContentInfo(
+        AnimeContentInfo(
             title = anime.title,
             author = anime.author,
             artist = anime.artist,
@@ -366,7 +366,7 @@ private fun MangaAndSourceTitlesLarge(
 }
 
 @Composable
-private fun MangaAndSourceTitlesSmall(
+private fun AnimeAndSourceTitlesSmall(
     appBarPadding: Dp,
     anime: Anime,
     sourceName: String,
@@ -381,7 +381,7 @@ private fun MangaAndSourceTitlesSmall(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MangaCover.Book(
+        AnimeCover.Book(
             modifier = Modifier
                 .sizeIn(maxWidth = 100.dp)
                 .align(Alignment.Top),
@@ -395,7 +395,7 @@ private fun MangaAndSourceTitlesSmall(
         Column(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            MangaContentInfo(
+            AnimeContentInfo(
                 title = anime.title,
                 author = anime.author,
                 artist = anime.artist,
@@ -409,7 +409,7 @@ private fun MangaAndSourceTitlesSmall(
 }
 
 @Composable
-private fun ColumnScope.MangaContentInfo(
+private fun ColumnScope.AnimeContentInfo(
     title: String,
     author: String?,
     artist: String?,
@@ -569,7 +569,7 @@ private val descriptionAnnotator = markdownAnnotator(
 )
 
 @Composable
-private fun MangaSummary(
+private fun AnimeSummary(
     description: String,
     notes: String,
     expanded: Boolean,
@@ -593,7 +593,7 @@ private fun MangaSummary(
             },
             {
                 Column {
-                    MangaNotesSection(
+                    AnimeNotesSection(
                         content = notes,
                         expanded = true,
                         onEditNotes = onEditNotesClicked,
@@ -607,7 +607,7 @@ private fun MangaSummary(
             },
             {
                 Column {
-                    MangaNotesSection(
+                    AnimeNotesSection(
                         content = notes,
                         expanded = expanded,
                         onEditNotes = onEditNotesClicked,
@@ -682,7 +682,7 @@ private fun TagsChip(
 }
 
 @Composable
-private fun RowScope.MangaActionButton(
+private fun RowScope.AnimeActionButton(
     title: String,
     icon: ImageVector,
     color: Color,

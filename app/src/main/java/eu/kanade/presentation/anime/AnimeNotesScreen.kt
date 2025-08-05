@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga
+package eu.kanade.presentation.anime
 
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.imePadding
@@ -7,14 +7,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarTitle
-import eu.kanade.presentation.manga.components.MangaNotesTextArea
+import eu.kanade.presentation.anime.components.AnimeNotesTextArea
 import eu.kanade.tachiyomi.ui.manga.notes.MangaNotesScreen
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
-fun MangaNotesScreen(
+fun AnimeNotesScreen(
     state: MangaNotesScreen.State,
     navigateUp: () -> Unit,
     onUpdate: (String) -> Unit,
@@ -33,7 +33,7 @@ fun MangaNotesScreen(
             )
         },
     ) { contentPadding ->
-        MangaNotesTextArea(
+        AnimeNotesTextArea(
             state = state,
             onUpdate = onUpdate,
             modifier = Modifier

@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import eu.kanade.presentation.manga.components.MangaCover
+import eu.kanade.presentation.anime.components.AnimeCover
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.asAnimeCover
 import tachiyomi.presentation.core.components.material.padding
@@ -38,7 +38,7 @@ fun UpcomingItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.large),
     ) {
-        MangaCover.Book(
+        AnimeCover.Book(
             modifier = Modifier.fillMaxHeight(),
             data = upcoming.asAnimeCover(),
         )

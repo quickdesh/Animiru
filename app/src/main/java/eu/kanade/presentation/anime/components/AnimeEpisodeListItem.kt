@@ -1,12 +1,14 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Circle
@@ -30,56 +32,74 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.model.Download
 import me.saket.swipe.SwipeableActionsBox
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.SECONDARY_ALPHA
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.selectedBackground
 
 @Composable
-fun MangaChapterListItem(
+fun AnimeEpisodeListItem(
     title: String,
     date: String?,
-    readProgress: String?,
+    watchProgress: String?,
     scanlator: String?,
-    read: Boolean,
+    seen: Boolean,
     bookmark: Boolean,
+    // AM (FILLERMARK) -->
+    fillermark: Boolean,
+    // <-- AM (FILLERMARK)
     selected: Boolean,
     downloadIndicatorEnabled: Boolean,
     downloadStateProvider: () -> Download.State,
     downloadProgressProvider: () -> Int,
-    chapterSwipeStartAction: LibraryPreferences.EpisodeSwipeAction,
-    chapterSwipeEndAction: LibraryPreferences.EpisodeSwipeAction,
+    episodeSwipeStartAction: LibraryPreferences.EpisodeSwipeAction,
+    episodeSwipeEndAction: LibraryPreferences.EpisodeSwipeAction,
     onLongClick: () -> Unit,
     onClick: () -> Unit,
-    onDownloadClick: ((ChapterDownloadAction) -> Unit)?,
-    onChapterSwipe: (LibraryPreferences.EpisodeSwipeAction) -> Unit,
+    onDownloadClick: ((EpisodeDownloadAction) -> Unit)?,
+    onEpisodeSwipe: (LibraryPreferences.EpisodeSwipeAction) -> Unit,
+    // AM (FILE_SIZE) -->
+    fileSize: Long?,
+    // <-- AM (FILE_SIZE)
     modifier: Modifier = Modifier,
 ) {
     val start = getSwipeAction(
-        action = chapterSwipeStartAction,
-        read = read,
+        action = episodeSwipeStartAction,
+        seen = seen,
         bookmark = bookmark,
+        // AM (FILLERMARK) -->
+        fillermark = fillermark,
+        // <-- AM (FILLERMARK)
         downloadState = downloadStateProvider(),
         background = MaterialTheme.colorScheme.primaryContainer,
-        onSwipe = { onChapterSwipe(chapterSwipeStartAction) },
+        onSwipe = { onEpisodeSwipe(episodeSwipeStartAction) },
     )
     val end = getSwipeAction(
-        action = chapterSwipeEndAction,
-        read = read,
+        action = episodeSwipeEndAction,
+        seen = seen,
         bookmark = bookmark,
+        // AM (FILLERMARK) -->
+        fillermark = fillermark,
+        // <-- AM (FILLERMARK)
         downloadState = downloadStateProvider(),
         background = MaterialTheme.colorScheme.primaryContainer,
-        onSwipe = { onChapterSwipe(chapterSwipeEndAction) },
+        onSwipe = { onEpisodeSwipe(episodeSwipeEndAction) },
     )
 
     SwipeableActionsBox(
@@ -107,10 +127,10 @@ fun MangaChapterListItem(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     var textHeight by remember { mutableIntStateOf(0) }
-                    if (!read) {
+                    if (!seen) {
                         Icon(
                             imageVector = Icons.Filled.Circle,
-                            contentDescription = stringResource(MR.strings.unread),
+                            contentDescription = stringResource(AYMR.strings.unseen),
                             modifier = Modifier
                                 .height(8.dp)
                                 .padding(end = 4.dp),
@@ -126,13 +146,25 @@ fun MangaChapterListItem(
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     }
+                    // AM (FILLERMARK) -->
+                    if (fillermark) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_fillermark_24dp),
+                            contentDescription = stringResource(AMMR.strings.action_filter_fillermarked),
+                            modifier = Modifier
+                                .sizeIn(maxHeight = with(LocalDensity.current) { textHeight.toDp() - 2.dp }),
+                            tint = MaterialTheme.colorScheme.tertiary,
+                        )
+                        Spacer(modifier = Modifier.width(2.dp))
+                    }
+                    // <-- AM (FILLERMARK)
                     Text(
                         text = title,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         onTextLayout = { textHeight = it.size.height },
-                        color = LocalContentColor.current.copy(alpha = if (read) DISABLED_ALPHA else 1f),
+                        color = LocalContentColor.current.copy(alpha = if (seen) DISABLED_ALPHA else 1f),
                     )
                 }
 
@@ -140,7 +172,7 @@ fun MangaChapterListItem(
                     val subtitleStyle = MaterialTheme.typography.bodySmall
                         .merge(
                             color = LocalContentColor.current
-                                .copy(alpha = if (read) DISABLED_ALPHA else SECONDARY_ALPHA),
+                                .copy(alpha = if (seen) DISABLED_ALPHA else SECONDARY_ALPHA),
                         )
                     ProvideTextStyle(value = subtitleStyle) {
                         if (date != null) {
@@ -149,11 +181,11 @@ fun MangaChapterListItem(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
-                            if (readProgress != null || scanlator != null) DotSeparatorText()
+                            if (watchProgress != null || scanlator != null) DotSeparatorText()
                         }
-                        if (readProgress != null) {
+                        if (watchProgress != null) {
                             Text(
-                                text = readProgress,
+                                text = watchProgress,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 color = LocalContentColor.current.copy(alpha = DISABLED_ALPHA),
@@ -171,30 +203,39 @@ fun MangaChapterListItem(
                 }
             }
 
-            ChapterDownloadIndicator(
+            EpisodeDownloadIndicator(
                 enabled = downloadIndicatorEnabled,
                 modifier = Modifier.padding(start = 4.dp),
                 downloadStateProvider = downloadStateProvider,
                 downloadProgressProvider = downloadProgressProvider,
                 onClick = { onDownloadClick?.invoke(it) },
+                // AM (FILE_SIZE) -->
+                fileSize = fileSize,
+                // <-- AM (FILE_SIZE)
             )
         }
     }
 }
 
+// AM (FILLERMARK) -->
+@Composable
+// <-- AM (FILLERMARK)
 private fun getSwipeAction(
     action: LibraryPreferences.EpisodeSwipeAction,
-    read: Boolean,
+    seen: Boolean,
     bookmark: Boolean,
+    // AM (FILLERMARK) -->
+    fillermark: Boolean,
+    // <-- AM (FILLERMARK)
     downloadState: Download.State,
     background: Color,
     onSwipe: () -> Unit,
 ): me.saket.swipe.SwipeAction? {
     return when (action) {
-        LibraryPreferences.EpisodeSwipeAction.ToggleRead -> swipeAction(
-            icon = if (!read) Icons.Outlined.Done else Icons.Outlined.RemoveDone,
+        LibraryPreferences.EpisodeSwipeAction.ToggleSeen -> swipeAction(
+            icon = if (!seen) Icons.Outlined.Done else Icons.Outlined.RemoveDone,
             background = background,
-            isUndo = read,
+            isUndo = seen,
             onSwipe = onSwipe,
         )
         LibraryPreferences.EpisodeSwipeAction.ToggleBookmark -> swipeAction(
@@ -203,6 +244,21 @@ private fun getSwipeAction(
             isUndo = bookmark,
             onSwipe = onSwipe,
         )
+        // AM (FILLERMARK) -->
+        LibraryPreferences.EpisodeSwipeAction.ToggleFillermark -> {
+            val icon = if (!fillermark) {
+                ImageVector.vectorResource(id = R.drawable.ic_fillermark_24dp)
+            } else {
+                ImageVector.vectorResource(id = R.drawable.ic_fillermark_border_24dp)
+            }
+            swipeAction(
+                icon = icon,
+                background = background,
+                isUndo = bookmark,
+                onSwipe = onSwipe,
+            )
+        }
+        // <-- AM (FILLERMARK)
         LibraryPreferences.EpisodeSwipeAction.Download -> swipeAction(
             icon = when (downloadState) {
                 Download.State.NOT_DOWNLOADED, Download.State.ERROR -> Icons.Outlined.Download
@@ -213,6 +269,45 @@ private fun getSwipeAction(
             onSwipe = onSwipe,
         )
         LibraryPreferences.EpisodeSwipeAction.Disabled -> null
+    }
+}
+
+@Composable
+fun NextEpisodeAiringListItem(
+    title: String,
+    date: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                var textHeight by remember { mutableIntStateOf(0) }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    onTextLayout = { textHeight = it.size.height },
+                    modifier = Modifier.alpha(SECONDARY_ALPHA),
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(modifier = Modifier.alpha(SECONDARY_ALPHA)) {
+                ProvideTextStyle(
+                    value = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp),
+                ) {
+                    Text(
+                        text = date,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
     }
 }
 

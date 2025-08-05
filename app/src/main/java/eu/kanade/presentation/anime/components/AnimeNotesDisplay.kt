@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
@@ -19,7 +19,7 @@ import com.mohamedrejeb.richeditor.ui.material3.RichText
 private val FADE_TIME = tween<Float>(500)
 
 @Composable
-fun MangaNotesDisplay(
+fun AnimeNotesDisplay(
     content: String,
     modifier: Modifier,
 ) {

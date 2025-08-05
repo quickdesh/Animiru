@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga
+package eu.kanade.presentation.anime
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +35,8 @@ import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.components.RadioItem
 import tachiyomi.presentation.core.components.SortItem
@@ -45,17 +47,20 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 @Composable
-fun ChapterSettingsDialog(
+fun EpisodeSettingsDialog(
     onDismissRequest: () -> Unit,
     anime: Anime? = null,
     onDownloadFilterChanged: (TriState) -> Unit,
-    onUnreadFilterChanged: (TriState) -> Unit,
+    onUnseenFilterChanged: (TriState) -> Unit,
     onBookmarkedFilterChanged: (TriState) -> Unit,
+    // AM (FILLERMARK) -->
+    onFillermarkedFilterChanged: (TriState) -> Unit,
+    // <-- AM (FILLERMARK)
     scanlatorFilterActive: Boolean,
     onScanlatorFilterClicked: (() -> Unit),
     onSortModeChanged: (Long) -> Unit,
     onDisplayModeChanged: (Long) -> Unit,
-    onSetAsDefault: (applyToExistingManga: Boolean) -> Unit,
+    onSetAsDefault: (applyToExistingAnime: Boolean) -> Unit,
     onResetToDefault: () -> Unit,
 ) {
     var showSetAsDefaultDialog by rememberSaveable { mutableStateOf(false) }
@@ -103,10 +108,14 @@ fun ChapterSettingsDialog(
                         downloadFilter = anime?.downloadedFilter ?: TriState.DISABLED,
                         onDownloadFilterChanged = onDownloadFilterChanged
                             .takeUnless { downloadedOnly },
-                        unreadFilter = anime?.unseenFilter ?: TriState.DISABLED,
-                        onUnreadFilterChanged = onUnreadFilterChanged,
+                        unseenFilter = anime?.unseenFilter ?: TriState.DISABLED,
+                        onUnseenFilterChanged = onUnseenFilterChanged,
                         bookmarkedFilter = anime?.bookmarkedFilter ?: TriState.DISABLED,
                         onBookmarkedFilterChanged = onBookmarkedFilterChanged,
+                        // AM (FILLERMARK) -->
+                        fillermarkedFilter = anime?.fillermarkedFilter ?: TriState.DISABLED,
+                        onFillermarkedFilterChanged = onFillermarkedFilterChanged,
+                        // <-- AM (FILLERMARK)
                         scanlatorFilterActive = scanlatorFilterActive,
                         onScanlatorFilterClicked = onScanlatorFilterClicked,
                     )
@@ -133,10 +142,14 @@ fun ChapterSettingsDialog(
 private fun ColumnScope.FilterPage(
     downloadFilter: TriState,
     onDownloadFilterChanged: ((TriState) -> Unit)?,
-    unreadFilter: TriState,
-    onUnreadFilterChanged: (TriState) -> Unit,
+    unseenFilter: TriState,
+    onUnseenFilterChanged: (TriState) -> Unit,
     bookmarkedFilter: TriState,
     onBookmarkedFilterChanged: (TriState) -> Unit,
+    // AM (FILLERMARK) -->
+    fillermarkedFilter: TriState,
+    onFillermarkedFilterChanged: (TriState) -> Unit,
+    // <-- AM (FILLERMARK)
     scanlatorFilterActive: Boolean,
     onScanlatorFilterClicked: (() -> Unit),
 ) {
@@ -147,14 +160,21 @@ private fun ColumnScope.FilterPage(
     )
     TriStateItem(
         label = stringResource(MR.strings.action_filter_unread),
-        state = unreadFilter,
-        onClick = onUnreadFilterChanged,
+        state = unseenFilter,
+        onClick = onUnseenFilterChanged,
     )
     TriStateItem(
         label = stringResource(MR.strings.action_filter_bookmarked),
         state = bookmarkedFilter,
         onClick = onBookmarkedFilterChanged,
     )
+    // AM (FILLERMARK) -->
+    TriStateItem(
+        label = stringResource(AMMR.strings.action_filter_fillermarked),
+        state = fillermarkedFilter,
+        onClick = onFillermarkedFilterChanged,
+    )
+    // <-- AM (FILLERMARK)
     ScanlatorFilterItem(
         active = scanlatorFilterActive,
         onClick = onScanlatorFilterClicked,
@@ -198,7 +218,7 @@ private fun ColumnScope.SortPage(
 ) {
     listOf(
         MR.strings.sort_by_source to Anime.EPISODE_SORTING_SOURCE,
-        MR.strings.sort_by_number to Anime.EPISODE_SORTING_NUMBER,
+        AYMR.strings.sort_by_episode_number to Anime.EPISODE_SORTING_NUMBER,
         MR.strings.sort_by_upload_date to Anime.EPISODE_SORTING_UPLOAD_DATE,
         MR.strings.action_sort_alpha to Anime.EPISODE_SORTING_ALPHABET,
     ).map { (titleRes, mode) ->
@@ -217,7 +237,7 @@ private fun ColumnScope.DisplayPage(
 ) {
     listOf(
         MR.strings.show_title to Anime.EPISODE_DISPLAY_NAME,
-        MR.strings.show_chapter_number to Anime.EPISODE_DISPLAY_NUMBER,
+        AYMR.strings.show_episode_number to Anime.EPISODE_DISPLAY_NUMBER,
     ).map { (titleRes, mode) ->
         RadioItem(
             label = stringResource(titleRes),

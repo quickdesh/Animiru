@@ -15,7 +15,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import eu.kanade.presentation.manga.components.MarkdownRender
+import eu.kanade.presentation.anime.components.MarkdownRender
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import tachiyomi.i18n.MR

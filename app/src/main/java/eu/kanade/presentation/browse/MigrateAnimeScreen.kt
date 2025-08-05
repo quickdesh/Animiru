@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.manga.components.BaseMangaListItem
+import eu.kanade.presentation.anime.components.BaseAnimeListItem
 import eu.kanade.tachiyomi.ui.browse.migration.manga.MigrateMangaScreenModel
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
@@ -75,7 +75,7 @@ private fun MigrateAnimeItem(
     onClickCover: (Anime) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BaseMangaListItem(
+    BaseAnimeListItem(
         modifier = modifier,
         anime = anime,
         onClickItem = { onClickItem(anime) },

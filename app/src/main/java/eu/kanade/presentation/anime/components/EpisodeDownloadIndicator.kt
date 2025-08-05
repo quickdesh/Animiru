@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.combinedClickable
@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.model.Download
@@ -38,8 +39,10 @@ import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.IconButtonTokens
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.secondaryItemAlpha
+import java.math.BigDecimal
+import java.math.RoundingMode
 
-enum class ChapterDownloadAction {
+enum class EpisodeDownloadAction {
     START,
     START_NOW,
     CANCEL,
@@ -47,11 +50,14 @@ enum class ChapterDownloadAction {
 }
 
 @Composable
-fun ChapterDownloadIndicator(
+fun EpisodeDownloadIndicator(
     enabled: Boolean,
     downloadStateProvider: () -> Download.State,
     downloadProgressProvider: () -> Int,
-    onClick: (ChapterDownloadAction) -> Unit,
+    onClick: (EpisodeDownloadAction) -> Unit,
+    // AM (FILE_SIZE) -->
+    fileSize: Long?,
+    // <-- AM (FILE_SIZE)
     modifier: Modifier = Modifier,
 ) {
     when (val downloadState = downloadStateProvider()) {
@@ -71,6 +77,9 @@ fun ChapterDownloadIndicator(
             enabled = enabled,
             modifier = modifier,
             onClick = onClick,
+            // AM (FILE_SIZE) -->
+            fileSize = fileSize,
+            // <-- AM (FILE_SIZE)
         )
         Download.State.ERROR -> ErrorIndicator(
             enabled = enabled,
@@ -84,7 +93,7 @@ fun ChapterDownloadIndicator(
 private fun NotDownloadedIndicator(
     enabled: Boolean,
     modifier: Modifier = Modifier,
-    onClick: (ChapterDownloadAction) -> Unit,
+    onClick: (EpisodeDownloadAction) -> Unit,
 ) {
     Box(
         modifier = modifier
@@ -92,8 +101,8 @@ private fun NotDownloadedIndicator(
             .commonClickable(
                 enabled = enabled,
                 hapticFeedback = LocalHapticFeedback.current,
-                onLongClick = { onClick(ChapterDownloadAction.START_NOW) },
-                onClick = { onClick(ChapterDownloadAction.START) },
+                onLongClick = { onClick(EpisodeDownloadAction.START_NOW) },
+                onClick = { onClick(EpisodeDownloadAction.START) },
             )
             .secondaryItemAlpha(),
         contentAlignment = Alignment.Center,
@@ -112,7 +121,7 @@ private fun DownloadingIndicator(
     enabled: Boolean,
     downloadState: Download.State,
     downloadProgressProvider: () -> Int,
-    onClick: (ChapterDownloadAction) -> Unit,
+    onClick: (EpisodeDownloadAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
@@ -122,7 +131,7 @@ private fun DownloadingIndicator(
             .commonClickable(
                 enabled = enabled,
                 hapticFeedback = LocalHapticFeedback.current,
-                onLongClick = { onClick(ChapterDownloadAction.CANCEL) },
+                onLongClick = { onClick(EpisodeDownloadAction.CANCEL) },
                 onClick = { isMenuExpanded = true },
             ),
         contentAlignment = Alignment.Center,
@@ -166,14 +175,14 @@ private fun DownloadingIndicator(
             DropdownMenuItem(
                 text = { Text(text = stringResource(MR.strings.action_start_downloading_now)) },
                 onClick = {
-                    onClick(ChapterDownloadAction.START_NOW)
+                    onClick(EpisodeDownloadAction.START_NOW)
                     isMenuExpanded = false
                 },
             )
             DropdownMenuItem(
                 text = { Text(text = stringResource(MR.strings.action_cancel)) },
                 onClick = {
-                    onClick(ChapterDownloadAction.CANCEL)
+                    onClick(EpisodeDownloadAction.CANCEL)
                     isMenuExpanded = false
                 },
             )
@@ -191,9 +200,25 @@ private fun DownloadingIndicator(
 private fun DownloadedIndicator(
     enabled: Boolean,
     modifier: Modifier = Modifier,
-    onClick: (ChapterDownloadAction) -> Unit,
+    onClick: (EpisodeDownloadAction) -> Unit,
+    // AM (FILE_SIZE) -->
+    fileSize: Long?,
+    // <-- AM (FILE_SIZE)
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
+
+    // AM (FILE_SIZE) -->
+    if (fileSize != null) {
+        Text(
+            text = formatFileSize(fileSize),
+            maxLines = 1,
+            style = MaterialTheme.typography.bodyMedium
+                .copy(color = MaterialTheme.colorScheme.primary, fontSize = 12.sp),
+            modifier = Modifier.padding(all = 10.dp),
+        )
+    }
+    // <-- AM (FILE_SIZE)
+
     Box(
         modifier = modifier
             .size(IconButtonTokens.StateLayerSize)
@@ -215,7 +240,7 @@ private fun DownloadedIndicator(
             DropdownMenuItem(
                 text = { Text(text = stringResource(MR.strings.action_delete)) },
                 onClick = {
-                    onClick(ChapterDownloadAction.DELETE)
+                    onClick(EpisodeDownloadAction.DELETE)
                     isMenuExpanded = false
                 },
             )
@@ -223,11 +248,23 @@ private fun DownloadedIndicator(
     }
 }
 
+// AM (FILE_SIZE) -->
+private fun formatFileSize(fileSize: Long): String {
+    val megaByteSize = fileSize / 1000.0 / 1000.0
+    return if (megaByteSize > 900) {
+        val gigaByteSize = megaByteSize / 1000.0
+        "${BigDecimal(gigaByteSize).setScale(2, RoundingMode.HALF_EVEN)} GB"
+    } else {
+        "${BigDecimal(megaByteSize).setScale(0, RoundingMode.HALF_EVEN)} MB"
+    }
+}
+// <-- AM (FILE_SIZE)
+
 @Composable
 private fun ErrorIndicator(
     enabled: Boolean,
     modifier: Modifier = Modifier,
-    onClick: (ChapterDownloadAction) -> Unit,
+    onClick: (EpisodeDownloadAction) -> Unit,
 ) {
     Box(
         modifier = modifier
@@ -235,8 +272,8 @@ private fun ErrorIndicator(
             .commonClickable(
                 enabled = enabled,
                 hapticFeedback = LocalHapticFeedback.current,
-                onLongClick = { onClick(ChapterDownloadAction.START) },
-                onClick = { onClick(ChapterDownloadAction.START) },
+                onLongClick = { onClick(EpisodeDownloadAction.START) },
+                onClick = { onClick(EpisodeDownloadAction.START) },
             ),
         contentAlignment = Alignment.Center,
     ) {

@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -23,6 +23,7 @@ import eu.kanade.tachiyomi.util.system.isReleaseBuildType
 import kotlinx.collections.immutable.toImmutableList
 import tachiyomi.domain.anime.interactor.FetchInterval
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.WheelTextPicker
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.pluralStringResource
@@ -32,7 +33,7 @@ import java.time.temporal.ChronoUnit
 import kotlin.math.absoluteValue
 
 @Composable
-fun DeleteChaptersDialog(
+fun DeleteEpisodesDialog(
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -57,7 +58,7 @@ fun DeleteChaptersDialog(
             Text(text = stringResource(MR.strings.are_you_sure))
         },
         text = {
-            Text(text = stringResource(MR.strings.confirm_delete_chapters))
+            Text(text = stringResource(AYMR.strings.confirm_delete_episodes))
         },
     )
 }
@@ -88,7 +89,7 @@ fun SetIntervalDialog(
                 if (nextUpdateDays != null && nextUpdateDays >= 0 && interval >= 0) {
                     Text(
                         stringResource(
-                            MR.strings.manga_interval_expected_update,
+                            AYMR.strings.anime_interval_expected_update,
                             pluralStringResource(
                                 MR.plurals.day,
                                 count = nextUpdateDays,
@@ -103,7 +104,7 @@ fun SetIntervalDialog(
                     )
                 } else {
                     Text(
-                        stringResource(MR.strings.manga_interval_expected_update_null),
+                        stringResource(AYMR.strings.anime_interval_expected_update_null),
                     )
                 }
                 Spacer(Modifier.height(MaterialTheme.padding.small))

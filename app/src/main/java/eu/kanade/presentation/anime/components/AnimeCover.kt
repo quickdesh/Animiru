@@ -1,4 +1,4 @@
-package eu.kanade.presentation.manga.components
+package eu.kanade.presentation.anime.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.aspectRatio
@@ -15,7 +15,7 @@ import coil3.compose.AsyncImage
 import eu.kanade.presentation.util.rememberResourceBitmapPainter
 import eu.kanade.tachiyomi.R
 
-enum class MangaCover(val ratio: Float) {
+enum class AnimeCover(val ratio: Float) {
     Square(1f / 1f),
     Book(2f / 3f),
     ;
