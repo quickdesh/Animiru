@@ -15,6 +15,9 @@ fun BaseBrowseItem(
     modifier: Modifier = Modifier,
     onClickItem: () -> Unit = {},
     onLongClickItem: () -> Unit = {},
+    // AM (BROWSE) -->
+    pin: @Composable (RowScope.() -> Unit)? = null,
+    // <-- AM (BROWSE)
     icon: @Composable RowScope.() -> Unit = {},
     action: @Composable RowScope.() -> Unit = {},
     content: @Composable RowScope.() -> Unit = {},
@@ -25,9 +28,19 @@ fun BaseBrowseItem(
                 onClick = onClickItem,
                 onLongClick = onLongClickItem,
             )
-            .padding(horizontal = MaterialTheme.padding.medium, vertical = MaterialTheme.padding.small),
+            .padding(
+                // AM (BROWSE) -->
+                start = if (pin != null) MaterialTheme.padding.none else MaterialTheme.padding.medium,
+                end = MaterialTheme.padding.medium,
+                top = MaterialTheme.padding.small,
+                bottom = MaterialTheme.padding.small,
+                // <-- AM (BROWSE)
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // AM (BROWSE) -->
+        if (pin != null) pin()
+        // <-- AM (BROWSE)
         icon()
         content()
         action()

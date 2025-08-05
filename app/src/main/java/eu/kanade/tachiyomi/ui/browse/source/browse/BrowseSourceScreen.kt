@@ -39,7 +39,7 @@ import eu.kanade.core.util.ifSourcesLoaded
 import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.browse.MissingSourceScreen
 import eu.kanade.presentation.browse.components.BrowseSourceToolbar
-import eu.kanade.presentation.browse.components.RemoveMangaDialog
+import eu.kanade.presentation.browse.components.RemoveAnimeDialog
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
 import eu.kanade.presentation.manga.DuplicateMangaDialog
 import eu.kanade.presentation.util.AssistContentScreen
@@ -220,8 +220,8 @@ data class BrowseSourceScreen(
                 onWebViewClick = onWebViewClick,
                 onHelpClick = { uriHandler.openUri(Constants.URL_HELP) },
                 onLocalSourceHelpClick = onHelpClick,
-                onMangaClick = { navigator.push((MangaScreen(it.id, true))) },
-                onMangaLongClick = { manga ->
+                onAnimeClick = { navigator.push((MangaScreen(it.id, true))) },
+                onAnimeLongClick = { manga ->
                     scope.launchIO {
                         val duplicates = screenModel.getDuplicateLibraryManga(manga)
                         when {
@@ -268,7 +268,7 @@ data class BrowseSourceScreen(
                 )
             }
             is BrowseSourceScreenModel.Dialog.RemoveManga -> {
-                RemoveMangaDialog(
+                RemoveAnimeDialog(
                     onDismissRequest = onDismissRequest,
                     onConfirm = {
                         screenModel.changeMangaFavorite(dialog.anime)

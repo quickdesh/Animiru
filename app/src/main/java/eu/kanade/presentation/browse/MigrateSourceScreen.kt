@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.Numbers
@@ -20,10 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import eu.kanade.domain.source.interactor.SetMigrateSorting
 import eu.kanade.presentation.browse.components.BaseSourceItem
 import eu.kanade.presentation.browse.components.SourceIcon
+import eu.kanade.presentation.components.AppBar
 import eu.kanade.tachiyomi.ui.browse.migration.sources.MigrateSourceScreenModel
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import kotlinx.collections.immutable.ImmutableList
@@ -33,6 +36,7 @@ import tachiyomi.presentation.core.components.Badge
 import tachiyomi.presentation.core.components.BadgeGroup
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.Scroller.STICKY_HEADER_KEY_PREFIX
+import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.components.material.topSmallPaddingValues
 import tachiyomi.presentation.core.i18n.stringResource
@@ -45,32 +49,55 @@ import tachiyomi.presentation.core.util.secondaryItemAlpha
 @Composable
 fun MigrateSourceScreen(
     state: MigrateSourceScreenModel.State,
-    contentPadding: PaddingValues,
+    // AM (BROWSE) -->
+    navigateUp: () -> Unit,
+    // <-- AM (BROWSE)
     onClickItem: (Source) -> Unit,
     onToggleSortingDirection: () -> Unit,
     onToggleSortingMode: () -> Unit,
 ) {
     val context = LocalContext.current
-    when {
-        state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
-        state.isEmpty -> EmptyScreen(
-            stringRes = MR.strings.information_empty_library,
-            modifier = Modifier.padding(contentPadding),
-        )
-        else ->
-            MigrateSourceList(
-                list = state.items,
-                contentPadding = contentPadding,
-                onClickItem = onClickItem,
-                onLongClickItem = { source ->
-                    val sourceId = source.id.toString()
-                    context.copyToClipboard(sourceId, sourceId)
+    // AM (BROWSE) -->
+    val uriHandler = LocalUriHandler.current
+    Scaffold(
+        topBar = { scrollBehavior ->
+            AppBar(
+                title = stringResource(MR.strings.label_migration),
+                actions = {
+                    IconButton(onClick = { uriHandler.openUri("https://aniyomi.org/help/guides/source-migration/") }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                            contentDescription = stringResource(MR.strings.migration_help_guide),
+                        )
+                    }
                 },
-                sortingMode = state.sortingMode,
-                onToggleSortingMode = onToggleSortingMode,
-                sortingDirection = state.sortingDirection,
-                onToggleSortingDirection = onToggleSortingDirection,
+                scrollBehavior = scrollBehavior,
+                navigateUp = navigateUp,
             )
+        },
+    ) { contentPadding ->
+        // <-- AM (BROWSE)
+        when {
+            state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
+            state.isEmpty -> EmptyScreen(
+                stringRes = MR.strings.information_empty_library,
+                modifier = Modifier.padding(contentPadding),
+            )
+            else ->
+                MigrateSourceList(
+                    list = state.items,
+                    contentPadding = contentPadding,
+                    onClickItem = onClickItem,
+                    onLongClickItem = { source ->
+                        val sourceId = source.id.toString()
+                        context.copyToClipboard(sourceId, sourceId)
+                    },
+                    sortingMode = state.sortingMode,
+                    onToggleSortingMode = onToggleSortingMode,
+                    sortingDirection = state.sortingDirection,
+                    onToggleSortingDirection = onToggleSortingDirection,
+                )
+        }
     }
 }
 

@@ -21,6 +21,9 @@ fun BaseSourceItem(
     showLanguageInContent: Boolean = true,
     onClickItem: () -> Unit = {},
     onLongClickItem: () -> Unit = {},
+    // AM (BROWSE) -->
+    pin: @Composable (RowScope.(Source) -> Unit)? = null,
+    // <-- AM (BROWSE)
     icon: @Composable RowScope.(Source) -> Unit = defaultIcon,
     action: @Composable RowScope.(Source) -> Unit = {},
     content: @Composable RowScope.(Source, String?) -> Unit = defaultContent,
@@ -32,6 +35,9 @@ fun BaseSourceItem(
         modifier = modifier,
         onClickItem = onClickItem,
         onLongClickItem = onLongClickItem,
+        // AM (BROWSE) -->
+        pin = pin?.let { { it.invoke(this, source) } },
+        // <-- AM (BROWSE)
         icon = { icon.invoke(this, source) },
         action = { action.invoke(this, source) },
         content = { content.invoke(this, source, sourceLangString) },

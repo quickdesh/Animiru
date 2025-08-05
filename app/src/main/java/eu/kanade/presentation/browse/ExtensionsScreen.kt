@@ -16,9 +16,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.GetApp
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -45,6 +47,8 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.browse.components.BaseBrowseItem
 import eu.kanade.presentation.browse.components.ExtensionIcon
+import eu.kanade.presentation.components.AppBarTitle
+import eu.kanade.presentation.components.SearchToolbar
 import eu.kanade.presentation.components.WarningBanner
 import eu.kanade.presentation.manga.components.DotSeparatorNoSpaceText
 import eu.kanade.presentation.more.settings.screen.browse.ExtensionReposScreen
@@ -52,6 +56,7 @@ import eu.kanade.presentation.util.animateItemFastScroll
 import eu.kanade.presentation.util.rememberRequestPackageInstallsPermissionState
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.extension.model.InstallStep
+import eu.kanade.tachiyomi.ui.browse.extension.ExtensionFilterScreen
 import eu.kanade.tachiyomi.ui.browse.extension.ExtensionUiModel
 import eu.kanade.tachiyomi.ui.browse.extension.ExtensionsScreenModel
 import eu.kanade.tachiyomi.util.system.LocaleHelper
@@ -60,6 +65,7 @@ import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
 import tachiyomi.presentation.core.components.material.PullRefresh
+import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.components.material.topSmallPaddingValues
 import tachiyomi.presentation.core.i18n.stringResource
@@ -85,48 +91,85 @@ fun ExtensionScreen(
     onOpenExtension: (Extension.Installed) -> Unit,
     onClickUpdateAll: () -> Unit,
     onRefresh: () -> Unit,
+    // AM (BROWSE) -->
+    toSourcesScreen: () -> Unit,
+    onChangeSearchQuery: (String?) -> Unit,
+    modifier: Modifier = Modifier,
+    // <-- AM (BROWSE)
 ) {
     val navigator = LocalNavigator.currentOrThrow
 
-    PullRefresh(
-        refreshing = state.isRefreshing,
-        onRefresh = onRefresh,
-        enabled = !state.isLoading,
-    ) {
-        when {
-            state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
-            state.isEmpty -> {
-                val msg = if (!searchQuery.isNullOrEmpty()) {
-                    MR.strings.no_results_found
-                } else {
-                    MR.strings.empty_screen
-                }
-                EmptyScreen(
-                    stringRes = msg,
-                    modifier = Modifier.padding(contentPadding),
-                    actions = persistentListOf(
-                        EmptyScreenAction(
-                            stringRes = MR.strings.label_extension_repos,
-                            icon = Icons.Outlined.Settings,
-                            onClick = { navigator.push(ExtensionReposScreen()) },
+    // AM (BROWSE) -->
+    Scaffold(
+        modifier = modifier,
+        topBar = { scrollBehavior ->
+            SearchToolbar(
+                titleContent = { AppBarTitle(stringResource(MR.strings.label_extensions)) },
+                searchQuery = searchQuery,
+                onChangeSearchQuery = onChangeSearchQuery,
+                actions = {
+                    IconButton(onClick = { navigator.push(ExtensionFilterScreen()) }) {
+                        Icon(
+                            Icons.Outlined.Translate,
+                            contentDescription = stringResource(MR.strings.action_filter),
+                        )
+                    }
+                    IconButton(onClick = { navigator.push(ExtensionReposScreen()) }) {
+                        Icon(
+                            Icons.Outlined.MoreVert,
+                            contentDescription = stringResource(MR.strings.label_extension_repos),
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+                navigateUp = { toSourcesScreen() },
+            )
+        },
+    ) { contentPadding ->
+        // <-- AM (BROWSE)
+        PullRefresh(
+            refreshing = state.isRefreshing,
+            onRefresh = onRefresh,
+            // AM (BROWSE) -->
+            indicatorPadding = contentPadding,
+            // <-- AM (BROWSE)
+            enabled = !state.isLoading,
+        ) {
+            when {
+                state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
+                state.isEmpty -> {
+                    val msg = if (!searchQuery.isNullOrEmpty()) {
+                        MR.strings.no_results_found
+                    } else {
+                        MR.strings.empty_screen
+                    }
+                    EmptyScreen(
+                        stringRes = msg,
+                        modifier = Modifier.padding(contentPadding),
+                        actions = persistentListOf(
+                            EmptyScreenAction(
+                                stringRes = MR.strings.label_extension_repos,
+                                icon = Icons.Outlined.Settings,
+                                onClick = { navigator.push(ExtensionReposScreen()) },
+                            ),
                         ),
-                    ),
-                )
-            }
-            else -> {
-                ExtensionContent(
-                    state = state,
-                    contentPadding = contentPadding,
-                    onLongClickItem = onLongClickItem,
-                    onClickItemCancel = onClickItemCancel,
-                    onOpenWebView = onOpenWebView,
-                    onInstallExtension = onInstallExtension,
-                    onUninstallExtension = onUninstallExtension,
-                    onUpdateExtension = onUpdateExtension,
-                    onTrustExtension = onTrustExtension,
-                    onOpenExtension = onOpenExtension,
-                    onClickUpdateAll = onClickUpdateAll,
-                )
+                    )
+                }
+                else -> {
+                    ExtensionContent(
+                        state = state,
+                        contentPadding = contentPadding,
+                        onLongClickItem = onLongClickItem,
+                        onClickItemCancel = onClickItemCancel,
+                        onOpenWebView = onOpenWebView,
+                        onInstallExtension = onInstallExtension,
+                        onUninstallExtension = onUninstallExtension,
+                        onUpdateExtension = onUpdateExtension,
+                        onTrustExtension = onTrustExtension,
+                        onOpenExtension = onOpenExtension,
+                        onClickUpdateAll = onClickUpdateAll,
+                    )
+                }
             }
         }
     }
@@ -280,6 +323,9 @@ private fun ExtensionItem(
     modifier: Modifier = Modifier,
 ) {
     val (extension, installStep) = item
+    // AM (BROWSE) -->
+    if (extension is Extension.Installed && !extension.hasUpdate) return
+    // <-- AM (BROWSE)
     BaseBrowseItem(
         modifier = modifier
             .combinedClickable(

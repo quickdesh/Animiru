@@ -41,7 +41,7 @@ fun GlobalSearchCardRow(
     ) {
         items(titles) {
             val title by getAnime(it)
-            MangaItem(
+            AnimeItem(
                 title = title.title,
                 cover = title.asAnimeCover(),
                 isFavorite = title.favorite,
@@ -53,7 +53,7 @@ fun GlobalSearchCardRow(
 }
 
 @Composable
-private fun MangaItem(
+private fun AnimeItem(
     title: String,
     cover: AnimeCover,
     isFavorite: Boolean,

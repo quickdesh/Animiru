@@ -23,8 +23,8 @@ fun BrowseSourceComfortableGrid(
     animeList: LazyPagingItems<StateFlow<Anime>>,
     columns: GridCells,
     contentPadding: PaddingValues,
-    onMangaClick: (Anime) -> Unit,
-    onMangaLongClick: (Anime) -> Unit,
+    onAnimeClick: (Anime) -> Unit,
+    onAnimeLongClick: (Anime) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = columns,
@@ -39,11 +39,11 @@ fun BrowseSourceComfortableGrid(
         }
 
         items(count = animeList.itemCount) { index ->
-            val manga by animeList[index]?.collectAsState() ?: return@items
+            val anime by animeList[index]?.collectAsState() ?: return@items
             BrowseSourceComfortableGridItem(
-                anime = manga,
-                onClick = { onMangaClick(manga) },
-                onLongClick = { onMangaLongClick(manga) },
+                anime = anime,
+                onClick = { onAnimeClick(anime) },
+                onLongClick = { onAnimeLongClick(anime) },
             )
         }
 

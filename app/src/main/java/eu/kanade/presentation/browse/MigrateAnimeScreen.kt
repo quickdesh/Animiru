@@ -15,7 +15,7 @@ import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.screens.EmptyScreen
 
 @Composable
-fun MigrateMangaScreen(
+fun MigrateAnimeScreen(
     navigateUp: () -> Unit,
     title: String?,
     state: MigrateMangaScreenModel.State,
@@ -39,7 +39,7 @@ fun MigrateMangaScreen(
             return@Scaffold
         }
 
-        MigrateMangaContent(
+        MigrateAnimeContent(
             contentPadding = contentPadding,
             state = state,
             onClickItem = onClickItem,
@@ -49,7 +49,7 @@ fun MigrateMangaScreen(
 }
 
 @Composable
-private fun MigrateMangaContent(
+private fun MigrateAnimeContent(
     contentPadding: PaddingValues,
     state: MigrateMangaScreenModel.State,
     onClickItem: (Anime) -> Unit,
@@ -58,9 +58,9 @@ private fun MigrateMangaContent(
     FastScrollLazyColumn(
         contentPadding = contentPadding,
     ) {
-        items(state.titles) { manga ->
-            MigrateMangaItem(
-                anime = manga,
+        items(state.titles) { anime ->
+            MigrateAnimeItem(
+                anime = anime,
                 onClickItem = onClickItem,
                 onClickCover = onClickCover,
             )
@@ -69,7 +69,7 @@ private fun MigrateMangaContent(
 }
 
 @Composable
-private fun MigrateMangaItem(
+private fun MigrateAnimeItem(
     anime: Anime,
     onClickItem: (Anime) -> Unit,
     onClickCover: (Anime) -> Unit,

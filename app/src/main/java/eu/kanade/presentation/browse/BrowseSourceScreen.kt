@@ -47,8 +47,8 @@ fun BrowseSourceContent(
     onWebViewClick: () -> Unit,
     onHelpClick: () -> Unit,
     onLocalSourceHelpClick: () -> Unit,
-    onMangaClick: (Anime) -> Unit,
-    onMangaLongClick: (Anime) -> Unit,
+    onAnimeClick: (Anime) -> Unit,
+    onAnimeLongClick: (Anime) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -123,16 +123,16 @@ fun BrowseSourceContent(
                 animeList = animeList,
                 columns = columns,
                 contentPadding = contentPadding,
-                onMangaClick = onMangaClick,
-                onMangaLongClick = onMangaLongClick,
+                onAnimeClick = onAnimeClick,
+                onAnimeLongClick = onAnimeLongClick,
             )
         }
         LibraryDisplayMode.List -> {
             BrowseSourceList(
                 animeList = animeList,
                 contentPadding = contentPadding,
-                onMangaClick = onMangaClick,
-                onMangaLongClick = onMangaLongClick,
+                onAnimeClick = onAnimeClick,
+                onAnimeLongClick = onAnimeLongClick,
             )
         }
         LibraryDisplayMode.CompactGrid, LibraryDisplayMode.CoverOnlyGrid -> {
@@ -140,8 +140,8 @@ fun BrowseSourceContent(
                 animeList = animeList,
                 columns = columns,
                 contentPadding = contentPadding,
-                onMangaClick = onMangaClick,
-                onMangaLongClick = onMangaLongClick,
+                onAnimeClick = onAnimeClick,
+                onAnimeLongClick = onAnimeLongClick,
             )
         }
     }
