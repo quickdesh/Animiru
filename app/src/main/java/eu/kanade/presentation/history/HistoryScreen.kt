@@ -36,9 +36,9 @@ fun HistoryScreen(
     state: HistoryScreenModel.State,
     snackbarHostState: SnackbarHostState,
     onSearchQueryChange: (String?) -> Unit,
-    onClickCover: (mangaId: Long) -> Unit,
-    onClickResume: (mangaId: Long, chapterId: Long) -> Unit,
-    onClickFavorite: (mangaId: Long) -> Unit,
+    onClickCover: (animeId: Long) -> Unit,
+    onClickResume: (animeId: Long, episodeId: Long) -> Unit,
+    onClickFavorite: (animeId: Long) -> Unit,
     onDialogChange: (HistoryScreenModel.Dialog?) -> Unit,
 ) {
     Scaffold(

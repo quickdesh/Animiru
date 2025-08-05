@@ -80,7 +80,9 @@ class HistoryScreenModelStateProvider : PreviewParameterProvider<HistoryScreenMo
         fun items() = sequence {
             var count = 1
             while (true) {
-                yield(randItem { it.copy(title = "Example Title $count") })
+                // AM (CUSTOM_INFORMATION) -->
+                yield(randItem { it.copy(ogTitle = "Example Title $count") })
+                // <-- AM (CUSTOM_INFORMATION)
                 count += 1
             }
         }
@@ -92,10 +94,11 @@ class HistoryScreenModelStateProvider : PreviewParameterProvider<HistoryScreenMo
                         id = Random.nextLong(),
                         episodeId = Random.nextLong(),
                         animeId = Random.nextLong(),
-                        title = "Test Title",
+                        // AM (CUSTOM_INFORMATION) -->
+                        ogTitle = "Test Title",
+                        // <-- AM (CUSTOM_INFORMATION)
                         episodeNumber = Random.nextDouble(),
                         seenAt = Date.from(Instant.now()),
-                        readDuration = Random.nextLong(),
                         coverData = AnimeCover(
                             animeId = Random.nextLong(),
                             sourceId = Random.nextLong(),
