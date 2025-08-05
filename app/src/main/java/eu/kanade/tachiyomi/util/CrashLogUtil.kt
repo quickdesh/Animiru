@@ -23,7 +23,7 @@ class CrashLogUtil(
 
     suspend fun dumpLogs(exception: Throwable? = null) = withNonCancellableContext {
         try {
-            val file = context.createFileInCacheDir("mihon_crash_logs.txt")
+            val file = context.createFileInCacheDir("animiru_crash_logs.txt")
 
             file.appendText(getDebugInfo() + "\n\n")
             getExtensionsInfo()?.let { file.appendText("$it\n\n") }
@@ -49,7 +49,15 @@ class CrashLogUtil(
             Device model: ${Build.MODEL}
             WebView: ${WebViewUtil.getVersion(context)}
             Current time: ${OffsetDateTime.now(ZoneId.systemDefault())}
+            MPV version: 6764488
+            Libplacebo version: v7.349.0
+            FFmpeg version: n7.1
         """.trimIndent()
+        // TODO: Use this again (from aniyomi-mpv-lib 1.17.n onwards):
+
+        //    MPV version: ${Utils.VERSIONS.mpv}
+        //    Libplacebo version: ${Utils.VERSIONS.libPlacebo}
+        //    FFmpeg version: ${Utils.VERSIONS.ffmpeg}
     }
 
     private fun getExtensionsInfo(): String? {

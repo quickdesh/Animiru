@@ -39,7 +39,7 @@ import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
-import eu.kanade.tachiyomi.util.chapter.getNextUnread
+import eu.kanade.tachiyomi.util.episode.getNextUnseen
 import eu.kanade.tachiyomi.util.removeCovers
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.collections.immutable.ImmutableList
@@ -628,7 +628,7 @@ class MangaScreenModel(
      */
     fun getNextUnreadChapter(): Episode? {
         val successState = successState ?: return null
-        return successState.chapters.getNextUnread(successState.anime)
+        return successState.chapters.getNextUnseen(successState.anime)
     }
 
     private fun getUnreadChapters(): List<Episode> {

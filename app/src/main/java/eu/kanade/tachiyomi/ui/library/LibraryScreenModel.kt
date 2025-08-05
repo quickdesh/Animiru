@@ -26,7 +26,7 @@ import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
-import eu.kanade.tachiyomi.util.chapter.getNextUnread
+import eu.kanade.tachiyomi.util.episode.getNextUnseen
 import eu.kanade.tachiyomi.util.removeCovers
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
@@ -428,7 +428,7 @@ class LibraryScreenModel(
     }
 
     suspend fun getNextUnreadChapter(anime: Anime): Episode? {
-        return getEpisodesByAnimeId.await(anime.id, applyScanlatorFilter = true).getNextUnread(anime, downloadManager)
+        return getEpisodesByAnimeId.await(anime.id, applyScanlatorFilter = true).getNextUnseen(anime, downloadManager)
     }
 
     /**

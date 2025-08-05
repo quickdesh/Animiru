@@ -1,0 +1,33 @@
+package eu.kanade.tachiyomi.util.episode
+
+import eu.kanade.domain.episode.model.applyFilters
+import eu.kanade.tachiyomi.data.download.DownloadManager
+import eu.kanade.tachiyomi.ui.manga.ChapterList
+import tachiyomi.domain.episode.model.Episode
+import tachiyomi.domain.anime.model.Anime
+
+/**
+ * Gets next unseen episode with filters and sorting applied
+ */
+fun List<Episode>.getNextUnseen(anime: Anime, downloadManager: DownloadManager): Episode? {
+    return applyFilters(anime, downloadManager).let { episodes ->
+        if (anime.sortDescending()) {
+            episodes.findLast { !it.seen }
+        } else {
+            episodes.find { !it.seen }
+        }
+    }
+}
+
+/**
+ * Gets next unseen episode with filters and sorting applied
+ */
+fun List<ChapterList.Item>.getNextUnseen(anime: Anime): Episode? {
+    return applyFilters(anime).let { episodes ->
+        if (anime.sortDescending()) {
+            episodes.findLast { !it.episode.seen }
+        } else {
+            episodes.find { !it.episode.seen }
+        }
+    }?.episode
+}

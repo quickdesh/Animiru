@@ -84,4 +84,11 @@ object LocaleHelper {
     fun getDefaultEnabledLanguages(): Set<String> {
         return setOf("all", "en", Locale.getDefault().language)
     }
+
+    /**
+     * Return English display string from string language code
+     */
+    fun getSimpleLocaleDisplayName(): String {
+        return LocaleListCompat.getDefault()[0]!!.displayLanguage
+    }
 }

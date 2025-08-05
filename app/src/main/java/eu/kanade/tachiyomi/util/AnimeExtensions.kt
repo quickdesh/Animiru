@@ -16,9 +16,9 @@ import java.time.Instant
 /**
  * Call before updating [Anime.thumbnail_url] to ensure old cover can be cleared from cache
  */
-fun Anime.prepUpdateCover(coverCache: CoverCache, remoteManga: SAnime, refreshSameUrl: Boolean): Anime {
+fun Anime.prepUpdateCover(coverCache: CoverCache, remoteAnime: SAnime, refreshSameUrl: Boolean): Anime {
     // Never refresh covers if the new url is null, as the current url has possibly become invalid
-    val newUrl = remoteManga.thumbnail_url ?: return this
+    val newUrl = remoteAnime.thumbnail_url ?: return this
 
     // Never refresh covers if the url is empty to avoid "losing" existing covers
     if (newUrl.isEmpty()) return this
