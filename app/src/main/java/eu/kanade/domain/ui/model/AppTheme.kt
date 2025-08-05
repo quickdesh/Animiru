@@ -13,6 +13,7 @@ enum class AppTheme(val titleRes: StringResource?) {
     DOOM(AYMR.strings.theme_doom),
     GREEN_APPLE(MR.strings.theme_greenapple),
     LAVENDER(MR.strings.theme_lavender),
+    MATRIX(AYMR.strings.theme_matrix),
     MIDNIGHT_DUSK(MR.strings.theme_midnightdusk),
     MOCHA(AYMR.strings.theme_mocha),
     SAPPHIRE(AYMR.strings.theme_sapphire),

@@ -10,12 +10,18 @@ import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.domain.ui.model.AppTheme
 import eu.kanade.presentation.theme.colorscheme.BaseColorScheme
 import eu.kanade.presentation.theme.colorscheme.CatppuccinColorScheme
+import eu.kanade.presentation.theme.colorscheme.CloudflareColorScheme
+import eu.kanade.presentation.theme.colorscheme.CottoncandyColorScheme
+import eu.kanade.presentation.theme.colorscheme.DoomColorScheme
 import eu.kanade.presentation.theme.colorscheme.GreenAppleColorScheme
 import eu.kanade.presentation.theme.colorscheme.LavenderColorScheme
+import eu.kanade.presentation.theme.colorscheme.MatrixColorScheme
 import eu.kanade.presentation.theme.colorscheme.MidnightDuskColorScheme
+import eu.kanade.presentation.theme.colorscheme.MochaColorScheme
 import eu.kanade.presentation.theme.colorscheme.MonetColorScheme
 import eu.kanade.presentation.theme.colorscheme.MonochromeColorScheme
 import eu.kanade.presentation.theme.colorscheme.NordColorScheme
+import eu.kanade.presentation.theme.colorscheme.SapphireColorScheme
 import eu.kanade.presentation.theme.colorscheme.StrawberryColorScheme
 import eu.kanade.presentation.theme.colorscheme.TachiyomiColorScheme
 import eu.kanade.presentation.theme.colorscheme.TakoColorScheme
@@ -79,11 +85,17 @@ private fun getThemeColorScheme(
 private val colorSchemes: Map<AppTheme, BaseColorScheme> = mapOf(
     AppTheme.DEFAULT to TachiyomiColorScheme,
     AppTheme.CATPPUCCIN to CatppuccinColorScheme,
+    AppTheme.CLOUDFLARE to CloudflareColorScheme,
+    AppTheme.COTTONCANDY to CottoncandyColorScheme,
+    AppTheme.DOOM to DoomColorScheme,
     AppTheme.GREEN_APPLE to GreenAppleColorScheme,
     AppTheme.LAVENDER to LavenderColorScheme,
+    AppTheme.MATRIX to MatrixColorScheme,
     AppTheme.MIDNIGHT_DUSK to MidnightDuskColorScheme,
+    AppTheme.MOCHA to MochaColorScheme,
     AppTheme.MONOCHROME to MonochromeColorScheme,
     AppTheme.NORD to NordColorScheme,
+    AppTheme.SAPPHIRE to SapphireColorScheme,
     AppTheme.STRAWBERRY_DAIQUIRI to StrawberryColorScheme,
     AppTheme.TAKO to TakoColorScheme,
     AppTheme.TEALTURQUOISE to TealTurqoiseColorScheme,
