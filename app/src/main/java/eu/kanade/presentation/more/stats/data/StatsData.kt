@@ -3,20 +3,20 @@ package eu.kanade.presentation.more.stats.data
 sealed interface StatsData {
 
     data class Overview(
-        val libraryMangaCount: Int,
-        val completedMangaCount: Int,
-        val totalReadDuration: Long,
+        val libraryAnimeCount: Int,
+        val completedAnimeCount: Int,
+        val totalSeenDuration: Long,
     ) : StatsData
 
     data class Titles(
         val globalUpdateItemCount: Int,
-        val startedMangaCount: Int,
-        val localMangaCount: Int,
+        val startedAnimeCount: Int,
+        val localAnimeCount: Int,
     ) : StatsData
 
-    data class Chapters(
-        val totalChapterCount: Int,
-        val readChapterCount: Int,
+    data class Episodes(
+        val totalEpisodeCount: Int,
+        val seenEpisodeCount: Int,
         val downloadCount: Int,
     ) : StatsData
 

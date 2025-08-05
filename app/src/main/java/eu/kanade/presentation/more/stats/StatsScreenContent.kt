@@ -44,7 +44,7 @@ fun StatsScreenContent(
             TitlesStats(state.titles)
         }
         item {
-            ChapterStats(state.chapters)
+            EpisodeStats(state.episodes)
         }
         item {
             TrackerStats(state.trackers)
@@ -58,8 +58,8 @@ private fun LazyItemScope.OverviewSection(
 ) {
     val none = stringResource(MR.strings.none)
     val context = LocalContext.current
-    val readDurationString = remember(data.totalReadDuration) {
-        data.totalReadDuration
+    val seenDurationString = remember(data.totalSeenDuration) {
+        data.totalSeenDuration
             .toDuration(DurationUnit.MILLISECONDS)
             .toDurationString(context, fallback = none)
     }
@@ -68,17 +68,17 @@ private fun LazyItemScope.OverviewSection(
             modifier = Modifier.height(IntrinsicSize.Min),
         ) {
             StatsOverviewItem(
-                title = data.libraryMangaCount.toString(),
+                title = data.libraryAnimeCount.toString(),
                 subtitle = stringResource(MR.strings.in_library),
                 icon = Icons.Outlined.CollectionsBookmark,
             )
             StatsOverviewItem(
-                title = readDurationString,
+                title = seenDurationString,
                 subtitle = stringResource(MR.strings.label_read_duration),
                 icon = Icons.Outlined.Schedule,
             )
             StatsOverviewItem(
-                title = data.completedMangaCount.toString(),
+                title = data.completedAnimeCount.toString(),
                 subtitle = stringResource(MR.strings.label_completed_titles),
                 icon = Icons.Outlined.LocalLibrary,
             )
@@ -97,11 +97,11 @@ private fun LazyItemScope.TitlesStats(
                 stringResource(MR.strings.label_titles_in_global_update),
             )
             StatsItem(
-                data.startedMangaCount.toString(),
+                data.startedAnimeCount.toString(),
                 stringResource(MR.strings.label_started),
             )
             StatsItem(
-                data.localMangaCount.toString(),
+                data.localAnimeCount.toString(),
                 stringResource(MR.strings.label_local),
             )
         }
@@ -109,17 +109,17 @@ private fun LazyItemScope.TitlesStats(
 }
 
 @Composable
-private fun LazyItemScope.ChapterStats(
-    data: StatsData.Chapters,
+private fun LazyItemScope.EpisodeStats(
+    data: StatsData.Episodes,
 ) {
     SectionCard(MR.strings.chapters) {
         Row {
             StatsItem(
-                data.totalChapterCount.toString(),
+                data.totalEpisodeCount.toString(),
                 stringResource(MR.strings.label_total_chapters),
             )
             StatsItem(
-                data.readChapterCount.toString(),
+                data.seenEpisodeCount.toString(),
                 stringResource(MR.strings.label_read_chapters),
             )
             StatsItem(

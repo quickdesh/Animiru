@@ -97,6 +97,12 @@ class CreateBackupScreen : Screen() {
                         Options(BackupOptions.settingsOptions, state, model)
                     }
                 }
+
+                item {
+                    SectionCard(MR.strings.label_extensions) {
+                        Options(BackupOptions.extensionOptions, state, model)
+                    }
+                }
             }
         }
     }

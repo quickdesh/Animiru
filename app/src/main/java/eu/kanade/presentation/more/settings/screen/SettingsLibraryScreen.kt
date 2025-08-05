@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.ResetCategoryFlags
 import tachiyomi.domain.category.model.Category
+import tachiyomi.domain.library.model.GroupLibraryMode
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_NETWORK_NOT_METERED
@@ -38,6 +39,7 @@ import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_OUTSI
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_EPISODE_SEEN_EXISTING
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_EPISODE_SEEN_NEW
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
@@ -188,6 +190,19 @@ object SettingsLibraryScreen : SearchableSettings {
                     ),
                     onClick = { showCategoriesDialog = true },
                 ),
+                // AM (GROUPING) -->
+                Preference.PreferenceItem.ListPreference(
+                    preference = libraryPreferences.groupLibraryUpdateType(),
+                    title = stringResource(AMMR.strings.library_group_updates),
+                    entries = persistentMapOf(
+                        GroupLibraryMode.GLOBAL to stringResource(AMMR.strings.library_group_updates_global),
+                        GroupLibraryMode.ALL_BUT_UNGROUPED to stringResource(
+                            AMMR.strings.library_group_updates_all_but_ungrouped,
+                        ),
+                        GroupLibraryMode.ALL to stringResource(AMMR.strings.library_group_updates_all),
+                    ),
+                ),
+                // <-- AM (GROUPING)
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.autoUpdateMetadata(),
                     title = stringResource(MR.strings.pref_library_update_refresh_metadata),
@@ -225,6 +240,10 @@ object SettingsLibraryScreen : SearchableSettings {
                             stringResource(MR.strings.disabled),
                         LibraryPreferences.EpisodeSwipeAction.ToggleBookmark to
                             stringResource(MR.strings.action_bookmark),
+                        // AM (FILLERMARK) -->
+                        LibraryPreferences.EpisodeSwipeAction.ToggleFillermark to
+                            stringResource(AMMR.strings.action_fillermark_episode),
+                        // <-- AM (FILLERMARK)
                         LibraryPreferences.EpisodeSwipeAction.ToggleSeen to
                             stringResource(MR.strings.action_mark_as_read),
                         LibraryPreferences.EpisodeSwipeAction.Download to
@@ -239,6 +258,10 @@ object SettingsLibraryScreen : SearchableSettings {
                             stringResource(MR.strings.disabled),
                         LibraryPreferences.EpisodeSwipeAction.ToggleBookmark to
                             stringResource(MR.strings.action_bookmark),
+                        // AM (FILLERMARK) -->
+                        LibraryPreferences.EpisodeSwipeAction.ToggleFillermark to
+                            stringResource(AMMR.strings.action_fillermark_episode),
+                        // <-- AM (FILLERMARK)
                         LibraryPreferences.EpisodeSwipeAction.ToggleSeen to
                             stringResource(MR.strings.action_mark_as_read),
                         LibraryPreferences.EpisodeSwipeAction.Download to

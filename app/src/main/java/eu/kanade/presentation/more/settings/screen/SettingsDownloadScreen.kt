@@ -9,16 +9,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.fastMap
+import eu.kanade.domain.base.BasePreferences
 import eu.kanade.presentation.category.visualName
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.widget.TriStateListDialog
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.collections.immutable.toPersistentMap
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
@@ -37,21 +40,13 @@ object SettingsDownloadScreen : SearchableSettings {
         val allCategories by getCategories.subscribe().collectAsState(initial = emptyList())
 
         val downloadPreferences = remember { Injekt.get<DownloadPreferences>() }
+        val basePreferences = remember { Injekt.get<BasePreferences>() }
         return listOf(
             Preference.PreferenceItem.SwitchPreference(
                 preference = downloadPreferences.downloadOnlyOverWifi(),
                 title = stringResource(MR.strings.connected_to_wifi),
             ),
-            Preference.PreferenceItem.SwitchPreference(
-                preference = downloadPreferences.saveChaptersAsCBZ(),
-                title = stringResource(MR.strings.save_chapter_as_cbz),
-            ),
-            Preference.PreferenceItem.SwitchPreference(
-                preference = downloadPreferences.splitTallImages(),
-                title = stringResource(MR.strings.split_tall_images),
-                subtitle = stringResource(MR.strings.split_tall_images_summary),
-            ),
-            getDeleteChaptersGroup(
+            getDeleteEpisodesGroup(
                 downloadPreferences = downloadPreferences,
                 categories = allCategories,
             ),
@@ -60,11 +55,15 @@ object SettingsDownloadScreen : SearchableSettings {
                 allCategories = allCategories,
             ),
             getDownloadAheadGroup(downloadPreferences = downloadPreferences),
+            getExternalDownloaderGroup(
+                downloadPreferences = downloadPreferences,
+                basePreferences = basePreferences,
+            ),
         )
     }
 
     @Composable
-    private fun getDeleteChaptersGroup(
+    private fun getDeleteEpisodesGroup(
         downloadPreferences: DownloadPreferences,
         categories: List<Category>,
     ): Preference.PreferenceGroup {
@@ -118,15 +117,15 @@ object SettingsDownloadScreen : SearchableSettings {
         downloadPreferences: DownloadPreferences,
         allCategories: List<Category>,
     ): Preference.PreferenceGroup {
-        val downloadNewChaptersPref = downloadPreferences.downloadNewEpisodes()
-        val downloadNewUnreadChaptersOnlyPref = downloadPreferences.downloadNewUnseenEpisodesOnly()
-        val downloadNewChapterCategoriesPref = downloadPreferences.downloadNewEpisodeCategories()
-        val downloadNewChapterCategoriesExcludePref = downloadPreferences.downloadNewEpisodeCategoriesExclude()
+        val downloadNewEpisodesPref = downloadPreferences.downloadNewEpisodes()
+        val downloadNewUnseenEpisodesOnlyPref = downloadPreferences.downloadNewUnseenEpisodesOnly()
+        val downloadNewEpisodeCategoriesPref = downloadPreferences.downloadNewEpisodeCategories()
+        val downloadNewEpisodeCategoriesExcludePref = downloadPreferences.downloadNewEpisodeCategoriesExclude()
 
-        val downloadNewChapters by downloadNewChaptersPref.collectAsState()
+        val downloadNewEpisodes by downloadNewEpisodesPref.collectAsState()
 
-        val included by downloadNewChapterCategoriesPref.collectAsState()
-        val excluded by downloadNewChapterCategoriesExcludePref.collectAsState()
+        val included by downloadNewEpisodeCategoriesPref.collectAsState()
+        val excluded by downloadNewEpisodeCategoriesExcludePref.collectAsState()
         var showDialog by rememberSaveable { mutableStateOf(false) }
         if (showDialog) {
             TriStateListDialog(
@@ -138,8 +137,8 @@ object SettingsDownloadScreen : SearchableSettings {
                 itemLabel = { it.visualName },
                 onDismissRequest = { showDialog = false },
                 onValueChanged = { newIncluded, newExcluded ->
-                    downloadNewChapterCategoriesPref.set(newIncluded.fastMap { it.id.toString() }.toSet())
-                    downloadNewChapterCategoriesExcludePref.set(newExcluded.fastMap { it.id.toString() }.toSet())
+                    downloadNewEpisodeCategoriesPref.set(newIncluded.fastMap { it.id.toString() }.toSet())
+                    downloadNewEpisodeCategoriesExcludePref.set(newExcluded.fastMap { it.id.toString() }.toSet())
                     showDialog = false
                 },
             )
@@ -149,13 +148,13 @@ object SettingsDownloadScreen : SearchableSettings {
             title = stringResource(MR.strings.pref_category_auto_download),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = downloadNewChaptersPref,
+                    preference = downloadNewEpisodesPref,
                     title = stringResource(MR.strings.pref_download_new),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = downloadNewUnreadChaptersOnlyPref,
+                    preference = downloadNewUnseenEpisodesOnlyPref,
                     title = stringResource(MR.strings.pref_download_new_unread_chapters_only),
-                    enabled = downloadNewChapters,
+                    enabled = downloadNewEpisodes,
                 ),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.categories),
@@ -164,7 +163,7 @@ object SettingsDownloadScreen : SearchableSettings {
                         included = included,
                         excluded = excluded,
                     ),
-                    enabled = downloadNewChapters,
+                    enabled = downloadNewEpisodes,
                     onClick = { showDialog = true },
                 ),
             ),
@@ -192,6 +191,48 @@ object SettingsDownloadScreen : SearchableSettings {
                     title = stringResource(MR.strings.auto_download_while_reading),
                 ),
                 Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.download_ahead_info)),
+            ),
+        )
+    }
+
+    @Composable
+    private fun getExternalDownloaderGroup(
+        downloadPreferences: DownloadPreferences,
+        basePreferences: BasePreferences,
+    ): Preference.PreferenceGroup {
+        val useExternalDownloader = downloadPreferences.useExternalDownloader()
+        val externalDownloaderPreference = downloadPreferences.externalDownloaderSelection()
+
+        val pm = basePreferences.context.packageManager
+        val installedPackages = pm.getInstalledPackages(0)
+        val supportedDownloaders = installedPackages.filter {
+            when (it.packageName) {
+                "idm.internet.download.manager" -> true
+                "idm.internet.download.manager.plus" -> true
+                "idm.internet.download.manager.adm.lite" -> true
+                "com.dv.adm" -> true
+                else -> false
+            }
+        }
+        val packageNames = supportedDownloaders.map { it.packageName }
+        val packageNamesReadable = supportedDownloaders
+            .map { pm.getApplicationLabel(it.applicationInfo!!).toString() }
+
+        val packageNamesMap: Map<String, String> =
+            mapOf("" to "None") + packageNames.zip(packageNamesReadable).toMap()
+
+        return Preference.PreferenceGroup(
+            title = stringResource(AYMR.strings.pref_category_external_downloader),
+            preferenceItems = persistentListOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = useExternalDownloader,
+                    title = stringResource(AYMR.strings.pref_use_external_downloader),
+                ),
+                Preference.PreferenceItem.ListPreference(
+                    preference = externalDownloaderPreference,
+                    entries = packageNamesMap.toPersistentMap(),
+                    title = stringResource(AYMR.strings.pref_external_downloader_selection),
+                ),
             ),
         )
     }

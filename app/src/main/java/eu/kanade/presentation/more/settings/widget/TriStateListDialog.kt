@@ -47,6 +47,9 @@ fun <T> TriStateListDialog(
     itemLabel: @Composable (T) -> String,
     onDismissRequest: () -> Unit,
     onValueChanged: (newIncluded: List<T>, newExcluded: List<T>) -> Unit,
+    // AM (DISCORD_RPC) -->
+    onlyChecked: Boolean = false,
+    // <-- AM (DISCORD_RPC)
 ) {
     val selected = remember {
         items
@@ -82,7 +85,9 @@ fun <T> TriStateListDialog(
                                     .clickable {
                                         selected[index] = when (state) {
                                             State.UNCHECKED -> State.CHECKED
-                                            State.CHECKED -> State.INVERSED
+                                            // AM (DISCORD_RPC) -->
+                                            State.CHECKED -> if (onlyChecked) State.UNCHECKED else State.INVERSED
+                                            // <-- AM (DISCORD_RPC)
                                             State.INVERSED -> State.UNCHECKED
                                         }
                                     }

@@ -76,7 +76,7 @@ class ClearDatabaseScreen : Screen() {
             is ClearDatabaseScreenModel.State.Loading -> LoadingScreen()
             is ClearDatabaseScreenModel.State.Ready -> {
                 if (s.showConfirmation) {
-                    var keepReadManga by remember { mutableStateOf(true) }
+                    var keepSeenAnime by remember { mutableStateOf(true) }
                     AlertDialog(
                         title = {
                             Text(text = stringResource(MR.strings.are_you_sure))
@@ -96,11 +96,11 @@ class ClearDatabaseScreen : Screen() {
                                         modifier = Modifier.weight(1f),
                                     )
                                     Switch(
-                                        checked = keepReadManga,
-                                        onCheckedChange = { keepReadManga = it },
+                                        checked = keepSeenAnime,
+                                        onCheckedChange = { keepSeenAnime = it },
                                     )
                                 }
-                                if (!keepReadManga) {
+                                if (!keepSeenAnime) {
                                     Text(
                                         text = stringResource(MR.strings.clear_database_history_warning),
                                         style = MaterialTheme.typography.bodySmall,
@@ -114,7 +114,7 @@ class ClearDatabaseScreen : Screen() {
                             TextButton(
                                 onClick = {
                                     scope.launchUI {
-                                        model.removeMangaBySourceId(keepReadManga)
+                                        model.removeAnimeBySourceId(keepSeenAnime)
                                         model.clearSelection()
                                         model.hideConfirmation()
                                         context.toast(MR.strings.clear_database_completed)
@@ -240,9 +240,9 @@ private class ClearDatabaseScreenModel : StateScreenModel<ClearDatabaseScreenMod
         }
     }
 
-    suspend fun removeMangaBySourceId(keepReadManga: Boolean) = withNonCancellableContext {
+    suspend fun removeAnimeBySourceId(keepSeenAnime: Boolean) = withNonCancellableContext {
         val state = state.value as? State.Ready ?: return@withNonCancellableContext
-        database.mangasQueries.deleteNonLibraryManga(state.selection, keepReadManga.toLong())
+        database.animesQueries.deleteNonLibraryAnime(state.selection, keepSeenAnime.toLong())
         database.historyQueries.removeResettedHistory()
     }
 

@@ -46,7 +46,7 @@ class TrackPreferences(
         true,
     )
 
-    fun autoUpdateTrackOnMarkRead() = preferenceStore.getEnum(
+    fun autoUpdateTrackOnMarkSeen() = preferenceStore.getEnum(
         "pref_auto_update_manga_on_mark_read",
         AutoTrackState.ALWAYS,
     )

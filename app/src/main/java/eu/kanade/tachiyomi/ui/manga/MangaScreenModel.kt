@@ -143,7 +143,7 @@ class MangaScreenModel(
 
     val chapterSwipeStartAction = libraryPreferences.swipeToEndAction().get()
     val chapterSwipeEndAction = libraryPreferences.swipeToStartAction().get()
-    var autoTrackState = trackPreferences.autoUpdateTrackOnMarkRead().get()
+    var autoTrackState = trackPreferences.autoUpdateTrackOnMarkSeen().get()
 
     private val skipFiltered by readerPreferences.skipFiltered().asState(screenModelScope)
 

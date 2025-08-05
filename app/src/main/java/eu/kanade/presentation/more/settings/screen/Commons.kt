@@ -45,3 +45,37 @@ fun getCategoriesLabel(
     return stringResource(MR.strings.include, includedItemsText) + "\n" +
         stringResource(MR.strings.exclude, excludedItemsText)
 }
+
+// AM (DISCORD_RPC) -->
+/**
+ * Returns a string of categories name for settings subtitle
+ */
+@ReadOnlyComposable
+@Composable
+fun getCategoriesLabel(
+    allCategories: List<Category>,
+    included: Set<String>,
+): String {
+    val context = LocalContext.current
+
+    val includedCategories = included
+        .mapNotNull { id -> allCategories.find { it.id == id.toLong() } }
+        .sortedBy { it.order }
+
+    val includedItemsText = when {
+        // Some selected, but not all
+        includedCategories.isNotEmpty() &&
+            includedCategories.size != allCategories.size ->
+            includedCategories.joinToString {
+                it.visualName(
+                    context,
+                )
+            }
+        // All explicitly selected
+        includedCategories.size == allCategories.size -> stringResource(MR.strings.all)
+        else -> stringResource(MR.strings.none)
+    }
+
+    return stringResource(MR.strings.include, includedItemsText)
+}
+// <-- AM (DISCORD_RPC)

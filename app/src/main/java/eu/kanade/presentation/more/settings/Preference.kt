@@ -1,14 +1,25 @@
 package eu.kanade.presentation.more.settings
 
+import android.content.Context
+import android.os.Build
+import android.os.Environment
 import androidx.annotation.IntRange
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
+import eu.kanade.core.preference.asState
+import eu.kanade.tachiyomi.data.connection.Connection
 import eu.kanade.tachiyomi.data.track.Tracker
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.coroutines.CoroutineScope
+import mihon.core.archive.openFileDescriptor
+import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
+import java.io.FileOutputStream
 import tachiyomi.core.common.preference.Preference as PreferenceData
 
 sealed class Preference {
@@ -26,10 +37,10 @@ sealed class Preference {
         data class TextPreference(
             override val title: String,
             override val subtitle: String? = null,
+            override val icon: ImageVector? = null,
             override val enabled: Boolean = true,
             val onClick: (() -> Unit)? = null,
         ) : PreferenceItem<String>() {
-            override val icon: ImageVector? = null
             override val onValueChanged: suspend (value: String) -> Boolean = { true }
         }
 
@@ -137,6 +148,73 @@ sealed class Preference {
         }
 
         /**
+         * A [PreferenceItem] that shows a multi-line EditText in the dialog.
+         */
+        data class MultiLineEditTextPreference(
+            val preference: PreferenceData<String>,
+            val canBeBlank: Boolean = false,
+            override val title: String,
+            override val subtitle: String? = "%s",
+            override val icon: ImageVector? = null,
+            override val enabled: Boolean = true,
+            override val onValueChanged: suspend (value: String) -> Boolean = { true },
+        ) : PreferenceItem<String>()
+
+        /**
+         * A [PreferenceItem] for editing MPV config files.
+         * If [fileName] is not null, it will update this file in the config directory.
+         */
+        data class MPVConfPreference(
+            val preference: PreferenceData<String>,
+            val scope: CoroutineScope,
+            val context: Context,
+            val fileName: String? = null,
+            val canBeBlank: Boolean = true,
+            override val title: String,
+            override val subtitle: String? = preference.asState(scope).value
+                .lines().take(2)
+                .joinToString(
+                    separator = "\n",
+                    postfix = if (preference.asState(scope).value.lines().size > 2) "\n..." else "",
+                ),
+            override val icon: ImageVector? = null,
+            override val enabled: Boolean = true,
+            override val onValueChanged: suspend (value: String) -> Boolean = { value ->
+                if (fileName != null) {
+                    val storageManager: StorageManager = Injekt.get()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
+                        val inputFile = storageManager.getMPVConfigDirectory()
+                            ?.createFile(fileName)
+                        inputFile?.openFileDescriptor(context, "rwt")?.fileDescriptor
+                            ?.let {
+                                FileOutputStream(it).bufferedWriter().use { writer ->
+                                    writer.write(value)
+                                }
+                            }
+                        preference.set(value)
+                    }
+                }
+                true
+            },
+        ) : PreferenceItem<String>()
+
+        /**
+         * A [PreferenceItem] that shows a EditText with a subtitle in the dialog.
+         * Unlike [EditTextPreference], empty values can be set and a subtitle in the dialog can be show.
+         */
+        data class EditTextInfoPreference(
+            val preference: PreferenceData<String>,
+            val dialogSubtitle: String?,
+            val validate: (String) -> Boolean = { true },
+            val errorMessage: @Composable ((String) -> String)? = null,
+            override val title: String,
+            override val subtitle: String? = "%s",
+            override val icon: ImageVector? = null,
+            override val enabled: Boolean = true,
+            override val onValueChanged: suspend (value: String) -> Boolean = { true },
+        ) : PreferenceItem<String>()
+
+        /**
          * A [PreferenceItem] for individual tracker.
          */
         data class TrackerPreference(
@@ -151,10 +229,27 @@ sealed class Preference {
             override val onValueChanged: suspend (value: String) -> Boolean = { true }
         }
 
-        data class InfoPreference(
+        // AM (CONNECTION) -->
+        /**
+         * A [PreferenceItem] for individual connection service.
+         */
+        data class ConnectionPreference(
+            val connection: Connection,
             override val title: String,
+            val login: () -> Unit,
+            val openSettings: () -> Unit,
         ) : PreferenceItem<String>() {
             override val enabled: Boolean = true
+            override val subtitle: String? = null
+            override val icon: ImageVector? = null
+            override val onValueChanged: suspend (newValue: String) -> Boolean = { true }
+        }
+        // <-- AM (CONNECTION)
+
+        data class InfoPreference(
+            override val title: String,
+            override val enabled: Boolean = true,
+        ) : PreferenceItem<String>() {
             override val subtitle: String? = null
             override val icon: ImageVector? = null
             override val onValueChanged: suspend (value: String) -> Boolean = { true }

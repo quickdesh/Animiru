@@ -48,22 +48,22 @@ class StatsScreenModel(
             val meanScore = getTrackMeanScore(scoredMangaTrackerMap)
 
             val overviewStatData = StatsData.Overview(
-                libraryMangaCount = distinctLibraryManga.size,
-                completedMangaCount = distinctLibraryManga.count {
+                libraryAnimeCount = distinctLibraryManga.size,
+                completedAnimeCount = distinctLibraryManga.count {
                     it.anime.status.toInt() == SAnime.COMPLETED && it.unseenCount == 0L
                 },
-                totalReadDuration = getTotalReadDuration.await(),
+                totalSeenDuration = getTotalReadDuration.await(),
             )
 
             val titlesStatData = StatsData.Titles(
                 globalUpdateItemCount = getGlobalUpdateItemCount(libraryManga),
-                startedMangaCount = distinctLibraryManga.count { it.hasStarted },
-                localMangaCount = distinctLibraryManga.count { it.anime.isLocal() },
+                startedAnimeCount = distinctLibraryManga.count { it.hasStarted },
+                localAnimeCount = distinctLibraryManga.count { it.anime.isLocal() },
             )
 
-            val chaptersStatData = StatsData.Chapters(
-                totalChapterCount = distinctLibraryManga.sumOf { it.totalEpisodes }.toInt(),
-                readChapterCount = distinctLibraryManga.sumOf { it.seenCount }.toInt(),
+            val episodesStatData = StatsData.Episodes(
+                totalEpisodeCount = distinctLibraryManga.sumOf { it.totalEpisodes }.toInt(),
+                seenEpisodeCount = distinctLibraryManga.sumOf { it.seenCount }.toInt(),
                 downloadCount = downloadManager.getDownloadCount(),
             )
 
@@ -77,7 +77,7 @@ class StatsScreenModel(
                 StatsScreenState.Success(
                     overview = overviewStatData,
                     titles = titlesStatData,
-                    chapters = chaptersStatData,
+                    episodes = episodesStatData,
                     trackers = trackersStatData,
                 )
             }

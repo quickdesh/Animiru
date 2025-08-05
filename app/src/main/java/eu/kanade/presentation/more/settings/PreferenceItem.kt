@@ -16,6 +16,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import eu.kanade.domain.connection.service.ConnectionPreferences
+import eu.kanade.presentation.more.settings.widget.ConnectionPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.EditTextPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.InfoWidget
 import eu.kanade.presentation.more.settings.widget.ListPreferenceWidget
@@ -29,6 +31,8 @@ import eu.kanade.presentation.more.settings.widget.TrackingPreferenceWidget
 import kotlinx.coroutines.launch
 import tachiyomi.presentation.core.components.BaseSliderItem
 import tachiyomi.presentation.core.util.collectAsState
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 val LocalPreferenceHighlighted = compositionLocalOf(structuralEqualityPolicy()) { false }
 val LocalPreferenceMinHeight = compositionLocalOf(structuralEqualityPolicy()) { 56.dp }
@@ -163,6 +167,58 @@ internal fun PreferenceItem(
                     },
                 )
             }
+            is Preference.PreferenceItem.MultiLineEditTextPreference -> {
+                val values by item.preference.collectAsState()
+                EditTextPreferenceWidget(
+                    title = item.title,
+                    subtitle = item.subtitle,
+                    icon = item.icon,
+                    value = values,
+                    onConfirm = {
+                        val accepted = item.onValueChanged(it)
+                        if (accepted) item.preference.set(it)
+                        accepted
+                    },
+                    singleLine = false,
+                    canBeBlank = item.canBeBlank,
+                )
+            }
+            is Preference.PreferenceItem.MPVConfPreference -> {
+                val values by item.preference.collectAsState()
+                EditTextPreferenceWidget(
+                    title = item.title,
+                    subtitle = item.subtitle,
+                    icon = item.icon,
+                    value = values,
+                    onConfirm = {
+                        val accepted = item.onValueChanged(it)
+                        if (accepted) item.preference.set(it)
+                        accepted
+                    },
+                    singleLine = false,
+                    canBeBlank = item.canBeBlank,
+                    formatSubtitle = false,
+                )
+            }
+            is Preference.PreferenceItem.EditTextInfoPreference -> {
+                val values by item.preference.collectAsState()
+                EditTextPreferenceWidget(
+                    title = item.title,
+                    subtitle = item.subtitle,
+                    dialogSubtitle = item.dialogSubtitle,
+                    icon = item.icon,
+                    value = values,
+                    onConfirm = {
+                        val accepted = item.onValueChanged(it)
+                        if (accepted) item.preference.set(it)
+                        accepted
+                    },
+                    singleLine = true,
+                    canBeBlank = true,
+                    validate = item.validate,
+                    errorMessage = item.errorMessage,
+                )
+            }
             is Preference.PreferenceItem.TrackerPreference -> {
                 val isLoggedIn by item.tracker.let { tracker ->
                     tracker.isLoggedInFlow.collectAsState(tracker.isLoggedIn)
@@ -173,6 +229,21 @@ internal fun PreferenceItem(
                     onClick = { if (isLoggedIn) item.logout() else item.login() },
                 )
             }
+            // AM (CONNECTION) -->
+            // TODO: update this connection based on above tracker
+            is Preference.PreferenceItem.ConnectionPreference -> {
+                val uName by Injekt.get<ConnectionPreferences>()
+                    .connectionUsername(item.connection)
+                    .collectAsState()
+                item.connection.run {
+                    ConnectionPreferenceWidget(
+                        service = this,
+                        checked = uName.isNotEmpty() || isLoggedIn,
+                        onClick = { if (isLoggedIn) item.openSettings() else item.login() },
+                    )
+                }
+            }
+            // <-- AM (CONNECTION)
             is Preference.PreferenceItem.InfoPreference -> {
                 InfoWidget(text = item.title)
             }
