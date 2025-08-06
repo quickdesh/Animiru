@@ -34,39 +34,39 @@ class DeepLinkScreenModel(
                 .filterIsInstance<ResolvableAnimeSource>()
                 .firstOrNull { it.getUriType(query) != UriType.Unknown }
 
-            val manga = source?.getAnime(query)?.let {
+            val anime = source?.getAnime(query)?.let {
                 networkToLocalAnime(it.toDomainAnime(source.id))
             }
 
-            val chapter = if (source?.getUriType(query) == UriType.Chapter && manga != null) {
-                source.getEpisode(query)?.let { getChapterFromSChapter(it, manga, source) }
+            val episode = if (source?.getUriType(query) == UriType.Episode && anime != null) {
+                source.getEpisode(query)?.let { getEpisodeFromSEpisode(it, anime, source) }
             } else {
                 null
             }
 
             mutableState.update {
-                if (manga == null) {
+                if (anime == null) {
                     State.NoResults
                 } else {
-                    if (chapter == null) {
-                        State.Result(manga)
+                    if (episode == null) {
+                        State.Result(anime)
                     } else {
-                        State.Result(manga, chapter.id)
+                        State.Result(anime, episode.id)
                     }
                 }
             }
         }
     }
 
-    private suspend fun getChapterFromSChapter(sEpisode: SEpisode, anime: Anime, source: AnimeSource): Episode? {
-        val localChapter = getEpisodeByUrlAndAnimeId.await(sEpisode.url, anime.id)
+    private suspend fun getEpisodeFromSEpisode(sEpisode: SEpisode, anime: Anime, source: AnimeSource): Episode? {
+        val localEpisode = getEpisodeByUrlAndAnimeId.await(sEpisode.url, anime.id)
 
-        return if (localChapter == null) {
-            val sourceChapters = source.getEpisodeList(anime.toSAnime())
-            val newChapters = syncEpisodesWithSource.await(sourceChapters, anime, source, false)
-            newChapters.find { it.url == sEpisode.url }
+        return if (localEpisode == null) {
+            val sourceEpisodes = source.getEpisodeList(anime.toSAnime())
+            val newEpisodes = syncEpisodesWithSource.await(sourceEpisodes, anime, source, false)
+            newEpisodes.find { it.url == sEpisode.url }
         } else {
-            localChapter
+            localEpisode
         }
     }
 
@@ -78,6 +78,6 @@ class DeepLinkScreenModel(
         data object NoResults : State
 
         @Immutable
-        data class Result(val anime: Anime, val chapterId: Long? = null) : State
+        data class Result(val anime: Anime, val episodeId: Long? = null) : State
     }
 }
