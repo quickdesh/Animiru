@@ -94,19 +94,19 @@ class HistoryScreenModel(
             }
     }
 
-    suspend fun getNextChapter(): Episode? {
+    suspend fun getNextEpisode(): Episode? {
         return withIOContext { getNextEpisodes.await(onlyUnseen = false).firstOrNull() }
     }
 
-    fun getNextChapterForManga(mangaId: Long, chapterId: Long) {
+    fun getNextEpisodeForAnime(animeId: Long, episodeId: Long) {
         screenModelScope.launchIO {
-            sendNextChapterEvent(getNextEpisodes.await(mangaId, chapterId, onlyUnseen = false))
+            sendNextEpisodeEvent(getNextEpisodes.await(animeId, episodeId, onlyUnseen = false))
         }
     }
 
-    private suspend fun sendNextChapterEvent(episodes: List<Episode>) {
-        val chapter = episodes.firstOrNull()
-        _events.send(Event.OpenChapter(chapter))
+    private suspend fun sendNextEpisodeEvent(episodes: List<Episode>) {
+        val episode = episodes.firstOrNull()
+        _events.send(Event.OpenEpisode(episode))
     }
 
     fun removeFromHistory(history: HistoryWithRelations) {
@@ -115,9 +115,9 @@ class HistoryScreenModel(
         }
     }
 
-    fun removeAllFromHistory(mangaId: Long) {
+    fun removeAllFromHistory(animeId: Long) {
         screenModelScope.launchIO {
-            removeHistory.await(mangaId)
+            removeHistory.await(animeId)
         }
     }
 
@@ -146,19 +146,19 @@ class HistoryScreenModel(
         return getCategories.await().filterNot { it.isSystemCategory }
     }
 
-    private fun moveMangaToCategory(mangaId: Long, categories: Category?) {
+    private fun moveAnimeToCategory(animeId: Long, categories: Category?) {
         val categoryIds = listOfNotNull(categories).map { it.id }
-        moveMangaToCategory(mangaId, categoryIds)
+        moveAnimeToCategory(animeId, categoryIds)
     }
 
-    private fun moveMangaToCategory(mangaId: Long, categoryIds: List<Long>) {
+    private fun moveAnimeToCategory(animeId: Long, categoryIds: List<Long>) {
         screenModelScope.launchIO {
-            setAnimeCategories.await(mangaId, categoryIds)
+            setAnimeCategories.await(animeId, categoryIds)
         }
     }
 
-    fun moveMangaToCategoriesAndAddToLibrary(anime: Anime, categories: List<Long>) {
-        moveMangaToCategory(anime.id, categories)
+    fun moveAnimeToCategoriesAndAddToLibrary(anime: Anime, categories: List<Long>) {
+        moveAnimeToCategory(anime.id, categories)
         if (anime.favorite) return
 
         screenModelScope.launchIO {
@@ -166,22 +166,22 @@ class HistoryScreenModel(
         }
     }
 
-    private suspend fun getMangaCategoryIds(anime: Anime): List<Long> {
+    private suspend fun getAnimeCategoryIds(anime: Anime): List<Long> {
         return getCategories.await(anime.id)
             .map { it.id }
     }
 
-    fun addFavorite(mangaId: Long) {
+    fun addFavorite(animeId: Long) {
         screenModelScope.launchIO {
-            val manga = getAnime.await(mangaId) ?: return@launchIO
+            val anime = getAnime.await(animeId) ?: return@launchIO
 
-            val duplicates = getDuplicateLibraryAnime(manga)
+            val duplicates = getDuplicateLibraryAnime(anime)
             if (duplicates.isNotEmpty()) {
-                mutableState.update { it.copy(dialog = Dialog.DuplicateManga(manga, duplicates)) }
+                mutableState.update { it.copy(dialog = Dialog.DuplicateAnime(anime, duplicates)) }
                 return@launchIO
             }
 
-            addFavorite(manga)
+            addFavorite(anime)
         }
     }
 
@@ -197,14 +197,14 @@ class HistoryScreenModel(
                 defaultCategory != null -> {
                     val result = updateAnime.awaitUpdateFavorite(anime.id, true)
                     if (!result) return@launchIO
-                    moveMangaToCategory(anime.id, defaultCategory)
+                    moveAnimeToCategory(anime.id, defaultCategory)
                 }
 
                 // Automatic 'Default' or no categories
                 defaultCategoryId == 0L || categories.isEmpty() -> {
                     val result = updateAnime.awaitUpdateFavorite(anime.id, true)
                     if (!result) return@launchIO
-                    moveMangaToCategory(anime.id, null)
+                    moveAnimeToCategory(anime.id, null)
                 }
 
                 // Choose a category
@@ -225,7 +225,7 @@ class HistoryScreenModel(
     fun showChangeCategoryDialog(anime: Anime) {
         screenModelScope.launch {
             val categories = getCategories()
-            val selection = getMangaCategoryIds(anime)
+            val selection = getAnimeCategoryIds(anime)
             mutableState.update { currentState ->
                 currentState.copy(
                     dialog = Dialog.ChangeCategory(
@@ -247,7 +247,7 @@ class HistoryScreenModel(
     sealed interface Dialog {
         data object DeleteAll : Dialog
         data class Delete(val history: HistoryWithRelations) : Dialog
-        data class DuplicateManga(val anime: Anime, val duplicates: List<AnimeWithEpisodeCount>) : Dialog
+        data class DuplicateAnime(val anime: Anime, val duplicates: List<AnimeWithEpisodeCount>) : Dialog
         data class ChangeCategory(
             val anime: Anime,
             val initialSelection: ImmutableList<CheckboxState<Category>>,
@@ -256,7 +256,7 @@ class HistoryScreenModel(
     }
 
     sealed interface Event {
-        data class OpenChapter(val episode: Episode?) : Event
+        data class OpenEpisode(val episode: Episode?) : Event
         data object InternalError : Event
         data object HistoryCleared : Event
     }

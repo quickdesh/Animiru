@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -34,62 +35,65 @@ import java.time.LocalDate
 @Composable
 fun HistoryScreen(
     state: HistoryScreenModel.State,
-    snackbarHostState: SnackbarHostState,
     onSearchQueryChange: (String?) -> Unit,
     onClickCover: (animeId: Long) -> Unit,
     onClickResume: (animeId: Long, episodeId: Long) -> Unit,
     onClickFavorite: (animeId: Long) -> Unit,
     onDialogChange: (HistoryScreenModel.Dialog?) -> Unit,
+    contentPadding: PaddingValues,
 ) {
-    Scaffold(
-        topBar = { scrollBehavior ->
-            SearchToolbar(
-                titleContent = { AppBarTitle(stringResource(MR.strings.history)) },
-                searchQuery = state.searchQuery,
-                onChangeSearchQuery = onSearchQueryChange,
-                actions = {
-                    AppBarActions(
-                        persistentListOf(
-                            AppBar.Action(
-                                title = stringResource(MR.strings.pref_clear_history),
-                                icon = Icons.Outlined.DeleteSweep,
-                                onClick = {
-                                    onDialogChange(HistoryScreenModel.Dialog.DeleteAll)
-                                },
-                            ),
-                        ),
-                    )
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-    ) { contentPadding ->
-        state.list.let {
-            if (it == null) {
-                LoadingScreen(Modifier.padding(contentPadding))
-            } else if (it.isEmpty()) {
-                val msg = if (!state.searchQuery.isNullOrEmpty()) {
-                    MR.strings.no_results_found
-                } else {
-                    MR.strings.information_no_recent_manga
-                }
-                EmptyScreen(
-                    stringRes = msg,
-                    modifier = Modifier.padding(contentPadding),
-                )
+    state.list.let {
+        if (it == null) {
+            LoadingScreen(Modifier.padding(contentPadding))
+        } else if (it.isEmpty()) {
+            val msg = if (!state.searchQuery.isNullOrEmpty()) {
+                MR.strings.no_results_found
             } else {
-                HistoryScreenContent(
-                    history = it,
-                    contentPadding = contentPadding,
-                    onClickCover = { history -> onClickCover(history.animeId) },
-                    onClickResume = { history -> onClickResume(history.animeId, history.episodeId) },
-                    onClickDelete = { item -> onDialogChange(HistoryScreenModel.Dialog.Delete(item)) },
-                    onClickFavorite = { history -> onClickFavorite(history.animeId) },
-                )
+                MR.strings.information_no_recent_manga
             }
+            EmptyScreen(
+                stringRes = msg,
+                modifier = Modifier.padding(contentPadding),
+            )
+        } else {
+            HistoryScreenContent(
+                history = it,
+                contentPadding = contentPadding,
+                onClickCover = { history -> onClickCover(history.animeId) },
+                onClickResume = { history -> onClickResume(history.animeId, history.episodeId) },
+                onClickDelete = { item -> onDialogChange(HistoryScreenModel.Dialog.Delete(item)) },
+                onClickFavorite = { history -> onClickFavorite(history.animeId) },
+            )
         }
     }
+}
+
+@Composable
+fun HistoryTopBar(
+    state: HistoryScreenModel.State,
+    onSearchQueryChange: (String?) -> Unit,
+    onDialogChange: (HistoryScreenModel.Dialog?) -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
+) {
+    SearchToolbar(
+        titleContent = { AppBarTitle(stringResource(MR.strings.history)) },
+        searchQuery = state.searchQuery,
+        onChangeSearchQuery = onSearchQueryChange,
+        actions = {
+            AppBarActions(
+                persistentListOf(
+                    AppBar.Action(
+                        title = stringResource(MR.strings.pref_clear_history),
+                        icon = Icons.Outlined.DeleteSweep,
+                        onClick = {
+                            onDialogChange(HistoryScreenModel.Dialog.DeleteAll)
+                        },
+                    ),
+                ),
+            )
+        },
+        scrollBehavior = scrollBehavior,
+    )
 }
 
 @Composable
@@ -151,12 +155,12 @@ internal fun HistoryScreenPreviews(
     TachiyomiPreviewTheme {
         HistoryScreen(
             state = historyState,
-            snackbarHostState = SnackbarHostState(),
             onSearchQueryChange = {},
             onClickCover = {},
             onClickResume = { _, _ -> run {} },
             onDialogChange = {},
             onClickFavorite = {},
+            contentPadding = PaddingValues(),
         )
     }
 }
