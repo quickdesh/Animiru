@@ -25,7 +25,7 @@ import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.browse.SourceFilterDialog
 import eu.kanade.tachiyomi.ui.home.HomeScreen
-import eu.kanade.tachiyomi.ui.manga.MangaScreen
+import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.webview.WebViewScreen
 import kotlinx.coroutines.launch
 import mihon.feature.migration.dialog.MigrateAnimeDialog
@@ -115,7 +115,7 @@ data class MigrateSourceSearchScreen(
                 onHelpClick = { uriHandler.openUri(Constants.URL_HELP) },
                 onLocalSourceHelpClick = { uriHandler.openUri(LocalSource.HELP_URL) },
                 onAnimeClick = openMigrateDialog,
-                onAnimeLongClick = { navigator.push(MangaScreen(it.id, true)) },
+                onAnimeLongClick = { navigator.push(AnimeScreen(it.id, true)) },
             )
         }
 
@@ -135,13 +135,13 @@ data class MigrateSourceSearchScreen(
                     current = currentAnime,
                     target = dialog.target,
                     // Initiated from the context of [currentAnime] so we show [dialog.target].
-                    onClickTitle = { navigator.push(MangaScreen(dialog.target.id)) },
+                    onClickTitle = { navigator.push(AnimeScreen(dialog.target.id)) },
                     onDismissRequest = onDismissRequest,
                     onComplete = {
                         scope.launch {
                             navigator.popUntilRoot()
                             HomeScreen.openTab(HomeScreen.Tab.Browse())
-                            navigator.push(MangaScreen(dialog.target.id))
+                            navigator.push(AnimeScreen(dialog.target.id))
                         }
                     },
                 )

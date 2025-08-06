@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.ui.manga
+package eu.kanade.tachiyomi.ui.anime
 
 import android.content.Context
 import android.net.Uri
@@ -31,8 +31,8 @@ import tachiyomi.i18n.MR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class MangaCoverScreenModel(
-    private val mangaId: Long,
+class AnimeCoverScreenModel(
+    private val animeId: Long,
     private val getAnime: GetAnime = Injekt.get(),
     private val imageSaver: ImageSaver = Injekt.get(),
     private val coverCache: CoverCache = Injekt.get(),
@@ -43,8 +43,8 @@ class MangaCoverScreenModel(
 
     init {
         screenModelScope.launchIO {
-            getAnime.subscribe(mangaId)
-                .collect { newManga -> mutableState.update { newManga } }
+            getAnime.subscribe(animeId)
+                .collect { newAnime -> mutableState.update { newAnime } }
         }
     }
 
@@ -84,15 +84,15 @@ class MangaCoverScreenModel(
     }
 
     /**
-     * Save manga cover Bitmap to picture or temporary share directory.
+     * Save anime cover Bitmap to picture or temporary share directory.
      *
      * @param context The context for building and executing the ImageRequest
      * @return the uri to saved file
      */
     private suspend fun saveCoverInternal(context: Context, temp: Boolean): Uri? {
-        val manga = state.value ?: return null
+        val anime = state.value ?: return null
         val req = ImageRequest.Builder(context)
-            .data(manga)
+            .data(anime)
             .size(Size.ORIGINAL)
             .build()
 
@@ -104,7 +104,7 @@ class MangaCoverScreenModel(
             imageSaver.save(
                 Image.Cover(
                     bitmap = bitmap,
-                    name = manga.title,
+                    name = anime.title,
                     location = if (temp) Location.Cache else Location.Pictures.create(),
                 ),
             )
@@ -118,11 +118,11 @@ class MangaCoverScreenModel(
      * @param data uri of the cover resource.
      */
     fun editCover(context: Context, data: Uri) {
-        val manga = state.value ?: return
+        val anime = state.value ?: return
         screenModelScope.launchIO {
             context.contentResolver.openInputStream(data)?.use {
                 try {
-                    manga.editCover(Injekt.get(), it, updateAnime, coverCache)
+                    anime.editCover(Injekt.get(), it, updateAnime, coverCache)
                     notifyCoverUpdated(context)
                 } catch (e: Exception) {
                     notifyFailedCoverUpdate(context, e)
@@ -132,11 +132,11 @@ class MangaCoverScreenModel(
     }
 
     fun deleteCustomCover(context: Context) {
-        val mangaId = state.value?.id ?: return
+        val animeId = state.value?.id ?: return
         screenModelScope.launchIO {
             try {
-                coverCache.deleteCustomCover(mangaId)
-                updateAnime.awaitUpdateCoverLastModified(mangaId)
+                coverCache.deleteCustomCover(animeId)
+                updateAnime.awaitUpdateCoverLastModified(animeId)
                 notifyCoverUpdated(context)
             } catch (e: Exception) {
                 notifyFailedCoverUpdate(context, e)

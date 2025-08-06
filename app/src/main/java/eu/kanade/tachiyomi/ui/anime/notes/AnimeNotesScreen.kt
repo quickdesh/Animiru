@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.ui.manga.notes
+package eu.kanade.tachiyomi.ui.anime.notes
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -18,7 +18,7 @@ import tachiyomi.domain.anime.model.Anime
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class MangaNotesScreen(
+class AnimeNotesScreen(
     private val anime: Anime,
 ) : Screen() {
     @Composable

@@ -12,7 +12,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.browse.migration.search.MigrateSearchScreen
-import eu.kanade.tachiyomi.ui.manga.MangaScreen
+import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.util.system.toast
 import mihon.feature.migration.list.components.MigrationExitDialog
 import mihon.feature.migration.list.components.MigrationAnimeDialog
@@ -56,7 +56,7 @@ class MigrationListScreen(private val animeIds: List<Long>, private val extraSea
             migrationComplete = state.migrationComplete,
             finishedCount = state.finishedCount,
             onItemClick = {
-                navigator.push(MangaScreen(it.id, true))
+                navigator.push(AnimeScreen(it.id, true))
             },
             onSearchManually = { migrationItem ->
                 navigator push MigrateSearchScreen(migrationItem.anime.id)

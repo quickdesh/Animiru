@@ -2,7 +2,7 @@ package eu.kanade.tachiyomi.util.episode
 
 import eu.kanade.domain.episode.model.applyFilters
 import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.ui.manga.ChapterList
+import eu.kanade.tachiyomi.ui.anime.EpisodeList
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.anime.model.Anime
 
@@ -22,7 +22,7 @@ fun List<Episode>.getNextUnseen(anime: Anime, downloadManager: DownloadManager):
 /**
  * Gets next unseen episode with filters and sorting applied
  */
-fun List<ChapterList.Item>.getNextUnseen(anime: Anime): Episode? {
+fun List<EpisodeList.Item>.getNextUnseen(anime: Anime): Episode? {
     return applyFilters(anime).let { episodes ->
         if (anime.sortDescending()) {
             episodes.findLast { !it.episode.seen }

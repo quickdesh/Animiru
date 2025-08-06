@@ -9,7 +9,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.browse.MigrateSearchScreen
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchScreenModel
-import eu.kanade.tachiyomi.ui.manga.MangaScreen
+import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import mihon.feature.migration.dialog.MigrateAnimeDialog
 import mihon.feature.migration.list.MigrationListScreen
 
@@ -44,7 +44,7 @@ class MigrateSearchScreen(private val mangaId: Long) : Screen() {
                     navigator.popUntil { screen -> screen is MigrationListScreen }
                 }
             },
-            onLongClickItem = { navigator.push(MangaScreen(it.id, true)) },
+            onLongClickItem = { navigator.push(AnimeScreen(it.id, true)) },
         )
 
         when (val dialog = state.dialog) {
@@ -53,15 +53,15 @@ class MigrateSearchScreen(private val mangaId: Long) : Screen() {
                     current = dialog.current,
                     target = dialog.target,
                     // Initiated from the context of [dialog.current] so we show [dialog.target].
-                    onClickTitle = { navigator.push(MangaScreen(dialog.target.id, true)) },
+                    onClickTitle = { navigator.push(AnimeScreen(dialog.target.id, true)) },
                     onDismissRequest = { screenModel.clearDialog() },
                     onComplete = {
-                        if (navigator.lastItem is MangaScreen) {
+                        if (navigator.lastItem is AnimeScreen) {
                             val lastItem = navigator.lastItem
                             navigator.popUntil { navigator.items.contains(lastItem) }
-                            navigator.push(MangaScreen(dialog.target.id))
+                            navigator.push(AnimeScreen(dialog.target.id))
                         } else {
-                            navigator.replace(MangaScreen(dialog.target.id))
+                            navigator.replace(AnimeScreen(dialog.target.id))
                         }
                     },
                 )

@@ -14,7 +14,7 @@ import eu.kanade.core.util.ifSourcesLoaded
 import eu.kanade.presentation.browse.GlobalSearchScreen
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
-import eu.kanade.tachiyomi.ui.manga.MangaScreen
+import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import tachiyomi.presentation.core.screens.LoadingScreen
 
 class GlobalSearchScreen(
@@ -51,7 +51,7 @@ class GlobalSearchScreen(
                     is SearchItemResult.Success -> {
                         val anime = result.result.singleOrNull()
                         if (anime != null) {
-                            navigator.replace(MangaScreen(anime.id, true))
+                            navigator.replace(AnimeScreen(anime.id, true))
                         } else {
                             // Backoff to result screen
                             showSingleLoadingScreen = false
@@ -72,8 +72,8 @@ class GlobalSearchScreen(
                 onClickSource = {
                     navigator.push(BrowseSourceScreen(it.id, state.searchQuery))
                 },
-                onClickItem = { navigator.push(MangaScreen(it.id, true)) },
-                onLongClickItem = { navigator.push(MangaScreen(it.id, true)) },
+                onClickItem = { navigator.push(AnimeScreen(it.id, true)) },
+                onLongClickItem = { navigator.push(AnimeScreen(it.id, true)) },
             )
         }
     }

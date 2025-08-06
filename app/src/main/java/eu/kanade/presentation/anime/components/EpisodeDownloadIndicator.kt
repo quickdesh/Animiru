@@ -47,6 +47,7 @@ enum class EpisodeDownloadAction {
     START_NOW,
     CANCEL,
     DELETE,
+    SHOW_QUALITIES,
 }
 
 @Composable

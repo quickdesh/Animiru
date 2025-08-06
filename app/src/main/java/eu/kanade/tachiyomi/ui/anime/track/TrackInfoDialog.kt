@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.ui.manga.track
+package eu.kanade.tachiyomi.ui.anime.track
 
 import android.app.Application
 import android.content.Context
@@ -88,8 +88,8 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 data class TrackInfoDialogHomeScreen(
-    private val mangaId: Long,
-    private val mangaTitle: String,
+    private val animeId: Long,
+    private val animeTitle: String,
     private val sourceId: Long,
 ) : Screen() {
 
@@ -97,7 +97,7 @@ data class TrackInfoDialogHomeScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
-        val screenModel = rememberScreenModel { Model(mangaId, sourceId) }
+        val screenModel = rememberScreenModel { Model(animeId, sourceId) }
 
         val dateFormat = remember { UiPreferences.dateFormat(Injekt.get<UiPreferences>().dateFormat().get()) }
         val state by screenModel.state.collectAsState()
@@ -115,7 +115,7 @@ data class TrackInfoDialogHomeScreen(
             },
             onEpisodeClick = {
                 navigator.push(
-                    TrackChapterSelectorScreen(
+                    TrackEpisodeSelectorScreen(
                         track = it.track!!,
                         serviceId = it.tracker.id,
                     ),
@@ -153,8 +153,8 @@ data class TrackInfoDialogHomeScreen(
                 } else {
                     navigator.push(
                         TrackerSearchScreen(
-                            mangaId = mangaId,
-                            initialQuery = it.track?.title ?: mangaTitle,
+                            animeId = animeId,
+                            initialQuery = it.track?.title ?: animeTitle,
                             currentUrl = it.track?.remoteUrl,
                             serviceId = it.tracker.id,
                         ),
@@ -165,7 +165,7 @@ data class TrackInfoDialogHomeScreen(
             onRemoved = {
                 navigator.push(
                     TrackerRemoveScreen(
-                        mangaId = mangaId,
+                        animeId = animeId,
                         track = it.track!!,
                         serviceId = it.tracker.id,
                     ),
@@ -194,7 +194,7 @@ data class TrackInfoDialogHomeScreen(
     }
 
     private class Model(
-        private val mangaId: Long,
+        private val animeId: Long,
         private val sourceId: Long,
         private val getTracks: GetTracks = Injekt.get(),
     ) : StateScreenModel<Model.State>(State()) {
@@ -205,7 +205,7 @@ data class TrackInfoDialogHomeScreen(
             }
 
             screenModelScope.launch {
-                getTracks.subscribe(mangaId)
+                getTracks.subscribe(animeId)
                     .catch { logcat(LogPriority.ERROR, it) }
                     .distinctUntilChanged()
                     .map { it.mapToTrackItem() }
@@ -216,10 +216,10 @@ data class TrackInfoDialogHomeScreen(
         fun registerEnhancedTracking(item: TrackItem) {
             item.tracker as EnhancedTracker
             screenModelScope.launchNonCancellable {
-                val manga = Injekt.get<GetAnime>().await(mangaId) ?: return@launchNonCancellable
+                val anime = Injekt.get<GetAnime>().await(animeId) ?: return@launchNonCancellable
                 try {
-                    val matchResult = item.tracker.match(manga) ?: throw Exception()
-                    item.tracker.register(matchResult, mangaId)
+                    val matchResult = item.tracker.match(anime) ?: throw Exception()
+                    item.tracker.register(matchResult, animeId)
                 } catch (e: Exception) {
                     withUIContext { Injekt.get<Application>().toast(MR.strings.error_no_match) }
                 }
@@ -230,11 +230,11 @@ data class TrackInfoDialogHomeScreen(
             val refreshTracks = Injekt.get<RefreshTracks>()
             val context = Injekt.get<Application>()
 
-            refreshTracks.await(mangaId)
+            refreshTracks.await(animeId)
                 .filter { it.first != null }
                 .forEach { (track, e) ->
                     logcat(LogPriority.ERROR, e) {
-                        "Failed to refresh track data mangaId=$mangaId for service ${track!!.id}"
+                        "Failed to refresh track data animeId=$animeId for service ${track!!.id}"
                     }
                     withUIContext {
                         context.toast(
@@ -260,7 +260,7 @@ data class TrackInfoDialogHomeScreen(
             return loggedInTrackers
                 // Map to TrackItem
                 .map { service -> TrackItem(find { it.trackerId == service.id }, service) }
-                // Show only if the service supports this manga's source
+                // Show only if the service supports this anime's source
                 .filter { (it.tracker as? EnhancedTracker)?.accept(source) ?: true }
         }
 
@@ -324,7 +324,7 @@ private data class TrackStatusSelectorScreen(
     }
 }
 
-private data class TrackChapterSelectorScreen(
+private data class TrackEpisodeSelectorScreen(
     private val track: Track,
     private val serviceId: Long,
 ) : Screen() {
@@ -345,7 +345,7 @@ private data class TrackChapterSelectorScreen(
             onSelectionChange = screenModel::setSelection,
             range = remember { screenModel.getRange() },
             onConfirm = {
-                screenModel.setChapter()
+                screenModel.setEpisode()
                 navigator.pop()
             },
             onDismissRequest = navigator::pop,
@@ -370,7 +370,7 @@ private data class TrackChapterSelectorScreen(
             mutableState.update { it.copy(selection = selection) }
         }
 
-        fun setChapter() {
+        fun setEpisode() {
             screenModelScope.launchNonCancellable {
                 tracker.setRemoteLastEpisodeSeen(track.toDbTrack(), state.value.selection)
             }
@@ -653,7 +653,7 @@ private data class TrackDateRemoverScreen(
 }
 
 data class TrackerSearchScreen(
-    private val mangaId: Long,
+    private val animeId: Long,
     private val initialQuery: String,
     private val currentUrl: String?,
     private val serviceId: Long,
@@ -664,7 +664,7 @@ data class TrackerSearchScreen(
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel {
             Model(
-                mangaId = mangaId,
+                animeId = animeId,
                 currentUrl = currentUrl,
                 initialQuery = initialQuery,
                 tracker = Injekt.get<TrackerManager>().get(serviceId)!!,
@@ -692,7 +692,7 @@ data class TrackerSearchScreen(
     }
 
     private class Model(
-        private val mangaId: Long,
+        private val animeId: Long,
         private val currentUrl: String? = null,
         initialQuery: String,
         private val tracker: Tracker,
@@ -730,7 +730,7 @@ data class TrackerSearchScreen(
         }
 
         fun registerTracking(item: TrackSearch) {
-            screenModelScope.launchNonCancellable { tracker.register(item, mangaId) }
+            screenModelScope.launchNonCancellable { tracker.register(item, animeId) }
         }
 
         fun updateSelection(selected: TrackSearch) {
@@ -746,7 +746,7 @@ data class TrackerSearchScreen(
 }
 
 private data class TrackerRemoveScreen(
-    private val mangaId: Long,
+    private val animeId: Long,
     private val track: Track,
     private val serviceId: Long,
 ) : Screen() {
@@ -756,7 +756,7 @@ private data class TrackerRemoveScreen(
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel {
             Model(
-                mangaId = mangaId,
+                animeId = animeId,
                 track = track,
                 tracker = Injekt.get<TrackerManager>().get(serviceId)!!,
             )
@@ -808,7 +808,7 @@ private data class TrackerRemoveScreen(
                     FilledTonalButton(
                         onClick = {
                             screenModel.unregisterTracking(serviceId)
-                            if (removeRemoteTrack) screenModel.deleteMangaFromService()
+                            if (removeRemoteTrack) screenModel.deleteAnimeFromService()
                             navigator.pop()
                         },
                         colors = ButtonDefaults.filledTonalButtonColors(
@@ -824,7 +824,7 @@ private data class TrackerRemoveScreen(
     }
 
     private class Model(
-        private val mangaId: Long,
+        private val animeId: Long,
         private val track: Track,
         private val tracker: Tracker,
         private val deleteTrack: DeleteTrack = Injekt.get(),
@@ -834,7 +834,7 @@ private data class TrackerRemoveScreen(
 
         fun isDeletable() = tracker is DeletableTracker
 
-        fun deleteMangaFromService() {
+        fun deleteAnimeFromService() {
             screenModelScope.launchNonCancellable {
                 try {
                     (tracker as DeletableTracker).delete(track)
@@ -845,7 +845,7 @@ private data class TrackerRemoveScreen(
         }
 
         fun unregisterTracking(serviceId: Long) {
-            screenModelScope.launchNonCancellable { deleteTrack.await(mangaId, serviceId) }
+            screenModelScope.launchNonCancellable { deleteTrack.await(animeId, serviceId) }
         }
     }
 }

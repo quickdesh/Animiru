@@ -25,7 +25,7 @@ import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
-import eu.kanade.tachiyomi.ui.manga.MangaScreen
+import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
@@ -69,7 +69,7 @@ data object HistoryTab : Tab {
             state = state,
             snackbarHostState = snackbarHostState,
             onSearchQueryChange = screenModel::updateSearchQuery,
-            onClickCover = { navigator.push(MangaScreen(it)) },
+            onClickCover = { navigator.push(AnimeScreen(it)) },
             onClickResume = screenModel::getNextChapterForManga,
             onDialogChange = screenModel::setDialog,
             onClickFavorite = screenModel::addFavorite,
@@ -100,7 +100,7 @@ data object HistoryTab : Tab {
                     duplicates = dialog.duplicates,
                     onDismissRequest = onDismissRequest,
                     onConfirm = { screenModel.addFavorite(dialog.anime) },
-                    onOpenAnime = { navigator.push(MangaScreen(it.id)) },
+                    onOpenAnime = { navigator.push(AnimeScreen(it.id)) },
                     onMigrate = { screenModel.showMigrateDialog(dialog.anime, it) },
                 )
             }
@@ -119,7 +119,7 @@ data object HistoryTab : Tab {
                     current = dialog.current,
                     target = dialog.target,
                     // Initiated from the context of [dialog.target] so we show [dialog.current].
-                    onClickTitle = { navigator.push(MangaScreen(dialog.current.id)) },
+                    onClickTitle = { navigator.push(AnimeScreen(dialog.current.id)) },
                     onDismissRequest = onDismissRequest,
                 )
             }
