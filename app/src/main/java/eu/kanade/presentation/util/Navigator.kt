@@ -75,6 +75,10 @@ val LocalBackPress: ProvidableCompositionLocal<(() -> Unit)?> = staticCompositio
 
 interface Tab : cafe.adriel.voyager.navigator.tab.Tab {
     suspend fun onReselect(navigator: Navigator) {}
+
+    // AM (TAB_HOLD) -->
+    suspend fun onReselectHold(navigator: Navigator) {}
+    // <-- AM (TAB_HOLD)
 }
 
 abstract class Screen : Screen {
