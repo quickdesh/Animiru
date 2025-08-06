@@ -64,12 +64,12 @@ data object UpdatesTab : Tab {
             onSelectAll = screenModel::toggleAllSelection,
             onInvertSelection = screenModel::invertSelection,
             onUpdateLibrary = screenModel::updateLibrary,
-            onDownloadChapter = screenModel::downloadChapters,
+            onDownloadEpisode = screenModel::downloadChapters,
             onMultiBookmarkClicked = screenModel::bookmarkUpdates,
-            onMultiMarkAsReadClicked = screenModel::markUpdatesRead,
+            onMultiMarkAsSeenClicked = screenModel::markUpdatesRead,
             onMultiDeleteClicked = screenModel::showConfirmDeleteChapters,
             onUpdateSelected = screenModel::toggleSelection,
-            onOpenChapter = {
+            onOpenEpisode = {
                 val intent = ReaderActivity.newIntent(context, it.update.animeId, it.update.episodeId)
                 context.startActivity(intent)
             },

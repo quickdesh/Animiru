@@ -50,12 +50,15 @@ fun UpdateScreen(
     onInvertSelection: () -> Unit,
     onCalendarClicked: () -> Unit,
     onUpdateLibrary: () -> Boolean,
-    onDownloadChapter: (List<UpdatesItem>, EpisodeDownloadAction) -> Unit,
+    onDownloadEpisode: (List<UpdatesItem>, EpisodeDownloadAction) -> Unit,
     onMultiBookmarkClicked: (List<UpdatesItem>, bookmark: Boolean) -> Unit,
-    onMultiMarkAsReadClicked: (List<UpdatesItem>, read: Boolean) -> Unit,
+    // AM (FILLERMARK) -->
+    onMultiFillermarkClicked: (List<UpdatesItem>, fillermarked: Boolean) -> Unit,
+    // <-- AM (FILLERMARK)
+    onMultiMarkAsSeenClicked: (List<UpdatesItem>, seen: Boolean) -> Unit,
     onMultiDeleteClicked: (List<UpdatesItem>) -> Unit,
     onUpdateSelected: (UpdatesItem, Boolean, Boolean, Boolean) -> Unit,
-    onOpenChapter: (UpdatesItem) -> Unit,
+    onOpenEpisode: (UpdatesItem, altPlayer: Boolean) -> Unit,
 ) {
     BackHandler(enabled = state.selectionMode) {
         onSelectAll(false)
@@ -76,9 +79,10 @@ fun UpdateScreen(
         bottomBar = {
             UpdatesBottomBar(
                 selected = state.selected,
-                onDownloadChapter = onDownloadChapter,
+                onDownloadEpisode = onDownloadEpisode,
                 onMultiBookmarkClicked = onMultiBookmarkClicked,
-                onMultiMarkAsReadClicked = onMultiMarkAsReadClicked,
+                onMultiFillermarkClicked = onMultiFillermarkClicked,
+                onMultiMarkAsSeenClicked = onMultiMarkAsSeenClicked,
                 onMultiDeleteClicked = onMultiDeleteClicked,
             )
         },
@@ -119,8 +123,8 @@ fun UpdateScreen(
                             selectionMode = state.selectionMode,
                             onUpdateSelected = onUpdateSelected,
                             onClickCover = onClickCover,
-                            onClickUpdate = onOpenChapter,
-                            onDownloadChapter = onDownloadChapter,
+                            onClickUpdate = onOpenEpisode,
+                            onDownloadEpisode = onDownloadEpisode,
                         )
                     }
                 }
@@ -185,9 +189,12 @@ private fun UpdatesAppBar(
 @Composable
 private fun UpdatesBottomBar(
     selected: List<UpdatesItem>,
-    onDownloadChapter: (List<UpdatesItem>, EpisodeDownloadAction) -> Unit,
+    onDownloadEpisode: (List<UpdatesItem>, EpisodeDownloadAction) -> Unit,
     onMultiBookmarkClicked: (List<UpdatesItem>, bookmark: Boolean) -> Unit,
-    onMultiMarkAsReadClicked: (List<UpdatesItem>, read: Boolean) -> Unit,
+    // AM (FILLERMARK) -->
+    onMultiFillermarkClicked: (List<UpdatesItem>, fillermarked: Boolean) -> Unit,
+    // <-- AM (FILLERMARK)
+    onMultiMarkAsSeenClicked: (List<UpdatesItem>, seen: Boolean) -> Unit,
     onMultiDeleteClicked: (List<UpdatesItem>) -> Unit,
 ) {
     AnimeBottomActionMenu(
@@ -199,14 +206,22 @@ private fun UpdatesBottomBar(
         onRemoveBookmarkClicked = {
             onMultiBookmarkClicked.invoke(selected, false)
         }.takeIf { selected.fastAll { it.update.bookmark } },
+        // AM (FILLERMARK) -->
+        onFillermarkClicked = {
+            onMultiFillermarkClicked.invoke(selected, true)
+        }.takeIf { selected.fastAny { !it.update.fillermark } },
+        onRemoveFillermarkClicked = {
+            onMultiFillermarkClicked.invoke(selected, false)
+        }.takeIf { selected.fastAll { it.update.fillermark } },
+        // <-- AM (FILLERMARK)
         onMarkAsSeenClicked = {
-            onMultiMarkAsReadClicked(selected, true)
+            onMultiMarkAsSeenClicked(selected, true)
         }.takeIf { selected.fastAny { !it.update.seen } },
         onMarkAsUnseenClicked = {
-            onMultiMarkAsReadClicked(selected, false)
+            onMultiMarkAsSeenClicked(selected, false)
         }.takeIf { selected.fastAny { it.update.seen || it.update.lastSecondSeen > 0L } },
         onDownloadClicked = {
-            onDownloadChapter(selected, EpisodeDownloadAction.START)
+            onDownloadEpisode(selected, EpisodeDownloadAction.START)
         }.takeIf {
             selected.fastAny { it.downloadStateProvider() != Download.State.DOWNLOADED }
         },
