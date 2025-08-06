@@ -14,19 +14,25 @@ import kotlinx.coroutines.launch
 import tachiyomi.domain.category.interactor.CreateCategoryWithName
 import tachiyomi.domain.category.interactor.DeleteCategory
 import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.category.interactor.GetVisibleCategories
+import tachiyomi.domain.category.interactor.HideCategory
 import tachiyomi.domain.category.interactor.RenameCategory
 import tachiyomi.domain.category.interactor.ReorderCategory
 import tachiyomi.domain.category.model.Category
+import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class CategoryScreenModel(
     private val getCategories: GetCategories = Injekt.get(),
+    private val getVisibleCategories: GetVisibleCategories = Injekt.get(),
     private val createCategoryWithName: CreateCategoryWithName = Injekt.get(),
+    private val hideCategory: HideCategory = Injekt.get(),
     private val deleteCategory: DeleteCategory = Injekt.get(),
     private val reorderCategory: ReorderCategory = Injekt.get(),
     private val renameCategory: RenameCategory = Injekt.get(),
+    private val libraryPreferences: LibraryPreferences = Injekt.get(),
 ) : StateScreenModel<CategoryScreenState>(CategoryScreenState.Loading) {
 
     private val _events: Channel<CategoryEvent> = Channel()
@@ -34,16 +40,21 @@ class CategoryScreenModel(
 
     init {
         screenModelScope.launch {
-            getCategories.subscribe()
-                .collectLatest { categories ->
-                    mutableState.update {
-                        CategoryScreenState.Success(
-                            categories = categories
-                                .filterNot(Category::isSystemCategory)
-                                .toImmutableList(),
-                        )
-                    }
+            val allCategories = if (libraryPreferences.hideHiddenCategoriesSettings().get()) {
+                getVisibleCategories.subscribe()
+            } else {
+                getCategories.subscribe()
+            }
+
+            allCategories.collectLatest { categories ->
+                mutableState.update {
+                    CategoryScreenState.Success(
+                        categories = categories
+                            .filterNot(Category::isSystemCategory)
+                            .toImmutableList(),
+                    )
                 }
+            }
         }
     }
 
@@ -51,6 +62,17 @@ class CategoryScreenModel(
         screenModelScope.launch {
             when (createCategoryWithName.await(name)) {
                 is CreateCategoryWithName.Result.InternalError -> _events.send(CategoryEvent.InternalError)
+                else -> {}
+            }
+        }
+    }
+
+    fun hideCategory(category: Category) {
+        screenModelScope.launch {
+            when (hideCategory.await(category)) {
+                is HideCategory.Result.InternalError -> _events.send(
+                    CategoryEvent.InternalError,
+                )
                 else -> {}
             }
         }

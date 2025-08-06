@@ -40,6 +40,7 @@ import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLIC
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_EPISODE_SEEN_NEW
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
@@ -108,6 +109,10 @@ object SettingsLibraryScreen : SearchableSettings {
                         }
                         true
                     },
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = libraryPreferences.hideHiddenCategoriesSettings(),
+                    title = stringResource(AYMR.strings.pref_category_hide_hidden),
                 ),
             ),
         )
