@@ -9,16 +9,16 @@ import uy.kohesive.injekt.api.get
 data class LibraryItem(
     val libraryAnime: LibraryAnime,
     val downloadCount: Long = -1,
-    val unreadCount: Long = -1,
+    val unseenCount: Long = -1,
     val isLocal: Boolean = false,
     val sourceLanguage: String = "",
     private val sourceManager: SourceManager = Injekt.get(),
 ) {
     /**
-     * Checks if a query matches the manga
+     * Checks if a query matches the anime
      *
      * @param constraint the query to check.
-     * @return true if the manga matches the query, false otherwise.
+     * @return true if the anime matches the query, false otherwise.
      */
     fun matches(constraint: String): Boolean {
         val sourceName by lazy { sourceManager.getOrStub(libraryAnime.anime.source).getNameForAnimeInfo() }

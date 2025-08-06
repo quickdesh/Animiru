@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.util.fastAll
+import androidx.compose.ui.util.fastAny
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
@@ -36,23 +37,28 @@ import eu.kanade.presentation.anime.components.LibraryBottomActionMenu
 import eu.kanade.presentation.more.onboarding.GETTING_STARTED_URL
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
+import eu.kanade.tachiyomi.data.connection.discord.DiscordScreen
+import eu.kanade.tachiyomi.data.database.models.Episode
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
-import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.library.model.LibraryGroup
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
@@ -60,6 +66,10 @@ import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.EmptyScreenAction
 import tachiyomi.presentation.core.screens.LoadingScreen
 import tachiyomi.source.local.isLocal
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.injectLazy
+import kotlin.getValue
 
 data object LibraryTab : Tab {
 
@@ -79,6 +89,12 @@ data object LibraryTab : Tab {
         requestOpenSettingsSheet()
     }
 
+    // AM (TAB_HOLD) -->
+    override suspend fun onReselectHold(navigator: Navigator) {
+        requestOpenRandomAnime()
+    }
+    // <-- AM (TAB_HOLD)
+
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
@@ -92,8 +108,25 @@ data object LibraryTab : Tab {
 
         val snackbarHostState = remember { SnackbarHostState() }
 
+        // AM (GROUPING) -->
+        val getCategories = remember { Injekt.get<GetCategories>() }
+        val allCategories by getCategories.subscribe().collectAsState(
+            initial = runBlocking { getCategories.await() },
+        )
+
         val onClickRefresh: (Category?) -> Boolean = { category ->
-            val started = LibraryUpdateJob.startNow(context, category)
+            val started = LibraryUpdateJob.startNow(
+                context = context,
+                category = if (state.groupType == LibraryGroup.BY_DEFAULT) category else null,
+                group = state.groupType,
+                groupExtra = when (state.groupType) {
+                    LibraryGroup.BY_DEFAULT -> null
+                    LibraryGroup.BY_SOURCE, LibraryGroup.BY_TRACK_STATUS -> category?.id?.toString()
+                    LibraryGroup.BY_STATUS -> category?.id?.minus(1)?.toString()
+                    else -> null
+                },
+            )
+
             scope.launch {
                 val msgRes = when {
                     !started -> MR.strings.update_already_running
@@ -104,6 +137,29 @@ data object LibraryTab : Tab {
             }
             started
         }
+        // <-- AM (GROUPING)
+
+        // TODO(mihon): Fix
+        suspend fun openEpisode(episode: Episode) {
+            val playerPreferences: PlayerPreferences by injectLazy()
+            val extPlayer = playerPreferences.alwaysUseExternalPlayer().get()
+            MainActivity.startPlayerActivity(context, episode.animeId, episode.id, extPlayer)
+        }
+
+        // AM (TAB_HOLD) -->
+        fun openRandomAnime() {
+            scope.launch {
+                val randomItem = screenModel.getRandomLibraryItemForCurrentCategory()
+                if (randomItem != null) {
+                    navigator.push(AnimeScreen(randomItem.libraryAnime.anime.id))
+                } else {
+                    snackbarHostState.showSnackbar(
+                        context.stringResource(MR.strings.information_no_entries_found),
+                    )
+                }
+            }
+        }
+        // <-- AM (TAB_HOLD)
 
         Scaffold(
             topBar = { scrollBehavior ->
@@ -123,18 +179,9 @@ data object LibraryTab : Tab {
                     onClickFilter = screenModel::showSettingsDialog,
                     onClickRefresh = { onClickRefresh(state.categories[screenModel.activeCategoryIndex]) },
                     onClickGlobalUpdate = { onClickRefresh(null) },
-                    onClickOpenRandomAnime = {
-                        scope.launch {
-                            val randomItem = screenModel.getRandomLibraryItemForCurrentCategory()
-                            if (randomItem != null) {
-                                navigator.push(AnimeScreen(randomItem.libraryAnime.anime.id))
-                            } else {
-                                snackbarHostState.showSnackbar(
-                                    context.stringResource(MR.strings.information_no_entries_found),
-                                )
-                            }
-                        }
-                    },
+                    // AM (TAB_HOLD) -->
+                    onClickOpenRandomAnime = ::openRandomAnime,
+                    // <-- AM (TAB_HOLD)
                     searchQuery = state.searchQuery,
                     onSearchQueryChange = screenModel::search,
                     scrollBehavior = scrollBehavior.takeIf { !tabVisible }, // For scroll overlay when no tab
@@ -144,11 +191,11 @@ data object LibraryTab : Tab {
                 LibraryBottomActionMenu(
                     visible = state.selectionMode,
                     onChangeCategoryClicked = screenModel::openChangeCategoryDialog,
-                    onMarkAsSeenClicked = { screenModel.markReadSelection(true) },
-                    onMarkAsUnseenClicked = { screenModel.markReadSelection(false) },
+                    onMarkAsSeenClicked = { screenModel.markSeenSelection(true) },
+                    onMarkAsUnseenClicked = { screenModel.markSeenSelection(false) },
                     onDownloadClicked = screenModel::runDownloadActionSelection
                         .takeIf { state.selection.fastAll { !it.anime.isLocal() } },
-                    onDeleteClicked = screenModel::openDeleteMangaDialog,
+                    onDeleteClicked = screenModel::openDeleteAnimeDialog,
                 )
             },
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -182,17 +229,18 @@ data object LibraryTab : Tab {
                         onAnimeClicked = { navigator.push(AnimeScreen(it)) },
                         onContinueWatchingClicked = { it: LibraryAnime ->
                             scope.launchIO {
-                                val chapter = screenModel.getNextUnreadChapter(it.anime)
-                                if (chapter != null) {
+                                val episode = screenModel.getNextUnseenEpisode(it.anime)
+                                if (episode != null) {
+                                    // TOOD(mihon): update
                                     context.startActivity(
-                                        ReaderActivity.newIntent(context, chapter.animeId, chapter.id),
+                                        PlayerActivity.newIntent(context, episode.animeId, episode.id),
                                     )
                                 } else {
                                     snackbarHostState.showSnackbar(context.stringResource(MR.strings.no_next_chapter))
                                 }
                             }
                             Unit
-                        }.takeIf { state.showMangaContinueButton },
+                        }.takeIf { state.showAnimeContinueButton },
                         onToggleSelection = screenModel::toggleSelection,
                         onToggleRangeSelection = {
                             screenModel.toggleRangeSelection(it)
@@ -202,7 +250,7 @@ data object LibraryTab : Tab {
                         onGlobalSearchClicked = {
                             navigator.push(GlobalSearchScreen(screenModel.state.value.searchQuery ?: ""))
                         },
-                        getNumberOfAnimeForCategory = { state.getMangaCountForCategory(it) },
+                        getNumberOfAnimeForCategory = { state.getAnimeCountForCategory(it) },
                         getDisplayMode = { screenModel.getDisplayMode() },
                         getColumnsForOrientation = { screenModel.getColumnsPreferenceForCurrentOrientation(it) },
                     ) { state.getLibraryItemsByPage(it) }
@@ -222,6 +270,9 @@ data object LibraryTab : Tab {
                     onDismissRequest = onDismissRequest,
                     screenModel = settingsScreenModel,
                     category = category,
+                    // AM (GROUPING) -->
+                    hasCategories = allCategories.fastAny { !it.isSystemCategory },
+                    // <-- AM (GROUPING)
                 )
             }
             is LibraryScreenModel.Dialog.ChangeCategory -> {
@@ -234,16 +285,16 @@ data object LibraryTab : Tab {
                     },
                     onConfirm = { include, exclude ->
                         screenModel.clearSelection()
-                        screenModel.setMangaCategories(dialog.anime, include, exclude)
+                        screenModel.setAnimeCategories(dialog.anime, include, exclude)
                     },
                 )
             }
-            is LibraryScreenModel.Dialog.DeleteManga -> {
+            is LibraryScreenModel.Dialog.DeleteAnime -> {
                 DeleteLibraryAnimeDialog(
                     containsLocalAnime = dialog.anime.any(Anime::isLocal),
                     onDismissRequest = onDismissRequest,
-                    onConfirm = { deleteManga, deleteChapter ->
-                        screenModel.removeMangas(dialog.anime, deleteManga, deleteChapter)
+                    onConfirm = { deleteAnime, deleteEpisode ->
+                        screenModel.removeAnimes(dialog.anime, deleteAnime, deleteEpisode)
                         screenModel.clearSelection()
                     },
                 )
@@ -269,8 +320,16 @@ data object LibraryTab : Tab {
         }
 
         LaunchedEffect(Unit) {
+            // AM (DISCORD_RPC) -->
+            with(DiscordRPCService) {
+                discordScope.launchIO { setScreen(context.applicationContext, DiscordScreen.LIBRARY) }
+            }
+            // <-- AM (DISCORD_RPC)
             launch { queryEvent.receiveAsFlow().collect(screenModel::search) }
             launch { requestSettingsSheetEvent.receiveAsFlow().collectLatest { screenModel.showSettingsDialog() } }
+            // AM (TAB_HOLD) -->
+            launch { requestOpenRandomAnimeEvent.receiveAsFlow().collectLatest { openRandomAnime() } }
+            // <-- AM (TAB_HOLD)
         }
     }
 
@@ -281,4 +340,10 @@ data object LibraryTab : Tab {
     // For opening settings sheet in LibraryController
     private val requestSettingsSheetEvent = Channel<Unit>()
     private suspend fun requestOpenSettingsSheet() = requestSettingsSheetEvent.send(Unit)
+
+    // AM (TAB_HOLD) -->
+    // For opening random entry
+    private val requestOpenRandomAnimeEvent = Channel<Unit>()
+    private suspend fun requestOpenRandomAnime() = requestOpenRandomAnimeEvent.send(Unit)
+    // <-- AM (TAB_HOLD)
 }
