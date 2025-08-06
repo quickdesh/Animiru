@@ -37,6 +37,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.WheelNumberPicker
 import tachiyomi.presentation.core.components.WheelTextPicker
@@ -93,7 +94,7 @@ fun TrackStatusSelector(
 }
 
 @Composable
-fun TrackChapterSelector(
+fun TrackEpisodeSelector(
     selection: Int,
     onSelectionChange: (Int) -> Unit,
     range: Iterable<Int>,
@@ -234,12 +235,12 @@ private fun TrackStatusSelectorPreviews() {
                 onSelectionChange = {},
                 selections = persistentMapOf(
                     // Anilist values
-                    1L to MR.strings.reading,
-                    2L to MR.strings.plan_to_read,
+                    1L to AYMR.strings.watching,
+                    2L to AYMR.strings.plan_to_watch,
                     3L to MR.strings.completed,
                     4L to MR.strings.on_hold,
                     5L to MR.strings.dropped,
-                    6L to MR.strings.repeating,
+                    6L to AYMR.strings.repeating_anime,
                 ),
                 onConfirm = {},
                 onDismissRequest = {},
