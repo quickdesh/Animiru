@@ -73,7 +73,7 @@ abstract class SearchScreenModel(
     }
 
     @Composable
-    fun getManga(initialAnime: Anime): androidx.compose.runtime.State<Anime> {
+    fun getAnime(initialAnime: Anime): androidx.compose.runtime.State<Anime> {
         return produceState(initialValue = initialAnime) {
             getAnime.subscribe(initialAnime.url, initialAnime.source)
                 .filterNotNull()

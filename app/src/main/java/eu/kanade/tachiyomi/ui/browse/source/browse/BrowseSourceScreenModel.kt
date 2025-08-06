@@ -103,15 +103,15 @@ class BrowseSourceScreenModel(
      * Flow of Pager flow tied to [State.listing]
      */
     private val hideInLibraryItems = sourcePreferences.hideInLibraryItems().get()
-    val mangaPagerFlowFlow = state.map { it.listing }
+    val animePagerFlowFlow = state.map { it.listing }
         .distinctUntilChanged()
         .map { listing ->
             Pager(PagingConfig(pageSize = 25)) {
                 getRemoteAnime(sourceId, listing.query ?: "", listing.filters)
             }.flow.map { pagingData ->
-                pagingData.map { manga ->
-                    getAnime.subscribe(manga.url, manga.source)
-                        .map { it ?: manga }
+                pagingData.map { anime ->
+                    getAnime.subscribe(anime.url, anime.source)
+                        .map { it ?: anime }
                         .stateIn(ioCoroutineScope)
                 }
                     .filter { !hideInLibraryItems || !it.value.favorite }
@@ -128,6 +128,16 @@ class BrowseSourceScreenModel(
             libraryPreferences.portraitColumns()
         }.get()
         return if (columns == 0) GridCells.Adaptive(128.dp) else GridCells.Fixed(columns)
+    }
+
+    // returns the number from the size slider
+    fun getColumnsPreferenceForCurrentOrientation(orientation: Int): Int {
+        val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
+        return if (isLandscape) {
+            libraryPreferences.landscapeColumns()
+        } else {
+            libraryPreferences.portraitColumns()
+        }.get()
     }
 
     fun resetFilters() {
@@ -213,11 +223,11 @@ class BrowseSourceScreenModel(
     }
 
     /**
-     * Adds or removes a manga from the library.
+     * Adds or removes an anime from the library.
      *
-     * @param anime the manga to update.
+     * @param anime the anime to update.
      */
-    fun changeMangaFavorite(anime: Anime) {
+    fun changeAnimeFavorite(anime: Anime) {
         screenModelScope.launch {
             var new = anime.copy(
                 favorite = !anime.favorite,
@@ -247,23 +257,23 @@ class BrowseSourceScreenModel(
             when {
                 // Default category set
                 defaultCategory != null -> {
-                    moveMangaToCategories(anime, defaultCategory)
+                    moveAnimeToCategories(anime, defaultCategory)
 
-                    changeMangaFavorite(anime)
+                    changeAnimeFavorite(anime)
                 }
 
                 // Automatic 'Default' or no categories
                 defaultCategoryId == 0 || categories.isEmpty() -> {
-                    moveMangaToCategories(anime)
+                    moveAnimeToCategories(anime)
 
-                    changeMangaFavorite(anime)
+                    changeAnimeFavorite(anime)
                 }
 
                 // Choose a category
                 else -> {
                     val preselectedIds = getCategories.await(anime.id).map { it.id }
                     setDialog(
-                        Dialog.ChangeMangaCategory(
+                        Dialog.ChangeAnimeCategory(
                             anime,
                             categories.mapAsCheckboxState { it.id in preselectedIds }.toImmutableList(),
                         ),
@@ -285,15 +295,15 @@ class BrowseSourceScreenModel(
             .orEmpty()
     }
 
-    suspend fun getDuplicateLibraryManga(anime: Anime): List<AnimeWithEpisodeCount> {
+    suspend fun getDuplicateLibraryAnime(anime: Anime): List<AnimeWithEpisodeCount> {
         return getDuplicateLibraryAnime.invoke(anime)
     }
 
-    private fun moveMangaToCategories(anime: Anime, vararg categories: Category) {
-        moveMangaToCategories(anime, categories.filter { it.id != 0L }.map { it.id })
+    private fun moveAnimeToCategories(anime: Anime, vararg categories: Category) {
+        moveAnimeToCategories(anime, categories.filter { it.id != 0L }.map { it.id })
     }
 
-    fun moveMangaToCategories(anime: Anime, categoryIds: List<Long>) {
+    fun moveAnimeToCategories(anime: Anime, categoryIds: List<Long>) {
         screenModelScope.launchIO {
             setAnimeCategories.await(
                 animeId = anime.id,
@@ -335,9 +345,9 @@ class BrowseSourceScreenModel(
 
     sealed interface Dialog {
         data object Filter : Dialog
-        data class RemoveManga(val anime: Anime) : Dialog
-        data class AddDuplicateManga(val anime: Anime, val duplicates: List<AnimeWithEpisodeCount>) : Dialog
-        data class ChangeMangaCategory(
+        data class RemoveAnime(val anime: Anime) : Dialog
+        data class AddDuplicateAnime(val anime: Anime, val duplicates: List<AnimeWithEpisodeCount>) : Dialog
+        data class ChangeAnimeCategory(
             val anime: Anime,
             val initialSelection: ImmutableList<CheckboxState.State<Category>>,
         ) : Dialog

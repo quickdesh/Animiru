@@ -30,11 +30,11 @@ class MigrateSearchScreenModel(
 
     init {
         screenModelScope.launch {
-            val manga = getAnime.await(mangaId)!!
+            val anime = getAnime.await(mangaId)!!
             mutableState.update {
                 it.copy(
-                    from = manga,
-                    searchQuery = manga.title,
+                    from = anime,
+                    searchQuery = anime.title,
                 )
             }
             search()

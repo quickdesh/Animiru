@@ -212,7 +212,7 @@ data class BrowseSourceScreen(
         ) { paddingValues ->
             BrowseSourceContent(
                 source = screenModel.source,
-                animeList = screenModel.mangaPagerFlowFlow.collectAsLazyPagingItems(),
+                animeList = screenModel.animePagerFlowFlow.collectAsLazyPagingItems(),
                 columns = screenModel.getColumnsPreference(LocalConfiguration.current.orientation),
                 displayMode = screenModel.displayMode,
                 snackbarHostState = snackbarHostState,
@@ -223,11 +223,11 @@ data class BrowseSourceScreen(
                 onAnimeClick = { navigator.push((MangaScreen(it.id, true))) },
                 onAnimeLongClick = { manga ->
                     scope.launchIO {
-                        val duplicates = screenModel.getDuplicateLibraryManga(manga)
+                        val duplicates = screenModel.getDuplicateLibraryAnime(manga)
                         when {
-                            manga.favorite -> screenModel.setDialog(BrowseSourceScreenModel.Dialog.RemoveManga(manga))
+                            manga.favorite -> screenModel.setDialog(BrowseSourceScreenModel.Dialog.RemoveAnime(manga))
                             duplicates.isNotEmpty() -> screenModel.setDialog(
-                                BrowseSourceScreenModel.Dialog.AddDuplicateManga(manga, duplicates),
+                                BrowseSourceScreenModel.Dialog.AddDuplicateAnime(manga, duplicates),
                             )
                             else -> screenModel.addFavorite(manga)
                         }
@@ -248,7 +248,7 @@ data class BrowseSourceScreen(
                     onUpdate = screenModel::setFilters,
                 )
             }
-            is BrowseSourceScreenModel.Dialog.AddDuplicateManga -> {
+            is BrowseSourceScreenModel.Dialog.AddDuplicateAnime -> {
                 DuplicateAnimeDialog(
                     duplicates = dialog.duplicates,
                     onDismissRequest = onDismissRequest,
@@ -267,23 +267,23 @@ data class BrowseSourceScreen(
                     onDismissRequest = onDismissRequest,
                 )
             }
-            is BrowseSourceScreenModel.Dialog.RemoveManga -> {
+            is BrowseSourceScreenModel.Dialog.RemoveAnime -> {
                 RemoveAnimeDialog(
                     onDismissRequest = onDismissRequest,
                     onConfirm = {
-                        screenModel.changeMangaFavorite(dialog.anime)
+                        screenModel.changeAnimeFavorite(dialog.anime)
                     },
                     animeToRemove = dialog.anime,
                 )
             }
-            is BrowseSourceScreenModel.Dialog.ChangeMangaCategory -> {
+            is BrowseSourceScreenModel.Dialog.ChangeAnimeCategory -> {
                 ChangeCategoryDialog(
                     initialSelection = dialog.initialSelection,
                     onDismissRequest = onDismissRequest,
                     onEditCategories = { navigator.push(CategoryScreen()) },
                     onConfirm = { include, _ ->
-                        screenModel.changeMangaFavorite(dialog.anime)
-                        screenModel.moveMangaToCategories(dialog.anime, include)
+                        screenModel.changeAnimeFavorite(dialog.anime)
+                        screenModel.moveAnimeToCategories(dialog.anime, include)
                     },
                 )
             }

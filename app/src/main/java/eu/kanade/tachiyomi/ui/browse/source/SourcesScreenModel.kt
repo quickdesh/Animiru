@@ -6,7 +6,10 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.domain.source.interactor.GetEnabledSources
 import eu.kanade.domain.source.interactor.ToggleSource
 import eu.kanade.domain.source.interactor.ToggleSourcePin
+import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.browse.SourceUiModel
+import eu.kanade.tachiyomi.extension.ExtensionManager
+import eu.kanade.tachiyomi.extension.model.Extension
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -28,6 +31,10 @@ class SourcesScreenModel(
     private val getEnabledSources: GetEnabledSources = Injekt.get(),
     private val toggleSource: ToggleSource = Injekt.get(),
     private val toggleSourcePin: ToggleSourcePin = Injekt.get(),
+    // AM (BROWSE) -->
+    private val extensionManager: ExtensionManager = Injekt.get(),
+    internal val sourcePreferences: SourcePreferences = Injekt.get(),
+    // <-- AM (BROWSE)
 ) : StateScreenModel<SourcesScreenModel.State>(State()) {
 
     private val _events = Channel<Event>(Int.MAX_VALUE)
@@ -97,6 +104,14 @@ class SourcesScreenModel(
     fun closeDialog() {
         mutableState.update { it.copy(dialog = null) }
     }
+
+    // AM (BROWSE) -->
+    fun uninstallExtension(extension: Extension.Installed) {
+        screenModelScope.launchIO {
+            extensionManager.uninstallExtension(extension)
+        }
+    }
+    // <-- AM (BROWSE)
 
     sealed interface Event {
         data object FailedFetchingSources : Event

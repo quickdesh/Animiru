@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.ui.browse.migration.manga
+package eu.kanade.tachiyomi.ui.browse.migration.anime
 
 import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.StateScreenModel
@@ -23,14 +23,14 @@ import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class MigrateMangaScreenModel(
+class MigrateAnimeScreenModel(
     private val sourceId: Long,
     private val sourceManager: SourceManager = Injekt.get(),
     private val getFavorites: GetFavorites = Injekt.get(),
-) : StateScreenModel<MigrateMangaScreenModel.State>(State()) {
+) : StateScreenModel<MigrateAnimeScreenModel.State>(State()) {
 
-    private val _events: Channel<MigrationMangaEvent> = Channel()
-    val events: Flow<MigrationMangaEvent> = _events.receiveAsFlow()
+    private val _events: Channel<MigrationAnimeEvent> = Channel()
+    val events: Flow<MigrationAnimeEvent> = _events.receiveAsFlow()
 
     init {
         screenModelScope.launch {
@@ -41,13 +41,13 @@ class MigrateMangaScreenModel(
             getFavorites.subscribe(sourceId)
                 .catch {
                     logcat(LogPriority.ERROR, it)
-                    _events.send(MigrationMangaEvent.FailedFetchingFavorites)
+                    _events.send(MigrationAnimeEvent.FailedFetchingFavorites)
                     mutableState.update { state ->
                         state.copy(titleList = persistentListOf())
                     }
                 }
-                .map { manga ->
-                    manga
+                .map { anime ->
+                    anime
                         .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.title })
                         .toImmutableList()
                 }
@@ -74,6 +74,6 @@ class MigrateMangaScreenModel(
     }
 }
 
-sealed interface MigrationMangaEvent {
-    data object FailedFetchingFavorites : MigrationMangaEvent
+sealed interface MigrationAnimeEvent {
+    data object FailedFetchingFavorites : MigrationAnimeEvent
 }

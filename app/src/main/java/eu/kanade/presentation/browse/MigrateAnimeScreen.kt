@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.anime.components.BaseAnimeListItem
-import eu.kanade.tachiyomi.ui.browse.migration.manga.MigrateMangaScreenModel
+import eu.kanade.tachiyomi.ui.browse.migration.anime.MigrateAnimeScreenModel
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
@@ -18,7 +18,7 @@ import tachiyomi.presentation.core.screens.EmptyScreen
 fun MigrateAnimeScreen(
     navigateUp: () -> Unit,
     title: String?,
-    state: MigrateMangaScreenModel.State,
+    state: MigrateAnimeScreenModel.State,
     onClickItem: (Anime) -> Unit,
     onClickCover: (Anime) -> Unit,
 ) {
@@ -51,7 +51,7 @@ fun MigrateAnimeScreen(
 @Composable
 private fun MigrateAnimeContent(
     contentPadding: PaddingValues,
-    state: MigrateMangaScreenModel.State,
+    state: MigrateAnimeScreenModel.State,
     onClickItem: (Anime) -> Unit,
     onClickCover: (Anime) -> Unit,
 ) {

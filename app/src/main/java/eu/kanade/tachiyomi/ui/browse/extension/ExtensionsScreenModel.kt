@@ -34,6 +34,10 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import kotlin.time.Duration.Companion.seconds
 
+// AM (BROWSE) -->
+var currentDownloads = MutableStateFlow<Map<String, InstallStep>>(hashMapOf())
+// <-- AM (BROWSE)
+
 class ExtensionsScreenModel(
     preferences: SourcePreferences = Injekt.get(),
     basePreferences: BasePreferences = Injekt.get(),
@@ -88,7 +92,7 @@ class ExtensionsScreenModel(
                 state.map { it.searchQuery }.distinctUntilChanged().debounce(SEARCH_DEBOUNCE_MILLIS),
                 currentDownloads,
                 getExtensions.subscribe(),
-            ) { query, downloads, (_updates, _installed, _available, _untrusted) ->
+            ) { query, downloads, (_updates, _, _available, _untrusted) ->
                 val searchQuery = query ?: ""
 
                 val itemsGroups: ItemGroups = mutableMapOf()
@@ -98,11 +102,12 @@ class ExtensionsScreenModel(
                     itemsGroups[ExtensionUiModel.Header.Resource(MR.strings.ext_updates_pending)] = updates
                 }
 
-                val installed = _installed.filter(queryFilter(searchQuery)).map(extensionMapper(downloads))
                 val untrusted = _untrusted.filter(queryFilter(searchQuery)).map(extensionMapper(downloads))
-                if (installed.isNotEmpty() || untrusted.isNotEmpty()) {
-                    itemsGroups[ExtensionUiModel.Header.Resource(MR.strings.ext_installed)] = installed + untrusted
+                // AM (BROWSE) -->
+                if (untrusted.isNotEmpty()) {
+                    itemsGroups[ExtensionUiModel.Header.Resource(MR.strings.ext_untrusted)] = untrusted
                 }
+                // <-- AM (BROWSE)
 
                 val languagesWithExtensions = _available
                     .filter(queryFilter(searchQuery))

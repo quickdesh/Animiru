@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.ui.browse.migration.manga
+package eu.kanade.tachiyomi.ui.browse.migration.anime
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,7 +17,7 @@ import mihon.feature.migration.config.MigrationConfigScreen
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.screens.LoadingScreen
 
-data class MigrateMangaScreen(
+data class MigrateAnimeScreen(
     private val sourceId: Long,
 ) : Screen() {
 
@@ -25,7 +25,7 @@ data class MigrateMangaScreen(
     override fun Content() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { MigrateMangaScreenModel(sourceId) }
+        val screenModel = rememberScreenModel { MigrateAnimeScreenModel(sourceId) }
 
         val state by screenModel.state.collectAsState()
 
@@ -45,7 +45,7 @@ data class MigrateMangaScreen(
         LaunchedEffect(Unit) {
             screenModel.events.collectLatest { event ->
                 when (event) {
-                    MigrationMangaEvent.FailedFetchingFavorites -> {
+                    MigrationAnimeEvent.FailedFetchingFavorites -> {
                         context.toast(MR.strings.internal_error)
                     }
                 }

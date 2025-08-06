@@ -97,7 +97,7 @@ data class MigrateSourceSearchScreen(
             }
             BrowseSourceContent(
                 source = screenModel.source,
-                animeList = screenModel.mangaPagerFlowFlow.collectAsLazyPagingItems(),
+                animeList = screenModel.animePagerFlowFlow.collectAsLazyPagingItems(),
                 columns = screenModel.getColumnsPreference(LocalConfiguration.current.orientation),
                 displayMode = screenModel.displayMode,
                 snackbarHostState = snackbarHostState,
@@ -134,7 +134,7 @@ data class MigrateSourceSearchScreen(
                 MigrateAnimeDialog(
                     current = currentAnime,
                     target = dialog.target,
-                    // Initiated from the context of [currentManga] so we show [dialog.target].
+                    // Initiated from the context of [currentAnime] so we show [dialog.target].
                     onClickTitle = { navigator.push(MangaScreen(dialog.target.id)) },
                     onDismissRequest = onDismissRequest,
                     onComplete = {

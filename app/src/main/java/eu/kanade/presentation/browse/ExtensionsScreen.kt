@@ -79,7 +79,6 @@ import tachiyomi.presentation.core.util.secondaryItemAlpha
 @Composable
 fun ExtensionScreen(
     state: ExtensionsScreenModel.State,
-    contentPadding: PaddingValues,
     searchQuery: String?,
     onLongClickItem: (Extension) -> Unit,
     onClickItemCancel: (Extension) -> Unit,

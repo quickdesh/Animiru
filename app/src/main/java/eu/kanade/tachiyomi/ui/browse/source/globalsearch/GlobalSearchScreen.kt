@@ -49,9 +49,9 @@ class GlobalSearchScreen(
                 when (val result = state.items.values.singleOrNull()) {
                     SearchItemResult.Loading -> return@LaunchedEffect
                     is SearchItemResult.Success -> {
-                        val manga = result.result.singleOrNull()
-                        if (manga != null) {
-                            navigator.replace(MangaScreen(manga.id, true))
+                        val anime = result.result.singleOrNull()
+                        if (anime != null) {
+                            navigator.replace(MangaScreen(anime.id, true))
                         } else {
                             // Backoff to result screen
                             showSingleLoadingScreen = false
@@ -66,7 +66,7 @@ class GlobalSearchScreen(
                 navigateUp = navigator::pop,
                 onChangeSearchQuery = screenModel::updateSearchQuery,
                 onSearch = { screenModel.search() },
-                getAnime = { screenModel.getManga(it) },
+                getAnime = { screenModel.getAnime(it) },
                 onChangeSearchFilter = screenModel::setSourceFilter,
                 onToggleResults = screenModel::toggleFilterResults,
                 onClickSource = {
