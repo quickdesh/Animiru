@@ -7,6 +7,9 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.databinding.DownloadItemBinding
 import eu.kanade.tachiyomi.util.view.popupMenu
+import tachiyomi.core.common.i18n.stringResource
+import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 
 /**
  * Class used to hold the data of a download.
@@ -34,22 +37,22 @@ class DownloadHolder(private val view: View, val adapter: DownloadAdapter) :
      */
     fun bind(download: Download) {
         this.download = download
-        // Update the chapter name.
-        binding.chapterTitle.text = download.episode.name
+        // Update the episode name.
+        binding.episodeTitle.text = download.episode.name
 
-        // Update the manga title
-        binding.mangaFullTitle.text = download.anime.title
+        // Update the anime title
+        binding.animeFullTitle.text = download.anime.title
 
-        // Update the progress bar and the number of downloaded pages
-        val pages = download.pages
-        if (pages == null) {
+        // Update the progress bar and the download progress
+        val video = download.video
+        if (video == null) {
             binding.downloadProgress.progress = 0
             binding.downloadProgress.max = 1
             binding.downloadProgressText.text = ""
         } else {
-            binding.downloadProgress.max = pages.size * 100
+            binding.downloadProgress.max = 100
             notifyProgress()
-            notifyDownloadedPages()
+            notifyDownloadProgress()
         }
     }
 
@@ -57,19 +60,26 @@ class DownloadHolder(private val view: View, val adapter: DownloadAdapter) :
      * Updates the progress bar of the download.
      */
     fun notifyProgress() {
-        val pages = download.pages ?: return
         if (binding.downloadProgress.max == 1) {
-            binding.downloadProgress.max = pages.size * 100
+            binding.downloadProgress.max = 100
         }
-        binding.downloadProgress.setProgressCompat(download.totalProgress, true)
+        if (download.progress == 0) {
+            binding.downloadProgress.isIndeterminate = true
+        } else {
+            binding.downloadProgress.isIndeterminate = false
+            binding.downloadProgress.setProgressCompat(download.progress, true)
+        }
     }
 
     /**
-     * Updates the text field of the number of downloaded pages.
+     * Updates the text field of download progress.
      */
-    fun notifyDownloadedPages() {
-        val pages = download.pages ?: return
-        binding.downloadProgressText.text = "${download.downloadedImages}/${pages.size}"
+    fun notifyDownloadProgress() {
+        binding.downloadProgressText.text = if (download.progress == 0) {
+            view.context.stringResource(MR.strings.update_check_notification_download_in_progress)
+        } else {
+            view.context.stringResource(AYMR.strings.episode_download_progress, download.progress)
+        }
     }
 
     override fun onItemReleased(position: Int) {

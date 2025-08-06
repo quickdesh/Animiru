@@ -30,7 +30,7 @@
             tools:ignore="ContentDescription" />
 
         <TextView
-            android:id="@+id/manga_full_title"
+            android:id="@+id/anime_full_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -41,10 +41,10 @@
             app:layout_constraintEnd_toStartOf="@+id/download_progress_text"
             app:layout_constraintStart_toEndOf="@+id/reorder"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="Manga title" />
+            tools:text="Anime title" />
 
         <TextView
-            android:id="@+id/chapter_title"
+            android:id="@+id/episode_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
@@ -54,9 +54,9 @@
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textSize="12sp"
             app:layout_constraintEnd_toStartOf="@+id/menu"
-            app:layout_constraintStart_toStartOf="@+id/manga_full_title"
-            app:layout_constraintTop_toBottomOf="@+id/manga_full_title"
-            tools:text="Chapter Title" />
+            app:layout_constraintStart_toStartOf="@+id/anime_full_title"
+            app:layout_constraintTop_toBottomOf="@+id/anime_full_title"
+            tools:text="Episode Title" />
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/download_progress"
@@ -67,20 +67,20 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/menu"
             app:layout_constraintStart_toEndOf="@+id/reorder"
-            app:layout_constraintTop_toBottomOf="@+id/chapter_title" />
+            app:layout_constraintTop_toBottomOf="@+id/episode_title" />
 
         <TextView
             android:id="@+id/download_progress_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/manga_full_title"
+            android:layout_toEndOf="@id/anime_full_title"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?android:textColorSecondary"
             android:textSize="12sp"
-            app:layout_constraintBottom_toBottomOf="@+id/manga_full_title"
+            app:layout_constraintBottom_toBottomOf="@+id/anime_full_title"
             app:layout_constraintEnd_toStartOf="@+id/menu"
-            app:layout_constraintTop_toTopOf="@+id/manga_full_title"
+            app:layout_constraintTop_toTopOf="@+id/anime_full_title"
             tools:text="0/10" />
 
         <ImageButton

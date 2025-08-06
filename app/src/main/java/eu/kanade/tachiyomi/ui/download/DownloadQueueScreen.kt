@@ -55,6 +55,8 @@ import eu.kanade.tachiyomi.databinding.DownloadListBinding
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.Pill
 import tachiyomi.presentation.core.components.material.ExtendedFloatingActionButton
 import tachiyomi.presentation.core.components.material.Scaffold
@@ -210,9 +212,9 @@ object DownloadQueueScreen : Screen() {
                     ExtendedFloatingActionButton(
                         text = {
                             val id = if (isRunning) {
-                                MR.strings.action_pause
+                                AYMR.strings.action_stop
                             } else {
-                                MR.strings.action_resume
+                                AYMR.strings.action_continue
                             }
                             Text(text = stringResource(id))
                         },
@@ -269,7 +271,7 @@ object DownloadQueueScreen : Screen() {
                         }
                         scope.launchUI {
                             screenModel.getDownloadProgressFlow()
-                                .collect(screenModel::onUpdateDownloadedPages)
+                                .collect(screenModel::onUpdateDownloadProgress)
                         }
 
                         screenModel.controllerBinding.root

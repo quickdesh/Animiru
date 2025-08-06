@@ -7,16 +7,10 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.databinding.DownloadListBinding
-import eu.kanade.tachiyomi.animesource.model.Page
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -188,46 +182,20 @@ class DownloadQueueScreenModel(
     fun onStatusChange(download: Download) {
         when (download.status) {
             Download.State.DOWNLOADING -> {
-                launchProgressJob(download)
+                onUpdateProgress(download)
                 // Initial update of the downloaded pages
-                onUpdateDownloadedPages(download)
+                onUpdateDownloadProgress(download)
             }
             Download.State.DOWNLOADED -> {
                 cancelProgressJob(download)
                 onUpdateProgress(download)
-                onUpdateDownloadedPages(download)
+                onUpdateDownloadProgress(download)
             }
             Download.State.ERROR -> cancelProgressJob(download)
             else -> {
                 /* unused */
             }
         }
-    }
-
-    /**
-     * Observe the progress of a download and notify the view.
-     *
-     * @param download the download to observe its progress.
-     */
-    private fun launchProgressJob(download: Download) {
-        val job = screenModelScope.launch {
-            while (download.pages == null) {
-                delay(50)
-            }
-
-            val progressFlows = download.pages!!.map(Page::progressFlow)
-            combine(progressFlows, Array<Int>::sum)
-                .distinctUntilChanged()
-                .debounce(50)
-                .collectLatest {
-                    onUpdateProgress(download)
-                }
-        }
-
-        // Avoid leaking jobs
-        progressJobs.remove(download)?.cancel()
-
-        progressJobs[download] = job
     }
 
     /**
@@ -249,12 +217,13 @@ class DownloadQueueScreenModel(
     }
 
     /**
-     * Called when a page of a download is downloaded.
+     * Called when a download is updated.
      *
-     * @param download the download whose page has been downloaded.
+     * @param download the updated download.
      */
-    fun onUpdateDownloadedPages(download: Download) {
-        getHolder(download)?.notifyDownloadedPages()
+    fun onUpdateDownloadProgress(download: Download) {
+        getHolder(download)?.notifyProgress()
+        getHolder(download)?.notifyDownloadProgress()
     }
 
     /**
