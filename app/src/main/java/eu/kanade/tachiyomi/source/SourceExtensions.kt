@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.source
 
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.animesource.AnimeSource
+import eu.kanade.tachiyomi.extension.ExtensionManager
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
@@ -23,3 +24,12 @@ fun AnimeSource.getNameForAnimeInfo(): String {
 }
 
 fun AnimeSource.isLocalOrStub(): Boolean = isLocal() || this is StubSource
+
+// AM (DISCORD_RPC) -->
+fun AnimeSource?.isNsfw(): Boolean {
+    if (this == null || this.isLocalOrStub()) return false
+    val sourceUsed = Injekt.get<ExtensionManager>().installedExtensionsFlow.value
+        .find { ext -> ext.sources.any { it.id == this.id } }!!
+    return sourceUsed.isNsfw
+}
+// <-- AM (DISCORD_RPC)

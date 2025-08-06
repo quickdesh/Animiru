@@ -211,6 +211,7 @@ dependencies {
     implementation(androidx.appcompat)
     implementation(androidx.biometricktx)
     implementation(androidx.constraintlayout)
+    implementation(aniyomilibs.compose.constraintlayout)
     implementation(androidx.corektx)
     implementation(androidx.splashscreen)
     implementation(androidx.recyclerview)
@@ -218,6 +219,7 @@ dependencies {
     // implementation(androidx.viewpager)
     // <-- AM (REMOVE_LIBRARIES)
     implementation(androidx.profileinstaller)
+    implementation(aniyomilibs.mediasession)
 
     implementation(androidx.bundles.lifecycle)
 

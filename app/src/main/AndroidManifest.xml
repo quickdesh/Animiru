@@ -137,16 +137,20 @@
         </activity>
 
         <activity
-            android:name=".ui.reader.ReaderActivity"
+            android:name=".ui.player.PlayerActivity"
+            android:autoRemoveFromRecents="true"
+            android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize|keyboardHidden|keyboard|uiMode"
             android:exported="false"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true"
+            android:theme="@style/Theme.Tachiyomi">
             <intent-filter>
                 <action android:name="com.samsung.android.support.REMOTE_ACTION" />
             </intent-filter>
 
-            <meta-data
-                android:name="com.samsung.android.support.REMOTE_ACTION"
-                android:resource="@xml/s_pen_actions" />
+            <meta-data android:name="com.samsung.android.support.REMOTE_ACTION"
+                android:resource="@xml/s_pen_actions"/>
         </activity>
 
         <activity

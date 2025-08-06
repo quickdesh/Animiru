@@ -177,7 +177,7 @@ sealed class Image(
 
 sealed interface Location {
     @ConsistentCopyVisibility
-    data class Pictures private constructor(val relativePath: String) : Location {
+    data class Pictures(val relativePath: String) : Location {
         companion object {
             fun create(relativePath: String = ""): Pictures {
                 return Pictures(relativePath)
