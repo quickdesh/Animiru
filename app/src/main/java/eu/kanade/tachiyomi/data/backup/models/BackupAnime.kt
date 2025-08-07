@@ -39,7 +39,6 @@ data class BackupAnime(
     @ProtoNumber(106) var lastModifiedAt: Long = 0,
     @ProtoNumber(107) var favoriteModifiedAt: Long? = null,
     // Mihon values start here
-    @ProtoNumber(108) var excludedScanlators: List<String> = emptyList(),
     @ProtoNumber(109) var version: Long = 0,
     @ProtoNumber(110) var notes: String = "",
 
@@ -52,6 +51,8 @@ data class BackupAnime(
     @ProtoNumber(204) var customDescription: String? = null,
     @ProtoNumber(205) var customGenre: List<String>? = null,
     // <-- AM (CUSTOM_INFORMATION)
+    // Since ProtoNumber 108 was previously used in the past, we cannot reuse it. May cause issues with aniyomi
+    @ProtoNumber(206) var excludedScanlators: List<String> = emptyList(),
 ) {
     fun getAnimeImpl(): Anime {
         return Anime.create().copy(
