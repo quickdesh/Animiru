@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
@@ -15,10 +16,10 @@ import eu.kanade.presentation.history.HistoryScreen
 import eu.kanade.presentation.history.components.HistoryDeleteAllDialog
 import eu.kanade.presentation.history.components.HistoryDeleteDialog
 import eu.kanade.presentation.anime.DuplicateAnimeDialog
-import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
+import eu.kanade.tachiyomi.ui.player.PlayerActivity
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import mihon.feature.migration.dialog.MigrateAnimeDialog
@@ -29,7 +30,7 @@ import tachiyomi.i18n.MR
 val resumeLastEpisodeSeenEvent = Channel<Unit>()
 
 @Composable
-fun Screen.AnimeHistoryHalfTab(
+fun Screen.HistoryHalfTab(
     screenModel: HistoryScreenModel,
     snackbarHostState: SnackbarHostState,
     contentPadding: PaddingValues,

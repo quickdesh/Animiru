@@ -1,6 +1,7 @@
 package eu.kanade.presentation.updates
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -25,6 +26,7 @@ import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.anime.components.EpisodeDownloadAction
 import eu.kanade.presentation.anime.components.AnimeBottomActionMenu
 import eu.kanade.tachiyomi.data.download.model.Download
+import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import eu.kanade.tachiyomi.ui.updates.UpdatesItem
 import eu.kanade.tachiyomi.ui.updates.UpdatesScreenModel
 import kotlinx.collections.immutable.persistentListOf
@@ -37,96 +39,60 @@ import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.LoadingScreen
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.time.LocalDate
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun UpdateScreen(
     state: UpdatesScreenModel.State,
-    snackbarHostState: SnackbarHostState,
     lastUpdated: Long,
     onClickCover: (UpdatesItem) -> Unit,
-    onSelectAll: (Boolean) -> Unit,
-    onInvertSelection: () -> Unit,
-    onCalendarClicked: () -> Unit,
     onUpdateLibrary: () -> Boolean,
     onDownloadEpisode: (List<UpdatesItem>, EpisodeDownloadAction) -> Unit,
-    onMultiBookmarkClicked: (List<UpdatesItem>, bookmark: Boolean) -> Unit,
-    // AM (FILLERMARK) -->
-    onMultiFillermarkClicked: (List<UpdatesItem>, fillermarked: Boolean) -> Unit,
-    // <-- AM (FILLERMARK)
-    onMultiMarkAsSeenClicked: (List<UpdatesItem>, seen: Boolean) -> Unit,
-    onMultiDeleteClicked: (List<UpdatesItem>) -> Unit,
     onUpdateSelected: (UpdatesItem, Boolean, Boolean, Boolean) -> Unit,
     onOpenEpisode: (UpdatesItem, altPlayer: Boolean) -> Unit,
+    contentPadding: PaddingValues,
 ) {
-    BackHandler(enabled = state.selectionMode) {
-        onSelectAll(false)
-    }
+    when {
+        state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
+        state.items.isEmpty() -> EmptyScreen(
+            stringRes = MR.strings.information_no_recent,
+            modifier = Modifier.padding(contentPadding),
+        )
+        else -> {
+            val scope = rememberCoroutineScope()
+            var isRefreshing by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = { scrollBehavior ->
-            UpdatesAppBar(
-                onCalendarClicked = { onCalendarClicked() },
-                onUpdateLibrary = { onUpdateLibrary() },
-                actionModeCounter = state.selected.size,
-                onSelectAll = { onSelectAll(true) },
-                onInvertSelection = { onInvertSelection() },
-                onCancelActionMode = { onSelectAll(false) },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        bottomBar = {
-            UpdatesBottomBar(
-                selected = state.selected,
-                onDownloadEpisode = onDownloadEpisode,
-                onMultiBookmarkClicked = onMultiBookmarkClicked,
-                onMultiFillermarkClicked = onMultiFillermarkClicked,
-                onMultiMarkAsSeenClicked = onMultiMarkAsSeenClicked,
-                onMultiDeleteClicked = onMultiDeleteClicked,
-            )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-    ) { contentPadding ->
-        when {
-            state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
-            state.items.isEmpty() -> EmptyScreen(
-                stringRes = MR.strings.information_no_recent,
-                modifier = Modifier.padding(contentPadding),
-            )
-            else -> {
-                val scope = rememberCoroutineScope()
-                var isRefreshing by remember { mutableStateOf(false) }
-
-                PullRefresh(
-                    refreshing = isRefreshing,
-                    onRefresh = {
-                        val started = onUpdateLibrary()
-                        if (!started) return@PullRefresh
-                        scope.launch {
-                            // Fake refresh status but hide it after a second as it's a long running task
-                            isRefreshing = true
-                            delay(1.seconds)
-                            isRefreshing = false
-                        }
-                    },
-                    enabled = !state.selectionMode,
-                    indicatorPadding = contentPadding,
-                ) {
-                    FastScrollLazyColumn(
-                        contentPadding = contentPadding,
-                    ) {
-                        updatesLastUpdatedItem(lastUpdated)
-
-                        updatesUiItems(
-                            uiModels = state.getUiModel(),
-                            selectionMode = state.selectionMode,
-                            onUpdateSelected = onUpdateSelected,
-                            onClickCover = onClickCover,
-                            onClickUpdate = onOpenEpisode,
-                            onDownloadEpisode = onDownloadEpisode,
-                        )
+            PullRefresh(
+                refreshing = isRefreshing,
+                onRefresh = {
+                    val started = onUpdateLibrary()
+                    if (!started) return@PullRefresh
+                    scope.launch {
+                        // Fake refresh status but hide it after a second as it's a long running task
+                        isRefreshing = true
+                        delay(1.seconds)
+                        isRefreshing = false
                     }
+                },
+                enabled = !state.selectionMode,
+                indicatorPadding = contentPadding,
+            ) {
+                FastScrollLazyColumn(
+                    contentPadding = contentPadding,
+                ) {
+                    updatesLastUpdatedItem(lastUpdated)
+
+                    updatesUiItems(
+                        uiModels = state.getUiModel(),
+                        selectionMode = state.selectionMode,
+                        onUpdateSelected = onUpdateSelected,
+                        onClickCover = onClickCover,
+                        onClickUpdate = onOpenEpisode,
+                        onDownloadEpisode = onDownloadEpisode,
+                    )
                 }
             }
         }
@@ -134,7 +100,7 @@ fun UpdateScreen(
 }
 
 @Composable
-private fun UpdatesAppBar(
+fun UpdatesTopBar(
     onCalendarClicked: () -> Unit,
     onUpdateLibrary: () -> Unit,
     // For action mode
@@ -187,7 +153,7 @@ private fun UpdatesAppBar(
 }
 
 @Composable
-private fun UpdatesBottomBar(
+fun UpdatesBottomBar(
     selected: List<UpdatesItem>,
     onDownloadEpisode: (List<UpdatesItem>, EpisodeDownloadAction) -> Unit,
     onMultiBookmarkClicked: (List<UpdatesItem>, bookmark: Boolean) -> Unit,
@@ -196,7 +162,9 @@ private fun UpdatesBottomBar(
     // <-- AM (FILLERMARK)
     onMultiMarkAsSeenClicked: (List<UpdatesItem>, seen: Boolean) -> Unit,
     onMultiDeleteClicked: (List<UpdatesItem>) -> Unit,
+    onOpenEpisode: (UpdatesItem, altPlayer: Boolean) -> Unit,
 ) {
+    val playerPreferences: PlayerPreferences = Injekt.get()
     AnimeBottomActionMenu(
         visible = selected.isNotEmpty(),
         modifier = Modifier.fillMaxWidth(),
@@ -228,6 +196,12 @@ private fun UpdatesBottomBar(
         onDeleteClicked = {
             onMultiDeleteClicked(selected)
         }.takeIf { selected.fastAny { it.downloadStateProvider() == Download.State.DOWNLOADED } },
+        onExternalClicked = {
+            onOpenEpisode(selected[0], true)
+        }.takeIf { !playerPreferences.alwaysUseExternalPlayer().get() && selected.size == 1 },
+        onInternalClicked = {
+            onOpenEpisode(selected[0], true)
+        }.takeIf { playerPreferences.alwaysUseExternalPlayer().get() && selected.size == 1 },
     )
 }
 
