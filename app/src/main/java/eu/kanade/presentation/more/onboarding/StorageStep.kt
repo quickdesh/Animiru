@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.collectLatest
 import tachiyomi.core.common.storage.AndroidStorageFolderProvider
 import tachiyomi.domain.storage.service.StoragePreferences
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.Button
 import tachiyomi.presentation.core.components.material.padding
@@ -56,7 +57,7 @@ internal class StorageStep : OnboardingStep {
         ) {
             Text(
                 stringResource(
-                    MR.strings.onboarding_storage_info,
+                    AMMR.strings.onboarding_storage_info,
                     stringResource(MR.strings.app_name),
                     SettingsDataScreen.storageLocationText(storagePref),
                 ),

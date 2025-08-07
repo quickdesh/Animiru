@@ -23,6 +23,7 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.more.DownloadQueueState
 import tachiyomi.core.common.Constants
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
@@ -65,7 +66,7 @@ fun MoreScreen(
             item {
                 SwitchPreferenceWidget(
                     title = stringResource(MR.strings.pref_incognito_mode),
-                    subtitle = stringResource(MR.strings.pref_incognito_mode_summary),
+                    subtitle = stringResource(AMMR.strings.pref_incognito_mode_summary),
                     icon = ImageVector.vectorResource(R.drawable.ic_glasses_24dp),
                     checked = incognitoMode,
                     onCheckedChanged = onIncognitoModeChange,

@@ -109,7 +109,7 @@ object SettingsDataScreen : SearchableSettings {
 
         return persistentListOf(
             getStorageLocationPref(storagePreferences = storagePreferences),
-            Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.pref_storage_location_info)),
+            Preference.PreferenceItem.InfoPreference(stringResource(AMMR.strings.pref_storage_location_info)),
 
             getBackupAndRestoreGroup(backupPreferences = backupPreferences),
             // AM (FILE_SIZE) -->

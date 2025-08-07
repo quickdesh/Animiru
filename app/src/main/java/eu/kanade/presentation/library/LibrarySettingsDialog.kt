@@ -118,7 +118,7 @@ private fun ColumnScope.FilterPage(
     )
     val filterUnseen by screenModel.libraryPreferences.filterUnseen().collectAsState()
     TriStateItem(
-        label = stringResource(MR.strings.action_filter_unread),
+        label = stringResource(AYMR.strings.action_filter_unseen),
         state = filterUnseen,
         onClick = { screenModel.toggleFilter(LibraryPreferences::filterUnseen) },
     )
@@ -316,11 +316,11 @@ private fun ColumnScope.DisplayPage(
 
     HeadingItem(MR.strings.overlay_header)
     CheckboxItem(
-        label = stringResource(MR.strings.action_display_download_badge),
+        label = stringResource(AYMR.strings.action_display_download_badge_anime),
         pref = screenModel.libraryPreferences.downloadBadge(),
     )
     CheckboxItem(
-        label = stringResource(MR.strings.action_display_unread_badge),
+        label = stringResource(AYMR.strings.action_display_unseen_badge),
         pref = screenModel.libraryPreferences.unseenBadge(),
     )
     CheckboxItem(
@@ -332,7 +332,7 @@ private fun ColumnScope.DisplayPage(
         pref = screenModel.libraryPreferences.languageBadge(),
     )
     CheckboxItem(
-        label = stringResource(MR.strings.action_display_show_continue_reading_button),
+        label = stringResource(AMMR.strings.action_display_show_continue_watching_button),
         pref = screenModel.libraryPreferences.showContinueViewingButton(),
     )
 

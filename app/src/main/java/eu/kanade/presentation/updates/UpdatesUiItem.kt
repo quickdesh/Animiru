@@ -204,7 +204,7 @@ private fun UpdatesUiItem(
                 if (!update.seen) {
                     Icon(
                         imageVector = Icons.Filled.Circle,
-                        contentDescription = stringResource(MR.strings.unread),
+                        contentDescription = stringResource(AYMR.strings.unseen),
                         modifier = Modifier
                             .height(8.dp)
                             .padding(end = 4.dp),

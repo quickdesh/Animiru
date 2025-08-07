@@ -59,6 +59,7 @@ import eu.kanade.tachiyomi.util.system.copyToClipboard
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
@@ -352,7 +353,7 @@ private fun DetailsHeader(
         TextPreferenceWidget(
             modifier = Modifier.padding(horizontal = MaterialTheme.padding.small),
             title = stringResource(MR.strings.pref_incognito_mode),
-            subtitle = stringResource(MR.strings.pref_incognito_mode_extension_summary),
+            subtitle = stringResource(AMMR.strings.pref_incognito_mode_extension_summary),
             icon = ImageVector.vectorResource(R.drawable.ic_glasses_24dp),
             widget = {
                 Row(

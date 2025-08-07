@@ -15,8 +15,41 @@
     <string name="download_episode_ahead_info">Only works if the current episode and the next one are already downloaded.</string>
     <string name="pref_storage_location_episode_info">Used for automatic backups, episode downloads, and local source.</string>
 
-    <!-- Changed from mihon -->
+    <!-- Changed from aniyomi/mihon -->
     <string name="non_library_settings">All seen entries</string>
+    <string name="action_mark_as_seen">Mark as seen</string>
+    <string name="action_mark_as_unseen">Mark as unseen</string>
+    <string name="action_display_show_continue_watching_button">Continue watching button</string>
+    <string name="onboarding_storage_info">Select a folder where %1$s will store episode downloads, backups, and more.\n\nA dedicated folder is recommended.\n\nSelected folder: %2$s</string>
+    <string name="pref_library_summary">Categories, global update, episode swipe</string>
+    <string name="pref_update_only_completely_seen">Skip entries with unseen episode(s)</string>
+    <string name="pref_library_update_show_tab_badge">Show unseen count on Updates icon</string>
+    <string name="pref_hide_missing_episode_indicators">Hide missing episode indicators</string>
+    <string name="pref_category_delete_episodes">Delete episodes</string>
+    <string name="pref_remove_after_marked_as_seen">After manually marked as seen</string>
+    <string name="pref_remove_after_seen">After watching automatically delete</string>
+    <string name="pref_remove_bookmarked_episodes">Allow deleting bookmarked episodes</string>
+    <string name="last_seen_episode">Last seen episode</string>
+    <string name="second_to_last">Second to last seen episode</string>
+    <string name="third_to_last">Third to last seen episode</string>
+    <string name="fourth_to_last">Fourth to last seen episode</string>
+    <string name="fifth_to_last">Fifth to last seen episode</string>
+    <string name="download_ahead_info">Only works if the current episode + the next one are already downloaded.</string>
+    <string name="pref_auto_update_anime_sync">Update progress after watching</string>
+    <string name="pref_auto_update_anime_on_mark_seen">Update progress when marked as seen</string>
+    <string name="tracking_info">One-way sync to update the episode progress in external tracker services. Set up tracking for individual entries from their tracking button.</string>
+    <string name="pref_storage_location_info">Used for automatic backups, episode downloads, and local source.</string>
+    <string name="pref_invalidate_download_cache_summary">Force app to recheck downloaded episodes</string>
+    <string name="clear_database_history_warning">Seen episodes and progress of non-library entries will be lost</string>
+    <string name="clear_db_exclude_seen">Keep entries with seen episodes</string>
+    <string name="pref_update_library_anime_titles">Update library anime titles to match source</string>
+    <string name="pref_update_library_anime_titles_summary">Warning: if an anime is renamed, it will be removed from the download queue (if present).</string>
+    <string name="pref_incognito_mode_summary">Pauses watching history</string>
+    <string name="pref_incognito_mode_extension_summary">Pause watching history for extension</string>
+    <string name="dialog_with_checkbox_reset">Reset all episodes for this entry</string>
+    <string name="download_insufficient_space">Couldn\'t download episodes due to low storage space</string>
+    <string name="download_notifier_unknown_error">Could not download episode due to unexpected error</string>
+    <string name="channel_new_episodes">Episode updates</string>
 
     <!-- Entry Info Edit -->
     <string name="reset_tags">Reset Tags</string>

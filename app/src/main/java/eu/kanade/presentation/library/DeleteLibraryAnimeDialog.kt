@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import dev.icerock.moko.resources.StringResource
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -26,7 +27,7 @@ fun DeleteLibraryAnimeDialog(
             buildList<CheckboxState.State<StringResource>> {
                 add(CheckboxState.State.None(MR.strings.manga_from_library))
                 if (!containsLocalAnime) {
-                    add(CheckboxState.State.None(MR.strings.downloaded_chapters))
+                    add(CheckboxState.State.None(AYMR.strings.downloaded_episodes))
                 }
             },
         )

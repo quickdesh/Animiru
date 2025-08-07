@@ -146,7 +146,7 @@ object Notifications {
                     setShowBadge(false)
                 },
                 buildNotificationChannel(CHANNEL_NEW_EPISODES, IMPORTANCE_DEFAULT) {
-                    setName(context.stringResource(MR.strings.channel_new_chapters))
+                    setName(context.stringResource(AMMR.strings.channel_new_episodes))
                 },
                 buildNotificationChannel(CHANNEL_DOWNLOADER_PROGRESS, IMPORTANCE_LOW) {
                     setName(context.stringResource(MR.strings.channel_progress))

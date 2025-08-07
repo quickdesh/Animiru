@@ -37,6 +37,8 @@ import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
+import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.math.RoundingMode
@@ -172,7 +174,7 @@ class LibraryUpdateNotifier(
             Notifications.ID_NEW_EPISODES,
             Notifications.CHANNEL_NEW_EPISODES,
         ) {
-            setContentTitle(context.stringResource(MR.strings.notification_new_chapters))
+            setContentTitle(context.stringResource(AYMR.strings.notification_new_episodes))
             if (updates.size == 1 && !securityPreferences.hideNotificationContent().get()) {
                 setContentText(updates.first().first.title.chop(NOTIF_TITLE_MAX_LEN))
             } else {
@@ -248,7 +250,7 @@ class LibraryUpdateNotifier(
             // Mark episodes as seen action
             addAction(
                 R.drawable.ic_done_24dp,
-                context.stringResource(MR.strings.action_mark_as_read),
+                context.stringResource(AMMR.strings.action_mark_as_seen),
                 NotificationReceiver.markAsSeenPendingBroadcast(
                     context,
                     anime,
@@ -259,7 +261,7 @@ class LibraryUpdateNotifier(
             // View episodes action
             addAction(
                 R.drawable.ic_book_24dp,
-                context.stringResource(MR.strings.action_view_chapters),
+                context.stringResource(AYMR.strings.action_view_episodes),
                 NotificationReceiver.openEpisodePendingActivity(
                     context,
                     anime,
@@ -323,13 +325,13 @@ class LibraryUpdateNotifier(
                 if (remaining == 0) {
                     // "Episode 2.5"
                     context.stringResource(
-                        MR.strings.notification_chapters_single,
+                        AYMR.strings.notification_episodes_single,
                         displayableEpisodeNumbers.first(),
                     )
                 } else {
                     // "Episode 2.5 and 10 more"
                     context.stringResource(
-                        MR.strings.notification_chapters_single_and_more,
+                        AYMR.strings.notification_episodes_single_and_more,
                         displayableEpisodeNumbers.first(),
                         remaining,
                     )
@@ -353,7 +355,7 @@ class LibraryUpdateNotifier(
                 } else {
                     // "Episodes 1, 2.5, 3"
                     context.stringResource(
-                        MR.strings.notification_chapters_multiple,
+                        AYMR.strings.notification_episodes_multiple,
                         displayableEpisodeNumbers.joinToString(", "),
                     )
                 }

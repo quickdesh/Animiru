@@ -52,6 +52,7 @@ import tachiyomi.domain.source.interactor.GetSourcesWithNonLibraryAnime
 import tachiyomi.domain.source.model.Source
 import tachiyomi.domain.source.model.SourceWithCount
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.components.LazyColumnWithAction
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
@@ -92,7 +93,7 @@ class ClearDatabaseScreen : Screen() {
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
-                                        text = stringResource(MR.strings.clear_db_exclude_read),
+                                        text = stringResource(AMMR.strings.clear_db_exclude_seen),
                                         modifier = Modifier.weight(1f),
                                     )
                                     Switch(
@@ -102,7 +103,7 @@ class ClearDatabaseScreen : Screen() {
                                 }
                                 if (!keepSeenAnime) {
                                     Text(
-                                        text = stringResource(MR.strings.clear_database_history_warning),
+                                        text = stringResource(AMMR.strings.clear_database_history_warning),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.error,
                                     )

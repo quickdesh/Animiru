@@ -162,7 +162,7 @@ private fun ItemDeleteDialog(
         title = {
             Text(
                 text = stringResource(
-                    if (anime.isLocal()) AMMR.strings.delete_local_anime else MR.strings.delete_downloads_for_manga,
+                    if (anime.isLocal()) AMMR.strings.delete_local_anime else AYMR.strings.delete_downloads_for_anime,
                 ),
             )
         },

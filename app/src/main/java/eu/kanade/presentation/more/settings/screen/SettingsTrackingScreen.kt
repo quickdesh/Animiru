@@ -63,6 +63,7 @@ import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
@@ -131,7 +132,7 @@ object SettingsTrackingScreen : SearchableSettings {
         return listOf(
             Preference.PreferenceItem.SwitchPreference(
                 preference = trackPreferences.autoUpdateTrack(),
-                title = stringResource(MR.strings.pref_auto_update_manga_sync),
+                title = stringResource(AMMR.strings.pref_auto_update_anime_sync),
             ),
             Preference.PreferenceItem.SwitchPreference(
                 preference = trackPreferences.trackOnAddingToLibrary(),
@@ -146,7 +147,7 @@ object SettingsTrackingScreen : SearchableSettings {
                 entries = AutoTrackState.entries
                     .associateWith { stringResource(it.titleRes) }
                     .toPersistentMap(),
-                title = stringResource(MR.strings.pref_auto_update_manga_on_mark_read),
+                title = stringResource(AMMR.strings.pref_auto_update_anime_on_mark_seen),
             ),
             Preference.PreferenceGroup(
                 title = stringResource(MR.strings.services),
@@ -181,7 +182,7 @@ object SettingsTrackingScreen : SearchableSettings {
                         login = { context.openInBrowser(BangumiApi.authUrl(), forceDefaultBrowser = true) },
                         logout = { dialog = LogoutDialog(trackerManager.bangumi) },
                     ),
-                    Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.tracking_info)),
+                    Preference.PreferenceItem.InfoPreference(stringResource(AMMR.strings.tracking_info)),
                 ),
             ),
             Preference.PreferenceGroup(

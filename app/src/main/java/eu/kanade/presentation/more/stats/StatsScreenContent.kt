@@ -21,6 +21,7 @@ import eu.kanade.presentation.more.stats.components.StatsOverviewItem
 import eu.kanade.presentation.more.stats.data.StatsData
 import eu.kanade.presentation.util.toDurationString
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.SectionCard
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
@@ -74,7 +75,7 @@ private fun LazyItemScope.OverviewSection(
             )
             StatsOverviewItem(
                 title = seenDurationString,
-                subtitle = stringResource(MR.strings.label_read_duration),
+                subtitle = stringResource(AYMR.strings.label_watched_duration),
                 icon = Icons.Outlined.Schedule,
             )
             StatsOverviewItem(
@@ -112,7 +113,7 @@ private fun LazyItemScope.TitlesStats(
 private fun LazyItemScope.EpisodeStats(
     data: StatsData.Episodes,
 ) {
-    SectionCard(MR.strings.chapters) {
+    SectionCard(AYMR.strings.episodes) {
         Row {
             StatsItem(
                 data.totalEpisodeCount.toString(),
@@ -120,7 +121,7 @@ private fun LazyItemScope.EpisodeStats(
             )
             StatsItem(
                 data.seenEpisodeCount.toString(),
-                stringResource(MR.strings.label_read_chapters),
+                stringResource(AYMR.strings.label_watched_episodes),
             )
             StatsItem(
                 data.downloadCount.toString(),

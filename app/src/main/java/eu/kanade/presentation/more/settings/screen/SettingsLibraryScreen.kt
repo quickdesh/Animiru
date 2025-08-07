@@ -216,7 +216,7 @@ object SettingsLibraryScreen : SearchableSettings {
                 Preference.PreferenceItem.MultiSelectListPreference(
                     preference = libraryPreferences.autoUpdateAnimeRestrictions(),
                     entries = persistentMapOf(
-                        ANIME_HAS_UNSEEN to stringResource(MR.strings.pref_update_only_completely_read),
+                        ANIME_HAS_UNSEEN to stringResource(AMMR.strings.pref_update_only_completely_seen),
                         ANIME_NON_SEEN to stringResource(MR.strings.pref_update_only_started),
                         ANIME_NON_COMPLETED to stringResource(MR.strings.pref_update_only_non_completed),
                         ANIME_OUTSIDE_RELEASE_PERIOD to stringResource(MR.strings.pref_update_only_in_release_period),
@@ -225,7 +225,7 @@ object SettingsLibraryScreen : SearchableSettings {
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.newShowUpdatesCount(),
-                    title = stringResource(MR.strings.pref_library_update_show_tab_badge),
+                    title = stringResource(AMMR.strings.pref_library_update_show_tab_badge),
                 ),
             ),
         )
@@ -244,17 +244,17 @@ object SettingsLibraryScreen : SearchableSettings {
                         LibraryPreferences.EpisodeSwipeAction.Disabled to
                             stringResource(MR.strings.disabled),
                         LibraryPreferences.EpisodeSwipeAction.ToggleBookmark to
-                            stringResource(MR.strings.action_bookmark),
+                            stringResource(AYMR.strings.action_bookmark_episode),
                         // AM (FILLERMARK) -->
                         LibraryPreferences.EpisodeSwipeAction.ToggleFillermark to
                             stringResource(AMMR.strings.action_fillermark_episode),
                         // <-- AM (FILLERMARK)
                         LibraryPreferences.EpisodeSwipeAction.ToggleSeen to
-                            stringResource(MR.strings.action_mark_as_read),
+                            stringResource(AMMR.strings.action_mark_as_seen),
                         LibraryPreferences.EpisodeSwipeAction.Download to
                             stringResource(MR.strings.action_download),
                     ),
-                    title = stringResource(MR.strings.pref_chapter_swipe_start),
+                    title = stringResource(AYMR.strings.pref_episode_swipe_start),
                 ),
                 Preference.PreferenceItem.ListPreference(
                     preference = libraryPreferences.swipeToEndAction(),
@@ -262,31 +262,31 @@ object SettingsLibraryScreen : SearchableSettings {
                         LibraryPreferences.EpisodeSwipeAction.Disabled to
                             stringResource(MR.strings.disabled),
                         LibraryPreferences.EpisodeSwipeAction.ToggleBookmark to
-                            stringResource(MR.strings.action_bookmark),
+                            stringResource(AYMR.strings.action_bookmark_episode),
                         // AM (FILLERMARK) -->
                         LibraryPreferences.EpisodeSwipeAction.ToggleFillermark to
                             stringResource(AMMR.strings.action_fillermark_episode),
                         // <-- AM (FILLERMARK)
                         LibraryPreferences.EpisodeSwipeAction.ToggleSeen to
-                            stringResource(MR.strings.action_mark_as_read),
+                            stringResource(AMMR.strings.action_mark_as_seen),
                         LibraryPreferences.EpisodeSwipeAction.Download to
                             stringResource(MR.strings.action_download),
                     ),
-                    title = stringResource(MR.strings.pref_chapter_swipe_end),
+                    title = stringResource(AYMR.strings.pref_episode_swipe_end),
                 ),
                 Preference.PreferenceItem.MultiSelectListPreference(
                     preference = libraryPreferences.markDuplicateSeenEpisodeAsSeen(),
                     entries = persistentMapOf(
                         MARK_DUPLICATE_EPISODE_SEEN_EXISTING to
-                            stringResource(MR.strings.pref_mark_duplicate_read_chapter_read_existing),
+                            stringResource(AYMR.strings.pref_mark_duplicate_seen_episode_seen_existing),
                         MARK_DUPLICATE_EPISODE_SEEN_NEW to
-                            stringResource(MR.strings.pref_mark_duplicate_read_chapter_read_new),
+                            stringResource(AYMR.strings.pref_mark_duplicate_seen_episode_seen_new),
                     ),
-                    title = stringResource(MR.strings.pref_mark_duplicate_read_chapter_read),
+                    title = stringResource(AYMR.strings.pref_mark_duplicate_seen_episode_seen),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.hideMissingEpisodes(),
-                    title = stringResource(MR.strings.pref_hide_missing_chapter_indicators),
+                    title = stringResource(AMMR.strings.pref_hide_missing_episode_indicators),
                 ),
             ),
         )

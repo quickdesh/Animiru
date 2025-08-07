@@ -3,10 +3,11 @@ package mihon.feature.common.utils
 import dev.icerock.moko.resources.StringResource
 import mihon.domain.migration.models.MigrationFlag
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 
 fun MigrationFlag.getLabel(): StringResource {
     return when (this) {
-        MigrationFlag.EPISODE -> MR.strings.chapters
+        MigrationFlag.EPISODE -> AYMR.strings.episodes
         MigrationFlag.CATEGORY -> MR.strings.categories
         MigrationFlag.CUSTOM_COVER -> MR.strings.custom_cover
         MigrationFlag.NOTES -> MR.strings.action_notes

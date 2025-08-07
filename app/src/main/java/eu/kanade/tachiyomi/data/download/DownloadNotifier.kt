@@ -16,6 +16,7 @@ import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notify
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.injectLazy
 import java.util.regex.Pattern
@@ -209,7 +210,7 @@ internal class DownloadNotifier(private val context: Context) {
             setContentTitle(
                 animeTitle?.plus(": $episode") ?: context.stringResource(MR.strings.download_notifier_downloader_title),
             )
-            setContentText(error ?: context.stringResource(MR.strings.download_notifier_unknown_error))
+            setContentText(error ?: context.stringResource(AMMR.strings.download_notifier_unknown_error))
             setSmallIcon(R.drawable.ic_warning_white_24dp)
             clearActions()
             setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))

@@ -102,7 +102,7 @@ fun TrackEpisodeSelector(
     onDismissRequest: () -> Unit,
 ) {
     BaseSelector(
-        title = stringResource(MR.strings.chapters),
+        title = stringResource(AYMR.strings.episodes),
         content = {
             WheelNumberPicker(
                 items = range.toImmutableList(),

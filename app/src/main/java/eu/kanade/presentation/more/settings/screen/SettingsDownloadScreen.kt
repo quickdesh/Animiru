@@ -21,6 +21,7 @@ import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
@@ -68,27 +69,27 @@ object SettingsDownloadScreen : SearchableSettings {
         categories: List<Category>,
     ): Preference.PreferenceGroup {
         return Preference.PreferenceGroup(
-            title = stringResource(MR.strings.pref_category_delete_chapters),
+            title = stringResource(AMMR.strings.pref_category_delete_episodes),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = downloadPreferences.removeAfterMarkedAsSeen(),
-                    title = stringResource(MR.strings.pref_remove_after_marked_as_read),
+                    title = stringResource(AMMR.strings.pref_remove_after_marked_as_seen),
                 ),
                 Preference.PreferenceItem.ListPreference(
                     preference = downloadPreferences.removeAfterSeenSlots(),
                     entries = persistentMapOf(
                         -1 to stringResource(MR.strings.disabled),
-                        0 to stringResource(MR.strings.last_read_chapter),
-                        1 to stringResource(MR.strings.second_to_last),
-                        2 to stringResource(MR.strings.third_to_last),
-                        3 to stringResource(MR.strings.fourth_to_last),
-                        4 to stringResource(MR.strings.fifth_to_last),
+                        0 to stringResource(AMMR.strings.last_seen_episode),
+                        1 to stringResource(AMMR.strings.second_to_last),
+                        2 to stringResource(AMMR.strings.third_to_last),
+                        3 to stringResource(AMMR.strings.fourth_to_last),
+                        4 to stringResource(AMMR.strings.fifth_to_last),
                     ),
-                    title = stringResource(MR.strings.pref_remove_after_read),
+                    title = stringResource(AMMR.strings.pref_remove_after_seen),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = downloadPreferences.removeBookmarkedEpisodes(),
-                    title = stringResource(MR.strings.pref_remove_bookmarked_chapters),
+                    title = stringResource(AMMR.strings.pref_remove_bookmarked_episodes),
                 ),
                 getExcludedCategoriesPreference(
                     downloadPreferences = downloadPreferences,
@@ -149,11 +150,11 @@ object SettingsDownloadScreen : SearchableSettings {
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = downloadNewEpisodesPref,
-                    title = stringResource(MR.strings.pref_download_new),
+                    title = stringResource(AYMR.strings.pref_download_new_episodes),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = downloadNewUnseenEpisodesOnlyPref,
-                    title = stringResource(MR.strings.pref_download_new_unread_chapters_only),
+                    title = stringResource(AYMR.strings.pref_download_new_unseen_episodes_only),
                     enabled = downloadNewEpisodes,
                 ),
                 Preference.PreferenceItem.TextPreference(
@@ -188,9 +189,9 @@ object SettingsDownloadScreen : SearchableSettings {
                             }
                         }
                         .toImmutableMap(),
-                    title = stringResource(MR.strings.auto_download_while_reading),
+                    title = stringResource(AYMR.strings.auto_download_while_watching),
                 ),
-                Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.download_ahead_info)),
+                Preference.PreferenceItem.InfoPreference(stringResource(AMMR.strings.download_ahead_info)),
             ),
         )
     }

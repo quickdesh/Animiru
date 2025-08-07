@@ -159,7 +159,7 @@ private fun ColumnScope.FilterPage(
         onClick = onDownloadFilterChanged,
     )
     TriStateItem(
-        label = stringResource(MR.strings.action_filter_unread),
+        label = stringResource(AYMR.strings.action_filter_unseen),
         state = unseenFilter,
         onClick = onUnseenFilterChanged,
     )
@@ -256,7 +256,7 @@ private fun SetAsDefaultDialog(
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(text = stringResource(MR.strings.chapter_settings)) },
+        title = { Text(text = stringResource(AYMR.strings.episode_settings)) },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),

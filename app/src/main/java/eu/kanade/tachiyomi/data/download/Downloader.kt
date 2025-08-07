@@ -60,6 +60,7 @@ import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -338,7 +339,7 @@ class Downloader(
         if (availSpace != -1L && availSpace < MIN_DISK_SPACE) {
             download.status = Download.State.ERROR
             notifier.onError(
-                context.stringResource(MR.strings.download_insufficient_space),
+                context.stringResource(AMMR.strings.download_insufficient_space),
                 download.episode.name,
                 download.anime.title,
                 download.anime.id,
