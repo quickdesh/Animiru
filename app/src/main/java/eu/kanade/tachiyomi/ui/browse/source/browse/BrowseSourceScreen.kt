@@ -24,11 +24,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
@@ -122,12 +125,16 @@ data class BrowseSourceScreen(
             assistUrl = (screenModel.source as? AnimeHttpSource)?.baseUrl
         }
 
+        var topBarHeight by remember { mutableIntStateOf(0) }
         Scaffold(
             topBar = {
                 Column(
                     modifier = Modifier
                         .background(MaterialTheme.colorScheme.surface)
-                        .pointerInput(Unit) {},
+                        .pointerInput(Unit) {}
+                        .onGloballyPositioned { layoutCoordinates ->
+                            topBarHeight = layoutCoordinates.size.height
+                        },
                 ) {
                     BrowseSourceToolbar(
                         searchQuery = state.toolbarQuery,
@@ -214,6 +221,8 @@ data class BrowseSourceScreen(
                 source = screenModel.source,
                 animeList = screenModel.animePagerFlowFlow.collectAsLazyPagingItems(),
                 columns = screenModel.getColumnsPreference(LocalConfiguration.current.orientation),
+                entries = screenModel.getColumnsPreferenceForCurrentOrientation(LocalConfiguration.current.orientation),
+                topBarHeight = topBarHeight,
                 displayMode = screenModel.displayMode,
                 snackbarHostState = snackbarHostState,
                 contentPadding = paddingValues,
@@ -221,15 +230,15 @@ data class BrowseSourceScreen(
                 onHelpClick = { uriHandler.openUri(Constants.URL_HELP) },
                 onLocalSourceHelpClick = onHelpClick,
                 onAnimeClick = { navigator.push((AnimeScreen(it.id, true))) },
-                onAnimeLongClick = { manga ->
+                onAnimeLongClick = { anime ->
                     scope.launchIO {
-                        val duplicates = screenModel.getDuplicateLibraryAnime(manga)
+                        val duplicates = screenModel.getDuplicateLibraryAnime(anime)
                         when {
-                            manga.favorite -> screenModel.setDialog(BrowseSourceScreenModel.Dialog.RemoveAnime(manga))
+                            anime.favorite -> screenModel.setDialog(BrowseSourceScreenModel.Dialog.RemoveAnime(anime))
                             duplicates.isNotEmpty() -> screenModel.setDialog(
-                                BrowseSourceScreenModel.Dialog.AddDuplicateAnime(manga, duplicates),
+                                BrowseSourceScreenModel.Dialog.AddDuplicateAnime(anime, duplicates),
                             )
-                            else -> screenModel.addFavorite(manga)
+                            else -> screenModel.addFavorite(anime)
                         }
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     }
