@@ -54,6 +54,7 @@ import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.anime.notes.AnimeNotesScreen
 import eu.kanade.tachiyomi.ui.anime.track.TrackInfoDialogHomeScreen
 import eu.kanade.tachiyomi.ui.browse.extension.details.SourcePreferencesScreen
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.setting.SettingsScreen
 import eu.kanade.tachiyomi.ui.webview.WebViewScreen
 import eu.kanade.tachiyomi.util.system.copyToClipboard
@@ -170,7 +171,12 @@ class AnimeScreen(
             onTagSearch = { scope.launch { performGenreSearch(navigator, it, screenModel.source!!) } },
             onFilterButtonClicked = screenModel::showSettingsDialog,
             onRefresh = screenModel::fetchAllFromSource,
-            onContinueWatching = { continueWatching(context, screenModel.getNextUnseenEpisode()) },
+            onContinueWatching = {
+                scope.launchIO {
+                    val extPlayer = screenModel.alwaysUseExternalPlayer
+                    continueWatching(context, screenModel.getNextUnseenEpisode(), extPlayer)
+                }
+            },
             onSearch = { query, global -> scope.launch { performSearch(navigator, query, global) } },
             onCoverClicked = screenModel::showCoverDialog,
             onShareClicked = { shareAnime(context, screenModel.anime, screenModel.source) }.takeIf { isHttpSource },
@@ -378,13 +384,19 @@ class AnimeScreen(
         }
     }
 
-    private fun continueWatching(context: Context, unseenEpisode: Episode?) {
-        if (unseenEpisode != null) openEpisode(context, unseenEpisode)
+    private suspend fun continueWatching(context: Context, unseenEpisode: Episode?, useExternalPlayer: Boolean) {
+        if (unseenEpisode != null) openEpisode(context, unseenEpisode, useExternalPlayer)
     }
 
-    // TODO(mihon): Update
-    private fun openEpisode(context: Context, episode: Episode, useExternalPlayer: Boolean) {
-        context.startActivity(PlayerActivity.newIntent(context, episode.animeId, episode.id))
+    private suspend fun openEpisode(context: Context, episode: Episode, useExternalPlayer: Boolean) {
+        withIOContext {
+            MainActivity.startPlayerActivity(
+                context,
+                episode.animeId,
+                episode.id,
+                useExternalPlayer,
+            )
+        }
     }
 
     private fun getAnimeUrl(anime_: Anime?, source_: AnimeSource?): String? {

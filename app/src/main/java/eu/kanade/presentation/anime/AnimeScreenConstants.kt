@@ -19,4 +19,5 @@ enum class AnimeScreenItem {
     DESCRIPTION_WITH_TAG,
     EPISODE_HEADER,
     EPISODE,
+    AIRING_TIME,
 }

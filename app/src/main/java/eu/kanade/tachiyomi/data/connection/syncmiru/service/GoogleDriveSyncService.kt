@@ -109,7 +109,7 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
 
     private fun pullSyncData(): SyncData? {
         val drive = googleDriveService.driveService
-            ?: throw Exception(context.stringResource(MR.strings.google_drive_not_signed_in))
+            ?: throw Exception(context.stringResource(AMMR.strings.google_drive_not_signed_in))
 
         val fileList = getAppDataFileList(drive)
         if (fileList.isEmpty()) {
@@ -328,7 +328,7 @@ class GoogleDriveService(private val context: Context) {
             .build()
 
         if (refreshToken == "") {
-            throw Exception(context.stringResource(MR.strings.google_drive_not_signed_in))
+            throw Exception(context.stringResource(AMMR.strings.google_drive_not_signed_in))
         }
 
         credential.refreshToken = refreshToken

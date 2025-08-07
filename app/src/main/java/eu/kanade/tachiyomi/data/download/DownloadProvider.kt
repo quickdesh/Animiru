@@ -4,6 +4,7 @@ import android.content.Context
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.util.storage.DiskUtil
+import eu.kanade.tachiyomi.util.storage.size
 import logcat.LogPriority
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.displayablePath

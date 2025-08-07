@@ -39,6 +39,8 @@ import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.ui.anime.track.TrackItem
+import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
+import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import eu.kanade.tachiyomi.util.AniChartApi
 import eu.kanade.tachiyomi.util.episode.getNextUnseen
 import eu.kanade.tachiyomi.util.nullIfEmpty
@@ -1431,6 +1433,9 @@ sealed class EpisodeList {
         val episode: Episode,
         val downloadState: Download.State,
         val downloadProgress: Int,
+        // AM (FILE_SIZE) -->
+        var fileSize: Long? = null,
+        // <-- AM (FILE_SIZE)
         val selected: Boolean = false,
     ) : EpisodeList() {
         val id = episode.id

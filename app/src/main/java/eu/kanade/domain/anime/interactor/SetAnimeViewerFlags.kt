@@ -1,7 +1,5 @@
 package eu.kanade.domain.anime.interactor
 
-import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
-import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import tachiyomi.core.common.util.lang.toLong
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeUpdate

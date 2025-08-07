@@ -37,7 +37,7 @@ fun Episode.toDbEpisode(): DbChapter = EpisodeImpl().also {
     // AM (FILLERMARK) -->
     it.fillermark = fillermark
     // <-- AM (FILLERMARK)
-    it.last_second_seen = lastSecondSeen.toInt()
+    it.last_second_seen = lastSecondSeen
     it.date_fetch = dateFetch
     it.date_upload = dateUpload
     it.episode_number = episodeNumber.toFloat()

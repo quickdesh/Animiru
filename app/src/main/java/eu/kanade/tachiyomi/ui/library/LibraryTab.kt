@@ -39,13 +39,13 @@ import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
 import eu.kanade.tachiyomi.data.connection.discord.DiscordScreen
-import eu.kanade.tachiyomi.data.database.models.Episode
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
+import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
@@ -58,6 +58,7 @@ import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.library.model.LibraryGroup
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
@@ -230,14 +231,7 @@ data object LibraryTab : Tab {
                         onContinueWatchingClicked = { it: LibraryAnime ->
                             scope.launchIO {
                                 val episode = screenModel.getNextUnseenEpisode(it.anime)
-                                if (episode != null) {
-                                    // TOOD(mihon): update
-                                    context.startActivity(
-                                        PlayerActivity.newIntent(context, episode.animeId, episode.id),
-                                    )
-                                } else {
-                                    snackbarHostState.showSnackbar(context.stringResource(MR.strings.no_next_chapter))
-                                }
+                                if (episode != null) openEpisode(episode)
                             }
                             Unit
                         }.takeIf { state.showAnimeContinueButton },

@@ -40,6 +40,7 @@ import kotlinx.coroutines.CoroutineScope
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.source.local.isLocal
 
@@ -155,7 +156,7 @@ private fun onViewCreated(anime: Anime, context: Context, binding: EditAnimeDial
             binding.title.setText(anime.title)
         }
 
-        binding.title.hint = context.stringResource(MR.strings.title_hint, anime.url)
+        binding.title.hint = context.stringResource(AMMR.strings.title_hint, anime.url)
         binding.animeAuthor.setText(anime.author.orEmpty())
         binding.animeArtist.setText(anime.artist.orEmpty())
         binding.animeDescription.setText(anime.description.orEmpty())
@@ -175,17 +176,17 @@ private fun onViewCreated(anime: Anime, context: Context, binding: EditAnimeDial
         }
         binding.animeGenresTags.setChips(anime.genre.orEmpty().dropBlank(), scope)
 
-        binding.title.hint = context.stringResource(MR.strings.title_hint, anime.ogTitle)
+        binding.title.hint = context.stringResource(AMMR.strings.title_hint, anime.ogTitle)
         if (anime.ogAuthor != null) {
-            binding.animeAuthor.hint = context.stringResource(MR.strings.author_hint, anime.ogAuthor!!)
+            binding.animeAuthor.hint = context.stringResource(AMMR.strings.author_hint, anime.ogAuthor!!)
         }
         if (anime.ogArtist != null) {
-            binding.animeArtist.hint = context.stringResource(MR.strings.artist_hint, anime.ogArtist!!)
+            binding.animeArtist.hint = context.stringResource(AMMR.strings.artist_hint, anime.ogArtist!!)
         }
         if (!anime.ogDescription.isNullOrBlank()) {
             binding.animeDescription.hint =
                 context.stringResource(
-                    MR.strings.description_hint,
+                    AMMR.strings.description_hint,
                     anime.ogDescription!!.replace("\n", " ").chop(20),
                 )
         }
@@ -252,7 +253,7 @@ private fun ChipGroup.setChips(items: List<String>, scope: CoroutineScope) {
 }
 
 private fun ChipGroup.getTextStrings(): List<String> = children.mapNotNull {
-    if (it is Chip && !it.text.toString().contains(context.stringResource(MR.strings.add_tag), ignoreCase = true)) {
+    if (it is Chip && !it.text.toString().contains(context.stringResource(AMMR.strings.add_tag), ignoreCase = true)) {
         it.text.toString()
     } else {
         null

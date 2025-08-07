@@ -5,28 +5,20 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import com.hippo.unifile.UniFile
-import eu.kanade.domain.ui.UiPreferences
-import eu.kanade.domain.ui.model.ThemeMode
-import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.ui.base.delegate.ThemingDelegate
-import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
+import eu.kanade.tachiyomi.ui.setting.connection.DiscordLoginActivity
 import eu.kanade.tachiyomi.util.lang.truncateCenter
 import logcat.LogPriority
 import rikka.sui.Sui
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.File
 
 /**

@@ -6,6 +6,7 @@ import androidx.core.net.toUri
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.animesource.AnimeSource
+import eu.kanade.tachiyomi.util.storage.size
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

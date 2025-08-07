@@ -74,13 +74,8 @@ import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.anime.model.Anime
-import tachiyomi.domain.entries.anime.interactor.GetAnime
-import tachiyomi.domain.entries.anime.model.Anime
 import tachiyomi.domain.episode.interactor.GetEpisode
 import tachiyomi.domain.episode.model.Episode
-import tachiyomi.domain.items.episode.interactor.GetEpisode
-import tachiyomi.domain.items.episode.model.Episode
-import tachiyomi.domain.source.anime.service.AnimeSourceManager
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR

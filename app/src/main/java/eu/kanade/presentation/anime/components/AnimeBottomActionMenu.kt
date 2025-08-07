@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.components.DownloadDropdownMenu
 import eu.kanade.presentation.anime.DownloadAction
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -62,6 +63,8 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -88,6 +91,7 @@ fun AnimeBottomActionMenu(
         exit = shrinkVertically(shrinkTowards = Alignment.Bottom),
     ) {
         val scope = rememberCoroutineScope()
+        val playerPreferences = remember { Injekt.get<PlayerPreferences>() }
         Surface(
             modifier = modifier,
             shape = MaterialTheme.shapes.large.copy(bottomEnd = ZeroCornerSize, bottomStart = ZeroCornerSize),
