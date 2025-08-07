@@ -1,3 +1,4 @@
+// AM (STORAGE_SCREEN) -->
 package eu.kanade.presentation.more.storage
 
 import androidx.compose.foundation.layout.Arrangement
@@ -9,184 +10,140 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import eu.kanade.presentation.more.storage.components.CumulativeStorage
+import eu.kanade.presentation.more.storage.components.SelectStorageCategory
+import eu.kanade.presentation.more.storage.components.StorageItem
+import eu.kanade.presentation.more.storage.data.StorageData
 import eu.kanade.presentation.util.isTabletUi
 import tachiyomi.domain.category.model.Category
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.components.material.padding
-import tachiyomi.presentation.core.screens.LoadingScreen
-import kotlin.random.Random
+import tachiyomi.presentation.core.i18n.stringResource
+import tachiyomi.presentation.core.screens.EmptyScreen
 
 @Composable
 fun StorageScreenContent(
-    state: StorageScreenState,
+    state: StorageScreenState.Success,
+    selectedCategory: Category,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues,
+    paddingValues: PaddingValues,
     onCategorySelected: (Category) -> Unit,
-    onDelete: (Long) -> Unit,
+    onDelete: (StorageData, Boolean) -> Unit,
+    onClickCover: (StorageData) -> Unit,
 ) {
-    when (state) {
-        is StorageScreenState.Loading -> {
-            LoadingScreen(modifier)
-        }
-
-        is StorageScreenState.Success -> {
-            @Composable
-            fun Info(modifier: Modifier = Modifier) {
-                Column(
-                    modifier = modifier,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    content = {
-                        SelectStorageCategory(
-                            selectedCategory = state.selectedCategory,
-                            categories = state.categories,
-                            onCategorySelected = onCategorySelected,
-                        )
-                        CumulativeStorage(
-                            modifier = Modifier
-                                .padding(
-                                    horizontal = MaterialTheme.padding.small,
-                                    vertical = MaterialTheme.padding.medium,
-                                )
-                                .run {
-                                    if (isTabletUi()) {
-                                        this
-                                    } else {
-                                        padding(bottom = MaterialTheme.padding.medium)
-                                    }
-                                },
-                            items = state.items,
-                        )
-                    },
+    Row(
+        modifier = modifier
+            .padding(horizontal = MaterialTheme.padding.small)
+            .padding(paddingValues),
+        content = {
+            if (isTabletUi()) {
+                Info(
+                    state = state,
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = onCategorySelected,
+                    modifier = Modifier
+                        .weight(2f)
+                        .padding(end = MaterialTheme.padding.extraLarge)
+                        .fillMaxHeight(),
                 )
             }
 
-            Row(
-                modifier = modifier
-                    .padding(horizontal = MaterialTheme.padding.small)
-                    .padding(contentPadding),
-                content = {
-                    if (isTabletUi()) {
+            if (state.items.isEmpty()) {
+                Column(
+                    modifier = Modifier.weight(3f),
+                ) {
+                    Spacer(Modifier.height(MaterialTheme.padding.small))
+
+                    if (!isTabletUi()) {
                         Info(
-                            modifier = Modifier
-                                .weight(2f)
-                                .padding(end = MaterialTheme.padding.extraLarge)
-                                .fillMaxHeight(),
+                            state = state,
+                            selectedCategory = selectedCategory,
+                            onCategorySelected = onCategorySelected,
+                            showStorage = false,
                         )
                     }
-                    LazyColumn(
-                        modifier = Modifier.weight(3f),
-                        content = {
-                            item {
-                                Spacer(Modifier.height(MaterialTheme.padding.small))
-                            }
-                            item {
-                                if (!isTabletUi()) {
-                                    Info()
-                                }
-                            }
-                            items(
-                                state.items.size,
-                                itemContent = { index ->
-                                    StorageItem(
-                                        item = state.items[index],
-                                        onDelete = onDelete,
-                                    )
-                                    Spacer(Modifier.height(MaterialTheme.padding.medium))
-                                },
-                            )
-                        },
+
+                    EmptyScreen(
+                        stringResource(AMMR.strings.storage_overview_no_items),
                     )
-                },
-            )
-        }
-    }
-}
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(3f),
+                    content = {
+                        item {
+                            Spacer(Modifier.height(MaterialTheme.padding.small))
+                        }
+                        item {
+                            if (!isTabletUi()) {
+                                Info(
+                                    state = state,
+                                    selectedCategory = selectedCategory,
+                                    onCategorySelected = onCategorySelected,
+                                )
+                            }
+                        }
 
-@Preview(showBackground = true)
-@Composable
-private fun StorageScreenContentPreview() {
-    val random = remember { Random(0) }
-    val categories = remember {
-        List(10) {
-            Category(
-                id = it.toLong(),
-                name = "Category $it",
-                0L,
-                0L,
-                false,
-            )
-        }
-    }
-    StorageScreenContent(
-        state = StorageScreenState.Success(
-            items = List(20) { index ->
-                StorageItem(
-                    id = index.toLong(),
-                    title = "Title $index",
-                    size = index * 10000000L,
-                    thumbnail = null,
-                    entriesCount = 100 * index,
-                    color = Color(
-                        random.nextInt(255),
-                        random.nextInt(255),
-                        random.nextInt(255),
-                    ),
+                        items(
+                            items = state.items,
+                            key = { "storage-${it.anime.id}" },
+                        ) { item ->
+                            StorageItem(
+                                modifier = Modifier.animateItem(),
+                                item = item,
+                                onDelete = { onDelete(item, it) },
+                                onClickCover = { onClickCover(item) },
+                            )
+                            Spacer(Modifier.height(MaterialTheme.padding.medium))
+                        }
+                    },
                 )
-            },
-            categories = categories,
-            selectedCategory = categories[0],
-        ),
-        contentPadding = PaddingValues(0.dp),
-        onCategorySelected = {},
-        onDelete = {},
+            }
+        },
     )
 }
 
-@Preview(showBackground = true, device = Devices.DESKTOP)
 @Composable
-private fun StorageTabletUiScreenContentPreview() {
-    val random = remember { Random(0) }
-    val categories = remember {
-        List(10) {
-            Category(
-                id = it.toLong(),
-                name = "Category $it",
-                0L,
-                0L,
-                false,
+private fun Info(
+    state: StorageScreenState.Success,
+    selectedCategory: Category,
+    onCategorySelected: (Category) -> Unit,
+    modifier: Modifier = Modifier,
+    showStorage: Boolean = true,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        content = {
+            SelectStorageCategory(
+                selectedCategory = selectedCategory,
+                categories = state.categories,
+                onCategorySelected = onCategorySelected,
             )
-        }
-    }
-    StorageScreenContent(
-        state = StorageScreenState.Success(
-            items = List(20) { index ->
-                StorageItem(
-                    id = index.toLong(),
-                    title = "Title $index",
-                    size = index * 10000000L,
-                    thumbnail = null,
-                    entriesCount = 100 * index,
-                    color = Color(
-                        random.nextInt(255),
-                        random.nextInt(255),
-                        random.nextInt(255),
-                    ),
+            if (showStorage) {
+                CumulativeStorage(
+                    modifier = Modifier
+                        .padding(
+                            horizontal = MaterialTheme.padding.small,
+                            vertical = MaterialTheme.padding.medium,
+                        )
+                        .run {
+                            if (isTabletUi()) {
+                                this
+                            } else {
+                                padding(bottom = MaterialTheme.padding.medium)
+                            }
+                        },
+                    items = state.items,
                 )
-            },
-            categories = categories,
-            selectedCategory = categories[0],
-        ),
-        contentPadding = PaddingValues(0.dp),
-        onCategorySelected = {},
-        onDelete = {},
+            }
+        },
     )
 }
+// <-- AM (STORAGE_SCREEN)

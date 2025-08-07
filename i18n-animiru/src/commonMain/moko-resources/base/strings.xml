@@ -28,6 +28,13 @@
     <string name="action_edit_info">Edit info</string>
     <string name="custom_entry_info">Custom entry info</string>
 
+    <!-- Storage overview -->
+    <string name="pref_storage_overview">Storage overview</string>
+    <string name="calculating_storage_overview">Calculating storage usage... (%1$s)</string>
+    <string name="storage_overview_no_items">No entries for selected category</string>
+    <string name="delete_local_anime">Delete local anime?</string>
+    <string name="delete_anime_confirm">Are you sure you wish to delete \"%1$s\"?</string>
+
     <!-- Connection section -->
     <string name="special_services">Special Services</string>
     <string name="pref_category_connection">Connections</string>

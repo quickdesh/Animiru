@@ -1,16 +1,19 @@
+// AM (STORAGE_SCREEN) -->
 package eu.kanade.presentation.more.storage
 
 import androidx.compose.runtime.Immutable
+import eu.kanade.presentation.more.storage.data.StorageData
 import tachiyomi.domain.category.model.Category
 
-sealed class StorageScreenState {
-    @Immutable
-    object Loading : StorageScreenState()
+sealed interface StorageScreenState {
+    data class Loading(
+        val progress: Int,
+    ) : StorageScreenState
 
     @Immutable
     data class Success(
-        val selectedCategory: Category,
-        val items: List<StorageItem>,
+        val items: List<StorageData>,
         val categories: List<Category>,
-    ) : StorageScreenState()
+    ) : StorageScreenState
 }
+// <-- AM (STORAGE_SCREEN)

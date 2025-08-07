@@ -262,16 +262,20 @@ fun SliderItemPreview() {
     }
 }
 
+// AM (STORAGE_SCREEN) -->
 @Composable
-fun SelectItem(
+fun <T> SelectItem(
     label: String,
-    options: Array<out Any?>,
+    options: Array<T>,
     selectedIndex: Int,
+    modifier: Modifier = Modifier,
     onSelect: (Int) -> Unit,
+    toString: (T) -> String = { it.toString() },
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
+        modifier = modifier,
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
     ) {
@@ -284,7 +288,7 @@ fun SelectItem(
                     vertical = SettingsItemsPaddings.Vertical,
                 ),
             label = { Text(text = label) },
-            value = options[selectedIndex].toString(),
+            value = toString(options[selectedIndex]),
             onValueChange = {},
             readOnly = true,
             singleLine = true,
@@ -301,9 +305,9 @@ fun SelectItem(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {
-            options.forEachIndexed { index, text ->
+            options.forEachIndexed { index, option ->
                 DropdownMenuItem(
-                    text = { Text(text.toString()) },
+                    text = { Text(toString(option)) },
                     onClick = {
                         onSelect(index)
                         expanded = false
@@ -314,6 +318,7 @@ fun SelectItem(
         }
     }
 }
+// <-- AM (STORAGE_SCREEN)
 
 @Composable
 fun TriStateItem(
@@ -365,61 +370,6 @@ fun TriStateItem(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = stateAlpha),
             style = MaterialTheme.typography.bodyMedium,
         )
-    }
-}
-
-@Composable
-fun <T> SelectItem(
-    label: String,
-    options: Array<T>,
-    selectedIndex: Int,
-    modifier: Modifier = Modifier,
-    onSelect: (Int) -> Unit,
-    toString: (T) -> String = { it.toString() },
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        modifier = modifier,
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-    ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth()
-                .padding(
-                    horizontal = SettingsItemsPaddings.Horizontal,
-                    vertical = SettingsItemsPaddings.Vertical,
-                ),
-            label = { Text(text = label) },
-            value = toString(options[selectedIndex]),
-            onValueChange = {},
-            readOnly = true,
-            singleLine = true,
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = expanded,
-                )
-            },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-        )
-
-        ExposedDropdownMenu(
-            modifier = Modifier.exposedDropdownSize(),
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            options.forEachIndexed { index, option ->
-                DropdownMenuItem(
-                    text = { Text(toString(option)) },
-                    onClick = {
-                        onSelect(index)
-                        expanded = false
-                    },
-                )
-            }
-        }
     }
 }
 

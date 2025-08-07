@@ -237,19 +237,16 @@ class DownloadManager(
         return cache.getTotalDownloadSize()
     }
 
+    // AM (STORAGE_SCREEN) -->
     /**
-     * Returns the size of downloaded/local episodes for an anime.
+     * Returns the size of downloaded episodes for an anime.
      *
      * @param anime the anime to check.
      */
     fun getDownloadSize(anime: Anime): Long {
-        return if (anime.source == LocalSource.ID) {
-            LocalSourceFileSystem(storageManager).getAnimeDirectory(anime.url)
-                ?.size() ?: 0L
-        } else {
-            cache.getDownloadSize(anime)
-        }
+        return cache.getDownloadSize(anime)
     }
+    // <-- AM (STORAGE_SCREEN)
 
     fun cancelQueuedDownloads(downloads: List<Download>) {
         removeFromDownloadQueue(downloads.map { it.episode })

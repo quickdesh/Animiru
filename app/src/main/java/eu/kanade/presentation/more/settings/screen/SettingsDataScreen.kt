@@ -54,6 +54,7 @@ import eu.kanade.tachiyomi.data.backup.restore.BackupRestoreJob
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.export.LibraryExporter
 import eu.kanade.tachiyomi.data.export.LibraryExporter.ExportOptions
+import eu.kanade.tachiyomi.ui.storage.StorageScreen
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.collections.immutable.persistentListOf
@@ -284,9 +285,9 @@ object SettingsDataScreen : SearchableSettings {
 
     @Composable
     private fun getDataGroup(storagePreferences: StoragePreferences): Preference.PreferenceGroup {
-        val context = LocalContext.current
-        val scope = rememberCoroutineScope()
-        val libraryPreferences = remember { Injekt.get<LibraryPreferences>() }
+        // AM (STORAGE_SCREEN) -->
+        val navigator = LocalNavigator.currentOrThrow
+        // <-- AM (STORAGE_SCREEN)
 
         // AM (FILE_SIZE) -->
         LaunchedEffect(Unit) {
@@ -314,7 +315,10 @@ object SettingsDataScreen : SearchableSettings {
                         },
                     )
                 },
-
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(AMMR.strings.pref_storage_overview),
+                    onClick = { navigator.push(StorageScreen()) },
+                ),
                 // AM (FILE_SIZE) -->
                 Preference.PreferenceItem.SwitchPreference(
                     preference = storagePreferences.showEpisodeFileSize(),

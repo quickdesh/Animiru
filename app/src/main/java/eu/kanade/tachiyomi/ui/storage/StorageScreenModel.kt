@@ -1,0 +1,236 @@
+// AM (STORAGE_SCREEN) -->
+package eu.kanade.tachiyomi.ui.storage
+
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.util.fastDistinctBy
+import cafe.adriel.voyager.core.model.StateScreenModel
+import cafe.adriel.voyager.core.model.screenModelScope
+import eu.kanade.domain.anime.interactor.UpdateAnime
+import eu.kanade.presentation.more.storage.StorageScreenState
+import eu.kanade.presentation.more.storage.data.StorageData
+import eu.kanade.tachiyomi.data.download.DownloadCache
+import eu.kanade.tachiyomi.data.download.DownloadManager
+import eu.kanade.tachiyomi.util.storage.size
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.flow.update
+import tachiyomi.core.common.util.lang.launchIO
+import tachiyomi.core.common.util.lang.launchNonCancellable
+import tachiyomi.domain.anime.interactor.GetLibraryAnime
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.category.model.Category
+import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.source.local.io.Formats
+import tachiyomi.source.local.io.LocalSourceFileSystem
+import tachiyomi.source.local.isLocal
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
+import kotlin.random.Random
+
+class StorageScreenModel(
+    private val downloadCache: DownloadCache = Injekt.get(),
+    private val downloadManager: DownloadManager = Injekt.get(),
+    private val getLibraryAnime: GetLibraryAnime = Injekt.get(),
+    private val getCategories: GetCategories = Injekt.get(),
+    private val updateAnime: UpdateAnime = Injekt.get(),
+    private val sourceManager: SourceManager = Injekt.get(),
+    private val sourceFileSystem: LocalSourceFileSystem = Injekt.get(),
+) : StateScreenModel<StorageScreenState>(StorageScreenState.Loading(0)) {
+    private val _selectedCategory = MutableStateFlow<Category>(allCategory)
+    val selectedCategory = _selectedCategory.asStateFlow()
+
+    private val skipDownloadChangeFlow = MutableStateFlow(false)
+    private val _downloadedItems = MutableStateFlow<Pair<List<StorageData>, List<Category>>>(
+        emptyList<StorageData>() to emptyList(),
+    )
+    val downloadedItems = _downloadedItems.asStateFlow()
+
+    private val entries = MutableStateFlow<List<Long>>(emptyList())
+
+    init {
+        screenModelScope.launchIO {
+            val downloadCacheFlow = downloadCache.changes
+                .debounce(500L)
+                .transformLatest {
+                    if (skipDownloadChangeFlow.value) {
+                        skipDownloadChangeFlow.value = false
+                        return@transformLatest
+                    } else {
+                        emit(Unit)
+                    }
+                }
+
+            combine(
+                downloadCacheFlow,
+                downloadCache.isInitializing,
+                getLibraryAnime.subscribe().distinctUntilChanged { old, new ->
+                    old.map { Pair(it.id, it.category) }.toSet() == new.map { Pair(it.id, it.category) }.toSet()
+                },
+                getCategories.subscribe(),
+            ) { _, _, libraries, categories ->
+                val distinctEntries = libraries.fastDistinctBy {
+                    it.id
+                }
+
+                // If an anime is removed from the list, we don't want to recompute the size for all entries,
+                // just remove the entry from the list
+                if (downloadedItems.value.first.isNotEmpty() && distinctEntries.size < entries.value.size) {
+                    val (items, categories) = downloadedItems.value
+                    val libraryIds = libraries.map { it.anime.id }
+                    val newItems = items.filter { it.anime.id in libraryIds }
+
+                    entries.value = distinctEntries.map { it.id }
+
+                    return@combine newItems to categories
+                }
+
+                entries.value = distinctEntries.map { it.id }
+
+                val items = mutableListOf<StorageData>()
+
+                mutableState.update {
+                    StorageScreenState.Loading(0)
+                }
+
+                distinctEntries.forEachIndexed { index, libraryAnime ->
+                    val anime = libraryAnime.anime
+                    val random = Random(anime.id)
+
+                    val size = getSize(anime)
+                    val episodeCount = getCount(anime)
+                    val categories = getAnimeCategoryIds(anime)
+
+                    mutableState.update {
+                        StorageScreenState.Loading((((index + 1.0) / distinctEntries.size) * 100).toInt())
+                    }
+
+                    if (size > 0) {
+                        items.add(
+                            StorageData(
+                                anime = anime,
+                                categories = categories,
+                                size = size,
+                                episodeCount = episodeCount,
+                                color = Color(
+                                    random.nextInt(255),
+                                    random.nextInt(255),
+                                    random.nextInt(255),
+                                ),
+                            ),
+                        )
+                    }
+                }
+                items to listOf(allCategory) + categories
+            }
+                .collectLatest {
+                    _downloadedItems.value = it
+                }
+        }
+
+        combine(
+            downloadedItems,
+            selectedCategory,
+        ) { (items, categories), selectedCategory ->
+            val filteredItems = if (selectedCategory.id == allCategory.id) {
+                items
+            } else {
+                items.filter { item ->
+                    item.categories.contains(selectedCategory.id)
+                }
+            }
+                .sortedByDescending { it.size }
+
+            filteredItems to categories
+        }
+            .onEach { (items, categories) ->
+                if (items.isEmpty() && categories.isEmpty()) return@onEach
+
+                mutableState.update {
+                    StorageScreenState.Success(
+                        items = items,
+                        categories = categories,
+                    )
+                }
+            }
+            .launchIn(screenModelScope)
+    }
+
+    private suspend fun getAnimeCategoryIds(anime: Anime): List<Long> {
+        return getCategories.await(anime.id)
+            .map { it.id }
+    }
+
+    private fun getSize(anime: Anime): Long {
+        return if (anime.isLocal()) {
+            sourceFileSystem
+                .getAnimeDirectory(anime.url)
+                ?.size()
+                ?: 0L
+        } else {
+            downloadManager.getDownloadSize(anime)
+        }
+    }
+
+    private fun getCount(anime: Anime): Int {
+        return if (anime.isLocal()) {
+            sourceFileSystem
+                .getFilesInAnimeDirectory(anime.url)
+                .count { Formats.isSupported(it) }
+        } else {
+            downloadManager.getDownloadCount(anime)
+        }
+    }
+
+    fun setSelectedCategory(category: Category) {
+        _selectedCategory.update { category }
+    }
+
+    fun deleteAnime(storageData: StorageData, removeFromLibrary: Boolean) {
+        val anime = storageData.anime
+
+        screenModelScope.launchNonCancellable {
+            skipDownloadChangeFlow.value = true
+
+            if (anime.isLocal()) {
+                sourceFileSystem
+                    .getAnimeDirectory(anime.url)
+                    ?.delete()
+            } else {
+                val source = sourceManager.get(anime.source) ?: return@launchNonCancellable
+                downloadManager.deleteAnime(anime, source)
+            }
+
+            if (removeFromLibrary) {
+                updateAnime.awaitUpdateFavorite(storageData.anime.id, false)
+            }
+        }
+
+        _downloadedItems.update { (items, categories) ->
+            items.filterNot { it.anime.id == anime.id } to categories
+        }
+    }
+
+    companion object {
+        /**
+         * A dummy category used to display all entries irrespective of the category.
+         */
+        const val ALL_CATEGORY_ID = -1L
+
+        val allCategory = Category(
+            id = ALL_CATEGORY_ID,
+            name = "All",
+            order = 0L,
+            flags = 0L,
+            hidden = false,
+        )
+    }
+}
+// <-- AM (STORAGE_SCREEN)

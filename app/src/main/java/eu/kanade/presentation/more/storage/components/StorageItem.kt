@@ -1,4 +1,5 @@
-package eu.kanade.presentation.more.storage
+// AM (STORAGE_SCREEN) -->
+package eu.kanade.presentation.more.storage.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,33 +27,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.anime.components.AnimeCover
-import eu.kanade.tachiyomi.util.toSize
+import eu.kanade.presentation.more.storage.data.StorageData
+import eu.kanade.tachiyomi.util.storage.toSize
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.model.asAnimeCover
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
+import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
-
-data class StorageItem(
-    val id: Long,
-    val title: String,
-    val size: Long,
-    val thumbnail: String?,
-    val entriesCount: Int,
-    val color: Color,
-)
+import tachiyomi.source.local.isLocal
 
 @Composable
 fun StorageItem(
-    item: StorageItem,
+    item: StorageData,
     modifier: Modifier = Modifier,
-    onDelete: (Long) -> Unit,
+    onDelete: (Boolean) -> Unit,
+    onClickCover: () -> Unit,
 ) {
     var showDeleteDialog by remember {
         mutableStateOf(false)
@@ -65,14 +62,15 @@ fun StorageItem(
         content = {
             AnimeCover.Square(
                 modifier = Modifier.height(48.dp),
-                data = item.thumbnail,
-                contentDescription = item.title,
+                data = item.anime.asAnimeCover(),
+                contentDescription = item.anime.title,
+                onClick = onClickCover,
             )
             Column(
                 modifier = Modifier.weight(1f),
                 content = {
                     Text(
-                        text = item.title,
+                        text = item.anime.title,
                         style = MaterialTheme.typography.bodyMedium,
                         overflow = TextOverflow.Ellipsis,
                         fontWeight = FontWeight.W700,
@@ -100,8 +98,8 @@ fun StorageItem(
                             Text(
                                 text = pluralStringResource(
                                     AYMR.plurals.anime_num_episodes,
-                                    count = item.entriesCount,
-                                    item.entriesCount,
+                                    count = item.episodeCount,
+                                    item.episodeCount,
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
                             )
@@ -125,27 +123,27 @@ fun StorageItem(
 
     if (showDeleteDialog) {
         ItemDeleteDialog(
-            title = item.title,
+            anime = item.anime,
             onDismissRequest = { showDeleteDialog = false },
-            onDelete = {
-                onDelete(item.id)
-            },
+            onDelete = onDelete,
         )
     }
 }
 
 @Composable
 private fun ItemDeleteDialog(
-    title: String,
+    anime: Anime,
     onDismissRequest: () -> Unit,
-    onDelete: () -> Unit,
+    onDelete: (Boolean) -> Unit,
 ) {
+    var removeFromLibrary by remember { mutableStateOf(true) }
+
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
             TextButton(
                 onClick = {
-                    onDelete()
+                    onDelete(removeFromLibrary)
                     onDismissRequest()
                 },
                 content = {
@@ -162,29 +160,25 @@ private fun ItemDeleteDialog(
             )
         },
         title = {
-            Text(text = stringResource(AYMR.strings.delete_downloads_for_anime))
-        },
-        text = {
             Text(
-                text = stringResource(AYMR.strings.delete_confirmation, title),
+                text = stringResource(
+                    if (anime.isLocal()) AMMR.strings.delete_local_anime else MR.strings.delete_downloads_for_manga,
+                ),
             )
         },
-    )
-}
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
+            ) {
+                Text(text = stringResource(AMMR.strings.delete_anime_confirm, anime.title))
 
-@Preview(showBackground = true)
-@Composable
-private fun StorageItemPreview() {
-    StorageItem(
-        item = StorageItem(
-            id = 0L,
-            title = "Anime Title",
-            size = 123456789L,
-            thumbnail = null,
-            entriesCount = 123,
-            color = Color.Red,
-        ),
-        onDelete = {
+                LabeledCheckbox(
+                    label = stringResource(MR.strings.remove_from_library),
+                    checked = removeFromLibrary,
+                    onCheckedChange = { removeFromLibrary = it },
+                )
+            }
         },
     )
 }
+// <-- AM (STORAGE_SCREEN)

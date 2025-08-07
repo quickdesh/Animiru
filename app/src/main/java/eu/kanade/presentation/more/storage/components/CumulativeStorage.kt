@@ -1,4 +1,5 @@
-package eu.kanade.presentation.more.storage
+// AM (STORAGE_SCREEN) -->
+package eu.kanade.presentation.more.storage.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.aspectRatio
@@ -11,11 +12,12 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.Layout
-import eu.kanade.tachiyomi.util.toSize
+import eu.kanade.presentation.more.storage.data.StorageData
+import eu.kanade.tachiyomi.util.storage.toSize
 
 @Composable
 fun CumulativeStorage(
-    items: List<StorageItem>,
+    items: List<StorageData>,
     modifier: Modifier = Modifier,
     borderWidth: Float = 15f,
 ) {
@@ -31,9 +33,6 @@ fun CumulativeStorage(
             Canvas(
                 modifier = Modifier.aspectRatio(1f),
                 onDraw = {
-                    // don't bother drawing if there's no data
-                    if (totalSize == 0f) return@Canvas
-
                     val totalAngle = 180f
                     var currentAngle = 0f
                     rotate(180f) {
@@ -73,3 +72,4 @@ fun CumulativeStorage(
         },
     )
 }
+// <-- AM (STORAGE_SCREEN)

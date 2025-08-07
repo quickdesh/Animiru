@@ -204,6 +204,7 @@ class DownloadCache(
         }
     }
 
+    // AM (STORAGE_SCREEN) -->
     /**
      * Returns the total size of downloaded episodes for an anime.
      *
@@ -220,6 +221,7 @@ class DownloadCache(
             ),
         )?.dir?.size() ?: 0
     }
+    // <-- AM (STORAGE_SCREEN)
 
     /**
      * Adds an episode that has just been download to this cache.
