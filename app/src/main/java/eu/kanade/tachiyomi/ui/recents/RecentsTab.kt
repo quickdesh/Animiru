@@ -52,6 +52,7 @@ import eu.kanade.tachiyomi.ui.history.HistoryScreenModel
 import eu.kanade.tachiyomi.ui.history.resumeLastEpisodeSeenEvent
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
+import eu.kanade.tachiyomi.ui.updates.AnimeUpdatesHalfTab
 import eu.kanade.tachiyomi.ui.updates.UpdatesScreenModel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -236,7 +237,7 @@ fun RecentsScaffold(
                     onMultiDeleteClicked = updatesScreenModel::showConfirmDeleteEpisodes,
                     onOpenEpisode = { updateItem, altPlayer ->
                         scope.launchIO {
-                            eu.kanade.tachiyomi.ui.updates.anime.openEpisode(context, updateItem, altPlayer)
+                            eu.kanade.tachiyomi.ui.updates.openEpisode(context, updateItem, altPlayer)
                         }
                     },
                 )

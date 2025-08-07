@@ -40,6 +40,7 @@ import tachiyomi.domain.episode.interactor.UpdateEpisode
 import tachiyomi.domain.episode.model.EpisodeUpdate
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.anime.interactor.GetAnime
+import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.updates.interactor.GetUpdates
 import tachiyomi.domain.updates.model.UpdatesWithRelations
@@ -58,6 +59,7 @@ class UpdatesScreenModel(
     private val getEpisode: GetEpisode = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
+    downloadPreferences: DownloadPreferences = Injekt.get(),
 ) : StateScreenModel<UpdatesScreenModel.State>(State()) {
 
     private val _events: Channel<Event> = Channel(Int.MAX_VALUE)
@@ -65,13 +67,15 @@ class UpdatesScreenModel(
 
     val lastUpdated by libraryPreferences.lastUpdatedTimestamp().asState(screenModelScope)
 
+    val useExternalDownloader = downloadPreferences.useExternalDownloader().get()
+
     // First and last selected index in list
     private val selectedPositions: Array<Int> = arrayOf(-1, -1)
-    private val selectedChapterIds: HashSet<Long> = HashSet()
+    private val selectedEpisodeIds: HashSet<Long> = HashSet()
 
     init {
         screenModelScope.launchIO {
-            // Set date limit for recent chapters
+            // Set date limit for recent episodes
             val limit = ZonedDateTime.now().minusMonths(3).toInstant()
 
             combine(
@@ -107,7 +111,9 @@ class UpdatesScreenModel(
                 val downloaded = downloadManager.isEpisodeDownloaded(
                     update.episodeName,
                     update.scanlator,
-                    update.animeTitle,
+                    // AM (CUSTOM_INFORMATION) -->
+                    update.ogAnimeTitle,
+                    // <-- AM (CUSTOM_INFORMATION)
                     update.sourceId,
                 )
                 val downloadState = when {
@@ -119,7 +125,10 @@ class UpdatesScreenModel(
                     update = update,
                     downloadStateProvider = { downloadState },
                     downloadProgressProvider = { activeDownload?.progress ?: 0 },
-                    selected = update.episodeId in selectedChapterIds,
+                    selected = update.episodeId in selectedEpisodeIds,
+                    // AM (FILE_SIZE) -->
+                    fileSize = null,
+                    // <-- AM (FILE_SIZE)
                 )
             }
             .toPersistentList()
@@ -134,7 +143,7 @@ class UpdatesScreenModel(
     }
 
     /**
-     * Update status of chapters.
+     * Update status of episodes.
      *
      * @param download download object containing progress.
      */
@@ -154,51 +163,55 @@ class UpdatesScreenModel(
         }
     }
 
-    fun downloadChapters(items: List<UpdatesItem>, action: EpisodeDownloadAction) {
+    fun downloadEpisodes(items: List<UpdatesItem>, action: EpisodeDownloadAction) {
         if (items.isEmpty()) return
         screenModelScope.launch {
             when (action) {
                 EpisodeDownloadAction.START -> {
-                    downloadChapters(items)
+                    downloadEpisodes(items)
                     if (items.any { it.downloadStateProvider() == Download.State.ERROR }) {
                         downloadManager.startDownloads()
                     }
                 }
                 EpisodeDownloadAction.START_NOW -> {
-                    val chapterId = items.singleOrNull()?.update?.episodeId ?: return@launch
-                    startDownloadingNow(chapterId)
+                    val episodeId = items.singleOrNull()?.update?.episodeId ?: return@launch
+                    startDownloadingNow(episodeId)
                 }
                 EpisodeDownloadAction.CANCEL -> {
-                    val chapterId = items.singleOrNull()?.update?.episodeId ?: return@launch
-                    cancelDownload(chapterId)
+                    val episodeId = items.singleOrNull()?.update?.episodeId ?: return@launch
+                    cancelDownload(episodeId)
                 }
                 EpisodeDownloadAction.DELETE -> {
-                    deleteChapters(items)
+                    deleteEpisodes(items)
+                }
+                EpisodeDownloadAction.SHOW_QUALITIES -> {
+                    val update = items.singleOrNull()?.update ?: return@launch
+                    showQualitiesDialog(update)
                 }
             }
             toggleAllSelection(false)
         }
     }
 
-    private fun startDownloadingNow(chapterId: Long) {
-        downloadManager.startDownloadNow(chapterId)
+    private fun startDownloadingNow(episodeId: Long) {
+        downloadManager.startDownloadNow(episodeId)
     }
 
-    private fun cancelDownload(chapterId: Long) {
-        val activeDownload = downloadManager.getQueuedDownloadOrNull(chapterId) ?: return
+    private fun cancelDownload(episodeId: Long) {
+        val activeDownload = downloadManager.getQueuedDownloadOrNull(episodeId) ?: return
         downloadManager.cancelQueuedDownloads(listOf(activeDownload))
         updateDownloadState(activeDownload.apply { status = Download.State.NOT_DOWNLOADED })
     }
 
     /**
-     * Mark the selected updates list as read/unread.
+     * Mark the selected updates list as seen/unseen.
      * @param updates the list of selected updates.
-     * @param read whether to mark chapters as read or unread.
+     * @param seen whether to mark episodes as seen or unseen.
      */
-    fun markUpdatesRead(updates: List<UpdatesItem>, read: Boolean) {
+    fun markUpdatesSeen(updates: List<UpdatesItem>, seen: Boolean) {
         screenModelScope.launchIO {
             setSeenStatus.await(
-                seen = read,
+                seen = seen,
                 episodes = updates
                     .mapNotNull { getEpisode.await(it.update.episodeId) }
                     .toTypedArray(),
@@ -208,8 +221,8 @@ class UpdatesScreenModel(
     }
 
     /**
-     * Bookmarks the given list of chapters.
-     * @param updates the list of chapters to bookmark.
+     * Bookmarks the given list of episodes.
+     * @param updates the list of episodes to bookmark.
      */
     fun bookmarkUpdates(updates: List<UpdatesItem>, bookmark: Boolean) {
         screenModelScope.launchIO {
@@ -221,46 +234,74 @@ class UpdatesScreenModel(
         toggleAllSelection(false)
     }
 
+    // AM (FILLERMARK) -->
     /**
-     * Downloads the given list of chapters with the manager.
-     * @param updatesItem the list of chapters to download.
+     * Fillermarks the given list of episodes.
+     * @param updates the list of episodes to fillermark.
      */
-    private fun downloadChapters(updatesItem: List<UpdatesItem>) {
+    fun fillermarkUpdates(updates: List<UpdatesItem>, fillermark: Boolean) {
+        screenModelScope.launchIO {
+            updates
+                .filterNot { it.update.fillermark == fillermark }
+                .map { EpisodeUpdate(id = it.update.episodeId, fillermark = fillermark) }
+                .let { updateEpisode.awaitAll(it) }
+        }
+        toggleAllSelection(false)
+    }
+    // <-- AM (FILLERMARK)
+
+    /**
+     * Downloads the given list of episodes with the manager.
+     * @param updatesItem the list of episodes to download.
+     */
+    private fun downloadEpisodes(updatesItem: List<UpdatesItem>, alt: Boolean = false) {
         screenModelScope.launchNonCancellable {
             val groupedUpdates = updatesItem.groupBy { it.update.animeId }.values
             for (updates in groupedUpdates) {
-                val mangaId = updates.first().update.animeId
-                val manga = getAnime.await(mangaId) ?: continue
+                val animeId = updates.first().update.animeId
+                val anime = getAnime.await(animeId) ?: continue
                 // Don't download if source isn't available
-                sourceManager.get(manga.source) ?: continue
-                val chapters = updates.mapNotNull { getEpisode.await(it.update.episodeId) }
-                downloadManager.downloadEpisodes(manga, chapters)
+                sourceManager.get(anime.source) ?: continue
+                val episodes = updates.mapNotNull { getEpisode.await(it.update.episodeId) }
+                downloadManager.downloadEpisodes(anime, episodes, true, alt)
             }
         }
     }
 
     /**
-     * Delete selected chapters
+     * Delete selected episodes
      *
-     * @param updatesItem list of chapters
+     * @param updatesItem list of episodes
      */
-    fun deleteChapters(updatesItem: List<UpdatesItem>) {
+    fun deleteEpisodes(updatesItem: List<UpdatesItem>) {
         screenModelScope.launchNonCancellable {
             updatesItem
                 .groupBy { it.update.animeId }
                 .entries
-                .forEach { (mangaId, updates) ->
-                    val manga = getAnime.await(mangaId) ?: return@forEach
-                    val source = sourceManager.get(manga.source) ?: return@forEach
-                    val chapters = updates.mapNotNull { getEpisode.await(it.update.episodeId) }
-                    downloadManager.deleteEpisodes(chapters, manga, source)
+                .forEach { (animeId, updates) ->
+                    val anime = getAnime.await(animeId) ?: return@forEach
+                    val source = sourceManager.get(anime.source) ?: return@forEach
+                    val episodes = updates.mapNotNull { getEpisode.await(it.update.episodeId) }
+                    downloadManager.deleteEpisodes(episodes, anime, source)
                 }
         }
         toggleAllSelection(false)
     }
 
-    fun showConfirmDeleteChapters(updatesItem: List<UpdatesItem>) {
+    fun showConfirmDeleteEpisodes(updatesItem: List<UpdatesItem>) {
         setDialog(Dialog.DeleteConfirmation(updatesItem))
+    }
+
+
+    private fun showQualitiesDialog(update: UpdatesWithRelations) {
+        setDialog(
+            Dialog.ShowQualities(
+                update.episodeName,
+                update.episodeId,
+                update.animeId,
+                update.sourceId,
+            ),
+        )
     }
 
     fun toggleSelection(
@@ -279,7 +320,7 @@ class UpdatesScreenModel(
 
                 val firstSelection = none { it.selected }
                 set(selectedIndex, selectedItem.copy(selected = selected))
-                selectedChapterIds.addOrRemove(item.update.episodeId, selected)
+                selectedEpisodeIds.addOrRemove(item.update.episodeId, selected)
 
                 if (selected && userSelected && fromLongPress) {
                     if (firstSelection) {
@@ -302,7 +343,7 @@ class UpdatesScreenModel(
                         range.forEach {
                             val inbetweenItem = get(it)
                             if (!inbetweenItem.selected) {
-                                selectedChapterIds.add(inbetweenItem.update.episodeId)
+                                selectedEpisodeIds.add(inbetweenItem.update.episodeId)
                                 set(it, inbetweenItem.copy(selected = true))
                             }
                         }
@@ -330,7 +371,7 @@ class UpdatesScreenModel(
     fun toggleAllSelection(selected: Boolean) {
         mutableState.update { state ->
             val newItems = state.items.map {
-                selectedChapterIds.addOrRemove(it.update.episodeId, selected)
+                selectedEpisodeIds.addOrRemove(it.update.episodeId, selected)
                 it.copy(selected = selected)
             }
             state.copy(items = newItems.toPersistentList())
@@ -343,7 +384,7 @@ class UpdatesScreenModel(
     fun invertSelection() {
         mutableState.update { state ->
             val newItems = state.items.map {
-                selectedChapterIds.addOrRemove(it.update.episodeId, !it.selected)
+                selectedEpisodeIds.addOrRemove(it.update.episodeId, !it.selected)
                 it.copy(selected = !it.selected)
             }
             state.copy(items = newItems.toPersistentList())
@@ -386,6 +427,12 @@ class UpdatesScreenModel(
 
     sealed interface Dialog {
         data class DeleteConfirmation(val toDelete: List<UpdatesItem>) : Dialog
+        data class ShowQualities(
+            val episodeTitle: String,
+            val episodeId: Long,
+            val animeId: Long,
+            val sourceId: Long,
+        ) : Dialog
     }
 
     sealed interface Event {
@@ -400,4 +447,7 @@ data class UpdatesItem(
     val downloadStateProvider: () -> Download.State,
     val downloadProgressProvider: () -> Int,
     val selected: Boolean = false,
+    // AM (FILE_SIZE) -->
+    var fileSize: Long?,
+    // <-- AM (FILE_SIZE)
 )
