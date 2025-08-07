@@ -1,3 +1,123 @@
 -- Add notes column
 ALTER TABLE animes
 ADD notes TEXT NOT NULL DEFAULT "";
+
+-- Add excluded scanlators
+CREATE TABLE excluded_scanlators(
+    anime_id INTEGER NOT NULL,
+    scanlator TEXT NOT NULL,
+    FOREIGN KEY(anime_id) REFERENCES animes (_id)
+    ON DELETE CASCADE
+);
+CREATE INDEX excluded_scanlators_anime_id_index ON excluded_scanlators(anime_id);
+
+-- Move from animesources to sources
+ALTER TABLE animesources RENAME TO sources;
+
+-- Move from animehistory to history
+ALTER TABLE animehistory RENAME TO history;
+DROP INDEX IF EXISTS animehistory_history_episode_id_index;
+CREATE INDEX history_history_episode_id_index ON history(episode_id);
+
+-- Move from animelib to anime
+DROP INDEX IF EXISTS animelib_favorite_index;
+CREATE INDEX library_favorite_index ON animes(favorite) WHERE favorite = 1;
+
+-- Rename history view
+DROP VIEW IF EXISTS animehistoryView;
+CREATE VIEW historyView AS
+SELECT
+    history._id AS id,
+    animes._id AS animeId,
+    episodes._id AS episodeId,
+    animes.title,
+    animes.thumbnail_url AS thumbnailUrl,
+    animes.source,
+    animes.favorite,
+    animes.cover_last_modified,
+    episodes.episode_number AS episodeNumber,
+    history.last_seen AS seenAt,
+    max_last_seen.last_seen AS maxSeenAt,
+    max_last_seen.episode_id AS maxSeenAtEpisodeId
+FROM animes
+JOIN episodes
+ON animes._id = episodes.anime_id
+JOIN history
+ON episodes._id = history.episode_id
+JOIN (
+    SELECT episodes.anime_id,episodes._id AS episode_id, MAX(history.last_seen) AS last_seen
+    FROM episodes JOIN history
+    ON episodes._id = history.episode_id
+    GROUP BY episodes.anime_id
+) AS max_last_seen
+ON episodes.anime_id = max_last_seen.anime_id;
+
+-- Rename library view
+DROP VIEW IF EXISTS animelibView;
+CREATE VIEW libraryView AS
+SELECT
+    A.*,
+    coalesce(EP.total, 0) AS totalCount,
+    coalesce(EP.seenCount, 0) AS seenCount,
+    coalesce(EP.latestUpload, 0) AS latestUpload,
+    coalesce(EP.fetchedAt, 0) AS episodeFetchedAt,
+    coalesce(EP.lastSeen, 0) AS lastSeen,
+    coalesce(EP.bookmarkCount, 0) AS bookmarkCount,
+    -- AM (FILLERMARK) -->
+    coalesce(EP.fillermarkCount, 0) AS fillermarkCount,
+    -- <-- AM (FILLERMARK)
+    coalesce(AC.category_id, 0) AS category
+FROM animes A
+LEFT JOIN(
+    SELECT
+        episodes.anime_id,
+        count(*) AS total,
+        sum(seen) AS seenCount,
+        coalesce(max(episodes.date_upload), 0) AS latestUpload,
+        coalesce(max(history.last_seen), 0) AS lastSeen,
+        coalesce(max(episodes.date_fetch), 0) AS fetchedAt,
+        sum(episodes.bookmark) AS bookmarkCount,
+        -- AM (FILLERMARK) -->
+        sum(episodes.fillermark) AS fillermarkCount
+        -- <-- AM (FILLERMARK)
+    FROM episodes
+    LEFT JOIN excluded_scanlators
+    ON episodes.anime_id = excluded_scanlators.anime_id
+    AND episodes.scanlator = excluded_scanlators.scanlator
+    LEFT JOIN history
+    ON episodes._id = history.episode_id
+    WHERE excluded_scanlators.scanlator IS NULL
+    GROUP BY episodes.anime_id
+) AS EP
+ON A._id = EP.anime_id
+LEFT JOIN animes_categories AS AC
+ON AC.anime_id = A._id
+WHERE A.favorite = 1;
+
+-- Rename update view
+DROP VIEW IF EXISTS animeupdatesView;
+CREATE VIEW updatesView AS
+SELECT
+    animes._id AS animeId,
+    animes.title AS animeTitle,
+    episodes._id AS episodeId,
+    episodes.name AS episodeName,
+    episodes.scanlator,
+    episodes.seen,
+    episodes.bookmark,
+    -- AM (FILLERMARK) -->
+    episodes.fillermark,
+    -- <-- AM (FILLERMARK)
+    episodes.last_second_seen,
+    episodes.total_seconds AS totalSeconds,
+    animes.source,
+    animes.favorite,
+    animes.thumbnail_url AS thumbnailUrl,
+    animes.cover_last_modified AS coverLastModified,
+    episodes.date_upload AS dateUpload,
+    episodes.date_fetch AS datefetch
+FROM animes JOIN episodes
+ON animes._id = episodes.anime_id
+WHERE favorite = 1
+AND date_fetch > date_added
+ORDER BY date_fetch DESC;
