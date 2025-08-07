@@ -20,6 +20,7 @@ import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_HAS_U
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_NON_COMPLETED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_NON_SEEN
 import tachiyomi.domain.anime.interactor.GetLibraryAnime
+import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.model.Track
 import tachiyomi.source.local.isLocal
@@ -29,6 +30,7 @@ import uy.kohesive.injekt.api.get
 class StatsScreenModel(
     private val downloadManager: DownloadManager = Injekt.get(),
     private val getLibraryAnime: GetLibraryAnime = Injekt.get(),
+    private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
     private val getTracks: GetTracks = Injekt.get(),
     private val preferences: LibraryPreferences = Injekt.get(),
     private val trackerManager: TrackerManager = Injekt.get(),
@@ -38,37 +40,37 @@ class StatsScreenModel(
 
     init {
         screenModelScope.launchIO {
-            val libraryManga = getLibraryAnime.await()
+            val libraryAnime = getLibraryAnime.await()
 
-            val distinctLibraryManga = libraryManga.fastDistinctBy { it.id }
+            val distinctLibraryAnime = libraryAnime.fastDistinctBy { it.id }
 
-            val mangaTrackMap = getMangaTrackMap(distinctLibraryManga)
-            val scoredMangaTrackerMap = getScoredMangaTrackMap(mangaTrackMap)
+            val animeTrackMap = getAnimeTrackMap(distinctLibraryAnime)
+            val scoredAnimeTrackerMap = getScoredAnimeTrackMap(animeTrackMap)
 
-            val meanScore = getTrackMeanScore(scoredMangaTrackerMap)
+            val meanScore = getTrackMeanScore(scoredAnimeTrackerMap)
 
             val overviewStatData = StatsData.Overview(
-                libraryAnimeCount = distinctLibraryManga.size,
-                completedAnimeCount = distinctLibraryManga.count {
+                libraryAnimeCount = distinctLibraryAnime.size,
+                completedAnimeCount = distinctLibraryAnime.count {
                     it.anime.status.toInt() == SAnime.COMPLETED && it.unseenCount == 0L
                 },
-                totalSeenDuration = getTotalReadDuration.await(),
+                totalSeenDuration = getWatchTime(distinctLibraryAnime),
             )
 
             val titlesStatData = StatsData.Titles(
-                globalUpdateItemCount = getGlobalUpdateItemCount(libraryManga),
-                startedAnimeCount = distinctLibraryManga.count { it.hasStarted },
-                localAnimeCount = distinctLibraryManga.count { it.anime.isLocal() },
+                globalUpdateItemCount = getGlobalUpdateItemCount(libraryAnime),
+                startedAnimeCount = distinctLibraryAnime.count { it.hasStarted },
+                localAnimeCount = distinctLibraryAnime.count { it.anime.isLocal() },
             )
 
             val episodesStatData = StatsData.Episodes(
-                totalEpisodeCount = distinctLibraryManga.sumOf { it.totalEpisodes }.toInt(),
-                seenEpisodeCount = distinctLibraryManga.sumOf { it.seenCount }.toInt(),
+                totalEpisodeCount = distinctLibraryAnime.sumOf { it.totalEpisodes }.toInt(),
+                seenEpisodeCount = distinctLibraryAnime.sumOf { it.seenCount }.toInt(),
                 downloadCount = downloadManager.getDownloadCount(),
             )
 
             val trackersStatData = StatsData.Trackers(
-                trackedTitleCount = mangaTrackMap.count { it.value.isNotEmpty() },
+                trackedTitleCount = animeTrackMap.count { it.value.isNotEmpty() },
                 meanScore = meanScore,
                 trackerCount = loggedInTrackers.size,
             )
@@ -86,24 +88,24 @@ class StatsScreenModel(
 
     private fun getGlobalUpdateItemCount(libraryAnime: List<LibraryAnime>): Int {
         val includedCategories = preferences.updateCategories().get().map { it.toLong() }
-        val includedManga = if (includedCategories.isNotEmpty()) {
+        val includedAnime = if (includedCategories.isNotEmpty()) {
             libraryAnime.filter { it.category in includedCategories }
         } else {
             libraryAnime
         }
 
         val excludedCategories = preferences.updateCategoriesExclude().get().map { it.toLong() }
-        val excludedMangaIds = if (excludedCategories.isNotEmpty()) {
-            libraryAnime.fastMapNotNull { manga ->
-                manga.id.takeIf { manga.category in excludedCategories }
+        val excludedAnimeIds = if (excludedCategories.isNotEmpty()) {
+            libraryAnime.fastMapNotNull { anime ->
+                anime.id.takeIf { anime.category in excludedCategories }
             }
         } else {
             emptyList()
         }
 
         val updateRestrictions = preferences.autoUpdateAnimeRestrictions().get()
-        return includedManga
-            .fastFilterNot { it.anime.id in excludedMangaIds }
+        return includedAnime
+            .fastFilterNot { it.anime.id in excludedAnimeIds }
             .fastDistinctBy { it.anime.id }
             .fastCountNot {
                 (ANIME_NON_COMPLETED in updateRestrictions && it.anime.status.toInt() == SAnime.COMPLETED) ||
@@ -112,28 +114,43 @@ class StatsScreenModel(
             }
     }
 
-    private suspend fun getMangaTrackMap(libraryAnime: List<LibraryAnime>): Map<Long, List<Track>> {
+    private suspend fun getAnimeTrackMap(libraryAnime: List<LibraryAnime>): Map<Long, List<Track>> {
         val loggedInTrackerIds = loggedInTrackers.map { it.id }.toHashSet()
-        return libraryAnime.associate { manga ->
-            val tracks = getTracks.await(manga.id)
+        return libraryAnime.associate { anime ->
+            val tracks = getTracks.await(anime.id)
                 .fastFilter { it.trackerId in loggedInTrackerIds }
 
-            manga.id to tracks
+            anime.id to tracks
         }
     }
 
-    private fun getScoredMangaTrackMap(mangaTrackMap: Map<Long, List<Track>>): Map<Long, List<Track>> {
-        return mangaTrackMap.mapNotNull { (mangaId, tracks) ->
+    private suspend fun getWatchTime(libraryAnimeList: List<LibraryAnime>): Long {
+        var watchTime = 0L
+        libraryAnimeList.forEach { libraryAnime ->
+            getEpisodesByAnimeId.await(libraryAnime.anime.id).forEach { episode ->
+                watchTime += if (episode.seen) {
+                    episode.totalSeconds
+                } else {
+                    episode.lastSecondSeen
+                }
+            }
+        }
+
+        return watchTime
+    }
+
+    private fun getScoredAnimeTrackMap(animeTrackMap: Map<Long, List<Track>>): Map<Long, List<Track>> {
+        return animeTrackMap.mapNotNull { (animeId, tracks) ->
             val trackList = tracks.mapNotNull { track ->
                 track.takeIf { it.score > 0.0 }
             }
             if (trackList.isEmpty()) return@mapNotNull null
-            mangaId to trackList
+            animeId to trackList
         }.toMap()
     }
 
-    private fun getTrackMeanScore(scoredMangaTrackMap: Map<Long, List<Track>>): Double {
-        return scoredMangaTrackMap
+    private fun getTrackMeanScore(scoredAnimeTrackMap: Map<Long, List<Track>>): Double {
+        return scoredAnimeTrackMap
             .map { (_, tracks) ->
                 tracks.map(::get10PointScore).average()
             }
