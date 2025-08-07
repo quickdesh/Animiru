@@ -172,6 +172,14 @@ fun AnimeToolbar(
                             onClick = onClickEditNotes,
                         ),
                     )
+                    if (onClickSettings != null) {
+                        add(
+                            AppBar.OverflowAction(
+                                title = stringResource(AYMR.strings.settings),
+                                onClick = onClickSettings,
+                            ),
+                        )
+                    }
                 }
                     .build(),
             )
