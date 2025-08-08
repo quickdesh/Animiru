@@ -24,7 +24,7 @@ fun Anime.episodesFiltered(): Boolean {
         bookmarkedFilter != TriState.DISABLED ||
         // AM (FILLERMARK) -->
         fillermarkedFilter != TriState.DISABLED
-    // <-- AM (FILLERMARK)
+        // <-- AM (FILLERMARK)
 }
 
 fun Anime.toSAnime(): SAnime = SAnime.create().also {
