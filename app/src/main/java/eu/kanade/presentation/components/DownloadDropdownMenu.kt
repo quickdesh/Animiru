@@ -19,10 +19,10 @@ fun DownloadDropdownMenu(
     modifier: Modifier = Modifier,
 ) {
     val options = persistentListOf(
-        DownloadAction.NEXT_1_EPISODE to pluralStringResource(MR.plurals.download_amount, 1, 1),
-        DownloadAction.NEXT_5_EPISODES to pluralStringResource(MR.plurals.download_amount, 5, 5),
-        DownloadAction.NEXT_10_EPISODES to pluralStringResource(MR.plurals.download_amount, 10, 10),
-        DownloadAction.NEXT_25_EPISODES to pluralStringResource(MR.plurals.download_amount, 25, 25),
+        DownloadAction.NEXT_1_EPISODE to pluralStringResource(AYMR.plurals.download_amount_anime, 1, 1),
+        DownloadAction.NEXT_5_EPISODES to pluralStringResource(AYMR.plurals.download_amount_anime, 5, 5),
+        DownloadAction.NEXT_10_EPISODES to pluralStringResource(AYMR.plurals.download_amount_anime, 10, 10),
+        DownloadAction.NEXT_25_EPISODES to pluralStringResource(AYMR.plurals.download_amount_anime, 25, 25),
         DownloadAction.UNSEEN_EPISODES to stringResource(AYMR.strings.download_unseen),
     )
 

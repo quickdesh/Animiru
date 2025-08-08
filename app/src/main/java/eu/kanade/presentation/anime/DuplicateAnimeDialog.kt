@@ -68,6 +68,7 @@ import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.Badge
 import tachiyomi.presentation.core.components.BadgeGroup
 import tachiyomi.presentation.core.components.material.padding
@@ -209,7 +210,7 @@ private fun DuplicateAnimeListItem(
                     color = MaterialTheme.colorScheme.secondary,
                     textColor = MaterialTheme.colorScheme.onSecondary,
                     text = pluralStringResource(
-                        MR.plurals.manga_num_chapters,
+                        AYMR.plurals.anime_num_episodes,
                         duplicate.episodeCount.toInt(),
                         duplicate.episodeCount,
                     ),

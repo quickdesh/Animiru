@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.util.secondaryItemAlpha
@@ -34,7 +35,7 @@ fun MissingEpisodeCountListItem(
     ) {
         HorizontalDivider(modifier = Modifier.weight(1f))
         Text(
-            text = pluralStringResource(MR.plurals.missing_chapters, count = count, count),
+            text = pluralStringResource(AMMR.plurals.missing_episodes, count = count, count),
             style = MaterialTheme.typography.labelMedium,
         )
         HorizontalDivider(modifier = Modifier.weight(1f))

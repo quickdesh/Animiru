@@ -68,6 +68,7 @@ import kotlinx.coroutines.launch
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -303,7 +304,7 @@ private fun NavigationIconItem(tab: Tab) {
                     if (count > 0) {
                         Badge {
                             val desc = pluralStringResource(
-                                MR.plurals.notification_chapters_generic,
+                                AMMR.plurals.notification_episodes_generic,
                                 count = count,
                                 count,
                             )

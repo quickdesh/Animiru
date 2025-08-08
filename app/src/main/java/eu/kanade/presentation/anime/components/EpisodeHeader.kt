@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.SECONDARY_ALPHA
 import tachiyomi.presentation.core.components.material.padding
@@ -40,7 +41,7 @@ fun EpisodeHeader(
             text = if (episodeCount == null) {
                 stringResource(AYMR.strings.episodes)
             } else {
-                pluralStringResource(MR.plurals.manga_num_chapters, count = episodeCount, episodeCount)
+                pluralStringResource(AYMR.plurals.anime_num_episodes, count = episodeCount, episodeCount)
             },
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground,
@@ -57,7 +58,7 @@ private fun MissingEpisodesWarning(count: Int) {
     }
 
     Text(
-        text = pluralStringResource(MR.plurals.missing_chapters, count = count, count),
+        text = pluralStringResource(AMMR.plurals.missing_episodes, count = count, count),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         style = MaterialTheme.typography.bodySmall,

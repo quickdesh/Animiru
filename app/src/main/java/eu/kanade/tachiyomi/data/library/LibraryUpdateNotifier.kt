@@ -314,7 +314,7 @@ class LibraryUpdateNotifier(
             0 -> {
                 // "1 new episode" or "5 new episodes"
                 context.pluralStringResource(
-                    MR.plurals.notification_chapters_generic,
+                    AMMR.plurals.notification_episodes_generic,
                     episodes.size,
                     episodes.size,
                 )
@@ -347,7 +347,7 @@ class LibraryUpdateNotifier(
                         .take(NOTIF_MAX_EPISODES)
                         .joinToString(", ")
                     context.pluralStringResource(
-                        MR.plurals.notification_chapters_multiple_and_more,
+                        AMMR.plurals.notification_episodes_multiple_and_more,
                         remaining,
                         joinedEpisodeNumbers,
                         remaining,

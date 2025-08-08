@@ -185,7 +185,7 @@ object SettingsDownloadScreen : SearchableSettings {
                             if (it == 0) {
                                 stringResource(MR.strings.disabled)
                             } else {
-                                pluralStringResource(MR.plurals.next_unread_chapters, count = it, it)
+                                pluralStringResource(AYMR.plurals.next_unseen_episodes, count = it, it)
                             }
                         }
                         .toImmutableMap(),
