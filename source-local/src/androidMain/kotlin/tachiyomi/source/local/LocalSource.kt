@@ -32,7 +32,7 @@ import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.source.local.filter.OrderBy
 import tachiyomi.source.local.image.LocalCoverManager
-import tachiyomi.source.local.io.Formats
+import tachiyomi.source.local.io.Format
 import tachiyomi.source.local.io.LocalSourceFileSystem
 import uy.kohesive.injekt.injectLazy
 import java.io.File
@@ -210,7 +210,7 @@ actual class LocalSource(
         val episodes = fileSystem.getFilesInAnimeDirectory(anime.url)
             // Only keep supported formats
             .filterNot { it.name.orEmpty().startsWith('.') }
-            .filter { Formats.isSupported(it) }
+            .filter { Format.isSupported(it) }
             .map { episodeFile ->
                 SEpisode.create().apply {
                     url = "${anime.url}/${episodeFile.name}"

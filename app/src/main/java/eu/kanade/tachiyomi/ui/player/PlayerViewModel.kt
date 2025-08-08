@@ -1759,7 +1759,7 @@ class PlayerViewModel @JvmOverloads constructor(
         viewModelScope.launchNonCancellable {
             try {
                 val uri = imageSaver.save(
-                    image = Image.Page(
+                    image = Image.Screenshot(
                         inputStream = imageStream,
                         name = filename,
                         location = Location.Pictures(relativePath),
@@ -1794,7 +1794,7 @@ class PlayerViewModel @JvmOverloads constructor(
             viewModelScope.launchIO {
                 destDir.deleteRecursively()
                 val uri = imageSaver.save(
-                    image = Image.Page(
+                    image = Image.Screenshot(
                         inputStream = imageStream,
                         name = filename,
                         location = Location.Cache,

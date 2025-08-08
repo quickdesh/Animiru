@@ -25,7 +25,7 @@ import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.source.local.LocalSource
-import tachiyomi.source.local.io.Formats
+import tachiyomi.source.local.io.Format
 import tachiyomi.source.local.io.LocalSourceFileSystem
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -224,7 +224,7 @@ class DownloadManager(
     fun getDownloadCount(anime: Anime): Int {
         return if (anime.source == LocalSource.ID) {
             LocalSourceFileSystem(storageManager).getFilesInAnimeDirectory(anime.url)
-                .count { Formats.isSupported(it) }
+                .count { Format.isSupported(it) }
         } else {
             cache.getDownloadCount(anime)
         }

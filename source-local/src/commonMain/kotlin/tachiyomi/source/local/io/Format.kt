@@ -2,23 +2,12 @@ package tachiyomi.source.local.io
 
 import com.hippo.unifile.UniFile
 import tachiyomi.core.common.storage.extension
-import tachiyomi.source.local.io.Formats.isSupported as isArchiveSupported
 
-// TODO(mihon): Remove
-sealed interface Format {
-    data class Directory(val file: UniFile) : Format
-    data class Archive(val file: UniFile) : Format
-    data class Epub(val file: UniFile) : Format
+object Format {
 
-    class UnknownFormatException : Exception()
+    private val SUPPORTED_FORMATS_TYPES = listOf("avi", "flv", "mkv", "mov", "mp4", "webm", "wmv")
 
-    companion object {
-
-        fun valueOf(file: UniFile) = when {
-            file.isDirectory -> Directory(file)
-            file.extension.equals("epub", true) -> Epub(file)
-            isArchiveSupported(file) -> Archive(file)
-            else -> throw UnknownFormatException()
-        }
+    fun isSupported(file: UniFile): Boolean {
+        return file.extension?.lowercase() in SUPPORTED_FORMATS_TYPES
     }
 }

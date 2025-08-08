@@ -30,7 +30,7 @@ import tachiyomi.domain.category.interactor.GetVisibleCategories
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.source.service.SourceManager
-import tachiyomi.source.local.io.Formats
+import tachiyomi.source.local.io.Format
 import tachiyomi.source.local.io.LocalSourceFileSystem
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
@@ -201,7 +201,7 @@ class StorageScreenModel(
         return if (anime.isLocal()) {
             sourceFileSystem
                 .getFilesInAnimeDirectory(anime.url)
-                .count { Formats.isSupported(it) }
+                .count { Format.isSupported(it) }
         } else {
             downloadManager.getDownloadCount(anime)
         }

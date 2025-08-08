@@ -153,8 +153,7 @@ sealed class Image(
         override val location: Location,
     ) : Image(name, location)
 
-    // TODO(mihon): Change to screenshot (?)
-    data class Page(
+    data class Screenshot(
         val inputStream: () -> InputStream,
         override val name: String,
         override val location: Location,
@@ -170,7 +169,7 @@ sealed class Image(
                         ByteArrayInputStream(baos.toByteArray())
                     }
                 }
-                is Page -> inputStream
+                is Screenshot -> inputStream
             }
         }
 }

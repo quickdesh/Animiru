@@ -140,7 +140,6 @@ data object LibraryTab : Tab {
         }
         // <-- AM (GROUPING)
 
-        // TODO(mihon): Fix
         suspend fun openEpisode(episode: Episode) {
             val playerPreferences: PlayerPreferences by injectLazy()
             val extPlayer = playerPreferences.alwaysUseExternalPlayer().get()
