@@ -54,7 +54,6 @@ import tachiyomi.core.common.util.lang.compareToWithCollator
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.lang.withIOContext
-import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.SetAnimeCategories
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
@@ -69,6 +68,7 @@ import tachiyomi.domain.anime.interactor.GetLibraryAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.anime.model.applyFilter
+import tachiyomi.domain.category.interactor.GetVisibleCategories
 import tachiyomi.domain.library.model.LibraryGroup
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
@@ -89,7 +89,7 @@ typealias LibraryMap = Map<Category, List<LibraryItem>>
 
 class LibraryScreenModel(
     private val getLibraryAnime: GetLibraryAnime = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
+    private val getVisibleCategories: GetVisibleCategories = Injekt.get(),
     private val getTracksPerAnime: GetTracksPerAnime = Injekt.get(),
     private val getNextEpisodes: GetNextEpisodes = Injekt.get(),
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
@@ -456,7 +456,7 @@ class LibraryScreenModel(
                 .groupBy { it.libraryAnime.category }
         }
 
-        return combine(getCategories.subscribe(), libraryAnimesFlow) { categories, libraryAnime ->
+        return combine(getVisibleCategories.subscribe(), libraryAnimesFlow) { categories, libraryAnime ->
             val displayCategories = if (libraryAnime.isNotEmpty() && !libraryAnime.containsKey(0)) {
                 categories.fastFilterNot { it.isSystemCategory }
             } else {
@@ -523,7 +523,7 @@ class LibraryScreenModel(
     private suspend fun getCommonCategories(animes: List<Anime>): Collection<Category> {
         if (animes.isEmpty()) return emptyList()
         return animes
-            .map { getCategories.await(it.id).toSet() }
+            .map { getVisibleCategories.await(it.id).toSet() }
             .reduce { set1, set2 -> set1.intersect(set2) }
     }
 
@@ -538,7 +538,7 @@ class LibraryScreenModel(
      */
     private suspend fun getMixCategories(animes: List<Anime>): Collection<Category> {
         if (animes.isEmpty()) return emptyList()
-        val animeCategories = animes.map { getCategories.await(it.id).toSet() }
+        val animeCategories = animes.map { getVisibleCategories.await(it.id).toSet() }
         val common = animeCategories.reduce { set1, set2 -> set1.intersect(set2) }
         return animeCategories.flatten().distinct().subtract(common)
     }
@@ -643,7 +643,7 @@ class LibraryScreenModel(
     fun setAnimeCategories(animeList: List<Anime>, addCategories: List<Long>, removeCategories: List<Long>) {
         screenModelScope.launchNonCancellable {
             animeList.forEach { anime ->
-                val categoryIds = getCategories.await(anime.id)
+                val categoryIds = getVisibleCategories.await(anime.id)
                     .map { it.id }
                     .subtract(removeCategories.toSet())
                     .plus(addCategories)

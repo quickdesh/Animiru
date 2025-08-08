@@ -26,7 +26,9 @@ import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.domain.anime.interactor.GetLibraryAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.category.interactor.GetVisibleCategories
 import tachiyomi.domain.category.model.Category
+import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.source.local.io.Formats
 import tachiyomi.source.local.io.LocalSourceFileSystem
@@ -40,9 +42,11 @@ class StorageScreenModel(
     private val downloadManager: DownloadManager = Injekt.get(),
     private val getLibraryAnime: GetLibraryAnime = Injekt.get(),
     private val getCategories: GetCategories = Injekt.get(),
+    private val getVisibleCategories: GetVisibleCategories = Injekt.get(),
     private val updateAnime: UpdateAnime = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
     private val sourceFileSystem: LocalSourceFileSystem = Injekt.get(),
+    private val libraryPreferences: LibraryPreferences = Injekt.get(),
 ) : StateScreenModel<StorageScreenState>(StorageScreenState.Loading(0)) {
     private val _selectedCategory = MutableStateFlow<Category>(allCategory)
     val selectedCategory = _selectedCategory.asStateFlow()
@@ -57,6 +61,8 @@ class StorageScreenModel(
 
     init {
         screenModelScope.launchIO {
+            val hideHiddenCategories = libraryPreferences.hideHiddenCategoriesSettings().get()
+
             val downloadCacheFlow = downloadCache.changes
                 .debounce(500L)
                 .transformLatest {
@@ -74,10 +80,22 @@ class StorageScreenModel(
                 getLibraryAnime.subscribe().distinctUntilChanged { old, new ->
                     old.map { Pair(it.id, it.category) }.toSet() == new.map { Pair(it.id, it.category) }.toSet()
                 },
-                getCategories.subscribe(),
+                if (hideHiddenCategories) getVisibleCategories.subscribe() else getCategories.subscribe(),
             ) { _, _, libraries, categories ->
                 val distinctEntries = libraries.fastDistinctBy {
                     it.id
+                }.filter { libraryAnime ->
+                    val categoryId = libraryAnime.category
+                    when {
+                        // if all is selected, we want to make sure to include all entries
+                        // from only visible categories
+                        selectedCategory.value.id == ALL_CATEGORY_ID -> categories.find {
+                            it.id == categoryId
+                        } != null
+
+                        // else include only entries from the selected category
+                        else -> categoryId == selectedCategory.value.id
+                    }
                 }
 
                 // If an anime is removed from the list, we don't want to recompute the size for all entries,
