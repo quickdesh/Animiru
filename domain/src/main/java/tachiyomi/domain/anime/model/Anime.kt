@@ -1,8 +1,8 @@
 package tachiyomi.domain.anime.model
 
 import androidx.compose.runtime.Immutable
-import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
+import eu.kanade.tachiyomi.animesource.model.SAnime
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import uy.kohesive.injekt.injectLazy

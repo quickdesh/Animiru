@@ -28,6 +28,10 @@ import tachiyomi.core.common.preference.mapAsCheckboxState
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
+import tachiyomi.domain.anime.interactor.GetAnime
+import tachiyomi.domain.anime.interactor.GetDuplicateLibraryAnime
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.SetAnimeCategories
 import tachiyomi.domain.category.model.Category
@@ -37,10 +41,6 @@ import tachiyomi.domain.history.interactor.GetNextEpisodes
 import tachiyomi.domain.history.interactor.RemoveHistory
 import tachiyomi.domain.history.model.HistoryWithRelations
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.anime.interactor.GetDuplicateLibraryAnime
-import tachiyomi.domain.anime.interactor.GetAnime
-import tachiyomi.domain.anime.model.Anime
-import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get

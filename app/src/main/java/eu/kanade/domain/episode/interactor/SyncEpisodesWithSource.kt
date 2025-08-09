@@ -1,16 +1,17 @@
 package eu.kanade.domain.episode.interactor
 
-import eu.kanade.domain.episode.model.copyFromSEpisode
-import eu.kanade.domain.episode.model.toSEpisode
 import eu.kanade.domain.anime.interactor.GetExcludedScanlators
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.anime.model.toSAnime
-import eu.kanade.tachiyomi.data.download.DownloadManager
-import eu.kanade.tachiyomi.data.download.DownloadProvider
+import eu.kanade.domain.episode.model.copyFromSEpisode
+import eu.kanade.domain.episode.model.toSEpisode
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.SEpisode
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
+import eu.kanade.tachiyomi.data.download.DownloadManager
+import eu.kanade.tachiyomi.data.download.DownloadProvider
 import tachiyomi.data.episode.EpisodeSanitizer
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.episode.interactor.ShouldUpdateDbEpisode
 import tachiyomi.domain.episode.interactor.UpdateEpisode
@@ -20,7 +21,6 @@ import tachiyomi.domain.episode.model.toEpisodeUpdate
 import tachiyomi.domain.episode.repository.EpisodeRepository
 import tachiyomi.domain.episode.service.EpisodeRecognition
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.anime.model.Anime
 import tachiyomi.source.local.isLocal
 import java.lang.Long.max
 import java.time.ZonedDateTime

@@ -29,10 +29,10 @@ import kotlinx.coroutines.sync.withPermit
 import logcat.LogPriority
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.anime.interactor.GetLibraryAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.toAnimeUpdate
+import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get

@@ -120,7 +120,7 @@ private fun FilterItem(filter: AnimeFilter<*>, onUpdate: () -> Unit) {
                 onSelect = {
                     filter.state = it
                     onUpdate()
-                }
+                },
             )
         }
         is AnimeFilter.Sort -> {

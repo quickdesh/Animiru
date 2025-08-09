@@ -1,10 +1,10 @@
 package mihon.domain.episode.interactor
 
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.episode.model.Episode
-import tachiyomi.domain.download.service.DownloadPreferences
-import tachiyomi.domain.anime.model.Anime
 
 /**
  * Interactor responsible for determining which episode of an anime should be downloaded.

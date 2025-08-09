@@ -1,18 +1,18 @@
 package eu.kanade.domain
 
 import android.app.Application
+import eu.kanade.domain.anime.interactor.GetExcludedScanlators
+import eu.kanade.domain.anime.interactor.SetAnimeViewerFlags
+import eu.kanade.domain.anime.interactor.SetExcludedScanlators
+import eu.kanade.domain.anime.interactor.UpdateAnime
+import eu.kanade.domain.download.interactor.DeleteDownload
 import eu.kanade.domain.episode.interactor.GetAvailableScanlators
 import eu.kanade.domain.episode.interactor.SetSeenStatus
 import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
-import eu.kanade.domain.download.interactor.DeleteDownload
 import eu.kanade.domain.extension.interactor.GetExtensionLanguages
 import eu.kanade.domain.extension.interactor.GetExtensionSources
 import eu.kanade.domain.extension.interactor.GetExtensionsByType
 import eu.kanade.domain.extension.interactor.TrustExtension
-import eu.kanade.domain.anime.interactor.GetExcludedScanlators
-import eu.kanade.domain.anime.interactor.SetExcludedScanlators
-import eu.kanade.domain.anime.interactor.SetAnimeViewerFlags
-import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.source.interactor.GetEnabledSources
 import eu.kanade.domain.source.interactor.GetIncognitoState
 import eu.kanade.domain.source.interactor.GetLanguagesWithSources
@@ -39,28 +39,52 @@ import mihon.domain.extensionrepo.repository.ExtensionRepoRepository
 import mihon.domain.extensionrepo.service.ExtensionRepoService
 import mihon.domain.migration.usecases.MigrateAnimeUseCase
 import mihon.domain.upcoming.interactor.GetUpcomingAnime
-import tachiyomi.data.category.CategoryRepositoryImpl
-import tachiyomi.data.episode.EpisodeRepositoryImpl
-import tachiyomi.data.history.HistoryRepositoryImpl
 import tachiyomi.data.anime.AnimeRepositoryImpl
 import tachiyomi.data.anime.CustomAnimeRepositoryImpl
+import tachiyomi.data.category.CategoryRepositoryImpl
 import tachiyomi.data.custombutton.CustomButtonRepositoryImpl
+import tachiyomi.data.episode.EpisodeRepositoryImpl
+import tachiyomi.data.history.HistoryRepositoryImpl
 import tachiyomi.data.release.ReleaseServiceImpl
 import tachiyomi.data.source.SourceRepositoryImpl
 import tachiyomi.data.source.StubSourceRepositoryImpl
 import tachiyomi.data.track.TrackRepositoryImpl
 import tachiyomi.data.updates.UpdatesRepositoryImpl
+import tachiyomi.domain.anime.interactor.FetchInterval
+import tachiyomi.domain.anime.interactor.GetAnime
+import tachiyomi.domain.anime.interactor.GetAnimeByUrlAndSourceId
+import tachiyomi.domain.anime.interactor.GetAnimeWithEpisodes
+import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
+import tachiyomi.domain.anime.interactor.GetDuplicateLibraryAnime
+import tachiyomi.domain.anime.interactor.GetFavorites
+import tachiyomi.domain.anime.interactor.GetLibraryAnime
+import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
+import tachiyomi.domain.anime.interactor.ResetViewerFlags
+import tachiyomi.domain.anime.interactor.SetAnimeEpisodeFlags
+import tachiyomi.domain.anime.interactor.SetCustomAnimeInfo
+import tachiyomi.domain.anime.interactor.UpdateAnimeNotes
+import tachiyomi.domain.anime.repository.AnimeRepository
+import tachiyomi.domain.anime.repository.CustomAnimeRepository
 import tachiyomi.domain.category.interactor.CreateCategoryWithName
 import tachiyomi.domain.category.interactor.DeleteCategory
 import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.category.interactor.GetVisibleCategories
+import tachiyomi.domain.category.interactor.HideCategory
 import tachiyomi.domain.category.interactor.RenameCategory
 import tachiyomi.domain.category.interactor.ReorderCategory
 import tachiyomi.domain.category.interactor.ResetCategoryFlags
-import tachiyomi.domain.category.interactor.SetDisplayMode
 import tachiyomi.domain.category.interactor.SetAnimeCategories
+import tachiyomi.domain.category.interactor.SetDisplayMode
 import tachiyomi.domain.category.interactor.SetSortModeForCategory
 import tachiyomi.domain.category.interactor.UpdateCategory
 import tachiyomi.domain.category.repository.CategoryRepository
+import tachiyomi.domain.custombutton.interactor.CreateCustomButton
+import tachiyomi.domain.custombutton.interactor.DeleteCustomButton
+import tachiyomi.domain.custombutton.interactor.GetCustomButtons
+import tachiyomi.domain.custombutton.interactor.ReorderCustomButton
+import tachiyomi.domain.custombutton.interactor.ToggleFavoriteCustomButton
+import tachiyomi.domain.custombutton.interactor.UpdateCustomButton
+import tachiyomi.domain.custombutton.repository.CustomButtonRepository
 import tachiyomi.domain.episode.interactor.GetEpisode
 import tachiyomi.domain.episode.interactor.GetEpisodeByUrlAndAnimeId
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
@@ -73,30 +97,6 @@ import tachiyomi.domain.history.interactor.GetNextEpisodes
 import tachiyomi.domain.history.interactor.RemoveHistory
 import tachiyomi.domain.history.interactor.UpsertHistory
 import tachiyomi.domain.history.repository.HistoryRepository
-import tachiyomi.domain.anime.interactor.FetchInterval
-import tachiyomi.domain.anime.interactor.GetDuplicateLibraryAnime
-import tachiyomi.domain.anime.interactor.GetFavorites
-import tachiyomi.domain.anime.interactor.GetLibraryAnime
-import tachiyomi.domain.anime.interactor.GetAnime
-import tachiyomi.domain.anime.interactor.GetAnimeByUrlAndSourceId
-import tachiyomi.domain.anime.interactor.GetAnimeWithEpisodes
-import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
-import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
-import tachiyomi.domain.anime.interactor.ResetViewerFlags
-import tachiyomi.domain.anime.interactor.SetAnimeEpisodeFlags
-import tachiyomi.domain.anime.interactor.SetCustomAnimeInfo
-import tachiyomi.domain.anime.interactor.UpdateAnimeNotes
-import tachiyomi.domain.anime.repository.AnimeRepository
-import tachiyomi.domain.anime.repository.CustomAnimeRepository
-import tachiyomi.domain.category.interactor.GetVisibleCategories
-import tachiyomi.domain.category.interactor.HideCategory
-import tachiyomi.domain.custombutton.interactor.CreateCustomButton
-import tachiyomi.domain.custombutton.interactor.DeleteCustomButton
-import tachiyomi.domain.custombutton.interactor.GetCustomButtons
-import tachiyomi.domain.custombutton.interactor.ReorderCustomButton
-import tachiyomi.domain.custombutton.interactor.ToggleFavoriteCustomButton
-import tachiyomi.domain.custombutton.interactor.UpdateCustomButton
-import tachiyomi.domain.custombutton.repository.CustomButtonRepository
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.domain.release.service.ReleaseService
 import tachiyomi.domain.source.interactor.GetRemoteAnime
@@ -219,7 +219,6 @@ class DomainModule : InjektModule {
         addFactory { UpdateExtensionRepo(get(), get()) }
         addFactory { ToggleIncognito(get()) }
         addFactory { GetIncognitoState(get(), get(), get()) }
-
 
         addSingletonFactory<CustomButtonRepository> { CustomButtonRepositoryImpl(get()) }
         addFactory { CreateCustomButton(get()) }

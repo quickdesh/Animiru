@@ -8,18 +8,18 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.browse.MigrateSearchScreen
 import eu.kanade.presentation.util.Screen
-import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchScreenModel
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
+import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchScreenModel
 import mihon.feature.migration.dialog.MigrateAnimeDialog
 import mihon.feature.migration.list.MigrationListScreen
 
-class MigrateSearchScreen(private val mangaId: Long) : Screen() {
+class MigrateSearchScreen(private val animeId: Long) : Screen() {
 
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
 
-        val screenModel = rememberScreenModel { MigrateSearchScreenModel(mangaId = mangaId) }
+        val screenModel = rememberScreenModel { MigrateSearchScreenModel(animeId = animeId) }
         val state by screenModel.state.collectAsState()
 
         MigrateSearchScreen(
@@ -38,9 +38,9 @@ class MigrateSearchScreen(private val mangaId: Long) : Screen() {
                     .lastOrNull()
 
                 if (migrateListScreen == null) {
-                    screenModel.setMigrateDialog(mangaId, it)
+                    screenModel.setMigrateDialog(animeId, it)
                 } else {
-                    migrateListScreen.addMatchOverride(current = mangaId, target = it.id)
+                    migrateListScreen.addMatchOverride(current = animeId, target = it.id)
                     navigator.popUntil { screen -> screen is MigrationListScreen }
                 }
             },

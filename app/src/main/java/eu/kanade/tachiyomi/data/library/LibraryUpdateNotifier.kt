@@ -16,12 +16,12 @@ import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
 import eu.kanade.presentation.util.formatEpisodeNumber
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.animesource.UnmeteredSource
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.download.Downloader
 import eu.kanade.tachiyomi.data.notification.NotificationHandler
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.animesource.UnmeteredSource
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.lang.chop
 import eu.kanade.tachiyomi.util.system.cancelNotification
@@ -32,9 +32,9 @@ import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchUI
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.library.model.LibraryAnime
-import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR

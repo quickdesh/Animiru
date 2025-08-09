@@ -1,10 +1,10 @@
 package tachiyomi.domain.anime.repository
 
 import kotlinx.coroutines.flow.Flow
-import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
+import tachiyomi.domain.library.model.LibraryAnime
 
 interface AnimeRepository {
 

@@ -50,32 +50,32 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastMap
-import eu.kanade.presentation.components.relativeDateText
-import eu.kanade.presentation.anime.components.EpisodeDownloadAction
-import eu.kanade.presentation.anime.components.EpisodeHeader
-import eu.kanade.presentation.anime.components.ExpandableAnimeDescription
 import eu.kanade.presentation.anime.components.AnimeActionRow
 import eu.kanade.presentation.anime.components.AnimeBottomActionMenu
 import eu.kanade.presentation.anime.components.AnimeEpisodeListItem
 import eu.kanade.presentation.anime.components.AnimeInfoBox
 import eu.kanade.presentation.anime.components.AnimeToolbar
+import eu.kanade.presentation.anime.components.EpisodeDownloadAction
+import eu.kanade.presentation.anime.components.EpisodeHeader
+import eu.kanade.presentation.anime.components.ExpandableAnimeDescription
 import eu.kanade.presentation.anime.components.MissingEpisodeCountListItem
 import eu.kanade.presentation.anime.components.NextEpisodeAiringListItem
+import eu.kanade.presentation.components.relativeDateText
 import eu.kanade.presentation.util.formatEpisodeNumber
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.getNameForAnimeInfo
-import eu.kanade.tachiyomi.ui.anime.EpisodeList
 import eu.kanade.tachiyomi.ui.anime.AnimeScreenModel
+import eu.kanade.tachiyomi.ui.anime.EpisodeList
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import kotlinx.coroutines.delay
 import tachiyomi.core.common.util.lang.withIOContext
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.episode.service.missingEpisodesCount
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
@@ -415,7 +415,9 @@ private fun AnimeScreenSmallImpl(
                             state.episodes.fastAny { it.episode.seen }
                         }
                         Text(
-                            text = stringResource(if (isWatching) MR.strings.action_resume else MR.strings.action_start),
+                            text = stringResource(
+                                if (isWatching) MR.strings.action_resume else MR.strings.action_start,
+                            ),
                         )
                     },
                     icon = { Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null) },

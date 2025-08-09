@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import eu.kanade.presentation.anime.components.AnimeNotesTextArea
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarTitle
-import eu.kanade.presentation.anime.components.AnimeNotesTextArea
 import eu.kanade.tachiyomi.ui.anime.notes.AnimeNotesScreen
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold

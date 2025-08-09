@@ -1,10 +1,10 @@
 package tachiyomi.domain.history.interactor
 
+import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.episode.service.getEpisodeSort
 import tachiyomi.domain.history.repository.HistoryRepository
-import tachiyomi.domain.anime.interactor.GetAnime
 import kotlin.math.max
 
 class GetNextEpisodes(

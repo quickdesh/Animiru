@@ -64,8 +64,8 @@ import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.anime.interactor.ResetViewerFlags
+import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.i18n.stringResource

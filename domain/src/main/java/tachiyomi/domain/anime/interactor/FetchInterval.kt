@@ -1,9 +1,9 @@
 package tachiyomi.domain.anime.interactor
 
-import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
-import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeUpdate
+import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
+import tachiyomi.domain.episode.model.Episode
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime

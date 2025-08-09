@@ -3,8 +3,8 @@ package eu.kanade.tachiyomi.util
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.anime.model.hasCustomCover
 import eu.kanade.domain.anime.model.toSAnime
-import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.animesource.model.SAnime
+import eu.kanade.tachiyomi.data.cache.CoverCache
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.source.local.image.LocalCoverManager
 import tachiyomi.source.local.isLocal

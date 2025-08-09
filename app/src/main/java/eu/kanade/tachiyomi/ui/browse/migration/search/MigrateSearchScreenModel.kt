@@ -13,7 +13,7 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class MigrateSearchScreenModel(
-    val mangaId: Long,
+    val animeId: Long,
     getAnime: GetAnime = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
     private val sourcePreferences: SourcePreferences = Injekt.get(),
@@ -30,7 +30,7 @@ class MigrateSearchScreenModel(
 
     init {
         screenModelScope.launch {
-            val anime = getAnime.await(mangaId)!!
+            val anime = getAnime.await(animeId)!!
             mutableState.update {
                 it.copy(
                     from = anime,

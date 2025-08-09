@@ -3,9 +3,9 @@ package mihon.feature.migration.list
 import androidx.annotation.FloatRange
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.anime.model.toSAnime
+import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
 import eu.kanade.tachiyomi.source.getNameForAnimeInfo
@@ -34,10 +34,10 @@ import mihon.feature.migration.list.search.SmartSourceSearchEngine
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get

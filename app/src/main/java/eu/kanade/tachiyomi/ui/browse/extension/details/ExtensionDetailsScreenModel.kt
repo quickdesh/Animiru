@@ -9,10 +9,10 @@ import eu.kanade.domain.extension.interactor.GetExtensionSources
 import eu.kanade.domain.source.interactor.ToggleIncognito
 import eu.kanade.domain.source.interactor.ToggleSource
 import eu.kanade.domain.source.service.SourcePreferences
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.network.NetworkHelper
-import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf

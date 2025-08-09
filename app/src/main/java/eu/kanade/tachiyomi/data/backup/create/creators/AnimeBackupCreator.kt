@@ -1,17 +1,17 @@
 package eu.kanade.tachiyomi.data.backup.create.creators
 
 import eu.kanade.tachiyomi.data.backup.create.BackupOptions
+import eu.kanade.tachiyomi.data.backup.models.BackupAnime
 import eu.kanade.tachiyomi.data.backup.models.BackupEpisode
 import eu.kanade.tachiyomi.data.backup.models.BackupHistory
-import eu.kanade.tachiyomi.data.backup.models.BackupAnime
 import eu.kanade.tachiyomi.data.backup.models.backupEpisodeMapper
 import eu.kanade.tachiyomi.data.backup.models.backupTrackMapper
 import tachiyomi.data.DatabaseHandler
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
-import tachiyomi.domain.category.interactor.GetCategories
-import tachiyomi.domain.history.interactor.GetHistory
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.CustomAnimeInfo
+import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.history.interactor.GetHistory
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -89,7 +89,7 @@ class AnimeBackupCreator(
 
 private fun Anime.toBackupAnime(
     // AM (CUSTOM_INFORMATION) -->
-    customAnimeInfo: CustomAnimeInfo?
+    customAnimeInfo: CustomAnimeInfo?,
     // <-- AM (CUSTOM_INFORMATION)
 ) =
     BackupAnime(
@@ -125,4 +125,4 @@ private fun Anime.toBackupAnime(
                 backupAnime.customStatus = it.status?.toInt() ?: 0
             }
         }
-        // <-- AM (CUSTOM_INFORMATION)
+// <-- AM (CUSTOM_INFORMATION)

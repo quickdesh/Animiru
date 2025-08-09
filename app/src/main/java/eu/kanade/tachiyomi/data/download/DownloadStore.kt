@@ -2,14 +2,14 @@ package eu.kanade.tachiyomi.data.download
 
 import android.content.Context
 import androidx.core.content.edit
-import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
+import eu.kanade.tachiyomi.data.download.model.Download
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import tachiyomi.domain.episode.interactor.GetEpisode
 import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.episode.interactor.GetEpisode
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get

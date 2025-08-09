@@ -12,10 +12,10 @@ import coil3.fetch.SourceFetchResult
 import coil3.getOrDefault
 import coil3.request.Options
 import com.hippo.unifile.UniFile
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.coil.AnimeCoverFetcher.Companion.USE_CUSTOM_COVER_KEY
 import eu.kanade.tachiyomi.network.await
-import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import logcat.LogPriority
 import okhttp3.CacheControl
 import okhttp3.Call

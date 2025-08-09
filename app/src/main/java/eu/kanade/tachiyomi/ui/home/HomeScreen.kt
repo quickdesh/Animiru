@@ -30,10 +30,10 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.TabNavigator
 import eu.kanade.presentation.util.Screen
+import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.browse.BrowseTab
 import eu.kanade.tachiyomi.ui.download.DownloadQueueScreen
 import eu.kanade.tachiyomi.ui.library.LibraryTab
-import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.more.MoreTab
 import eu.kanade.tachiyomi.ui.recents.RecentsTab
 import kotlinx.coroutines.channels.Channel
@@ -214,8 +214,10 @@ object HomeScreen : Screen() {
 
     sealed interface Tab {
         data class Library(val animeIdToOpen: Long? = null) : Tab
+
         // AM (RECENTS) -->
         data class Recents(val toHistory: Boolean) : Tab
+
         // <-- AM (RECENTS)
         data class Browse(val toExtensions: Boolean = false) : Tab
         data class More(val toDownloads: Boolean) : Tab

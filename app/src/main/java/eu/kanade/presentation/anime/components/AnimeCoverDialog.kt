@@ -49,10 +49,10 @@ import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.size.Size
+import eu.kanade.presentation.anime.EditCoverAction
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.DropdownMenu
-import eu.kanade.presentation.anime.EditCoverAction
 import eu.kanade.tachiyomi.util.ReaderPageImageView
 import kotlinx.collections.immutable.persistentListOf
 import soup.compose.material.motion.MotionConstants

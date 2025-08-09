@@ -6,11 +6,11 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.DatabaseHandler
 import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
-import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
 import tachiyomi.domain.anime.repository.AnimeRepository
+import tachiyomi.domain.library.model.LibraryAnime
 import java.time.LocalDate
 import java.time.ZoneId
 

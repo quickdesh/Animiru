@@ -51,8 +51,8 @@ import eu.kanade.presentation.components.WarningBanner
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.TrailingWidgetBuffer
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.animesource.ConfigurableAnimeSource
+import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.ui.browse.extension.details.ExtensionDetailsScreenModel
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import eu.kanade.tachiyomi.util.system.copyToClipboard

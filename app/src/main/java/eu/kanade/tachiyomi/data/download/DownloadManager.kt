@@ -1,9 +1,9 @@
 package eu.kanade.tachiyomi.data.download
 
 import android.content.Context
-import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.Video
+import eu.kanade.tachiyomi.data.download.model.Download
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.drop
@@ -17,10 +17,10 @@ import logcat.LogPriority
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.category.interactor.GetCategories
-import tachiyomi.domain.episode.model.Episode
-import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.download.service.DownloadPreferences
+import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.aniyomi.AYMR
@@ -238,6 +238,7 @@ class DownloadManager(
     }
 
     // AM (STORAGE_SCREEN) -->
+
     /**
      * Returns the size of downloaded episodes for an anime.
      *

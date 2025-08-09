@@ -100,7 +100,6 @@ val playerRippleConfiguration
         ),
     )
 
-
 private val colorSchemes: Map<AppTheme, BaseColorScheme> = mapOf(
     AppTheme.DEFAULT to TachiyomiColorScheme,
     AppTheme.CATPPUCCIN to CatppuccinColorScheme,

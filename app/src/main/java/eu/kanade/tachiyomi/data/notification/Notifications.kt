@@ -67,6 +67,7 @@ object Notifications {
     const val ID_INCOGNITO_MODE = -701
 
     // AM (DISCORD_RPC) -->
+
     /**
      * Notification channel used for Discord RPC
      */

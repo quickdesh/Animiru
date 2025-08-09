@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.retry
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.anime.repository.AnimeRepository
+import tachiyomi.domain.library.model.LibraryAnime
 import kotlin.time.Duration.Companion.seconds
 
 class GetLibraryAnime(

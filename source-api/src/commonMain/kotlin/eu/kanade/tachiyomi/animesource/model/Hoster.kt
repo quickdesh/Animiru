@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.animesource.model
 
-
 import eu.kanade.tachiyomi.animesource.model.SerializableVideo.Companion.serialize
 import eu.kanade.tachiyomi.animesource.model.SerializableVideo.Companion.toVideoList
 import kotlinx.serialization.Serializable

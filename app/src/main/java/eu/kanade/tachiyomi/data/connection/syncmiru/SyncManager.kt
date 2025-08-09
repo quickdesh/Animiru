@@ -22,8 +22,8 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.DatabaseHandler
 import tachiyomi.data.Episodes
 import tachiyomi.data.anime.AnimeMapper.mapAnime
-import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.category.interactor.GetCategories
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File

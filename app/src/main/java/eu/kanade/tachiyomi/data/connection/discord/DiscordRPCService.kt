@@ -227,4 +227,3 @@ class DiscordRPCService : Service() {
     }
 }
 // <-- AM (DISCORD_RPC)
-

@@ -56,9 +56,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastMaxOfOrNull
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import eu.kanade.presentation.anime.components.AnimeCover
 import eu.kanade.presentation.components.AdaptiveSheet
 import eu.kanade.presentation.components.TabbedDialogPaddings
-import eu.kanade.presentation.anime.components.AnimeCover
 import eu.kanade.presentation.more.settings.LocalPreferenceMinHeight
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.tachiyomi.animesource.AnimeSource

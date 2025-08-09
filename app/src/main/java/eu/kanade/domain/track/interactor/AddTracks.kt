@@ -2,19 +2,19 @@ package eu.kanade.domain.track.interactor
 
 import eu.kanade.domain.track.model.toDbTrack
 import eu.kanade.domain.track.model.toDomainTrack
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.Tracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
-import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.util.lang.convertEpochMillisZone
 import logcat.LogPriority
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.lang.withNonCancellableContext
 import tachiyomi.core.common.util.system.logcat
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.history.interactor.GetHistory
-import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.track.interactor.InsertTrack
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get

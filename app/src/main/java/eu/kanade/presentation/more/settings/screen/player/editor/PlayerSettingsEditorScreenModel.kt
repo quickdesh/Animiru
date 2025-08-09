@@ -5,10 +5,10 @@ import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import dev.icerock.moko.resources.StringResource
-import eu.kanade.tachiyomi.util.storage.size
 import eu.kanade.tachiyomi.util.storage.DiskUtil
-import eu.kanade.tachiyomi.util.system.toast
+import eu.kanade.tachiyomi.util.storage.size
 import eu.kanade.tachiyomi.util.storage.toSize
+import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest

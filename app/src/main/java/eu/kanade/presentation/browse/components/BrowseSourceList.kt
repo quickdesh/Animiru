@@ -13,8 +13,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import eu.kanade.presentation.library.components.CommonAnimeItemDefaults
 import eu.kanade.presentation.library.components.AnimeListItem
+import eu.kanade.presentation.library.components.CommonAnimeItemDefaults
 import kotlinx.coroutines.flow.StateFlow
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeCover

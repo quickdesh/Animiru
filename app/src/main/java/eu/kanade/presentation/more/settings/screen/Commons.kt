@@ -47,6 +47,7 @@ fun getCategoriesLabel(
 }
 
 // AM (DISCORD_RPC) -->
+
 /**
  * Returns a string of categories name for settings subtitle
  */

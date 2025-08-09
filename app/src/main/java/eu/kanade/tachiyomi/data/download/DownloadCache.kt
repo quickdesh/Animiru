@@ -4,8 +4,8 @@ import android.app.Application
 import android.content.Context
 import androidx.core.net.toUri
 import com.hippo.unifile.UniFile
-import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.animesource.AnimeSource
+import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.util.storage.size
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -46,8 +46,8 @@ import tachiyomi.core.common.storage.nameWithoutExtension
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StorageManager
 import uy.kohesive.injekt.Injekt
@@ -193,7 +193,6 @@ class DownloadCache(
         return 0
     }
 
-
     /**
      * Returns the total size of downloaded episodes.
      */
@@ -206,6 +205,7 @@ class DownloadCache(
     }
 
     // AM (STORAGE_SCREEN) -->
+
     /**
      * Returns the total size of downloaded episodes for an anime.
      *

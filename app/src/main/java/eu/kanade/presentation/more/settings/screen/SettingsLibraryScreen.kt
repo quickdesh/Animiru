@@ -29,13 +29,13 @@ import tachiyomi.domain.category.interactor.ResetCategoryFlags
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.model.GroupLibraryMode
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_NETWORK_NOT_METERED
-import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_ONLY_ON_WIFI
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_HAS_UNSEEN
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_NON_COMPLETED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_NON_SEEN
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.ANIME_OUTSIDE_RELEASE_PERIOD
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_CHARGING
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_NETWORK_NOT_METERED
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.DEVICE_ONLY_ON_WIFI
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_EPISODE_SEEN_EXISTING
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_EPISODE_SEEN_NEW
 import tachiyomi.i18n.MR

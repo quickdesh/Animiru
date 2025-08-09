@@ -4,12 +4,12 @@ import eu.kanade.domain.download.interactor.DeleteDownload
 import logcat.LogPriority
 import tachiyomi.core.common.util.lang.withNonCancellableContext
 import tachiyomi.core.common.util.system.logcat
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.repository.AnimeRepository
+import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.episode.model.EpisodeUpdate
 import tachiyomi.domain.episode.repository.EpisodeRepository
-import tachiyomi.domain.download.service.DownloadPreferences
-import tachiyomi.domain.anime.model.Anime
-import tachiyomi.domain.anime.repository.AnimeRepository
 
 class SetSeenStatus(
     private val downloadPreferences: DownloadPreferences,

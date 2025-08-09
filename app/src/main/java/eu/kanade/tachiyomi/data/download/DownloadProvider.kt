@@ -9,8 +9,8 @@ import logcat.LogPriority
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.displayablePath
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.MR
 import tachiyomi.source.local.io.LocalSourceFileSystem
@@ -102,7 +102,12 @@ class DownloadProvider(
      * @param animeTitle the title of the anime to query.
      * @param source the source of the episode.
      */
-    fun findEpisodeDir(episodeName: String, episodeScanlator: String?, animeTitle: String, source: AnimeSource): UniFile? {
+    fun findEpisodeDir(
+        episodeName: String,
+        episodeScanlator: String?,
+        animeTitle: String,
+        source: AnimeSource,
+    ): UniFile? {
         val animeDir = findAnimeDir(animeTitle, source)
         return getValidEpisodeDirNames(episodeName, episodeScanlator).asSequence()
             .mapNotNull { animeDir?.findFile(it) }
@@ -205,6 +210,7 @@ class DownloadProvider(
     }
 
     // AM (FILE_SIZE) -->
+
     /**
      * Returns an episode file size in bytes.
      * Returns null if the episode is not found in expected location

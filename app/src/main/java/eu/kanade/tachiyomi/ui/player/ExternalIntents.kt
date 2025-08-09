@@ -37,9 +37,9 @@ import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.episode.interactor.UpdateEpisode
 import tachiyomi.domain.episode.model.Episode

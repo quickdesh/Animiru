@@ -11,11 +11,11 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.util.Screen
-import eu.kanade.tachiyomi.ui.browse.migration.search.MigrateSearchScreen
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
+import eu.kanade.tachiyomi.ui.browse.migration.search.MigrateSearchScreen
 import eu.kanade.tachiyomi.util.system.toast
-import mihon.feature.migration.list.components.MigrationExitDialog
 import mihon.feature.migration.list.components.MigrationAnimeDialog
+import mihon.feature.migration.list.components.MigrationExitDialog
 import mihon.feature.migration.list.components.MigrationProgressDialog
 import tachiyomi.i18n.MR
 

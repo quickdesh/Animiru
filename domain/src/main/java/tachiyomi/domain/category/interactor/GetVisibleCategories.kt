@@ -1,9 +1,8 @@
 package tachiyomi.domain.category.interactor
 
-
 import kotlinx.coroutines.flow.Flow
-import tachiyomi.domain.category.repository.CategoryRepository
 import tachiyomi.domain.category.model.Category
+import tachiyomi.domain.category.repository.CategoryRepository
 
 class GetVisibleCategories(
     private val categoryRepository: CategoryRepository,

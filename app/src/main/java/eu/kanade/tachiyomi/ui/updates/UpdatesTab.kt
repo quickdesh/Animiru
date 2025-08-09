@@ -15,9 +15,9 @@ import eu.kanade.presentation.anime.EpisodeOptionsDialogScreen
 import eu.kanade.presentation.components.NavigatorAdaptiveSheet
 import eu.kanade.presentation.updates.UpdateScreen
 import eu.kanade.presentation.updates.UpdatesDeleteConfirmationDialog
+import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
-import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import eu.kanade.tachiyomi.ui.updates.UpdatesScreenModel.Event
 import kotlinx.coroutines.flow.collectLatest

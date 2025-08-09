@@ -1,9 +1,9 @@
 package mihon.domain.migration.usecases
 
-import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.anime.model.hasCustomCover
 import eu.kanade.domain.anime.model.toSAnime
+import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -11,13 +11,13 @@ import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import kotlinx.coroutines.CancellationException
 import mihon.domain.migration.models.MigrationFlag
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.SetAnimeCategories
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.episode.interactor.UpdateEpisode
 import tachiyomi.domain.episode.model.toEpisodeUpdate
-import tachiyomi.domain.anime.model.Anime
-import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack

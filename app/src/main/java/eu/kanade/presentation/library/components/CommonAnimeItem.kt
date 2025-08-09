@@ -54,14 +54,14 @@ object CommonAnimeItemDefaults {
     const val BrowseFavoriteCoverAlpha = 0.34f
 }
 
-private val ContinueViewingButtonSizeSmall = 28.dp
-private val ContinueViewingButtonSizeLarge = 32.dp
+private val ContinueWatchingButtonSizeSmall = 28.dp
+private val ContinueWatchingButtonSizeLarge = 32.dp
 
-private val ContinueViewingButtonIconSizeSmall = 16.dp
-private val ContinueViewingButtonIconSizeLarge = 20.dp
+private val ContinueWatchingButtonIconSizeSmall = 16.dp
+private val ContinueWatchingButtonIconSizeLarge = 20.dp
 
-private val ContinueViewingButtonGridPadding = 6.dp
-private val ContinueViewingButtonListSpacing = 8.dp
+private val ContinueWatchingButtonGridPadding = 6.dp
+private val ContinueWatchingButtonListSpacing = 8.dp
 
 private const val GRID_SELECTED_COVER_ALPHA = 0.76f
 
@@ -105,11 +105,11 @@ fun AnimeCompactGridItem(
                     )
                 } else if (onClickContinueWatching != null) {
                     ContinueWatchingButton(
-                        size = ContinueViewingButtonSizeLarge,
-                        iconSize = ContinueViewingButtonIconSizeLarge,
+                        size = ContinueWatchingButtonSizeLarge,
+                        iconSize = ContinueWatchingButtonIconSizeLarge,
                         onClick = onClickContinueWatching,
                         modifier = Modifier
-                            .padding(ContinueViewingButtonGridPadding)
+                            .padding(ContinueWatchingButtonGridPadding)
                             .align(Alignment.BottomEnd),
                     )
                 }
@@ -159,12 +159,12 @@ private fun BoxScope.CoverTextOverlay(
         )
         if (onClickContinueWatching != null) {
             ContinueWatchingButton(
-                size = ContinueViewingButtonSizeSmall,
-                iconSize = ContinueViewingButtonIconSizeSmall,
+                size = ContinueWatchingButtonSizeSmall,
+                iconSize = ContinueWatchingButtonIconSizeSmall,
                 onClick = onClickContinueWatching,
                 modifier = Modifier.padding(
-                    end = ContinueViewingButtonGridPadding,
-                    bottom = ContinueViewingButtonGridPadding,
+                    end = ContinueWatchingButtonGridPadding,
+                    bottom = ContinueWatchingButtonGridPadding,
                 ),
             )
         }
@@ -207,11 +207,11 @@ fun AnimeComfortableGridItem(
                 content = {
                     if (onClickContinueWatching != null) {
                         ContinueWatchingButton(
-                            size = ContinueViewingButtonSizeLarge,
-                            iconSize = ContinueViewingButtonIconSizeLarge,
+                            size = ContinueWatchingButtonSizeLarge,
+                            iconSize = ContinueWatchingButtonIconSizeLarge,
                             onClick = onClickContinueWatching,
                             modifier = Modifier
-                                .padding(ContinueViewingButtonGridPadding)
+                                .padding(ContinueWatchingButtonGridPadding)
                                 .align(Alignment.BottomEnd),
                         )
                     }
@@ -378,10 +378,10 @@ fun AnimeListItem(
         BadgeGroup(content = badge)
         if (onClickContinueWatching != null) {
             ContinueWatchingButton(
-                size = ContinueViewingButtonSizeSmall,
-                iconSize = ContinueViewingButtonIconSizeSmall,
+                size = ContinueWatchingButtonSizeSmall,
+                iconSize = ContinueWatchingButtonIconSizeSmall,
                 onClick = onClickContinueWatching,
-                modifier = Modifier.padding(start = ContinueViewingButtonListSpacing),
+                modifier = Modifier.padding(start = ContinueWatchingButtonListSpacing),
             )
         }
     }

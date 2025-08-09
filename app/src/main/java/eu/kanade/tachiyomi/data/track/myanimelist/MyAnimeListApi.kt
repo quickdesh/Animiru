@@ -4,9 +4,9 @@ import android.net.Uri
 import androidx.core.net.toUri
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import eu.kanade.tachiyomi.data.track.myanimelist.dto.MALAnime
 import eu.kanade.tachiyomi.data.track.myanimelist.dto.MALListItem
 import eu.kanade.tachiyomi.data.track.myanimelist.dto.MALListItemStatus
-import eu.kanade.tachiyomi.data.track.myanimelist.dto.MALAnime
 import eu.kanade.tachiyomi.data.track.myanimelist.dto.MALOAuth
 import eu.kanade.tachiyomi.data.track.myanimelist.dto.MALSearchResult
 import eu.kanade.tachiyomi.data.track.myanimelist.dto.MALUser

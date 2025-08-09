@@ -1,8 +1,8 @@
 package tachiyomi.data.history
 
+import tachiyomi.domain.anime.model.AnimeCover
 import tachiyomi.domain.history.model.History
 import tachiyomi.domain.history.model.HistoryWithRelations
-import tachiyomi.domain.anime.model.AnimeCover
 import java.util.Date
 
 object HistoryMapper {

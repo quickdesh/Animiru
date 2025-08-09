@@ -12,16 +12,16 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
-import eu.kanade.domain.episode.interactor.GetAvailableScanlators
-import eu.kanade.domain.episode.interactor.SetSeenStatus
-import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.anime.interactor.GetExcludedScanlators
 import eu.kanade.domain.anime.interactor.SetAnimeViewerFlags
 import eu.kanade.domain.anime.interactor.SetExcludedScanlators
 import eu.kanade.domain.anime.interactor.UpdateAnime
-import eu.kanade.domain.anime.model.episodesFiltered
 import eu.kanade.domain.anime.model.downloadedFilter
+import eu.kanade.domain.anime.model.episodesFiltered
 import eu.kanade.domain.anime.model.toSAnime
+import eu.kanade.domain.episode.interactor.GetAvailableScanlators
+import eu.kanade.domain.episode.interactor.SetSeenStatus
+import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.domain.track.interactor.RefreshTracks
 import eu.kanade.domain.track.interactor.TrackEpisode
@@ -30,14 +30,14 @@ import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.presentation.anime.DownloadAction
 import eu.kanade.presentation.anime.components.EpisodeDownloadAction
 import eu.kanade.presentation.util.formattedMessage
+import eu.kanade.tachiyomi.animesource.AnimeSource
+import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.network.HttpException
-import eu.kanade.tachiyomi.animesource.AnimeSource
-import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.ui.anime.track.TrackItem
 import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
@@ -70,19 +70,8 @@ import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.category.interactor.GetCategories
-import tachiyomi.domain.category.interactor.SetAnimeCategories
-import tachiyomi.domain.category.model.Category
-import tachiyomi.domain.episode.interactor.SetAnimeDefaultEpisodeFlags
-import tachiyomi.domain.episode.interactor.UpdateEpisode
-import tachiyomi.domain.episode.model.Episode
-import tachiyomi.domain.episode.model.EpisodeUpdate
-import tachiyomi.domain.episode.model.NoEpisodesException
-import tachiyomi.domain.episode.service.calculateEpisodeGap
-import tachiyomi.domain.episode.service.getEpisodeSort
-import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.anime.interactor.GetDuplicateLibraryAnime
 import tachiyomi.domain.anime.interactor.GetAnimeWithEpisodes
+import tachiyomi.domain.anime.interactor.GetDuplicateLibraryAnime
 import tachiyomi.domain.anime.interactor.SetAnimeEpisodeFlags
 import tachiyomi.domain.anime.interactor.SetCustomAnimeInfo
 import tachiyomi.domain.anime.model.Anime
@@ -91,7 +80,18 @@ import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
 import tachiyomi.domain.anime.model.CustomAnimeInfo
 import tachiyomi.domain.anime.model.applyFilter
 import tachiyomi.domain.anime.repository.AnimeRepository
+import tachiyomi.domain.category.interactor.GetCategories
+import tachiyomi.domain.category.interactor.SetAnimeCategories
+import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.download.service.DownloadPreferences
+import tachiyomi.domain.episode.interactor.SetAnimeDefaultEpisodeFlags
+import tachiyomi.domain.episode.interactor.UpdateEpisode
+import tachiyomi.domain.episode.model.Episode
+import tachiyomi.domain.episode.model.EpisodeUpdate
+import tachiyomi.domain.episode.model.NoEpisodesException
+import tachiyomi.domain.episode.service.calculateEpisodeGap
+import tachiyomi.domain.episode.service.getEpisodeSort
+import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StoragePreferences
 import tachiyomi.domain.track.interactor.GetTracks
@@ -877,7 +877,9 @@ class AnimeScreenModel(
             if (autoTrackState == AutoTrackState.ALWAYS) {
                 trackEpisode.await(context, animeId, maxEpisodeNumber)
                 withUIContext {
-                    context.toast(context.stringResource(AYMR.strings.trackers_updated_summary_anime, maxEpisodeNumber.toInt()))
+                    context.toast(
+                        context.stringResource(AYMR.strings.trackers_updated_summary_anime, maxEpisodeNumber.toInt()),
+                    )
                 }
                 return@launchIO
             }
@@ -945,6 +947,7 @@ class AnimeScreenModel(
     }
 
     // AM (FILLERMARK) -->
+
     /**
      * Fillermarks the given list of episodes.
      * @param episodes the list of episodes to fillermark.
@@ -1046,6 +1049,7 @@ class AnimeScreenModel(
     }
 
     // AM (FILLERMARK) -->
+
     /**
      * Sets the fillermark filter and requests an UI update.
      * @param state whether to display only fillermarked episodes or all episodes.
@@ -1262,8 +1266,10 @@ class AnimeScreenModel(
         data class Migrate(val target: Anime, val current: Anime) : Dialog
         data class SetFetchInterval(val anime: Anime) : Dialog
         data class ShowQualities(val episode: Episode, val anime: Anime, val source: AnimeSource) : Dialog
+
         // AM (CUSTOM_INFORMATION) -->
         data class EditAnimeInfo(val anime: Anime) : Dialog
+
         // <-- AM (CUSTOM_INFORMATION)
         data object ChangeAnimeSkipIntro : Dialog
         data object SettingsSheet : Dialog

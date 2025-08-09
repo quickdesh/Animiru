@@ -1,8 +1,8 @@
 package eu.kanade.domain.anime.model
 
 import eu.kanade.domain.base.BasePreferences
-import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.animesource.model.SAnime
+import eu.kanade.tachiyomi.data.cache.CoverCache
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.anime.model.Anime
 import uy.kohesive.injekt.Injekt
@@ -24,7 +24,7 @@ fun Anime.episodesFiltered(): Boolean {
         bookmarkedFilter != TriState.DISABLED ||
         // AM (FILLERMARK) -->
         fillermarkedFilter != TriState.DISABLED
-        // <-- AM (FILLERMARK)
+    // <-- AM (FILLERMARK)
 }
 
 fun Anime.toSAnime(): SAnime = SAnime.create().also {

@@ -127,7 +127,11 @@ class EpisodeRecognitionTest {
     fun `Episode with time in title`() {
         val animeTitle = "random"
 
-        assertEpisode(animeTitle, "Jigoku Sensei Nube 23: Mystery of 00:00:00!? Parallel Mirrors of the Seven Mysteries", 23.0)
+        assertEpisode(
+            animeTitle,
+            "Jigoku Sensei Nube 23: Mystery of 00:00:00!? Parallel Mirrors of the Seven Mysteries",
+            23.0,
+        )
     }
 
     @Test
@@ -170,7 +174,11 @@ class EpisodeRecognitionTest {
         val animeTitle = "random"
 
         assertEpisode(animeTitle, "Kaguya-sama.Love.Is.War.S02E05.REPACK.1080p.BluRay.Opus2.0.x265-Flugel", 5.0)
-        assertEpisode(animeTitle, "SHOSHIMIN.How.to.Become.Ordinary.S01E04.1080p.BluRay.10-Bit.FLAC2.0.x265-YURASUKA", 4.0)
+        assertEpisode(
+            animeTitle,
+            "SHOSHIMIN.How.to.Become.Ordinary.S01E04.1080p.BluRay.10-Bit.FLAC2.0.x265-YURASUKA",
+            4.0,
+        )
         assertEpisode(animeTitle, "(Hi10)_Shingeki_no_Bahamut_Genesis_-_06_(BD_1080p)_(Mawaru)_(DualA)_(10910F15)", 6.0)
     }
 

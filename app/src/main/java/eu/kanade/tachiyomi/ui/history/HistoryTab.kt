@@ -11,14 +11,14 @@ import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import eu.kanade.presentation.anime.DuplicateAnimeDialog
 import eu.kanade.presentation.category.components.ChangeCategoryDialog
 import eu.kanade.presentation.history.HistoryScreen
 import eu.kanade.presentation.history.components.HistoryDeleteAllDialog
 import eu.kanade.presentation.history.components.HistoryDeleteDialog
-import eu.kanade.presentation.anime.DuplicateAnimeDialog
+import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
-import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.player.PlayerActivity
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import kotlinx.coroutines.channels.Channel
@@ -115,7 +115,7 @@ fun Screen.HistoryHalfTab(
                 HistoryScreenModel.Event.InternalError ->
                     snackbarHostState.showSnackbar(context.stringResource(MR.strings.internal_error))
                 HistoryScreenModel.Event.HistoryCleared ->
-                   snackbarHostState.showSnackbar(context.stringResource(MR.strings.clear_history_completed))
+                    snackbarHostState.showSnackbar(context.stringResource(MR.strings.clear_history_completed))
                 is HistoryScreenModel.Event.OpenEpisode -> openEpisode(context, e.episode, snackbarHostState)
             }
         }

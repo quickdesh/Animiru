@@ -1,8 +1,8 @@
 package eu.kanade.domain.extension.interactor
 
 import eu.kanade.domain.source.service.SourcePreferences
-import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.animesource.AnimeSource
+import eu.kanade.tachiyomi.extension.model.Extension
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

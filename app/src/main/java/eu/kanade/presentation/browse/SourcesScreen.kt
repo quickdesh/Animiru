@@ -232,7 +232,7 @@ private fun SourceItem(
                 isPinned = Pin.Pinned in source.pin,
                 onClick = { onClickPin(source) },
             )
-        }
+        },
     )
 }
 
@@ -263,7 +263,6 @@ private fun SourcePinButton(
         )
     }
 }
-
 
 // AM (BROWSE) -->
 @Composable

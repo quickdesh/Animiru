@@ -4,10 +4,10 @@ import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import tachiyomi.domain.episode.interactor.GetEpisode
-import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.episode.interactor.GetEpisode
+import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get

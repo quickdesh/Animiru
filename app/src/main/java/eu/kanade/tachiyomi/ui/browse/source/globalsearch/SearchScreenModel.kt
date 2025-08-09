@@ -7,8 +7,8 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.util.ioCoroutineScope
-import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
+import eu.kanade.tachiyomi.extension.ExtensionManager
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentMapOf
@@ -77,8 +77,8 @@ abstract class SearchScreenModel(
         return produceState(initialValue = initialAnime) {
             getAnime.subscribe(initialAnime.url, initialAnime.source)
                 .filterNotNull()
-                .collectLatest { manga ->
-                    value = manga
+                .collectLatest { anime ->
+                    value = anime
                 }
         }
     }

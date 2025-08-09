@@ -16,11 +16,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
+import eu.kanade.presentation.anime.DownloadAction
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.AppBarTitle
 import eu.kanade.presentation.components.DownloadDropdownMenu
-import eu.kanade.presentation.anime.DownloadAction
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR

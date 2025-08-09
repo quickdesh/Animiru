@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.anime.components.BaseAnimeListItem
+import eu.kanade.presentation.components.AppBar
 import eu.kanade.tachiyomi.ui.browse.migration.anime.MigrateAnimeScreenModel
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR

@@ -22,13 +22,13 @@ import kotlinx.coroutines.runBlocking
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
+import tachiyomi.domain.anime.interactor.GetAnime
+import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.episode.interactor.GetEpisode
 import tachiyomi.domain.episode.interactor.UpdateEpisode
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.episode.model.toEpisodeUpdate
-import tachiyomi.domain.download.service.DownloadPreferences
-import tachiyomi.domain.anime.interactor.GetAnime
-import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.Injekt

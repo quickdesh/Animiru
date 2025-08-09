@@ -1,11 +1,11 @@
 package eu.kanade.tachiyomi.animesource.online
 
 import eu.kanade.tachiyomi.animesource.AnimeSource
-import eu.kanade.tachiyomi.animesource.model.SEpisode
 import eu.kanade.tachiyomi.animesource.model.SAnime
+import eu.kanade.tachiyomi.animesource.model.SEpisode
 
 /**
- * A source that may handle opening an SManga or SChapter for a given URI.
+ * A source that may handle opening an SAnime or SEpisode for a given URI.
  *
  * @since extensions-lib 1.5
  */

@@ -3,8 +3,8 @@ package eu.kanade.tachiyomi.ui.deeplink
 import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.anime.model.toSAnime
+import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.SEpisode
 import eu.kanade.tachiyomi.animesource.online.ResolvableAnimeSource
@@ -12,10 +12,10 @@ import eu.kanade.tachiyomi.animesource.online.UriType
 import kotlinx.coroutines.flow.update
 import mihon.domain.anime.model.toDomainAnime
 import tachiyomi.core.common.util.lang.launchIO
-import tachiyomi.domain.episode.interactor.GetEpisodeByUrlAndAnimeId
-import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.episode.interactor.GetEpisodeByUrlAndAnimeId
+import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get

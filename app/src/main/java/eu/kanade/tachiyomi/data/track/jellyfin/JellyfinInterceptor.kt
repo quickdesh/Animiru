@@ -31,7 +31,7 @@ class JellyfinInterceptor : Interceptor {
 
         val userId = originalRequest.url.queryParameter("userId") ?: originalRequest.url.pathSegments[1]
         val apiKey = apiKeys[userId] ?: getApiKey(userId)?.also { apiKeys[userId] = it }
-        ?: throw IOException("Please log in through the extension")
+            ?: throw IOException("Please log in through the extension")
 
         val authUrl = originalRequest.url.newBuilder()
             .addQueryParameter("api_key", apiKey)

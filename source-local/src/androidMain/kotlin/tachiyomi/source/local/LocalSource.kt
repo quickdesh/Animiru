@@ -7,8 +7,8 @@ import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.UnmeteredSource
 import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 import eu.kanade.tachiyomi.animesource.model.AnimesPage
-import eu.kanade.tachiyomi.animesource.model.SEpisode
 import eu.kanade.tachiyomi.animesource.model.SAnime
+import eu.kanade.tachiyomi.animesource.model.SEpisode
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
 import eu.kanade.tachiyomi.util.storage.toFFmpegString
@@ -25,10 +25,10 @@ import tachiyomi.core.common.storage.extension
 import tachiyomi.core.common.storage.nameWithoutExtension
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.core.metadata.tachiyomi.EpisodeDetails
 import tachiyomi.core.metadata.tachiyomi.AnimeDetails
-import tachiyomi.domain.episode.service.EpisodeRecognition
+import tachiyomi.core.metadata.tachiyomi.EpisodeDetails
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.episode.service.EpisodeRecognition
 import tachiyomi.i18n.MR
 import tachiyomi.source.local.filter.OrderBy
 import tachiyomi.source.local.image.LocalCoverManager
@@ -71,7 +71,11 @@ actual class LocalSource(
 
     override suspend fun getLatestUpdates(page: Int) = getSearchAnime(page, "", LatestFilters)
 
-    override suspend fun getSearchAnime(page: Int, query: String, filters: AnimeFilterList): AnimesPage = withIOContext {
+    override suspend fun getSearchAnime(
+        page: Int,
+        query: String,
+        filters: AnimeFilterList,
+    ): AnimesPage = withIOContext {
         val lastModifiedLimit = if (filters === LatestFilters) {
             System.currentTimeMillis() - LATEST_THRESHOLD
         } else {

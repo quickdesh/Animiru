@@ -35,12 +35,12 @@ import logcat.LogPriority
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.system.logcat
+import tachiyomi.domain.anime.interactor.GetAnime
+import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.episode.interactor.GetEpisode
 import tachiyomi.domain.episode.interactor.UpdateEpisode
 import tachiyomi.domain.episode.model.EpisodeUpdate
 import tachiyomi.domain.library.service.LibraryPreferences
-import tachiyomi.domain.anime.interactor.GetAnime
-import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.updates.interactor.GetUpdates
 import tachiyomi.domain.updates.model.UpdatesWithRelations
@@ -235,6 +235,7 @@ class UpdatesScreenModel(
     }
 
     // AM (FILLERMARK) -->
+
     /**
      * Fillermarks the given list of episodes.
      * @param updates the list of episodes to fillermark.
@@ -291,7 +292,6 @@ class UpdatesScreenModel(
     fun showConfirmDeleteEpisodes(updatesItem: List<UpdatesItem>) {
         setDialog(Dialog.DeleteConfirmation(updatesItem))
     }
-
 
     private fun showQualitiesDialog(update: UpdatesWithRelations) {
         setDialog(
