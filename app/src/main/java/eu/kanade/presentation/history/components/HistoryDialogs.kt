@@ -38,7 +38,7 @@ fun HistoryDeleteDialog(
                 Text(text = stringResource(AYMR.strings.dialog_with_checkbox_remove_description_anime))
 
                 LabeledCheckbox(
-                    label = stringResource(AMMR.strings.dialog_with_checkbox_reset),
+                    label = stringResource(AMMR.strings.am_dialog_with_checkbox_reset),
                     checked = removeEverything,
                     onCheckedChange = { removeEverything = it },
                 )

@@ -66,7 +66,7 @@ fun MoreScreen(
             item {
                 SwitchPreferenceWidget(
                     title = stringResource(MR.strings.pref_incognito_mode),
-                    subtitle = stringResource(AMMR.strings.pref_incognito_mode_summary),
+                    subtitle = stringResource(AMMR.strings.am_pref_incognito_mode_summary),
                     icon = ImageVector.vectorResource(R.drawable.ic_glasses_24dp),
                     checked = incognitoMode,
                     onCheckedChanged = onIncognitoModeChange,

@@ -353,7 +353,7 @@ private fun DetailsHeader(
         TextPreferenceWidget(
             modifier = Modifier.padding(horizontal = MaterialTheme.padding.small),
             title = stringResource(MR.strings.pref_incognito_mode),
-            subtitle = stringResource(AMMR.strings.pref_incognito_mode_extension_summary),
+            subtitle = stringResource(AMMR.strings.am_pref_incognito_mode_extension_summary),
             icon = ImageVector.vectorResource(R.drawable.ic_glasses_24dp),
             widget = {
                 Row(

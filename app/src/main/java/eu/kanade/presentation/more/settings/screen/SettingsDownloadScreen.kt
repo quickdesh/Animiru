@@ -69,27 +69,27 @@ object SettingsDownloadScreen : SearchableSettings {
         categories: List<Category>,
     ): Preference.PreferenceGroup {
         return Preference.PreferenceGroup(
-            title = stringResource(AMMR.strings.pref_category_delete_episodes),
+            title = stringResource(AMMR.strings.am_pref_category_delete_episodes),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = downloadPreferences.removeAfterMarkedAsSeen(),
-                    title = stringResource(AMMR.strings.pref_remove_after_marked_as_seen),
+                    title = stringResource(AMMR.strings.am_pref_remove_after_marked_as_seen),
                 ),
                 Preference.PreferenceItem.ListPreference(
                     preference = downloadPreferences.removeAfterSeenSlots(),
                     entries = persistentMapOf(
                         -1 to stringResource(MR.strings.disabled),
-                        0 to stringResource(AMMR.strings.last_seen_episode),
-                        1 to stringResource(AMMR.strings.second_to_last),
-                        2 to stringResource(AMMR.strings.third_to_last),
-                        3 to stringResource(AMMR.strings.fourth_to_last),
-                        4 to stringResource(AMMR.strings.fifth_to_last),
+                        0 to stringResource(AMMR.strings.am_last_seen_episode),
+                        1 to stringResource(AMMR.strings.am_second_to_last),
+                        2 to stringResource(AMMR.strings.am_third_to_last),
+                        3 to stringResource(AMMR.strings.am_fourth_to_last),
+                        4 to stringResource(AMMR.strings.am_fifth_to_last),
                     ),
-                    title = stringResource(AMMR.strings.pref_remove_after_seen),
+                    title = stringResource(AMMR.strings.am_pref_remove_after_seen),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = downloadPreferences.removeBookmarkedEpisodes(),
-                    title = stringResource(AMMR.strings.pref_remove_bookmarked_episodes),
+                    title = stringResource(AMMR.strings.am_pref_remove_bookmarked_episodes),
                 ),
                 getExcludedCategoriesPreference(
                     downloadPreferences = downloadPreferences,
@@ -191,7 +191,7 @@ object SettingsDownloadScreen : SearchableSettings {
                         .toImmutableMap(),
                     title = stringResource(AYMR.strings.auto_download_while_watching),
                 ),
-                Preference.PreferenceItem.InfoPreference(stringResource(AMMR.strings.download_ahead_info)),
+                Preference.PreferenceItem.InfoPreference(stringResource(AMMR.strings.am_download_ahead_info)),
             ),
         )
     }

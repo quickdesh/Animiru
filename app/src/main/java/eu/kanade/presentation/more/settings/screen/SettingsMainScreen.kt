@@ -182,7 +182,7 @@ object SettingsMainScreen : Screen() {
         ),
         Item(
             titleRes = MR.strings.pref_category_library,
-            subtitleRes = AMMR.strings.pref_library_summary,
+            subtitleRes = AMMR.strings.am_pref_library_summary,
             icon = Icons.Outlined.CollectionsBookmark,
             screen = SettingsLibraryScreen,
         ),

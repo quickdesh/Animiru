@@ -80,7 +80,7 @@ data class BackupOptions(
                 setter = { options, enabled -> options.copy(categories = enabled) },
             ),
             Entry(
-                label = AMMR.strings.non_library_settings,
+                label = AMMR.strings.am_non_library_settings,
                 getter = BackupOptions::seenEntries,
                 setter = { options, enabled -> options.copy(seenEntries = enabled) },
                 enabled = { it.libraryEntries },

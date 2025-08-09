@@ -339,7 +339,7 @@ class Downloader(
         if (availSpace != -1L && availSpace < MIN_DISK_SPACE) {
             download.status = Download.State.ERROR
             notifier.onError(
-                context.stringResource(AMMR.strings.download_insufficient_space),
+                context.stringResource(AMMR.strings.am_download_insufficient_space),
                 download.episode.name,
                 download.anime.title,
                 download.anime.id,

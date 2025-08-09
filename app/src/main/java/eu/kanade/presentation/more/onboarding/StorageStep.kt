@@ -57,7 +57,7 @@ internal class StorageStep : OnboardingStep {
         ) {
             Text(
                 stringResource(
-                    AMMR.strings.onboarding_storage_info,
+                    AMMR.strings.am_onboarding_storage_info,
                     stringResource(MR.strings.app_name),
                     SettingsDataScreen.storageLocationText(storagePref),
                 ),

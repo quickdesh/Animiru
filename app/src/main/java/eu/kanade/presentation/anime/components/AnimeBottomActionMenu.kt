@@ -163,7 +163,7 @@ fun AnimeBottomActionMenu(
                 // <-- AM (FILLERMARK)
                 if (onMarkAsSeenClicked != null) {
                     Button(
-                        title = stringResource(AMMR.strings.action_mark_as_seen),
+                        title = stringResource(AMMR.strings.am_action_mark_as_seen),
                         icon = Icons.Outlined.DoneAll,
                         toConfirm = confirm[4],
                         onLongClick = { onLongClickItem(4) },
@@ -172,7 +172,7 @@ fun AnimeBottomActionMenu(
                 }
                 if (onMarkAsUnseenClicked != null) {
                     Button(
-                        title = stringResource(AMMR.strings.action_mark_as_unseen),
+                        title = stringResource(AMMR.strings.am_action_mark_as_unseen),
                         icon = Icons.Outlined.RemoveDone,
                         toConfirm = confirm[5],
                         onLongClick = { onLongClickItem(5) },
@@ -325,14 +325,14 @@ fun LibraryBottomActionMenu(
                     onClick = onChangeCategoryClicked,
                 )
                 Button(
-                    title = stringResource(AMMR.strings.action_mark_as_seen),
+                    title = stringResource(AMMR.strings.am_action_mark_as_seen),
                     icon = Icons.Outlined.DoneAll,
                     toConfirm = confirm[1],
                     onLongClick = { onLongClickItem(1) },
                     onClick = onMarkAsSeenClicked,
                 )
                 Button(
-                    title = stringResource(AMMR.strings.action_mark_as_unseen),
+                    title = stringResource(AMMR.strings.am_action_mark_as_unseen),
                     icon = Icons.Outlined.RemoveDone,
                     toConfirm = confirm[2],
                     onLongClick = { onLongClickItem(2) },

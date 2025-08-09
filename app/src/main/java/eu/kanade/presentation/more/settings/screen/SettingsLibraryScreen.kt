@@ -216,7 +216,7 @@ object SettingsLibraryScreen : SearchableSettings {
                 Preference.PreferenceItem.MultiSelectListPreference(
                     preference = libraryPreferences.autoUpdateAnimeRestrictions(),
                     entries = persistentMapOf(
-                        ANIME_HAS_UNSEEN to stringResource(AMMR.strings.pref_update_only_completely_seen),
+                        ANIME_HAS_UNSEEN to stringResource(AMMR.strings.am_pref_update_only_completely_seen),
                         ANIME_NON_SEEN to stringResource(MR.strings.pref_update_only_started),
                         ANIME_NON_COMPLETED to stringResource(MR.strings.pref_update_only_non_completed),
                         ANIME_OUTSIDE_RELEASE_PERIOD to stringResource(MR.strings.pref_update_only_in_release_period),
@@ -225,7 +225,7 @@ object SettingsLibraryScreen : SearchableSettings {
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.newShowUpdatesCount(),
-                    title = stringResource(AMMR.strings.pref_library_update_show_tab_badge),
+                    title = stringResource(AMMR.strings.am_pref_library_update_show_tab_badge),
                 ),
             ),
         )
@@ -250,7 +250,7 @@ object SettingsLibraryScreen : SearchableSettings {
                             stringResource(AMMR.strings.action_fillermark_episode),
                         // <-- AM (FILLERMARK)
                         LibraryPreferences.EpisodeSwipeAction.ToggleSeen to
-                            stringResource(AMMR.strings.action_mark_as_seen),
+                            stringResource(AMMR.strings.am_action_mark_as_seen),
                         LibraryPreferences.EpisodeSwipeAction.Download to
                             stringResource(MR.strings.action_download),
                     ),
@@ -268,7 +268,7 @@ object SettingsLibraryScreen : SearchableSettings {
                             stringResource(AMMR.strings.action_fillermark_episode),
                         // <-- AM (FILLERMARK)
                         LibraryPreferences.EpisodeSwipeAction.ToggleSeen to
-                            stringResource(AMMR.strings.action_mark_as_seen),
+                            stringResource(AMMR.strings.am_action_mark_as_seen),
                         LibraryPreferences.EpisodeSwipeAction.Download to
                             stringResource(MR.strings.action_download),
                     ),
@@ -286,7 +286,7 @@ object SettingsLibraryScreen : SearchableSettings {
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.hideMissingEpisodes(),
-                    title = stringResource(AMMR.strings.pref_hide_missing_episode_indicators),
+                    title = stringResource(AMMR.strings.am_pref_hide_missing_episode_indicators),
                 ),
             ),
         )

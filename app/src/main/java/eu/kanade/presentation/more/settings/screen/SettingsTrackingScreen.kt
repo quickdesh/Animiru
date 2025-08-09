@@ -132,7 +132,7 @@ object SettingsTrackingScreen : SearchableSettings {
         return listOf(
             Preference.PreferenceItem.SwitchPreference(
                 preference = trackPreferences.autoUpdateTrack(),
-                title = stringResource(AMMR.strings.pref_auto_update_anime_sync),
+                title = stringResource(AMMR.strings.am_pref_auto_update_anime_sync),
             ),
             Preference.PreferenceItem.SwitchPreference(
                 preference = trackPreferences.trackOnAddingToLibrary(),
@@ -147,7 +147,7 @@ object SettingsTrackingScreen : SearchableSettings {
                 entries = AutoTrackState.entries
                     .associateWith { stringResource(it.titleRes) }
                     .toPersistentMap(),
-                title = stringResource(AMMR.strings.pref_auto_update_anime_on_mark_seen),
+                title = stringResource(AMMR.strings.am_pref_auto_update_anime_on_mark_seen),
             ),
             Preference.PreferenceGroup(
                 title = stringResource(MR.strings.services),
@@ -182,7 +182,7 @@ object SettingsTrackingScreen : SearchableSettings {
                         login = { context.openInBrowser(BangumiApi.authUrl(), forceDefaultBrowser = true) },
                         logout = { dialog = LogoutDialog(trackerManager.bangumi) },
                     ),
-                    Preference.PreferenceItem.InfoPreference(stringResource(AMMR.strings.tracking_info)),
+                    Preference.PreferenceItem.InfoPreference(stringResource(AMMR.strings.am_tracking_info)),
                 ),
             ),
             Preference.PreferenceGroup(

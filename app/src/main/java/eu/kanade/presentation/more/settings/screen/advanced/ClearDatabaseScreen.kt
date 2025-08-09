@@ -93,7 +93,7 @@ class ClearDatabaseScreen : Screen() {
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
-                                        text = stringResource(AMMR.strings.clear_db_exclude_seen),
+                                        text = stringResource(AMMR.strings.am_clear_db_exclude_seen),
                                         modifier = Modifier.weight(1f),
                                     )
                                     Switch(
@@ -103,7 +103,7 @@ class ClearDatabaseScreen : Screen() {
                                 }
                                 if (!keepSeenAnime) {
                                     Text(
-                                        text = stringResource(AMMR.strings.clear_database_history_warning),
+                                        text = stringResource(AMMR.strings.am_clear_database_history_warning),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.error,
                                     )

@@ -210,7 +210,7 @@ internal class DownloadNotifier(private val context: Context) {
             setContentTitle(
                 animeTitle?.plus(": $episode") ?: context.stringResource(MR.strings.download_notifier_downloader_title),
             )
-            setContentText(error ?: context.stringResource(AMMR.strings.download_notifier_unknown_error))
+            setContentText(error ?: context.stringResource(AMMR.strings.am_download_notifier_unknown_error))
             setSmallIcon(R.drawable.ic_warning_white_24dp)
             clearActions()
             setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))

@@ -250,7 +250,7 @@ class LibraryUpdateNotifier(
             // Mark episodes as seen action
             addAction(
                 R.drawable.ic_done_24dp,
-                context.stringResource(AMMR.strings.action_mark_as_seen),
+                context.stringResource(AMMR.strings.am_action_mark_as_seen),
                 NotificationReceiver.markAsSeenPendingBroadcast(
                     context,
                     anime,

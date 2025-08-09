@@ -183,7 +183,7 @@ object SettingsAdvancedScreen : SearchableSettings {
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.pref_invalidate_download_cache),
-                    subtitle = stringResource(AMMR.strings.pref_invalidate_download_cache_summary),
+                    subtitle = stringResource(AMMR.strings.am_pref_invalidate_download_cache_summary),
                     onClick = {
                         Injekt.get<DownloadCache>().invalidateCache()
                         context.toast(MR.strings.download_cache_invalidated)
@@ -305,8 +305,8 @@ object SettingsAdvancedScreen : SearchableSettings {
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.updateAnimeTitles(),
-                    title = stringResource(AMMR.strings.pref_update_library_anime_titles),
-                    subtitle = stringResource(AMMR.strings.pref_update_library_anime_titles_summary),
+                    title = stringResource(AMMR.strings.am_pref_update_library_anime_titles),
+                    subtitle = stringResource(AMMR.strings.am_pref_update_library_anime_titles_summary),
                 ),
             ),
         )
