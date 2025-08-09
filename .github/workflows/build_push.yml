@@ -111,7 +111,7 @@ jobs:
 
             > [!TIP]
             >
-            > ### If you are unsure which version to download then go with `Animiru-${{ needs.get_tag.outputs.tag }}.apk`
+            > ### If you are unsure which version to download then go with `Animiru-${{ env.VERSION_TAG }}.apk`
 
           files: |
             Animiru-${{ env.VERSION_TAG }}.apk
