@@ -10,7 +10,6 @@ import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.library.model.GroupLibraryMode
 import tachiyomi.domain.library.model.LibraryGroup
 
-// TODO(mihon): Migrate keys
 class LibraryPreferences(
     private val preferenceStore: PreferenceStore,
 ) {
@@ -23,7 +22,7 @@ class LibraryPreferences(
     )
 
     fun sortingMode() = preferenceStore.getObjectFromString(
-        "animelib_sorting_mode",
+        "library_sorting_mode",
         LibrarySort.default,
         LibrarySort.Serializer::serialize,
         LibrarySort.Serializer::deserialize,
@@ -31,9 +30,9 @@ class LibraryPreferences(
 
     fun randomSortSeed() = preferenceStore.getInt("library_random_sort_seed", 0)
 
-    fun portraitColumns() = preferenceStore.getInt("pref_animelib_columns_portrait_key", 0)
+    fun portraitColumns() = preferenceStore.getInt("pref_library_columns_portrait_key", 0)
 
-    fun landscapeColumns() = preferenceStore.getInt("pref_animelib_columns_landscape_key", 0)
+    fun landscapeColumns() = preferenceStore.getInt("pref_library_columns_landscape_key", 0)
 
     fun lastUpdatedTimestamp() = preferenceStore.getLong(Preference.appStateKey("library_update_last_timestamp"), 0L)
     fun autoUpdateInterval() = preferenceStore.getInt("pref_library_update_interval_key", 0)
@@ -44,7 +43,6 @@ class LibraryPreferences(
             DEVICE_ONLY_ON_WIFI,
         ),
     )
-    // TODO(mihon): Migrate `library_update_manga_restriction` -> `library_update_anime_restriction`
     fun autoUpdateAnimeRestrictions() = preferenceStore.getStringSet(
         "library_update_anime_restriction",
         setOf(
@@ -57,9 +55,8 @@ class LibraryPreferences(
 
     fun autoUpdateMetadata() = preferenceStore.getBoolean("auto_update_metadata", false)
 
-    // TODO(mihon): Migrate `display_continue_reading_button` -> `display_continue_viewing_button`
-    fun showContinueViewingButton() = preferenceStore.getBoolean(
-        "display_continue_viewing_button",
+    fun showContinueWatchingButton() = preferenceStore.getBoolean(
+        "display_continue_watching_button",
         false,
     )
 
@@ -68,29 +65,29 @@ class LibraryPreferences(
     // region Filter
 
     fun filterDownloaded() = preferenceStore.getEnum(
-        "pref_filter_animelib_downloaded_v2",
+        "pref_filter_library_downloaded_v2",
         TriState.DISABLED,
     )
 
-    fun filterUnseen() = preferenceStore.getEnum("pref_filter_animelib_unread_v2", TriState.DISABLED)
+    fun filterUnseen() = preferenceStore.getEnum("pref_filter_library_unseen_v2", TriState.DISABLED)
 
     fun filterStarted() = preferenceStore.getEnum(
-        "pref_filter_animelib_started_v2",
+        "pref_filter_library_started_v2",
         TriState.DISABLED,
     )
 
     fun filterBookmarked() = preferenceStore.getEnum(
-        "pref_filter_animelib_bookmarked_v2",
+        "pref_filter_library_bookmarked_v2",
         TriState.DISABLED,
     )
 
     // AM (FILLERMARK) -->
     fun filterFillermarked() =
-        preferenceStore.getEnum("pref_filter_animelib_fillermarked_v2", TriState.DISABLED)
+        preferenceStore.getEnum("pref_filter_library_fillermarked_v2", TriState.DISABLED)
     // <-- AM (FILLERMARK)
 
     fun filterCompleted() = preferenceStore.getEnum(
-        "pref_filter_animelib_completed_v2",
+        "pref_filter_library_completed_v2",
         TriState.DISABLED,
     )
 
@@ -100,7 +97,7 @@ class LibraryPreferences(
     )
 
     fun filterTracking(id: Int) = preferenceStore.getEnum(
-        "pref_filter_animelib_tracked_${id}_v2",
+        "pref_filter_library_tracked_${id}_v2",
         TriState.DISABLED,
     )
 
@@ -110,7 +107,7 @@ class LibraryPreferences(
 
     fun downloadBadge() = preferenceStore.getBoolean("display_download_badge", false)
 
-    fun unseenBadge() = preferenceStore.getBoolean("display_unread_badge", true)
+    fun unseenBadge() = preferenceStore.getBoolean("display_unseen_badge", true)
 
     fun localBadge() = preferenceStore.getBoolean("display_local_badge", true)
 
@@ -144,17 +141,17 @@ class LibraryPreferences(
     // region Episode
 
     fun filterEpisodeBySeen() = preferenceStore.getLong(
-        "default_chapter_filter_by_read",
+        "default_episode_filter_by_seen",
         Anime.SHOW_ALL,
     )
 
     fun filterEpisodeByDownloaded() = preferenceStore.getLong(
-        "default_chapter_filter_by_downloaded",
+        "default_episode_filter_by_downloaded",
         Anime.SHOW_ALL,
     )
 
     fun filterEpisodeByBookmarked() = preferenceStore.getLong(
-        "default_chapter_filter_by_bookmarked",
+        "default_episode_filter_by_bookmarked",
         Anime.SHOW_ALL,
     )
 
@@ -167,17 +164,17 @@ class LibraryPreferences(
 
     // and upload date
     fun sortEpisodeBySourceOrNumber() = preferenceStore.getLong(
-        "default_chapter_sort_by_source_or_number",
+        "default_episode_sort_by_source_or_number",
         Anime.EPISODE_SORTING_SOURCE,
     )
 
     fun displayEpisodeByNameOrNumber() = preferenceStore.getLong(
-        "default_chapter_display_by_name_or_number",
+        "default_episode_display_by_name_or_number",
         Anime.EPISODE_DISPLAY_NAME,
     )
 
     fun sortEpisodeByAscendingOrDescending() = preferenceStore.getLong(
-        "default_chapter_sort_by_ascending_or_descending",
+        "default_episode_sort_by_ascending_or_descending",
         Anime.EPISODE_SORT_DESC,
     )
 
@@ -195,22 +192,22 @@ class LibraryPreferences(
         )
     }
 
-    fun hideMissingEpisodes() = preferenceStore.getBoolean("pref_hide_missing_chapter_indicators", false)
+    fun hideMissingEpisodes() = preferenceStore.getBoolean("pref_hide_missing_episode_indicators", false)
     // endregion
 
     // region Swipe Actions
 
     fun swipeToStartAction() = preferenceStore.getEnum(
-        "pref_chapter_swipe_end_action",
+        "pref_episode_swipe_end_action",
         EpisodeSwipeAction.ToggleBookmark,
     )
 
     fun swipeToEndAction() = preferenceStore.getEnum(
-        "pref_chapter_swipe_start_action",
+        "pref_episode_swipe_start_action",
         EpisodeSwipeAction.ToggleSeen,
     )
 
-    fun updateAnimeTitles() = preferenceStore.getBoolean("pref_update_library_manga_titles", false)
+    fun updateAnimeTitles() = preferenceStore.getBoolean("pref_update_library_anime_titles", false)
 
     // endregion
 
@@ -235,10 +232,10 @@ class LibraryPreferences(
         const val DEVICE_NETWORK_NOT_METERED = "network_not_metered"
         const val DEVICE_CHARGING = "ac"
 
-        const val ANIME_NON_COMPLETED = "manga_ongoing"
-        const val ANIME_HAS_UNSEEN = "manga_fully_read"
-        const val ANIME_NON_SEEN = "manga_started"
-        const val ANIME_OUTSIDE_RELEASE_PERIOD = "manga_outside_release_period"
+        const val ANIME_NON_COMPLETED = "anime_ongoing"
+        const val ANIME_HAS_UNSEEN = "anime_fully_seen"
+        const val ANIME_NON_SEEN = "anime_started"
+        const val ANIME_OUTSIDE_RELEASE_PERIOD = "anime_outside_release_period"
 
         const val MARK_DUPLICATE_EPISODE_SEEN_NEW = "new"
         const val MARK_DUPLICATE_EPISODE_SEEN_EXISTING = "existing"

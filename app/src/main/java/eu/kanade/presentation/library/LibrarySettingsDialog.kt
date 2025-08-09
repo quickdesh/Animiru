@@ -333,7 +333,7 @@ private fun ColumnScope.DisplayPage(
     )
     CheckboxItem(
         label = stringResource(AMMR.strings.action_display_show_continue_watching_button),
-        pref = screenModel.libraryPreferences.showContinueViewingButton(),
+        pref = screenModel.libraryPreferences.showContinueWatchingButton(),
     )
 
     HeadingItem(MR.strings.tabs_header)

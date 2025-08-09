@@ -43,4 +43,5 @@ val migrations: List<Migration>
         VideoOrientationMigration(),
         CategoryPreferencesCleanupMigration(),
         PrefLangMigration(),
+        RenameKeysMigration(),
     )
