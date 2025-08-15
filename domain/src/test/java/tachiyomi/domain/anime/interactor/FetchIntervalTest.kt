@@ -29,110 +29,110 @@ class FetchIntervalTest {
 
     @Test
     fun `returns default interval of 7 days when not enough distinct days`() {
-        val chaptersWithUploadDate = (1..50).map {
-            chapterWithTime(episode, 1.days)
+        val episodesWithUploadDate = (1..50).map {
+            episodeWithTime(episode, 1.days)
         }
-        fetchInterval.calculateInterval(chaptersWithUploadDate, testZoneId) shouldBe 7
+        fetchInterval.calculateInterval(episodesWithUploadDate, testZoneId) shouldBe 7
 
-        val chaptersWithoutUploadDate = chaptersWithUploadDate.map {
+        val episodesWithoutUploadDate = episodesWithUploadDate.map {
             it.copy(dateUpload = 0L)
         }
-        fetchInterval.calculateInterval(chaptersWithoutUploadDate, testZoneId) shouldBe 7
+        fetchInterval.calculateInterval(episodesWithoutUploadDate, testZoneId) shouldBe 7
     }
 
     @Test
-    fun `returns interval based on more recent chapters`() {
-        val oldChapters = (1..5).map {
-            chapterWithTime(episode, (it * 7).days) // Would have interval of 7 days
+    fun `returns interval based on more recent episodes`() {
+        val oldEpisodes = (1..5).map {
+            episodeWithTime(episode, (it * 7).days) // Would have interval of 7 days
         }
-        val newChapters = (1..10).map {
-            chapterWithTime(episode, oldChapters.lastUploadDate() + it.days)
+        val newEpisodes = (1..10).map {
+            episodeWithTime(episode, oldEpisodes.lastUploadDate() + it.days)
         }
 
-        val chapters = oldChapters + newChapters
+        val episodes = oldEpisodes + newEpisodes
 
-        fetchInterval.calculateInterval(chapters, testZoneId) shouldBe 1
+        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 1
     }
 
     @Test
-    fun `returns interval based on smaller subset of recent chapters if very few chapters`() {
-        val oldChapters = (1..3).map {
-            chapterWithTime(episode, (it * 7).days)
+    fun `returns interval based on smaller subset of recent episodes if very few episodes`() {
+        val oldEpisodes = (1..3).map {
+            episodeWithTime(episode, (it * 7).days)
         }
-        // Significant gap between chapters
-        val newChapters = (1..3).map {
-            chapterWithTime(episode, oldChapters.lastUploadDate() + 365.days + (it * 7).days)
+        // Significant gap between episodes
+        val newEpisodes = (1..3).map {
+            episodeWithTime(episode, oldEpisodes.lastUploadDate() + 365.days + (it * 7).days)
         }
 
-        val chapters = oldChapters + newChapters
+        val episodes = oldEpisodes + newEpisodes
 
-        fetchInterval.calculateInterval(chapters, testZoneId) shouldBe 7
+        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 7
     }
 
     @Test
-    fun `returns interval of 7 days when multiple chapters in 1 day`() {
-        val chapters = (1..10).map {
-            chapterWithTime(episode, 10.hours)
+    fun `returns interval of 7 days when multiple episodes in 1 day`() {
+        val episodes = (1..10).map {
+            episodeWithTime(episode, 10.hours)
         }
-        fetchInterval.calculateInterval(chapters, testZoneId) shouldBe 7
+        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 7
     }
 
     @Test
-    fun `returns interval of 7 days when multiple chapters in 2 days`() {
-        val chapters = (1..2).map {
-            chapterWithTime(episode, 1.days)
+    fun `returns interval of 7 days when multiple episodes in 2 days`() {
+        val episodes = (1..2).map {
+            episodeWithTime(episode, 1.days)
         } + (1..5).map {
-            chapterWithTime(episode, 2.days)
+            episodeWithTime(episode, 2.days)
         }
-        fetchInterval.calculateInterval(chapters, testZoneId) shouldBe 7
+        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 7
     }
 
     @Test
-    fun `returns interval of 1 day when chapters are released every 1 day`() {
-        val chapters = (1..20).map {
-            chapterWithTime(episode, it.days)
+    fun `returns interval of 1 day when episodes are released every 1 day`() {
+        val episodes = (1..20).map {
+            episodeWithTime(episode, it.days)
         }
-        fetchInterval.calculateInterval(chapters, testZoneId) shouldBe 1
+        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 1
     }
 
     @Test
     fun `returns interval of 1 day when delta is less than 1 day`() {
-        val chapters = (1..20).map {
-            chapterWithTime(episode, (15 * it).hours)
+        val episodes = (1..20).map {
+            episodeWithTime(episode, (15 * it).hours)
         }
-        fetchInterval.calculateInterval(chapters, testZoneId) shouldBe 1
+        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 1
     }
 
     @Test
-    fun `returns interval of 2 days when chapters are released every 2 days`() {
-        val chapters = (1..20).map {
-            chapterWithTime(episode, (2 * it).days)
+    fun `returns interval of 2 days when episodes are released every 2 days`() {
+        val episodes = (1..20).map {
+            episodeWithTime(episode, (2 * it).days)
         }
-        fetchInterval.calculateInterval(chapters, testZoneId) shouldBe 2
+        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 2
     }
 
     @Test
     fun `returns interval with floored value when interval is decimal`() {
-        val chaptersWithUploadDate = (1..5).map {
-            chapterWithTime(episode, (25 * it).hours)
+        val episodesWithUploadDate = (1..5).map {
+            episodeWithTime(episode, (25 * it).hours)
         }
-        fetchInterval.calculateInterval(chaptersWithUploadDate, testZoneId) shouldBe 1
+        fetchInterval.calculateInterval(episodesWithUploadDate, testZoneId) shouldBe 1
 
-        val chaptersWithoutUploadDate = chaptersWithUploadDate.map {
+        val episodesWithoutUploadDate = episodesWithUploadDate.map {
             it.copy(dateUpload = 0L)
         }
-        fetchInterval.calculateInterval(chaptersWithoutUploadDate, testZoneId) shouldBe 1
+        fetchInterval.calculateInterval(episodesWithoutUploadDate, testZoneId) shouldBe 1
     }
 
     @Test
-    fun `returns interval of 2 days when chapters are released just below every 2 days`() {
-        val chapters = (1..20).map {
-            chapterWithTime(episode, (43 * it).hours)
+    fun `returns interval of 2 days when episodes are released just below every 2 days`() {
+        val episodes = (1..20).map {
+            episodeWithTime(episode, (43 * it).hours)
         }
-        fetchInterval.calculateInterval(chapters, testZoneId) shouldBe 2
+        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 2
     }
 
-    private fun chapterWithTime(episode: Episode, duration: Duration): Episode {
+    private fun episodeWithTime(episode: Episode, duration: Duration): Episode {
         val newTime = testTime.plus(duration.toJavaDuration()).toEpochSecond() * 1000
         return episode.copy(dateFetch = newTime, dateUpload = newTime)
     }

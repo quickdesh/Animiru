@@ -35,7 +35,7 @@ class SyncEpisodeProgressWithTrack(
             .filter { episode -> episode.episodeNumber <= remoteTrack.lastEpisodeSeen && !episode.seen }
             .map { it.copy(seen = true).toEpisodeUpdate() }
 
-        // only take into account continuous reading
+        // only take into account continuous watching
         val localLastSeen = sortedEpisodes.takeWhile { it.seen }.lastOrNull()?.episodeNumber ?: 0F
         val lastSeen = max(remoteTrack.lastEpisodeSeen, localLastSeen.toDouble())
         val updatedTrack = remoteTrack.copy(lastEpisodeSeen = lastSeen)

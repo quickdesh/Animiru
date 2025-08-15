@@ -24,8 +24,8 @@ data class DummyTracker(
     val valLogoColor: Int = Color.rgb(18, 25, 35),
     val valLogo: Int = R.drawable.ic_tracker_anilist,
     val valStatuses: List<Long> = (1L..6L).toList(),
-    val valReadingStatus: Long = 1L,
-    val valRereadingStatus: Long = 1L,
+    val valWatchingStatus: Long = 1L,
+    val valRewatchingStatus: Long = 1L,
     val valCompletionStatus: Long = 2L,
     val valScoreList: ImmutableList<String> = (0..10).map(Int::toString).toImmutableList(),
     val val10PointScore: Double = 5.4,
@@ -51,9 +51,9 @@ data class DummyTracker(
         else -> null
     }
 
-    override fun getWatchingStatus(): Long = valReadingStatus
+    override fun getWatchingStatus(): Long = valWatchingStatus
 
-    override fun getRewatchingStatus(): Long = valRereadingStatus
+    override fun getRewatchingStatus(): Long = valRewatchingStatus
 
     override fun getCompletionStatus(): Long = valCompletionStatus
 
