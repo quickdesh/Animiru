@@ -50,6 +50,7 @@ import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
 import tachiyomi.source.local.LocalSource
+import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
@@ -150,7 +151,7 @@ class ExternalIntents {
         } else {
             val uri = resolvedVideo.videoUrl.toUri()
 
-            val isOnDevice = if (anime.source == LocalSource.ID) {
+            val isOnDevice = if (anime.isLocal()) {
                 true
             } else {
                 downloadManager.isEpisodeDownloaded(

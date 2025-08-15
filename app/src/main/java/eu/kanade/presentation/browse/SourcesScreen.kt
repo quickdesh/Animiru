@@ -207,7 +207,7 @@ private fun SourceItem(
                 TextButton(
                     onClick = { onClickItem(source, Listing.Latest) },
                     // AM (BROWSE) -->
-                    modifier = Modifier.takeIf { source.id == LocalSource.ID }?.padding(end = 48.dp) ?: Modifier,
+                    modifier = Modifier.takeIf { source.isLocal() }?.padding(end = 48.dp) ?: Modifier,
                     // <-- AM (BROWSE)
                 ) {
                     Text(
@@ -219,7 +219,7 @@ private fun SourceItem(
                 }
             }
             // AM (BROWSE) -->
-            if (source.id != LocalSource.ID) {
+            if (!source.isLocal()) {
                 SourceSettingsButton(
                     navigator = navigator,
                     source = source,
