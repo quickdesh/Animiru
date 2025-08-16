@@ -44,4 +44,5 @@ val migrations: List<Migration>
         CategoryPreferencesCleanupMigration(),
         PrefLangMigration(),
         RenameKeysMigration(),
+        MoveCoverCacheMigration(),
     )
