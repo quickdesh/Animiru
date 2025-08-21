@@ -166,85 +166,85 @@ object SettingsMainScreen : Screen() {
     private fun Navigator.navigate(screen: VoyagerScreen, twoPane: Boolean) {
         if (twoPane) replaceAll(screen) else push(screen)
     }
-
-    private data class Item(
-        val titleRes: StringResource,
-        val subtitleRes: StringResource? = null,
-        val formatSubtitle: @Composable () -> String? = { subtitleRes?.let { stringResource(it) } },
-        val icon: ImageVector,
-        val screen: VoyagerScreen,
-    )
-
-    private val items = listOf(
-        Item(
-            titleRes = MR.strings.pref_category_appearance,
-            subtitleRes = MR.strings.pref_appearance_summary,
-            icon = Icons.Outlined.Palette,
-            screen = SettingsAppearanceScreen,
-        ),
-        Item(
-            titleRes = MR.strings.pref_category_library,
-            subtitleRes = AMMR.strings.am_pref_library_summary,
-            icon = Icons.Outlined.CollectionsBookmark,
-            screen = SettingsLibraryScreen,
-        ),
-        Item(
-            titleRes = AYMR.strings.label_player,
-            subtitleRes = AYMR.strings.pref_player_settings_summary,
-            icon = Icons.Outlined.VideoSettings,
-            screen = PlayerSettingsScreen(mainSettings = true),
-        ),
-        Item(
-            titleRes = MR.strings.pref_category_downloads,
-            subtitleRes = MR.strings.pref_downloads_summary,
-            icon = Icons.Outlined.GetApp,
-            screen = SettingsDownloadScreen,
-        ),
-        Item(
-            titleRes = MR.strings.pref_category_tracking,
-            subtitleRes = MR.strings.pref_tracking_summary,
-            icon = Icons.Outlined.Sync,
-            screen = SettingsTrackingScreen,
-        ),
-        // AM (CONNECTION) -->
-        Item(
-            titleRes = AMMR.strings.pref_category_connection,
-            subtitleRes = AMMR.strings.pref_connection_summary,
-            icon = Icons.Outlined.Link,
-            screen = SettingsConnectionScreen,
-        ),
-        // <-- AM (CONNECTION)
-        Item(
-            titleRes = MR.strings.browse,
-            subtitleRes = MR.strings.pref_browse_summary,
-            icon = Icons.Outlined.Explore,
-            screen = SettingsBrowseScreen,
-        ),
-        Item(
-            titleRes = MR.strings.label_data_storage,
-            subtitleRes = MR.strings.pref_backup_summary,
-            icon = Icons.Outlined.Storage,
-            screen = SettingsDataScreen,
-        ),
-        Item(
-            titleRes = MR.strings.pref_category_security,
-            subtitleRes = MR.strings.pref_security_summary,
-            icon = Icons.Outlined.Security,
-            screen = SettingsSecurityScreen,
-        ),
-        Item(
-            titleRes = MR.strings.pref_category_advanced,
-            subtitleRes = MR.strings.pref_advanced_summary,
-            icon = Icons.Outlined.Code,
-            screen = SettingsAdvancedScreen,
-        ),
-        Item(
-            titleRes = MR.strings.pref_category_about,
-            formatSubtitle = {
-                "${stringResource(MR.strings.app_name)} ${AboutScreen.getVersionName(withBuildDate = false)}"
-            },
-            icon = Icons.Outlined.Info,
-            screen = AboutScreen,
-        ),
-    )
 }
+
+private data class Item(
+    val titleRes: StringResource,
+    val subtitleRes: StringResource? = null,
+    val formatSubtitle: @Composable () -> String? = { subtitleRes?.let { stringResource(it) } },
+    val icon: ImageVector,
+    val screen: VoyagerScreen,
+)
+
+private val items = listOf(
+    Item(
+        titleRes = MR.strings.pref_category_appearance,
+        subtitleRes = MR.strings.pref_appearance_summary,
+        icon = Icons.Outlined.Palette,
+        screen = SettingsAppearanceScreen,
+    ),
+    Item(
+        titleRes = MR.strings.pref_category_library,
+        subtitleRes = AMMR.strings.am_pref_library_summary,
+        icon = Icons.Outlined.CollectionsBookmark,
+        screen = SettingsLibraryScreen,
+    ),
+    Item(
+        titleRes = AYMR.strings.label_player,
+        subtitleRes = AYMR.strings.pref_player_settings_summary,
+        icon = Icons.Outlined.VideoSettings,
+        screen = PlayerSettingsScreen(mainSettings = true),
+    ),
+    Item(
+        titleRes = MR.strings.pref_category_downloads,
+        subtitleRes = MR.strings.pref_downloads_summary,
+        icon = Icons.Outlined.GetApp,
+        screen = SettingsDownloadScreen,
+    ),
+    Item(
+        titleRes = MR.strings.pref_category_tracking,
+        subtitleRes = MR.strings.pref_tracking_summary,
+        icon = Icons.Outlined.Sync,
+        screen = SettingsTrackingScreen,
+    ),
+    // AM (CONNECTION) -->
+    Item(
+        titleRes = AMMR.strings.pref_category_connection,
+        subtitleRes = AMMR.strings.pref_connection_summary,
+        icon = Icons.Outlined.Link,
+        screen = SettingsConnectionScreen,
+    ),
+    // <-- AM (CONNECTION)
+    Item(
+        titleRes = MR.strings.browse,
+        subtitleRes = MR.strings.pref_browse_summary,
+        icon = Icons.Outlined.Explore,
+        screen = SettingsBrowseScreen,
+    ),
+    Item(
+        titleRes = MR.strings.label_data_storage,
+        subtitleRes = MR.strings.pref_backup_summary,
+        icon = Icons.Outlined.Storage,
+        screen = SettingsDataScreen,
+    ),
+    Item(
+        titleRes = MR.strings.pref_category_security,
+        subtitleRes = MR.strings.pref_security_summary,
+        icon = Icons.Outlined.Security,
+        screen = SettingsSecurityScreen,
+    ),
+    Item(
+        titleRes = MR.strings.pref_category_advanced,
+        subtitleRes = MR.strings.pref_advanced_summary,
+        icon = Icons.Outlined.Code,
+        screen = SettingsAdvancedScreen,
+    ),
+    Item(
+        titleRes = MR.strings.pref_category_about,
+        formatSubtitle = {
+            "${stringResource(MR.strings.app_name)} ${AboutScreen.getVersionName(withBuildDate = false)}"
+        },
+        icon = Icons.Outlined.Info,
+        screen = AboutScreen,
+    ),
+)
