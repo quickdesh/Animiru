@@ -113,6 +113,7 @@ private fun Anime.toBackupAnime(
         favoriteModifiedAt = this.favoriteModifiedAt,
         version = this.version,
         notes = this.notes,
+        initialized = this.initialized,
     )
         // AM (CUSTOM_INFORMATION) -->
         .also { backupAnime ->
@@ -125,4 +126,4 @@ private fun Anime.toBackupAnime(
                 backupAnime.customStatus = it.status?.toInt() ?: 0
             }
         }
-// <-- AM (CUSTOM_INFORMATION)
+        // <-- AM (CUSTOM_INFORMATION)

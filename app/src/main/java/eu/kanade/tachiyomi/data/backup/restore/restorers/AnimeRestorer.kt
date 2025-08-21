@@ -152,9 +152,7 @@ class AnimeRestorer(
         anime: Anime,
     ): Anime {
         return anime.copy(
-            initialized = anime.description != null,
             id = insertAnime(anime),
-            version = anime.version,
         )
     }
 
