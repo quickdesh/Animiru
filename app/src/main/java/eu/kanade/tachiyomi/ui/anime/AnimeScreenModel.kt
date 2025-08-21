@@ -181,7 +181,7 @@ class AnimeScreenModel(
     internal var isFromChangeCategory: Boolean = false
 
     internal val autoOpenTrack: Boolean
-        get() = successState?.trackingAvailable == true && trackPreferences.trackOnAddingToLibrary().get()
+        get() = successState?.hasLoggedInTrackers == true && trackPreferences.trackOnAddingToLibrary().get()
 
     // AM (FILE_SIZE) -->
     val showFileSize = storagePreferences.showEpisodeFileSize().get()
