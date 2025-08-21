@@ -50,6 +50,7 @@
     <string name="am_download_insufficient_space">Couldn\'t download episodes due to low storage space</string>
     <string name="am_download_notifier_unknown_error">Could not download episode due to unexpected error</string>
     <string name="am_channel_new_episodes">Episode updates</string>
+    <string name="am_pref_display_images_description">Render images in anime descriptions</string>
 
     <!-- Entry Info Edit -->
     <string name="reset_tags">Reset Tags</string>

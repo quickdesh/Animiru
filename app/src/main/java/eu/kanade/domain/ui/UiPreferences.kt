@@ -37,6 +37,8 @@ class UiPreferences(
 
     fun startScreen() = preferenceStore.getEnum("start_screen", StartScreen.ANIME)
 
+    fun imagesInDescription() = preferenceStore.getBoolean("pref_render_images_description", true)
+
     companion object {
         fun dateFormat(format: String): DateTimeFormatter = when (format) {
             "" -> DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)

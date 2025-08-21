@@ -23,6 +23,7 @@ import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableMap
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
@@ -157,6 +158,10 @@ object SettingsAppearanceScreen : SearchableSettings {
                         stringResource(MR.strings.relative_time_today),
                         formattedNow,
                     ),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = uiPreferences.imagesInDescription(),
+                    title = stringResource(AMMR.strings.am_pref_display_images_description),
                 ),
             ),
         )
