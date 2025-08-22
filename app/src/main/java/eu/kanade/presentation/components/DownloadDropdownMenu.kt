@@ -1,9 +1,11 @@
 package eu.kanade.presentation.components
 
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.DpOffset
 import eu.kanade.presentation.anime.DownloadAction
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
@@ -16,7 +18,41 @@ fun DownloadDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     onDownloadClicked: (DownloadAction) -> Unit,
+    offset: DpOffset? = null,
     modifier: Modifier = Modifier,
+) {
+    if (offset != null) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = onDismissRequest,
+            modifier = modifier,
+            offset = offset,
+            content = {
+                DownloadDropdownMenuItems(
+                    onDismissRequest = onDismissRequest,
+                    onDownloadClicked = onDownloadClicked,
+                )
+            },
+        )
+    } else {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = onDismissRequest,
+            modifier = modifier,
+            content = {
+                DownloadDropdownMenuItems(
+                    onDismissRequest = onDismissRequest,
+                    onDownloadClicked = onDownloadClicked,
+                )
+            },
+        )
+    }
+}
+
+@Composable
+private fun ColumnScope.DownloadDropdownMenuItems(
+    onDismissRequest: () -> Unit,
+    onDownloadClicked: (DownloadAction) -> Unit,
 ) {
     val options = persistentListOf(
         DownloadAction.NEXT_1_EPISODE to pluralStringResource(AYMR.plurals.download_amount_anime, 1, 1),
@@ -26,19 +62,13 @@ fun DownloadDropdownMenu(
         DownloadAction.UNSEEN_EPISODES to stringResource(AYMR.strings.download_unseen),
     )
 
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = onDismissRequest,
-        modifier = modifier,
-    ) {
-        options.map { (downloadAction, string) ->
-            DropdownMenuItem(
-                text = { Text(text = string) },
-                onClick = {
-                    onDownloadClicked(downloadAction)
-                    onDismissRequest()
-                },
-            )
-        }
+    options.map { (downloadAction, string) ->
+        DropdownMenuItem(
+            text = { Text(text = string) },
+            onClick = {
+                onDownloadClicked(downloadAction)
+                onDismissRequest()
+            },
+        )
     }
 }

@@ -70,7 +70,7 @@ import tachiyomi.presentation.core.util.shouldExpandFAB
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-class MigrationConfigScreen(private val animeIds: List<Long>) : Screen() {
+class MigrationConfigScreen(private val animeIds: Collection<Long>) : Screen() {
 
     constructor(animeId: Long) : this(listOf(animeId))
 
