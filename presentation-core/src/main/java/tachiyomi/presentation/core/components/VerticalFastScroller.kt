@@ -94,7 +94,6 @@ fun VerticalFastScroller(
                 )
             }
 
-
             // listState.isScrollInProgress occasionally flickers
             val scrollStateTracker = remember { MutableData(listState.isScrollInProgress) }
             val stableScrollInProgress = scrollStateTracker.value || listState.isScrollInProgress

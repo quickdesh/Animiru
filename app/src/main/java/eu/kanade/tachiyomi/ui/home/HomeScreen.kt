@@ -1,10 +1,8 @@
 package eu.kanade.tachiyomi.ui.home
 
-import androidx.activity.compose.PredictiveBackHandler
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
@@ -17,15 +15,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.util.lerp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.TabNavigator
@@ -40,12 +34,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import soup.compose.material.motion.MotionConstants
 import soup.compose.material.motion.animation.materialFadeThroughIn
 import soup.compose.material.motion.animation.materialFadeThroughOut
 import tachiyomi.presentation.core.components.material.Scaffold
-import tachiyomi.presentation.core.util.PredictiveBack
-import kotlin.coroutines.cancellation.CancellationException
 
 object HomeScreen : Screen() {
 
@@ -73,8 +64,6 @@ object HomeScreen : Screen() {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        var scale by remember { mutableFloatStateOf(1f) }
-
         TabNavigator(
             tab = LibraryTab,
             key = TabNavigatorKey,
@@ -113,11 +102,7 @@ object HomeScreen : Screen() {
                     Box(
                         modifier = Modifier
                             .padding(contentPadding)
-                            .consumeWindowInsets(contentPadding)
-                            .graphicsLayer {
-                                scaleX = scale
-                                scaleY = scale
-                            },
+                            .consumeWindowInsets(contentPadding),
                     ) {
                         AnimatedContent(
                             targetState = tabNavigator.current,
@@ -137,31 +122,7 @@ object HomeScreen : Screen() {
 
             val goToLibraryTab = { tabNavigator.current = LibraryTab }
 
-            var handlingBack by remember { mutableStateOf(false) }
-            PredictiveBackHandler(
-                enabled = handlingBack || tabNavigator.current::class != LibraryTab::class,
-            ) { progress ->
-                handlingBack = true
-                val currentTab = tabNavigator.current
-                try {
-                    progress.collect { backEvent ->
-                        scale = lerp(1f, 0.92f, PredictiveBack.transform(backEvent.progress))
-                        tabNavigator.current = if (backEvent.progress > 0.25f) TABS[0] else currentTab
-                    }
-                    goToLibraryTab()
-                } catch (e: CancellationException) {
-                    tabNavigator.current = currentTab
-                } finally {
-                    animate(
-                        initialValue = scale,
-                        targetValue = 1f,
-                        animationSpec = tween(durationMillis = MotionConstants.DefaultMotionDuration),
-                    ) { value, _ ->
-                        scale = value
-                    }
-                    handlingBack = false
-                }
-            }
+            BackHandler(enabled = tabNavigator.current != LibraryTab, onBack = goToLibraryTab)
 
             LaunchedEffect(Unit) {
                 launch {

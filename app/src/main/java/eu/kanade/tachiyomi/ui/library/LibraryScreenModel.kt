@@ -1,8 +1,6 @@
 package eu.kanade.tachiyomi.ui.library
 
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastMap
@@ -321,7 +319,7 @@ class LibraryScreenModel(
             .associateWith { groupCache[it.id]?.toList().orEmpty() }
             // AM (GROUPING) -->
             .applyCustomGrouping(groupType)
-            // <-- AM (GROUPING)
+        // <-- AM (GROUPING)
     }
 
     private fun Map<Category, List</* LibraryItem */ Long>>.applySort(

@@ -1,9 +1,9 @@
 package eu.kanade.presentation.components
 
-import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
@@ -33,9 +33,10 @@ fun NavigatorAdaptiveSheet(
             ) {
                 ScreenTransition(
                     navigator = sheetNavigator,
-                    enterTransition = { fadeIn(animationSpec = tween(220, delayMillis = 90)) },
-                    exitTransition = { fadeOut(animationSpec = tween(90)) },
-                    sizeTransform = { SizeTransform() },
+                    transition = {
+                        fadeIn(animationSpec = tween(220, delayMillis = 90)) togetherWith
+                            fadeOut(animationSpec = tween(90))
+                    },
                 )
 
                 BackHandler(
