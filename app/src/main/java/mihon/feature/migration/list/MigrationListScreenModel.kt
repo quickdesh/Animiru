@@ -146,7 +146,7 @@ class MigrationListScreenModel(
                     }
                 }
                     .await()
-            } catch (e: CancellationException) {
+            } catch (_: CancellationException) {
                 continue
             }
 
@@ -188,7 +188,7 @@ class MigrationListScreenModel(
                 smartSearchEngine.regularSearch(source, anime.title)
             }
 
-            if (searchResult == null || !(searchResult.url == anime.url && source.id == anime.source)) return null
+            if (searchResult == null || (searchResult.url == anime.url && source.id == anime.source)) return null
 
             val localAnime = networkToLocalAnime(searchResult)
             try {
