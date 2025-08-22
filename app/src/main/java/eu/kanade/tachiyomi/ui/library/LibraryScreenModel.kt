@@ -149,7 +149,7 @@ class LibraryScreenModel(
                         sort.takeIf { group != LibraryGroup.BY_DEFAULT },
                     )
             }
-            // <-- AM (GROUPING)
+                // <-- AM (GROUPING)
                 .collectLatest {
                     mutableState.update { state ->
                         state.copy(
