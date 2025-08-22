@@ -88,25 +88,14 @@ class StatsScreenModel(
 
     private fun getGlobalUpdateItemCount(libraryAnime: List<LibraryAnime>): Int {
         val includedCategories = preferences.updateCategories().get().map { it.toLong() }
-        val includedAnime = if (includedCategories.isNotEmpty()) {
-            libraryAnime.filter { it.category in includedCategories }
-        } else {
-            libraryAnime
-        }
-
         val excludedCategories = preferences.updateCategoriesExclude().get().map { it.toLong() }
-        val excludedAnimeIds = if (excludedCategories.isNotEmpty()) {
-            libraryAnime.fastMapNotNull { anime ->
-                anime.id.takeIf { anime.category in excludedCategories }
-            }
-        } else {
-            emptyList()
-        }
-
         val updateRestrictions = preferences.autoUpdateAnimeRestrictions().get()
-        return includedAnime
-            .fastFilterNot { it.anime.id in excludedAnimeIds }
-            .fastDistinctBy { it.anime.id }
+
+        return libraryAnime.filter {
+            val included = includedCategories.isEmpty() || it.categories.intersect(includedCategories).isNotEmpty()
+            val excluded = it.categories.intersect(excludedCategories).isNotEmpty()
+            included && !excluded
+        }
             .fastCountNot {
                 (ANIME_NON_COMPLETED in updateRestrictions && it.anime.status.toInt() == SAnime.COMPLETED) ||
                     (ANIME_HAS_UNSEEN in updateRestrictions && it.unseenCount != 0L) ||

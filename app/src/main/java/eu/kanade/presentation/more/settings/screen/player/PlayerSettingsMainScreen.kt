@@ -172,7 +172,6 @@ class PlayerSettingsMainScreen(private val mainSettings: Boolean) : Screen() {
     }
 }
 
-
 private data class Item(
     val titleRes: StringResource,
     val subtitleRes: StringResource? = null,

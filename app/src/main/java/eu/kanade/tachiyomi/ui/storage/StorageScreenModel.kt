@@ -78,23 +78,21 @@ class StorageScreenModel(
                 downloadCacheFlow,
                 downloadCache.isInitializing,
                 getLibraryAnime.subscribe().distinctUntilChanged { old, new ->
-                    old.map { Pair(it.id, it.category) }.toSet() == new.map { Pair(it.id, it.category) }.toSet()
+                    old.map { Pair(it.id, it.categories) }.toSet() == new.map { Pair(it.id, it.categories) }.toSet()
                 },
                 if (hideHiddenCategories) getVisibleCategories.subscribe() else getCategories.subscribe(),
             ) { _, _, libraries, categories ->
                 val distinctEntries = libraries.fastDistinctBy {
                     it.id
                 }.filter { libraryAnime ->
-                    val categoryId = libraryAnime.category
                     when {
                         // if all is selected, we want to make sure to include all entries
                         // from only visible categories
-                        selectedCategory.value.id == ALL_CATEGORY_ID -> categories.find {
-                            it.id == categoryId
-                        } != null
-
+                        selectedCategory.value.id == ALL_CATEGORY_ID -> categories.any {
+                            it.id in libraryAnime.categories
+                        }
                         // else include only entries from the selected category
-                        else -> categoryId == selectedCategory.value.id
+                        else -> selectedCategory.value.id in libraryAnime.categories
                     }
                 }
 

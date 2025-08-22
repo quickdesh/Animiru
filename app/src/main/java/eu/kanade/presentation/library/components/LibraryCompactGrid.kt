@@ -16,7 +16,7 @@ internal fun LibraryCompactGrid(
     showTitle: Boolean,
     columns: Int,
     contentPadding: PaddingValues,
-    selection: List<LibraryAnime>,
+    selection: Set<Long>,
     onClick: (LibraryAnime) -> Unit,
     onLongClick: (LibraryAnime) -> Unit,
     onClickContinueWatching: ((LibraryAnime) -> Unit)?,
@@ -36,7 +36,7 @@ internal fun LibraryCompactGrid(
         ) { libraryItem ->
             val anime = libraryItem.libraryAnime.anime
             AnimeCompactGridItem(
-                isSelected = selection.fastAny { it.id == libraryItem.libraryAnime.id },
+                isSelected = anime.id in selection,
                 title = anime.title.takeIf { showTitle },
                 coverData = AnimeCover(
                     animeId = anime.id,

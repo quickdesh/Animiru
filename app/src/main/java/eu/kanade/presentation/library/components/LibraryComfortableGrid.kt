@@ -15,7 +15,7 @@ internal fun LibraryComfortableGrid(
     items: List<LibraryItem>,
     columns: Int,
     contentPadding: PaddingValues,
-    selection: List<LibraryAnime>,
+    selection: Set<Long>,
     onClick: (LibraryAnime) -> Unit,
     onLongClick: (LibraryAnime) -> Unit,
     onClickContinueWatching: ((LibraryAnime) -> Unit)?,
@@ -35,7 +35,7 @@ internal fun LibraryComfortableGrid(
         ) { libraryItem ->
             val anime = libraryItem.libraryAnime.anime
             AnimeComfortableGridItem(
-                isSelected = selection.fastAny { it.id == libraryItem.libraryAnime.id },
+                isSelected = anime.id in selection,
                 title = anime.title,
                 coverData = AnimeCover(
                     animeId = anime.id,

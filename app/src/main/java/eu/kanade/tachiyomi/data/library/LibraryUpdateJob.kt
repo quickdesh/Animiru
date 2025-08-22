@@ -187,29 +187,20 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         val groupLibraryUpdateType = libraryPreferences.groupLibraryUpdateType().get()
 
         val listToUpdate = if (categoryId != -1L) {
-            libraryAnime.filter { it.category == categoryId }
+            libraryAnime.filter { categoryId in it.categories }
         } else if (
             group == LibraryGroup.BY_DEFAULT ||
             groupLibraryUpdateType == GroupLibraryMode.GLOBAL ||
             (groupLibraryUpdateType == GroupLibraryMode.ALL_BUT_UNGROUPED && group == LibraryGroup.UNGROUPED)
         ) {
-            val categoriesToUpdate = libraryPreferences.updateCategories().get().map { it.toLong() }
-            val includedAnime = if (categoriesToUpdate.isNotEmpty()) {
-                libraryAnime.filter { it.category in categoriesToUpdate }
-            } else {
-                libraryAnime
-            }
+            val includedCategories = libraryPreferences.updateCategories().get().map { it.toLong() }
+            val excludedCategories = libraryPreferences.updateCategoriesExclude().get().map { it.toLong() }
 
-            val categoriesToExclude = libraryPreferences.updateCategoriesExclude().get().map { it.toLong() }
-            val excludedAnimeIds = if (categoriesToExclude.isNotEmpty()) {
-                libraryAnime.filter { it.category in categoriesToExclude }.map { it.anime.id }
-            } else {
-                emptyList()
+            libraryAnime.filter {
+                val included = includedCategories.isEmpty() || it.categories.intersect(includedCategories).isNotEmpty()
+                val excluded = it.categories.intersect(excludedCategories).isNotEmpty()
+                included && !excluded
             }
-
-            includedAnime
-                .filterNot { it.anime.id in excludedAnimeIds }
-                .distinctBy { it.anime.id }
         } else {
             when (group) {
                 LibraryGroup.BY_TRACK_STATUS -> {

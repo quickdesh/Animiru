@@ -97,7 +97,7 @@ object AnimeMapper {
         // AM (FILLERMARK) -->
         fillermarkCount: Double,
         // <-- AM (FILLERMARK)
-        category: Long,
+        categories: String,
     ): LibraryAnime = LibraryAnime(
         anime = mapAnime(
             id,
@@ -126,7 +126,7 @@ object AnimeMapper {
             isSyncing,
             notes,
         ),
-        category = category,
+        categories = categories.split(",").map { it.toLong() },
         totalEpisodes = totalCount,
         seenCount = seenCount.toLong(),
         bookmarkCount = bookmarkCount.toLong(),

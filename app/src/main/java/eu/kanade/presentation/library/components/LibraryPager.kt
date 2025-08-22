@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import eu.kanade.core.preference.PreferenceMutableState
 import eu.kanade.tachiyomi.ui.library.LibraryItem
+import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.i18n.MR
@@ -33,14 +34,15 @@ fun LibraryPager(
     state: PagerState,
     contentPadding: PaddingValues,
     hasActiveFilters: Boolean,
-    selectedAnime: List<LibraryAnime>,
+    selection: Set<Long>,
     searchQuery: String?,
     onGlobalSearchClicked: () -> Unit,
+    getCategoryForPage: (Int) -> Category,
     getDisplayMode: (Int) -> PreferenceMutableState<LibraryDisplayMode>,
     getColumnsForOrientation: (Boolean) -> PreferenceMutableState<Int>,
-    getLibraryForPage: (Int) -> List<LibraryItem>,
-    onClickAnime: (LibraryAnime) -> Unit,
-    onLongClickAnime: (LibraryAnime) -> Unit,
+    getItemsForCategory: (Category) -> List<LibraryItem>,
+    onClickAnime: (Category, LibraryAnime) -> Unit,
+    onLongClickAnime: (Category, LibraryAnime) -> Unit,
     onClickContinueWatching: ((LibraryAnime) -> Unit)?,
 ) {
     var containerHeight by remember { mutableIntStateOf(0) }
@@ -56,9 +58,10 @@ fun LibraryPager(
             // To make sure only one offscreen page is being composed
             return@HorizontalPager
         }
-        val library = getLibraryForPage(page)
+        val category = getCategoryForPage(page)
+        val items = getItemsForCategory(category)
 
-        if (library.isEmpty()) {
+        if (items.isEmpty()) {
             LibraryPagerEmptyScreen(
                 searchQuery = searchQuery,
                 hasActiveFilters = hasActiveFilters,
@@ -73,14 +76,17 @@ fun LibraryPager(
         val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         val columns by remember(isLandscape) { getColumnsForOrientation(isLandscape) }
 
+        val onClickAnime: (LibraryAnime) -> Unit = { onClickAnime(category, it) }
+        val onLongClickAnime: (LibraryAnime) -> Unit = { onLongClickAnime(category, it) }
+
         when (displayMode) {
             LibraryDisplayMode.List -> {
                 LibraryList(
-                    items = library,
+                    items = items,
                     entries = columns,
                     containerHeight = containerHeight,
                     contentPadding = contentPadding,
-                    selection = selectedAnime,
+                    selection = selection,
                     onClick = onClickAnime,
                     onLongClick = onLongClickAnime,
                     onClickContinueWatching = onClickContinueWatching,
@@ -90,11 +96,11 @@ fun LibraryPager(
             }
             LibraryDisplayMode.CompactGrid, LibraryDisplayMode.CoverOnlyGrid -> {
                 LibraryCompactGrid(
-                    items = library,
+                    items = items,
                     showTitle = displayMode is LibraryDisplayMode.CompactGrid,
                     columns = columns,
                     contentPadding = contentPadding,
-                    selection = selectedAnime,
+                    selection = selection,
                     onClick = onClickAnime,
                     onLongClick = onLongClickAnime,
                     onClickContinueWatching = onClickContinueWatching,
@@ -104,10 +110,10 @@ fun LibraryPager(
             }
             LibraryDisplayMode.ComfortableGrid -> {
                 LibraryComfortableGrid(
-                    items = library,
+                    items = items,
                     columns = columns,
                     contentPadding = contentPadding,
-                    selection = selectedAnime,
+                    selection = selection,
                     onClick = onClickAnime,
                     onLongClick = onLongClickAnime,
                     onClickContinueWatching = onClickContinueWatching,

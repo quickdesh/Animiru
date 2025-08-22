@@ -20,7 +20,7 @@ internal fun LibraryList(
     entries: Int,
     containerHeight: Int,
     contentPadding: PaddingValues,
-    selection: List<LibraryAnime>,
+    selection: Set<Long>,
     onClick: (LibraryAnime) -> Unit,
     onLongClick: (LibraryAnime) -> Unit,
     onClickContinueWatching: ((LibraryAnime) -> Unit)?,
@@ -47,7 +47,7 @@ internal fun LibraryList(
         ) { libraryItem ->
             val anime = libraryItem.libraryAnime.anime
             AnimeListItem(
-                isSelected = selection.fastAny { it.id == libraryItem.libraryAnime.id },
+                isSelected = anime.id in selection,
                 title = anime.title,
                 coverData = AnimeCover(
                     animeId = anime.id,

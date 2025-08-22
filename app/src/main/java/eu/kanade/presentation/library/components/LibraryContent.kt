@@ -29,22 +29,22 @@ import kotlin.time.Duration.Companion.seconds
 fun LibraryContent(
     categories: List<Category>,
     searchQuery: String?,
-    selection: List<LibraryAnime>,
+    selection: Set<Long>,
     contentPadding: PaddingValues,
     currentPage: () -> Int,
     hasActiveFilters: Boolean,
     showPageTabs: Boolean,
     onChangeCurrentPage: (Int) -> Unit,
-    onAnimeClicked: (Long) -> Unit,
+    onClickAnime: (Long) -> Unit,
     onContinueWatchingClicked: ((LibraryAnime) -> Unit)?,
-    onToggleSelection: (LibraryAnime) -> Unit,
-    onToggleRangeSelection: (LibraryAnime) -> Unit,
-    onRefresh: (Category?) -> Boolean,
+    onToggleSelection: (Category, LibraryAnime) -> Unit,
+    onToggleRangeSelection: (Category, LibraryAnime) -> Unit,
+    onRefresh: () -> Boolean,
     onGlobalSearchClicked: () -> Unit,
-    getNumberOfAnimeForCategory: (Category) -> Int?,
+    getItemCountForCategory: (Category) -> Int?,
     getDisplayMode: (Int) -> PreferenceMutableState<LibraryDisplayMode>,
     getColumnsForOrientation: (Boolean) -> PreferenceMutableState<Int>,
-    getLibraryForPage: (Int) -> List<LibraryItem>,
+    getItemsForCategory: (Category) -> List<LibraryItem>,
 ) {
     Column(
         modifier = Modifier.padding(
@@ -59,7 +59,7 @@ fun LibraryContent(
         val scope = rememberCoroutineScope()
         var isRefreshing by remember(pagerState.currentPage) { mutableStateOf(false) }
 
-        if (showPageTabs && categories.size > 1) {
+        if (showPageTabs && categories.isNotEmpty()) {
             LaunchedEffect(categories) {
                 if (categories.size <= pagerState.currentPage) {
                     pagerState.scrollToPage(categories.size - 1)
@@ -68,23 +68,20 @@ fun LibraryContent(
             LibraryTabs(
                 categories = categories,
                 pagerState = pagerState,
-                getNumberOfAnimeForCategory = getNumberOfAnimeForCategory,
-            ) { scope.launch { pagerState.animateScrollToPage(it) } }
-        }
-
-        val notSelectionMode = selection.isEmpty()
-        val onClickAnime = { anime: LibraryAnime ->
-            if (notSelectionMode) {
-                onAnimeClicked(anime.anime.id)
-            } else {
-                onToggleSelection(anime)
-            }
+                getItemCountForCategory = getItemCountForCategory,
+                onTabItemClick = {
+                    scope.launch {
+                        pagerState.animateScrollToPage(it)
+                    }
+                },
+            )
         }
 
         PullRefresh(
             refreshing = isRefreshing,
+            enabled = selection.isEmpty(),
             onRefresh = {
-                val started = onRefresh(categories[currentPage()])
+                val started = onRefresh()
                 if (!started) return@PullRefresh
                 scope.launch {
                     // Fake refresh status but hide it after a second as it's a long running task
@@ -93,19 +90,25 @@ fun LibraryContent(
                     isRefreshing = false
                 }
             },
-            enabled = notSelectionMode,
         ) {
             LibraryPager(
                 state = pagerState,
                 contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding()),
                 hasActiveFilters = hasActiveFilters,
-                selectedAnime = selection,
+                selection = selection,
                 searchQuery = searchQuery,
                 onGlobalSearchClicked = onGlobalSearchClicked,
+                getCategoryForPage = { page -> categories[page] },
                 getDisplayMode = getDisplayMode,
                 getColumnsForOrientation = getColumnsForOrientation,
-                getLibraryForPage = getLibraryForPage,
-                onClickAnime = onClickAnime,
+                getItemsForCategory = getItemsForCategory,
+                onClickAnime = { category, anime ->
+                    if (selection.isNotEmpty()) {
+                        onToggleSelection(category, anime)
+                    } else {
+                        onClickAnime(anime.anime.id)
+                    }
+                },
                 onLongClickAnime = onToggleRangeSelection,
                 onClickContinueWatching = onContinueWatchingClicked,
             )

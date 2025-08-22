@@ -126,4 +126,4 @@ private fun Anime.toBackupAnime(
                 backupAnime.customStatus = it.status?.toInt() ?: 0
             }
         }
-        // <-- AM (CUSTOM_INFORMATION)
+// <-- AM (CUSTOM_INFORMATION)
