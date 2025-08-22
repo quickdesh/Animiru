@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.runBlocking
 import mihon.core.common.utils.mutate
 import tachiyomi.core.common.i18n.stringResource
@@ -97,10 +98,10 @@ class LibraryScreenModel(
     // <-- AM (GROUPING)
 ) : StateScreenModel<LibraryScreenModel.State>(State()) {
 
-    var activeCategoryIndex: Int by libraryPreferences.lastUsedCategory().asState(screenModelScope)
-    val activeCategory: Category get() = state.value.displayedCategories[activeCategoryIndex]
-
     init {
+        mutableState.update { state ->
+            state.copy(activeCategoryIndex = libraryPreferences.lastUsedCategory().get())
+        }
         screenModelScope.launchIO {
             combine(
                 state.map { it.searchQuery }.distinctUntilChanged().debounce(SEARCH_DEBOUNCE_MILLIS),
@@ -109,12 +110,14 @@ class LibraryScreenModel(
                 combine(getTracksPerAnime.subscribe(), getTrackingFiltersFlow(), ::Pair),
                 getLibraryItemPreferencesFlow(),
             ) { searchQuery, categories, favorites, (tracksMap, trackingFilters), itemPreferences ->
+                val showSystemCategory = favorites.any { it.libraryAnime.categories.contains(0) }
                 val filteredFavorites = favorites
                     .applyFilters(tracksMap, trackingFilters, itemPreferences)
                     .let { if (searchQuery == null) it else it.filter { m -> m.matches(searchQuery) } }
 
                 LibraryData(
                     isInitialized = true,
+                    showSystemCategory = showSystemCategory,
                     categories = categories,
                     favorites = filteredFavorites,
                     tracksMap = tracksMap,
@@ -139,7 +142,7 @@ class LibraryScreenModel(
                 libraryPreferences.sortingMode().changes(),
             ) { (data, group), sort ->
                 data.favorites
-                    .applyGrouping(data.categories, group)
+                    .applyGrouping(data.categories, data.showSystemCategory, group)
                     .applySort(
                         data.favoritesById,
                         data.tracksMap,
@@ -301,6 +304,7 @@ class LibraryScreenModel(
 
     private fun List<LibraryItem>.applyGrouping(
         categories: List<Category>,
+        showSystemCategory: Boolean,
         // AM (GROUPING) -->
         groupType: Int,
         // <-- AM (GROUPING)
@@ -313,7 +317,6 @@ class LibraryScreenModel(
                 groupCache.getOrPut(categoryId) { mutableListOf() }.add(item)
             }
         }
-        val showSystemCategory = groupCache.containsKey(0L)
         return categories.filter { showSystemCategory || !it.isSystemCategory }
             .associateWith { groupCache[it.id]?.toList().orEmpty() }
             // AM (GROUPING) -->
@@ -684,7 +687,8 @@ class LibraryScreenModel(
     }
 
     fun getRandomLibraryItemForCurrentCategory(): LibraryItem? {
-        return state.value.getItemsForCategoryId(activeCategory.id).randomOrNull()
+        val state = state.value
+        return state.getItemsForCategoryId(state.activeCategory.id).randomOrNull()
     }
 
     fun showSettingsDialog() {
@@ -742,7 +746,7 @@ class LibraryScreenModel(
         lastSelectionCategory = null
         mutableState.update { state ->
             val newSelection = state.selection.mutate { list ->
-                state.getItemsForCategoryId(activeCategory.id).map { it.id }.let(list::addAll)
+                state.getItemsForCategoryId(state.activeCategory.id).map { it.id }.let(list::addAll)
             }
             state.copy(selection = newSelection)
         }
@@ -752,7 +756,7 @@ class LibraryScreenModel(
         lastSelectionCategory = null
         mutableState.update { state ->
             val newSelection = state.selection.mutate { list ->
-                val itemIds = state.getItemsForCategoryId(activeCategory.id).fastMap { it.id }
+                val itemIds = state.getItemsForCategoryId(state.activeCategory.id).fastMap { it.id }
                 val (toRemove, toAdd) = itemIds.partition { it in list }
                 list.removeAll(toRemove)
                 list.addAll(toAdd)
@@ -763,6 +767,15 @@ class LibraryScreenModel(
 
     fun search(query: String?) {
         mutableState.update { it.copy(searchQuery = query) }
+    }
+
+    fun updateActiveCategoryIndex(index: Int) {
+        val newIndex = mutableState.updateAndGet { state ->
+            state.copy(activeCategoryIndex = index)
+        }
+            .coercedActiveCategoryIndex
+
+        libraryPreferences.lastUsedCategory().set(newIndex)
     }
 
     fun openChangeCategoryDialog() {
@@ -920,6 +933,7 @@ class LibraryScreenModel(
     @Immutable
     data class LibraryData(
         val isInitialized: Boolean = false,
+        val showSystemCategory: Boolean = false,
         val categories: List<Category> = emptyList(),
         val favorites: List<LibraryItem> = emptyList(),
         val tracksMap: Map</* Anime */ Long, List<Track>> = emptyMap(),
@@ -943,15 +957,23 @@ class LibraryScreenModel(
         val groupType: Int = LibraryGroup.BY_DEFAULT,
         // <-- AM (GROUPING)
         val libraryData: LibraryData = LibraryData(),
+        private val activeCategoryIndex: Int = 0,
         private val groupedFavorites: Map<Category, List</* LibraryItem */ Long>> = emptyMap(),
     ) {
+        val displayedCategories: List<Category> = groupedFavorites.keys.toList()
+
+        val coercedActiveCategoryIndex = activeCategoryIndex.coerceIn(
+            minimumValue = 0,
+            maximumValue = displayedCategories.lastIndex.coerceAtLeast(0),
+        )
+
+        val activeCategory: Category by lazy { displayedCategories[coercedActiveCategoryIndex] }
+
         val isLibraryEmpty = libraryData.favorites.isEmpty()
 
         val selectionMode = selection.isNotEmpty()
 
         val selectedAnime by lazy { selection.mapNotNull { libraryData.favoritesById[it]?.libraryAnime?.anime } }
-
-        val displayedCategories = groupedFavorites.keys.toList()
 
         fun getItemsForCategoryId(categoryId: Long): List<LibraryItem> {
             val category = displayedCategories.find { it.id == categoryId } ?: return emptyList()
