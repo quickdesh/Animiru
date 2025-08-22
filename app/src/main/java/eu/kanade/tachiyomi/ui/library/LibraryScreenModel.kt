@@ -73,6 +73,7 @@ import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import kotlin.collections.flatten
 import kotlin.random.Random
 
 class LibraryScreenModel(
@@ -148,7 +149,7 @@ class LibraryScreenModel(
                         sort.takeIf { group != LibraryGroup.BY_DEFAULT },
                     )
             }
-                // <-- AM (GROUPING)
+            // <-- AM (GROUPING)
                 .collectLatest {
                     mutableState.update { state ->
                         state.copy(
@@ -307,19 +308,38 @@ class LibraryScreenModel(
         groupType: Int,
         // <-- AM (GROUPING)
     ): Map<Category, List</* LibraryItem */ Long>> {
-        // AM (GROUPING) -->
-        val groupCache = mutableMapOf</* Category */ Long, MutableList<LibraryItem>>()
-        // <-- AM (GROUPING)
-        forEach { item ->
-            item.libraryAnime.categories.forEach { categoryId ->
-                groupCache.getOrPut(categoryId) { mutableListOf() }.add(item)
+        return when (groupType) {
+            LibraryGroup.BY_DEFAULT -> {
+                val groupCache = mutableMapOf</* Category */ Long, MutableList</* LibraryItem */ Long>>()
+                forEach { item ->
+                    item.libraryAnime.categories.forEach { categoryId ->
+                        groupCache.getOrPut(categoryId) { mutableListOf() }.add(item.id)
+                    }
+                }
+                categories.filter { showSystemCategory || !it.isSystemCategory }
+                    .associateWith { groupCache[it.id]?.toList().orEmpty() }
             }
-        }
-        return categories.filter { showSystemCategory || !it.isSystemCategory }
-            .associateWith { groupCache[it.id]?.toList().orEmpty() }
             // AM (GROUPING) -->
-            .applyCustomGrouping(groupType)
-        // <-- AM (GROUPING)
+            LibraryGroup.UNGROUPED -> {
+                mapOf(
+                    Category(
+                        0,
+                        preferences.context.stringResource(AMMR.strings.ungrouped),
+                        0,
+                        0,
+                        false,
+                    ) to
+                        this.map { it.id },
+                )
+            }
+            else -> {
+                getGroupedItems(
+                    groupType = groupType,
+                    libraryAnime = this,
+                )
+            }
+            // <-- AM (GROUPING)
+        }
     }
 
     private fun Map<Category, List</* LibraryItem */ Long>>.applySort(
@@ -494,38 +514,6 @@ class LibraryScreenModel(
             }
         }
     }
-
-    // AM (GROUPING) -->
-    private fun Map<Category, List<LibraryItem>>.applyCustomGrouping(
-        groupType: Int,
-    ): Map<Category, List</* LibraryItem */ Long>> {
-        val items = when (groupType) {
-            LibraryGroup.BY_DEFAULT -> this
-            LibraryGroup.UNGROUPED -> {
-                mapOf(
-                    Category(
-                        0,
-                        preferences.context.stringResource(AMMR.strings.ungrouped),
-                        0,
-                        0,
-                        false,
-                    ) to
-                        values.flatten().distinct(),
-                )
-            }
-            else -> {
-                getGroupedItems(
-                    groupType = groupType,
-                    libraryAnime = this.values.flatten().distinct(),
-                )
-            }
-        }
-
-        return items.mapValues { entry ->
-            entry.value.map { anime -> anime.id }
-        }
-    }
-    // <-- AM (GROUPING)
 
     /**
      * Flow of tracking filter preferences
@@ -814,26 +802,32 @@ class LibraryScreenModel(
     private fun getGroupedItems(
         groupType: Int,
         libraryAnime: List<LibraryItem>,
-    ): Map<Category, List<LibraryItem>> {
+    ): Map<Category, List</* LibraryItem */ Long>> {
         val context = preferences.context
         return when (groupType) {
             LibraryGroup.BY_TRACK_STATUS -> {
                 val tracks = runBlocking { getTracks.await() }.groupBy { it.animeId }
-                libraryAnime.groupBy { item ->
-                    val status = tracks[item.id]?.firstNotNullOfOrNull { track ->
+                val groupCache = mutableMapOf</* Track.status */ Int, MutableList</* LibraryItem */ Long>>()
+                libraryAnime.forEach { item ->
+                    val statuses = tracks[item.id]?.mapNotNull { track ->
                         TrackStatus.parseTrackerStatus(trackerManager, track.trackerId, track.status)
-                    } ?: TrackStatus.OTHER
+                    }
+                        ?.takeIf { it.isNotEmpty() }
+                        ?: listOf(TrackStatus.OTHER)
+                    statuses.forEach { status ->
+                        groupCache.getOrPut(status.int) { mutableListOf() }.add(item.id)
+                    }
+                }
 
-                    status.int
-                }.mapKeys { (id) ->
+                groupCache.mapKeys { (trackStatus) ->
                     Category(
-                        id = id.toLong(),
+                        id = trackStatus.toLong(),
                         name = TrackStatus.entries
-                            .find { it.int == id }
+                            .find { it.int == trackStatus }
                             .let { it ?: TrackStatus.OTHER }
                             .let { context.stringResource(it.res) },
                         order = TrackStatus.entries.toTypedArray().indexOfFirst {
-                            it.int == id
+                            it.int == trackStatus
                         }.takeUnless { it == -1 }?.toLong() ?: TrackStatus.OTHER.ordinal.toLong(),
                         flags = 0,
                         hidden = false,
@@ -841,37 +835,40 @@ class LibraryScreenModel(
                 }
             }
             LibraryGroup.BY_SOURCE -> {
-                val sources: List<Long>
-                libraryAnime.groupBy { item ->
-                    item.libraryAnime.anime.source
-                }.also { it ->
-                    sources = it.keys
-                        .map {
-                            sourceManager.getOrStub(it)
-                        }
-                        .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name.ifBlank { it.id.toString() } })
-                        .map { it.id }
-                }.mapKeys {
+                val groupCache = mutableMapOf</* Source.id */ Long, MutableList</* LibraryItem */ Long>>()
+                libraryAnime.forEach { item ->
+                    groupCache.getOrPut(item.libraryAnime.anime.source) { mutableListOf() }.add(item.id)
+                }
+                val sources = groupCache.keys
+                    .map { sourceManager.getOrStub(it) }
+                    .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name.ifBlank { it.id.toString() } })
+                    .associateBy { it.id }
+                val sourceIds = sources.map { it.key }
+
+                groupCache.mapKeys { (sourceId) ->
                     Category(
-                        id = it.key,
-                        name = if (it.key == LocalSource.ID) {
+                        id = sourceId.takeIf { it != LocalSource.ID } ?: -1L,
+                        name = if (sourceId == LocalSource.ID) {
                             context.stringResource(MR.strings.local_source)
                         } else {
-                            sourceManager.getOrStub(it.key).name
+                            sourceManager.getOrStub(sourceId).name
                         },
-                        order = sources.indexOf(it.key).takeUnless { it == -1 }?.toLong() ?: Long.MAX_VALUE,
+                        order = sourceIds.indexOf(sourceId).takeUnless { it == -1 }?.toLong() ?: Long.MAX_VALUE,
                         flags = 0,
                         hidden = false,
                     )
                 }
             }
-            else -> {
-                libraryAnime.groupBy { item ->
-                    item.libraryAnime.anime.status
-                }.mapKeys {
+            LibraryGroup.BY_STATUS -> {
+                val groupCache = mutableMapOf</* Anime.status */ Long, MutableList</* LibraryItem */ Long>>()
+                libraryAnime.forEach { item ->
+                    groupCache.getOrPut(item.libraryAnime.anime.status) { mutableListOf() }.add(item.id)
+                }
+
+                groupCache.mapKeys { (status) ->
                     Category(
-                        id = it.key + 1,
-                        name = when (it.key) {
+                        id = status + 1,
+                        name = when (status) {
                             SAnime.ONGOING.toLong() -> context.stringResource(MR.strings.ongoing)
                             SAnime.LICENSED.toLong() -> context.stringResource(MR.strings.licensed)
                             SAnime.CANCELLED.toLong() -> context.stringResource(MR.strings.cancelled)
@@ -882,7 +879,7 @@ class LibraryScreenModel(
                             SAnime.COMPLETED.toLong() -> context.stringResource(MR.strings.completed)
                             else -> context.stringResource(MR.strings.unknown)
                         },
-                        order = when (it.key) {
+                        order = when (status) {
                             SAnime.ONGOING.toLong() -> 1
                             SAnime.LICENSED.toLong() -> 2
                             SAnime.CANCELLED.toLong() -> 3
@@ -896,6 +893,7 @@ class LibraryScreenModel(
                     )
                 }
             }
+            else -> emptyMap()
         }.toSortedMap(compareBy { it.order })
     }
     // <-- AM (GROUPING)
