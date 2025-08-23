@@ -4,7 +4,7 @@ object Constants {
     const val URL_HELP = "https://aniyomi.org/docs/guides/troubleshooting/"
     const val URL_HELP_UPCOMING = "https://aniyomi.org/docs/faq/updates/upcoming"
 
-    const val ANIME_EXTRA = " "
+    const val ANIME_EXTRA = "anime"
 
     const val MAIN_ACTIVITY = "eu.kanade.tachiyomi.ui.main.MainActivity"
 
