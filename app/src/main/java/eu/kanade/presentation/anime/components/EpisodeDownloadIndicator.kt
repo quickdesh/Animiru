@@ -102,7 +102,7 @@ private fun NotDownloadedIndicator(
             .commonClickable(
                 enabled = enabled,
                 hapticFeedback = LocalHapticFeedback.current,
-                onLongClick = { onClick(EpisodeDownloadAction.START_NOW) },
+                onLongClick = { onClick(EpisodeDownloadAction.SHOW_QUALITIES) },
                 onClick = { onClick(EpisodeDownloadAction.START) },
             )
             .secondaryItemAlpha(),
