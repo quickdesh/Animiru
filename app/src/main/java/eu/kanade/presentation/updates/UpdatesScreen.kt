@@ -44,6 +44,7 @@ import uy.kohesive.injekt.api.get
 import java.time.LocalDate
 import kotlin.time.Duration.Companion.seconds
 
+// AM (RECENTS_FILTER_CHIP) -->
 @Composable
 fun UpdateScreen(
     state: UpdatesScreenModel.State,
@@ -151,6 +152,7 @@ fun UpdatesTopBar(
         scrollBehavior = scrollBehavior,
     )
 }
+// <-- AM (RECENTS_FILTER_CHIP)
 
 @Composable
 fun UpdatesBottomBar(

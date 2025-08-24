@@ -43,6 +43,7 @@ fun HistoryScreen(
     onDialogChange: (HistoryScreenModel.Dialog?) -> Unit,
     contentPadding: PaddingValues,
 ) {
+    // AM (RECENTS_FILTER_CHIP) -->
     state.list.let {
         if (it == null) {
             LoadingScreen(Modifier.padding(contentPadding))
@@ -96,6 +97,7 @@ fun HistoryTopBar(
         scrollBehavior = scrollBehavior,
     )
 }
+// <-- AM (RECENTS_FILTER_CHIP)
 
 @Composable
 private fun HistoryScreenContent(

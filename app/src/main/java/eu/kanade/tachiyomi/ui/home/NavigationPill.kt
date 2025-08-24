@@ -90,7 +90,9 @@ fun NavigationPill(
     val pillItemHeight = 48.dp
 
     val currentTabIndex by remember {
+        // AM (RECENTS_FILTER_CHIP) -->
         derivedStateOf { tabs.indexOfFirst { it::class == tabNavigator.current::class } }
+        // <-- AM (RECENTS_FILTER_CHIP)
     }
     val indexedTabs = tabs.mapIndexed { index, tab -> index to tab }
     var oldIndex by remember { mutableIntStateOf(currentTabIndex) }

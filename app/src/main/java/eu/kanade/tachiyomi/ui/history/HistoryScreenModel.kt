@@ -65,6 +65,7 @@ class HistoryScreenModel(
 
     init {
         screenModelScope.launch {
+            // AM (RECENTS_FILTER_CHIP) -->
             state.map { it.searchQuery }
                 .distinctUntilChanged()
                 .flatMapLatest { query ->
@@ -78,6 +79,7 @@ class HistoryScreenModel(
                         .flowOn(Dispatchers.IO)
                 }
                 .collect { newList -> mutableState.update { it.copy(list = newList) } }
+            // <-- AM (RECENTS_FILTER_CHIP)
         }
     }
 
@@ -129,9 +131,11 @@ class HistoryScreenModel(
         }
     }
 
+    // AM (RECENTS_FILTER_CHIP) -->
     fun updateSearchQuery(query: String?) {
         mutableState.update { it.copy(searchQuery = query) }
     }
+    // <-- AM (RECENTS_FILTER_CHIP)
 
     fun setDialog(dialog: Dialog?) {
         mutableState.update { it.copy(dialog = dialog) }

@@ -32,6 +32,7 @@ import uy.kohesive.injekt.injectLazy
 
 val resumeLastEpisodeSeenEvent = Channel<Unit>()
 
+// AM (RECENTS_FILTER_CHIP) -->
 @Composable
 fun Screen.HistoryHalfTab(
     screenModel: HistoryScreenModel,
@@ -51,6 +52,7 @@ fun Screen.HistoryHalfTab(
         onClickFavorite = screenModel::addFavorite,
         contentPadding = contentPadding,
     )
+    // <-- AM (RECENTS_FILTER_CHIP)
 
     val onDismissRequest = { screenModel.setDialog(null) }
     when (val dialog = state.dialog) {

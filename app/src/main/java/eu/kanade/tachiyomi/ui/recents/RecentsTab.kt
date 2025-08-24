@@ -54,6 +54,7 @@ import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import eu.kanade.tachiyomi.ui.updates.AnimeUpdatesHalfTab
 import eu.kanade.tachiyomi.ui.updates.UpdatesScreenModel
+import eu.kanade.tachiyomi.ui.updates.openEpisode
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
@@ -103,6 +104,7 @@ data object RecentsTab : Tab {
         val context = LocalContext.current
 
         val historyScreenModel = rememberScreenModel { HistoryScreenModel() }
+        // AM (RECENTS_FILTER_CHIP) -->
         val updatesScreenModel = rememberScreenModel { UpdatesScreenModel() }
         // AM (TAB_HOLD) -->
         val snackbarHostState = SnackbarHostState()
@@ -128,6 +130,7 @@ data object RecentsTab : Tab {
         LaunchedEffect(Unit) {
             switchToHistoryTabChannel.receiveAsFlow().collectLatest { showHistoryScreen = true }
         }
+        // <-- AM (RECENTS_FILTER_CHIP)
 
         LaunchedEffect(Unit) {
             // AM (DISCORD_RPC) -->
@@ -155,6 +158,7 @@ internal suspend fun openEpisode(context: Context, episode: Episode?, snackbarHo
 }
 // <-- AM (TAB_HOLD)
 
+// AM (RECENTS_FILTER_CHIP) -->
 @Composable
 fun RecentsScaffold(
     showHistoryScreen: Boolean,
@@ -237,7 +241,7 @@ fun RecentsScaffold(
                     onMultiDeleteClicked = updatesScreenModel::showConfirmDeleteEpisodes,
                     onOpenEpisode = { updateItem, altPlayer ->
                         scope.launchIO {
-                            eu.kanade.tachiyomi.ui.updates.openEpisode(context, updateItem, altPlayer)
+                            openEpisode(context, updateItem, altPlayer)
                         }
                     },
                 )
@@ -247,4 +251,5 @@ fun RecentsScaffold(
         content(contentPadding)
     }
 }
+// <-- AM (RECENTS_FILTER_CHIP)
 // <-- AM (RECENTS)

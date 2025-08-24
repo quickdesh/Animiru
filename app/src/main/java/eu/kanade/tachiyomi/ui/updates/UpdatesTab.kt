@@ -26,6 +26,7 @@ import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.injectLazy
 
+// AM (RECENTS_FILTER_CHIP) -->
 @Composable
 fun AnimeUpdatesHalfTab(screenModel: UpdatesScreenModel, contentPadding: PaddingValues) {
     val context = LocalContext.current
@@ -48,6 +49,7 @@ fun AnimeUpdatesHalfTab(screenModel: UpdatesScreenModel, contentPadding: Padding
         },
         contentPadding = contentPadding,
     )
+    // <-- AM (RECENTS_FILTER_CHIP)
 
     val onDismissDialog = { screenModel.setDialog(null) }
     when (val dialog = state.dialog) {
