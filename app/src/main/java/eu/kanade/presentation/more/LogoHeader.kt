@@ -28,7 +28,7 @@ fun LogoHeader() {
                 // AM -->
                 .padding(vertical = 8.dp)
                 .size(96.dp),
-                // <-- AM
+            // <-- AM
         )
 
         HorizontalDivider()

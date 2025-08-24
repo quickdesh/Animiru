@@ -8,6 +8,7 @@ object EpisodeRecognition {
     private const val NUMBER_PATTERN = """([0-9]+)(\.[0-9]+)?(\.?[a-z]+)?"""
 
     // AY -->
+
     /**
      * All cases with e.xx, exx, episode xx, or ep xx
      * kaguya-sama wa kokurasetai - s01e01v2 (BD 1080p HEVC) -R> 01
@@ -21,6 +22,7 @@ object EpisodeRecognition {
     private val number = Regex(NUMBER_PATTERN)
 
     // AY -->
+
     /**
      * Regex to remove tags
      * Example: [flugel] kaguya-sama wa kokurasetai - s01e01v2 (bd 1080p hevc) [multi audio] [80ac7b2e] ->

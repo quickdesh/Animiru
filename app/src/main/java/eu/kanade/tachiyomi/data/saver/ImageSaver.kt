@@ -155,7 +155,7 @@ sealed class Image(
 
     // AY -->
     data class Screenshot(
-    // <-- AY
+        // <-- AY
         val inputStream: () -> InputStream,
         override val name: String,
         override val location: Location,

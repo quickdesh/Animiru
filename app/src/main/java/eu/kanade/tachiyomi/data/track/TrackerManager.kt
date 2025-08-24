@@ -14,6 +14,7 @@ class TrackerManager {
     companion object {
         const val ANILIST = 2L
         const val KITSU = 3L
+
         // AY -->
         const val SIMKL = 101L
         const val JELLYFIN = 102L
@@ -25,6 +26,7 @@ class TrackerManager {
     val kitsu = Kitsu(KITSU)
     val shikimori = Shikimori(4L)
     val bangumi = Bangumi(5L)
+
     // AY -->
     val simkl = Simkl(SIMKL)
     val jellyfin = Jellyfin(JELLYFIN)

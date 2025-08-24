@@ -21,6 +21,7 @@ const val PREF_DOH_MULLVAD = 9
 const val PREF_DOH_CONTROLD = 10
 const val PREF_DOH_NJALLA = 11
 const val PREF_DOH_SHECAN = 12
+
 // AY -->
 const val PREF_DOH_LIBREDNS = 13
 // <-- AY
@@ -188,6 +189,7 @@ fun OkHttpClient.Builder.dohShecan() = dns(
 )
 
 // AY -->
+
 /**
  * Source: https://libredns.gr/
  */

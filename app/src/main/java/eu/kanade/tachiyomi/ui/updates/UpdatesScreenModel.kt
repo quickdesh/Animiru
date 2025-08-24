@@ -435,6 +435,7 @@ class UpdatesScreenModel(
 
     sealed interface Dialog {
         data class DeleteConfirmation(val toDelete: List<UpdatesItem>) : Dialog
+
         // AY -->
         data class ShowQualities(
             val episodeTitle: String,

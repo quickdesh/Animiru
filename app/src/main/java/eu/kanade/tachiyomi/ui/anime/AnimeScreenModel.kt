@@ -1285,6 +1285,7 @@ class AnimeScreenModel(
         data class DuplicateAnime(val anime: Anime, val duplicates: List<AnimeWithEpisodeCount>) : Dialog
         data class Migrate(val target: Anime, val current: Anime) : Dialog
         data class SetFetchInterval(val anime: Anime) : Dialog
+
         // AY -->
         data class ShowQualities(val episode: Episode, val anime: Anime, val source: AnimeSource) : Dialog
         // <-- AY

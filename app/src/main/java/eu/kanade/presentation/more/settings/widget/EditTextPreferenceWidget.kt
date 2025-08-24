@@ -81,7 +81,7 @@ fun EditTextPreferenceWidget(
                     trailingIcon = {
                         // AY -->
                         if ((textFieldValue.text.isBlank() && !canBeBlank) || !validate(textFieldValue.text)) {
-                        // <-- AY
+                            // <-- AY
                             Icon(imageVector = Icons.Filled.Error, contentDescription = null)
                         } else {
                             IconButton(onClick = { textFieldValue = TextFieldValue("") }) {

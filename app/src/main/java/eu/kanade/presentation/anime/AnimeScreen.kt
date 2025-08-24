@@ -107,7 +107,9 @@ fun AnimeScreen(
     // AM (FILE_SIZE) -->
     showFileSize: Boolean,
     // <-- AM (FILE_SIZE)
-    onEpisodeClicked: (episode: Episode, /* AY --> */ alt: Boolean /* <-- AY */) -> Unit,
+    // AY -->
+    onEpisodeClicked: (episode: Episode, alt: Boolean) -> Unit,
+    // <-- AY
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
     onWebViewClicked: (() -> Unit)?,
@@ -288,7 +290,9 @@ private fun AnimeScreenSmallImpl(
     // AM (FILE_SIZE) -->
     showFileSize: Boolean,
     // <-- AM (FILE_SIZE)
-    onEpisodeClicked: (Episode, /* AY --> */ Boolean /* <-- AY */) -> Unit,
+    // AY -->
+    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    // <-- AY
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
     onWebViewClicked: (() -> Unit)?,
@@ -599,7 +603,9 @@ fun AnimeScreenLargeImpl(
     // AM (FILE_SIZE) -->
     showFileSize: Boolean,
     // <-- AM (FILE_SIZE)
-    onEpisodeClicked: (Episode, /* AY --> */ Boolean /* <-- AY */) -> Unit,
+    // AY -->
+    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    // <-- AY
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
     onWebViewClicked: (() -> Unit)?,
@@ -965,7 +971,9 @@ private fun LazyListScope.sharedEpisodeItems(
     isAnyEpisodeSelected: Boolean,
     episodeSwipeStartAction: LibraryPreferences.EpisodeSwipeAction,
     episodeSwipeEndAction: LibraryPreferences.EpisodeSwipeAction,
-    onEpisodeClicked: (Episode, /* AY --> */ Boolean /* <-- AY */) -> Unit,
+    // AY -->
+    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    // <-- AY
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onEpisodeSelected: (EpisodeList.Item, Boolean, Boolean, Boolean) -> Unit,
     onEpisodeSwipe: (EpisodeList.Item, LibraryPreferences.EpisodeSwipeAction) -> Unit,
@@ -1073,7 +1081,9 @@ private fun onEpisodeItemClick(
     episodeItem: EpisodeList.Item,
     isAnyEpisodeSelected: Boolean,
     onToggleSelection: (Boolean) -> Unit,
-    onEpisodeClicked: (Episode, /* AY --> */ Boolean /* <-- AY */) -> Unit,
+    // AY -->
+    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    // <-- AY
 ) {
     when {
         episodeItem.selected -> onToggleSelection(false)

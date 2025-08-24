@@ -663,7 +663,7 @@ class LibraryScreenModel(
             animeList.forEach { anime ->
                 // AY -->
                 val categoryIds = getVisibleCategories.await(anime.id)
-                // <-- AY
+                    // <-- AY
                     .map { it.id }
                     .subtract(removeCategories.toSet())
                     .plus(addCategories)

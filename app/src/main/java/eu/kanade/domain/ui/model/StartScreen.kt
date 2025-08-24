@@ -21,4 +21,3 @@ enum class StartScreen(val titleRes: StringResource, val tab: Tab) {
     // <-- AM (BROWSE)
 }
 // <-- AY
-

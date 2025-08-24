@@ -54,7 +54,7 @@ fun LibraryPager(
             .onGloballyPositioned { layoutCoordinates ->
                 containerHeight = layoutCoordinates.size.height
             },
-            // <-- AY
+        // <-- AY
         state = state,
         verticalAlignment = Alignment.Top,
     ) { page ->

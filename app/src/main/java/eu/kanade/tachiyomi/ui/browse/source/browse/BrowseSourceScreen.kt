@@ -138,7 +138,7 @@ data class BrowseSourceScreen(
                         .onGloballyPositioned { layoutCoordinates ->
                             topBarHeight = layoutCoordinates.size.height
                         },
-                        // <-- AY
+                    // <-- AY
                 ) {
                     BrowseSourceToolbar(
                         searchQuery = state.toolbarQuery,

@@ -8,20 +8,26 @@ enum class AppTheme(val titleRes: StringResource?) {
     DEFAULT(MR.strings.label_default),
     MONET(MR.strings.theme_monet),
     CATPPUCCIN(MR.strings.theme_catppuccin),
+
     // AY -->
     CLOUDFLARE(AYMR.strings.theme_cloudflare),
     COTTONCANDY(AYMR.strings.theme_cottoncandy),
     DOOM(AYMR.strings.theme_doom),
+
     // <-- AY
     GREEN_APPLE(MR.strings.theme_greenapple),
     LAVENDER(MR.strings.theme_lavender),
+
     // AY -->
     MATRIX(AYMR.strings.theme_matrix),
+
     // <-- AY
     MIDNIGHT_DUSK(MR.strings.theme_midnightdusk),
+
     // AY -->
     MOCHA(AYMR.strings.theme_mocha),
     SAPPHIRE(AYMR.strings.theme_sapphire),
+
     // <-- AY
     NORD(MR.strings.theme_nord),
     STRAWBERRY_DAIQUIRI(MR.strings.theme_strawberrydaiquiri),

@@ -303,7 +303,7 @@ private fun ColumnScope.DisplayPage(
             pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
         )
     } else {
-    // <-- AY
+        // <-- AY
         SliderItem(
             value = columns,
             valueRange = 0..10,
