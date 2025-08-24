@@ -10,9 +10,13 @@ data class RestoreOptions(
     val categories: Boolean = true,
     val appSettings: Boolean = true,
     val extensionRepoSettings: Boolean = true,
+    // AY -->
     val customButtons: Boolean = true,
+    // <-- AY
     val sourceSettings: Boolean = true,
+    // AY -->
     val extensions: Boolean = false,
+    // <-- AY
 ) {
 
     fun asBooleanArray() = booleanArrayOf(
@@ -20,18 +24,26 @@ data class RestoreOptions(
         categories,
         appSettings,
         extensionRepoSettings,
+        // AY -->
         customButtons,
+        // <-- AY
         sourceSettings,
+        // AY -->
         extensions,
+        // <-- AY
     )
 
     fun canRestore() = libraryEntries ||
         categories ||
         appSettings ||
         extensionRepoSettings ||
+        // AY -->
         customButtons ||
+        // <-- AY
         sourceSettings ||
+        // AY -->
         extensions
+        // <-- AY
 
     companion object {
         val options = persistentListOf(
@@ -55,21 +67,25 @@ data class RestoreOptions(
                 getter = RestoreOptions::extensionRepoSettings,
                 setter = { options, enabled -> options.copy(extensionRepoSettings = enabled) },
             ),
+            // AY -->
             Entry(
                 label = AYMR.strings.custom_button_settings,
                 getter = RestoreOptions::customButtons,
                 setter = { options, enabled -> options.copy(customButtons = enabled) },
             ),
+            // <-- AY
             Entry(
                 label = MR.strings.source_settings,
                 getter = RestoreOptions::sourceSettings,
                 setter = { options, enabled -> options.copy(sourceSettings = enabled) },
             ),
+            // AY -->
             Entry(
                 label = MR.strings.label_extensions,
                 getter = RestoreOptions::extensions,
                 setter = { options, enabled -> options.copy(extensions = enabled) },
             ),
+            // <-- AY
         )
 
         fun fromBooleanArray(array: BooleanArray) = RestoreOptions(
@@ -77,9 +93,13 @@ data class RestoreOptions(
             categories = array[1],
             appSettings = array[2],
             extensionRepoSettings = array[3],
+            // AY -->
             customButtons = array[4],
+            // <-- AY
             sourceSettings = array[5],
+            // AY -->
             extensions = array[6],
+            // <-- AY
         )
     }
 

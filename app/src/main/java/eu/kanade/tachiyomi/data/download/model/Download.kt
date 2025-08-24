@@ -16,8 +16,10 @@ data class Download(
     val source: AnimeHttpSource,
     val anime: Anime,
     val episode: Episode,
+    // AY -->
     val changeDownloader: Boolean = false,
     var video: Video? = null,
+    // <-- AY
 ) {
 
     @Transient
@@ -31,6 +33,7 @@ data class Download(
             _statusFlow.value = status
         }
 
+    // AY -->
     @Transient
     private val progressStateFlow = MutableStateFlow(0)
 
@@ -41,6 +44,7 @@ data class Download(
         set(value) {
             progressStateFlow.value = value
         }
+    // <-- AY
 
     enum class State(val value: Int) {
         NOT_DOWNLOADED(0),

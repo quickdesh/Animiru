@@ -79,12 +79,14 @@ internal class DownloadNotifier(private val context: Context) {
                 // Open download manager when clicked
                 setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))
                 isDownloading = true
+                // AY -->
                 // Stop action
                 addAction(
                     R.drawable.ic_pause_24dp,
                     context.stringResource(AYMR.strings.action_stop),
                     NotificationReceiver.pauseDownloadsPendingBroadcast(context),
                 )
+                // <-- AY
                 addAction(
                     R.drawable.ic_book_24dp,
                     context.stringResource(MR.strings.action_show_manga),
@@ -92,11 +94,13 @@ internal class DownloadNotifier(private val context: Context) {
                 )
             }
 
+            // AY -->
             val downloadingProgressText = if (download.progress == 0) {
                 context.stringResource(MR.strings.update_check_notification_download_in_progress)
             } else {
                 context.stringResource(AYMR.strings.episode_downloading_progress, download.progress)
             }
+            // <-- AY
 
             if (preferences.hideNotificationContent().get()) {
                 setContentTitle(downloadingProgressText)
@@ -112,7 +116,9 @@ internal class DownloadNotifier(private val context: Context) {
                 setContentText(downloadingProgressText)
             }
 
+            // AY -->
             setProgress(100, download.progress, download.progress == 0)
+            // <-- AY
             setOngoing(true)
 
             show(Notifications.ID_DOWNLOAD_EPISODE_PROGRESS)

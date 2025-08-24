@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.tachiyomi.data.backup
 
 import kotlinx.serialization.Serializable
@@ -33,3 +34,4 @@ object BackupDetector {
         }
     }
 }
+// <-- AY

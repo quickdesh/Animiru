@@ -1,3 +1,4 @@
+-- AY -->
 import kotlin.Boolean;
 
 CREATE TABLE custom_buttons (
@@ -54,3 +55,4 @@ WHERE _id = :customButtonId;
 
 selectLastInsertedRowId:
 SELECT last_insert_rowid();
+-- <-- AY

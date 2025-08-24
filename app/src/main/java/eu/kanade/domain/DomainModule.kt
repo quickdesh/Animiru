@@ -121,7 +121,6 @@ class DomainModule : InjektModule {
     override fun InjektRegistrar.registerInjectables() {
         addSingletonFactory<CategoryRepository> { CategoryRepositoryImpl(get()) }
         addFactory { GetCategories(get()) }
-        addFactory { GetVisibleCategories(get()) }
         addFactory { ResetCategoryFlags(get(), get()) }
         addFactory { SetDisplayMode(get()) }
         addFactory { SetSortModeForCategory(get(), get()) }
@@ -129,8 +128,11 @@ class DomainModule : InjektModule {
         addFactory { RenameCategory(get()) }
         addFactory { ReorderCategory(get()) }
         addFactory { UpdateCategory(get()) }
-        addFactory { HideCategory(get()) }
         addFactory { DeleteCategory(get(), get(), get()) }
+        // AY -->
+        addFactory { GetVisibleCategories(get()) }
+        addFactory { HideCategory(get()) }
+        // <-- AY
 
         addSingletonFactory<AnimeRepository> { AnimeRepositoryImpl(get()) }
         addFactory { GetDuplicateLibraryAnime(get()) }
@@ -220,6 +222,7 @@ class DomainModule : InjektModule {
         addFactory { ToggleIncognito(get()) }
         addFactory { GetIncognitoState(get(), get(), get()) }
 
+        // AY -->
         addSingletonFactory<CustomButtonRepository> { CustomButtonRepositoryImpl(get()) }
         addFactory { CreateCustomButton(get()) }
         addFactory { DeleteCustomButton(get()) }
@@ -229,6 +232,7 @@ class DomainModule : InjektModule {
         addFactory { ToggleFavoriteCustomButton(get()) }
 
         addFactory { TrackSelect(get(), get()) }
+        // <-- AY
         // AM (CUSTOM_INFORMATION) -->
         addSingletonFactory<CustomAnimeRepository> { CustomAnimeRepositoryImpl(get<Application>()) }
         addFactory { GetCustomAnimeInfo(get()) }

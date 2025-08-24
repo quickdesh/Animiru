@@ -275,8 +275,10 @@ class Downloader(
         anime: Anime,
         episodes: List<Episode>,
         autoStart: Boolean,
+        // AY -->
         changeDownloader: Boolean = false,
         video: Video? = null,
+        // <-- AY
     ) {
         if (episodes.isEmpty()) return
 
@@ -354,6 +356,7 @@ class Downloader(
         val tmpDir = animeDir.createDirectory(episodeDirname + TMP_DIR_SUFFIX)!!
 
         try {
+            // AY -->
             if (download.video == null) {
                 // Pull video from network and add them to download object
                 val hosters = EpisodeLoader.getHosters(download.episode, download.anime, download.source)
@@ -368,6 +371,7 @@ class Downloader(
             withIOContext {
                 getOrDownloadVideoFile(download, tmpDir)
             }
+            // <-- AY
 
             // Do after download completes
 
@@ -379,8 +383,10 @@ class Downloader(
             // AM (CUSTOM_INFORMATION) -->
             val filename = DiskUtil.buildValidFilename("${download.anime.ogTitle} - ${download.episode.name}")
             // <-- AM (CUSTOM_INFORMATION)
+            // AY -->
             tmpDir.findFile("${filename}_tmp.mkv")?.delete()
             tmpDir.renameTo(episodeDirname)
+            // <-- AY
 
             cache.addEpisode(episodeDirname, animeDir, download.anime)
 
@@ -396,6 +402,7 @@ class Downloader(
         }
     }
 
+    // AY -->
     /**
      * Gets the video file if already downloaded, otherwise downloads it
      *
@@ -754,6 +761,7 @@ class Downloader(
         val downloadedVideo = tmpDir.listFiles().orEmpty().filterNot { it.extension == ".tmp" }
         return downloadedVideo.size == 1
     }
+    // <-- AY
 
     /**
      * Returns true if all the queued downloads are in DOWNLOADED or ERROR state.

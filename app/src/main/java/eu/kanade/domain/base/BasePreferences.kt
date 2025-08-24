@@ -22,9 +22,11 @@ class BasePreferences(
 
     fun extensionInstaller() = ExtensionInstallerPreference(context, preferenceStore)
 
+    // AY -->
     fun deviceHasPip() = context.packageManager.hasSystemFeature(
         PackageManager.FEATURE_PICTURE_IN_PICTURE,
     )
+    // <-- AY
 
     fun shownOnboardingFlow() = preferenceStore.getBoolean(Preference.appStateKey("onboarding_complete"), false)
 

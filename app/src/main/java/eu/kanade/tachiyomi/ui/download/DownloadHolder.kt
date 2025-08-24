@@ -61,6 +61,7 @@ class DownloadHolder(private val view: View, val adapter: DownloadAdapter) :
      */
     fun notifyProgress() {
         if (binding.downloadProgress.max == 1) {
+            // AY -->
             binding.downloadProgress.max = 100
         }
         if (download.progress == 0) {
@@ -69,17 +70,20 @@ class DownloadHolder(private val view: View, val adapter: DownloadAdapter) :
             binding.downloadProgress.isIndeterminate = false
             binding.downloadProgress.setProgressCompat(download.progress, true)
         }
+        // <-- AY
     }
 
     /**
      * Updates the text field of download progress.
      */
     fun notifyDownloadProgress() {
+        // AY -->
         binding.downloadProgressText.text = if (download.progress == 0) {
             view.context.stringResource(MR.strings.update_check_notification_download_in_progress)
         } else {
             view.context.stringResource(AYMR.strings.episode_download_progress, download.progress)
         }
+        // <-- AY
     }
 
     override fun onItemReleased(position: Int) {

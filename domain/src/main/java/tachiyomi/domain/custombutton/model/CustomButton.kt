@@ -1,3 +1,4 @@
+// AY -->
 package tachiyomi.domain.custombutton.model
 
 data class CustomButton(
@@ -24,3 +25,4 @@ data class CustomButton(
         return onStartup.replace("${'$'}id", id.toString()).replace("${'$'}isPrimary", isPrimary)
     }
 }
+// <-- AY

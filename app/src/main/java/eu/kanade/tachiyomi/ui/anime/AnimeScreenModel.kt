@@ -109,11 +109,14 @@ class AnimeScreenModel(
     private val lifecycle: Lifecycle,
     private val animeId: Long,
     private val isFromSource: Boolean,
-    private val downloadPreferences: DownloadPreferences = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
     private val trackPreferences: TrackPreferences = Injekt.get(),
+    // AY -->
+    private val downloadPreferences: DownloadPreferences = Injekt.get(),
     internal val playerPreferences: PlayerPreferences = Injekt.get(),
     internal val gesturePreferences: GesturePreferences = Injekt.get(),
+    internal val setAnimeViewerFlags: SetAnimeViewerFlags = Injekt.get(),
+    // <-- AY
     private val trackerManager: TrackerManager = Injekt.get(),
     private val trackEpisode: TrackEpisode = Injekt.get(),
     private val downloadManager: DownloadManager = Injekt.get(),
@@ -135,7 +138,6 @@ class AnimeScreenModel(
     private val setAnimeCategories: SetAnimeCategories = Injekt.get(),
     private val animeRepository: AnimeRepository = Injekt.get(),
     private val filterEpisodesForDownload: FilterEpisodesForDownload = Injekt.get(),
-    internal val setAnimeViewerFlags: SetAnimeViewerFlags = Injekt.get(),
     // AM (FILE_SIZE) -->
     private val storagePreferences: StoragePreferences = Injekt.get(),
     // <-- AM (FILE_SIZE)
@@ -168,20 +170,22 @@ class AnimeScreenModel(
     val episodeSwipeEndAction = libraryPreferences.swipeToStartAction().get()
     var autoTrackState = trackPreferences.autoUpdateTrackOnMarkSeen().get()
 
-    val showNextEpisodeAirTime = trackPreferences.showNextEpisodeAiringTime().get()
-    val alwaysUseExternalPlayer = playerPreferences.alwaysUseExternalPlayer().get()
-    val useExternalDownloader = downloadPreferences.useExternalDownloader().get()
-
     val isUpdateIntervalEnabled =
         LibraryPreferences.ANIME_OUTSIDE_RELEASE_PERIOD in libraryPreferences.autoUpdateAnimeRestrictions().get()
 
     private val selectedPositions: Array<Int> = arrayOf(-1, -1) // first and last selected index in list
     private val selectedEpisodeIds: HashSet<Long> = HashSet()
 
+    // AY -->
+    val showNextEpisodeAirTime = trackPreferences.showNextEpisodeAiringTime().get()
+    val alwaysUseExternalPlayer = playerPreferences.alwaysUseExternalPlayer().get()
+    val useExternalDownloader = downloadPreferences.useExternalDownloader().get()
+
     internal var isFromChangeCategory: Boolean = false
 
     internal val autoOpenTrack: Boolean
         get() = successState?.hasLoggedInTrackers == true && trackPreferences.trackOnAddingToLibrary().get()
+    // <-- AY
 
     // AM (FILE_SIZE) -->
     val showFileSize = storagePreferences.showEpisodeFileSize().get()
@@ -294,7 +298,9 @@ class AnimeScreenModel(
             )
             fetchFromSourceTasks.awaitAll()
             updateSuccessState { it.copy(isRefreshingData = false) }
+            // AY -->
             successState?.let { updateAiringTime(it.anime, it.trackItems, manualFetch) }
+            // <-- AY
         }
     }
 
@@ -457,16 +463,20 @@ class AnimeScreenModel(
 
                     // Choose a category
                     else -> {
+                        // AY -->
                         isFromChangeCategory = true
+                        // <-- AY
                         showChangeCategoryDialog()
                     }
                 }
 
                 // Finally match with enhanced tracking when available
                 addTracks.bindEnhancedTrackers(anime, state.source)
+                // AY -->
                 if (autoOpenTrack) {
                     showTrackDialog()
                 }
+                // <-- AY
             }
         }
     }
@@ -765,7 +775,9 @@ class AnimeScreenModel(
     private fun startDownload(
         episodes: List<Episode>,
         startNow: Boolean,
+        // AY -->
         video: Video? = null,
+        // <-- AY
     ) {
         val successState = successState ?: return
 
@@ -815,10 +827,12 @@ class AnimeScreenModel(
             EpisodeDownloadAction.DELETE -> {
                 deleteEpisodes(items.map { it.episode })
             }
+            // AY -->
             EpisodeDownloadAction.SHOW_QUALITIES -> {
                 val episode = items.singleOrNull()?.episode ?: return
                 showQualitiesDialog(episode)
             }
+            // <-- AY
         }
     }
 
@@ -924,8 +938,10 @@ class AnimeScreenModel(
      */
     private fun downloadEpisodes(
         episodes: List<Episode>,
+        // AY -->
         alt: Boolean = false,
         video: Video? = null,
+        // <-- AY
     ) {
         val anime = successState?.anime ?: return
         downloadManager.downloadEpisodes(anime, episodes, true, alt, video)
@@ -1229,6 +1245,7 @@ class AnimeScreenModel(
                 }
         }
 
+        // AY -->
         screenModelScope.launchIO {
             combine(
                 getTracks.subscribe(anime.id).catch { logcat(LogPriority.ERROR, it) },
@@ -1242,8 +1259,10 @@ class AnimeScreenModel(
                     updateAiringTime(anime, trackItems, manualFetch = false)
                 }
         }
+        // <-- AY
     }
 
+    // AY -->
     private suspend fun updateAiringTime(
         anime: Anime,
         trackItems: List<TrackItem>,
@@ -1253,6 +1272,7 @@ class AnimeScreenModel(
         setAnimeViewerFlags.awaitSetNextEpisodeAiring(anime.id, airingEpisodeData)
         updateSuccessState { it.copy(nextAiringEpisode = airingEpisodeData) }
     }
+    // <-- AY
 
     // Track sheet - end
 
@@ -1265,7 +1285,9 @@ class AnimeScreenModel(
         data class DuplicateAnime(val anime: Anime, val duplicates: List<AnimeWithEpisodeCount>) : Dialog
         data class Migrate(val target: Anime, val current: Anime) : Dialog
         data class SetFetchInterval(val anime: Anime) : Dialog
+        // AY -->
         data class ShowQualities(val episode: Episode, val anime: Anime, val source: AnimeSource) : Dialog
+        // <-- AY
 
         // AM (CUSTOM_INFORMATION) -->
         data class EditAnimeInfo(val anime: Anime) : Dialog
@@ -1308,6 +1330,7 @@ class AnimeScreenModel(
         }
     }
 
+    // AY -->
     fun showAnimeSkipIntroDialog() {
         updateSuccessState { it.copy(dialog = Dialog.ChangeAnimeSkipIntro) }
     }
@@ -1315,6 +1338,7 @@ class AnimeScreenModel(
     private fun showQualitiesDialog(episode: Episode) {
         updateSuccessState { it.copy(dialog = Dialog.ShowQualities(episode, it.anime, it.source)) }
     }
+    // <-- AY
 
     // AM (CUSTOM_INFORMATION) -->
     fun showEditAnimeInfoDialog() {
@@ -1340,11 +1364,13 @@ class AnimeScreenModel(
             val dialog: Dialog? = null,
             val hasPromptedToAddBefore: Boolean = false,
             val hideMissingEpisodes: Boolean = false,
+            // AY -->
             val trackItems: List<TrackItem> = emptyList(),
             val nextAiringEpisode: Pair<Int, Long> = Pair(
                 anime.nextEpisodeToAir,
                 anime.nextEpisodeAiringAt,
             ),
+            // <-- AY
         ) : State {
             val processedEpisodes by lazy {
                 episodes.applyFilters(anime).toList()
@@ -1385,6 +1411,7 @@ class AnimeScreenModel(
                 }
             }
 
+            // AY -->
             val trackingAvailable: Boolean
                 get() = trackItems.isNotEmpty()
 
@@ -1395,6 +1422,7 @@ class AnimeScreenModel(
                 get() = nextAiringEpisode.second.times(1000L).minus(
                     Calendar.getInstance().timeInMillis,
                 )
+            // <-- AY
 
             val scanlatorFilterActive: Boolean
                 get() = excludedScanlators.intersect(availableScanlators).isNotEmpty()

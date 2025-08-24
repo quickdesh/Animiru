@@ -30,8 +30,10 @@ fun BaseAnimeListItem(
     Row(
         modifier = modifier
             .clickable(onClick = onClickItem)
+            // AY -->
             .height(76.dp)
             .padding(horizontal = MaterialTheme.padding.medium, vertical = 3.dp),
+            // <-- AY
         verticalAlignment = Alignment.CenterVertically,
     ) {
         cover()
@@ -41,7 +43,9 @@ fun BaseAnimeListItem(
 }
 
 private val defaultCover: @Composable RowScope.(Anime, () -> Unit) -> Unit = { anime, onClick ->
+    // AY -->
     AnimeCover.Book(
+    // <-- AY
         modifier = Modifier
             .fillMaxHeight(),
         data = anime,

@@ -66,7 +66,9 @@ import tachiyomi.presentation.core.util.runOnEnterKeyPressed
 import cafe.adriel.voyager.core.screen.Screen as VoyagerScreen
 
 class SettingsSearchScreen(
+    // AY -->
     val isPlayer: Boolean = false,
+    // <-- AY
 ) : Screen() {
 
     @Composable
@@ -126,11 +128,13 @@ class SettingsSearchScreen(
                                     if (textFieldState.text.isEmpty()) {
                                         Text(
                                             text = stringResource(
+                                                // AY -->
                                                 resource = if (isPlayer) {
                                                     AYMR.strings.action_search_player_settings
                                                 } else {
                                                     MR.strings.action_search_settings
                                                 },
+                                                // <-- AY
                                             ),
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             style = MaterialTheme.typography.bodyLarge,
@@ -158,7 +162,9 @@ class SettingsSearchScreen(
         ) { contentPadding ->
             SearchResult(
                 searchKey = textFieldState.text.toString(),
+                // AY -->
                 isPlayer = isPlayer,
+                // <-- AY
                 listState = listState,
                 contentPadding = contentPadding,
             ) { result ->
@@ -172,7 +178,9 @@ class SettingsSearchScreen(
 @Composable
 private fun SearchResult(
     searchKey: String,
+    // AY -->
     isPlayer: Boolean,
+    // <-- AY
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
     contentPadding: PaddingValues = PaddingValues(),
@@ -181,9 +189,11 @@ private fun SearchResult(
     if (searchKey.isEmpty()) return
 
     val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
+    // AY -->
     val context = LocalContext.current
 
     val index = if (isPlayer) getPlayerIndex() else getIndex() + getPlayerIndex()
+    // <-- AY
     val result by produceState<List<SearchResultItem>?>(initialValue = null, searchKey) {
         value = index.asSequence()
             .flatMap { settingsData ->
@@ -219,6 +229,7 @@ private fun SearchResult(
                             route = settingsData.route,
                             title = p.title,
                             breadcrumbs = getLocalizedBreadcrumb(
+                                // AY -->
                                 nodes = buildList {
                                     if (!isPlayer && settingsData.playerSettings) {
                                         add(AYMR.strings.label_player_settings.getString(context))
@@ -226,6 +237,7 @@ private fun SearchResult(
                                     add(settingsData.title)
                                     if (categoryTitle != null) add(categoryTitle)
                                 },
+                                // <-- AY
                                 isLtr = isLtr,
                             ),
                             highlightKey = p.title,
@@ -295,6 +307,7 @@ private fun getIndex() = settingScreens
         )
     }
 
+// AY -->
 @Composable
 @NonRestartableComposable
 private fun getPlayerIndex() = playerSettingScreens
@@ -325,6 +338,7 @@ private val playerSettingScreens = listOf(
     PlayerSettingsAudioScreen,
     PlayerSettingsAdvancedScreen,
 )
+// <-- AY
 
 private val settingScreens = listOf(
     SettingsAppearanceScreen,
@@ -344,7 +358,9 @@ private data class SettingsData(
     val title: String,
     val route: VoyagerScreen,
     val contents: List<Preference>,
+    // AY -->
     val playerSettings: Boolean = false,
+    // <-- AY
 )
 
 private data class SearchResultItem(

@@ -3,7 +3,9 @@ CREATE TABLE categories(
     name TEXT NOT NULL,
     sort INTEGER NOT NULL,
     flags INTEGER NOT NULL,
+    -- AY -->
     hidden INTEGER NOT NULL DEFAULT 0
+    -- <-- AY
 );
 
 -- Insert system category
@@ -29,10 +31,13 @@ _id AS id,
 name,
 sort AS `order`,
 flags,
+-- AY -->
 hidden
+-- <-- AY
 FROM categories
 ORDER BY sort;
 
+-- AY -->
 getVisibleCategories:
 SELECT
 _id AS id,
@@ -43,6 +48,7 @@ hidden
 FROM categories
 WHERE hidden = 0
 ORDER BY sort;
+-- <-- AY
 
 getCategoriesByAnimeId:
 SELECT
@@ -50,12 +56,15 @@ C._id AS id,
 C.name,
 C.sort AS `order`,
 C.flags,
+-- AY -->
 C.hidden
+-- <-- AY
 FROM categories C
 JOIN animes_categories AC
 ON C._id = AC.category_id
 WHERE AC.anime_id = :animeId;
 
+-- AY -->
 getVisibleCategoriesByAnimeId:
 SELECT
 C._id AS id,
@@ -67,6 +76,7 @@ FROM categories C
 JOIN animes_categories AC
 ON C._id = AC.category_id
 WHERE AC.anime_id = :animeId AND C.hidden = 0;
+-- <-- AY
 
 insert:
 INSERT INTO categories(name, sort, flags)
@@ -81,7 +91,9 @@ UPDATE categories
 SET name = coalesce(:name, name),
     sort = coalesce(:order, sort),
     flags = coalesce(:flags, flags),
+    -- AY -->
     hidden = coalesce(:hidden, hidden)
+    -- <-- AY
 WHERE _id = :categoryId;
 
 updateAllFlags:

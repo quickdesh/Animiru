@@ -141,11 +141,13 @@ data object LibraryTab : Tab {
         }
         // <-- AM (GROUPING)
 
+        // AY -->
         suspend fun openEpisode(episode: Episode) {
             val playerPreferences: PlayerPreferences by injectLazy()
             val extPlayer = playerPreferences.alwaysUseExternalPlayer().get()
             MainActivity.startPlayerActivity(context, episode.animeId, episode.id, extPlayer)
         }
+        // <-- AY
 
         // AM (TAB_HOLD) -->
         fun openRandomAnime() {
@@ -238,7 +240,9 @@ data object LibraryTab : Tab {
                         onContinueWatchingClicked = { it: LibraryAnime ->
                             scope.launchIO {
                                 val episode = screenModel.getNextUnseenEpisode(it.anime)
+                                // AY -->
                                 if (episode != null) openEpisode(episode)
+                                // <-- AY
                             }
                             Unit
                         }.takeIf { state.showAnimeContinueButton },

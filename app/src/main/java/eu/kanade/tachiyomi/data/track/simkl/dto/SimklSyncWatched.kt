@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.tachiyomi.data.track.simkl.dto
 
 import kotlinx.serialization.SerialName
@@ -10,3 +11,4 @@ data class SimklSyncWatched(
     val lastWatched: String?,
     val list: String?,
 )
+// <-- AY

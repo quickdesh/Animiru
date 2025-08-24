@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.tachiyomi.util
 
 import eu.kanade.tachiyomi.animesource.model.SAnime
@@ -164,3 +165,4 @@ class AniChartApi {
         return instant.epochSecond
     }
 }
+// <-- AY

@@ -78,7 +78,9 @@ import kotlin.random.Random
 
 class LibraryScreenModel(
     private val getLibraryAnime: GetLibraryAnime = Injekt.get(),
+    // AY -->
     private val getVisibleCategories: GetVisibleCategories = Injekt.get(),
+    // <-- AY
     private val getTracksPerAnime: GetTracksPerAnime = Injekt.get(),
     private val getNextEpisodes: GetNextEpisodes = Injekt.get(),
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
@@ -104,7 +106,9 @@ class LibraryScreenModel(
         screenModelScope.launchIO {
             combine(
                 state.map { it.searchQuery }.distinctUntilChanged().debounce(SEARCH_DEBOUNCE_MILLIS),
+                // AY -->
                 getVisibleCategories.subscribe(),
+                // <-- AY
                 getFavoritesFlow(),
                 combine(getTracksPerAnime.subscribe(), getTrackingFiltersFlow(), ::Pair),
                 getLibraryItemPreferencesFlow(),
@@ -541,7 +545,9 @@ class LibraryScreenModel(
     private suspend fun getCommonCategories(animes: List<Anime>): Collection<Category> {
         if (animes.isEmpty()) return emptyList()
         return animes
+            // AY -->
             .map { getVisibleCategories.await(it.id).toSet() }
+            // <-- AY
             .reduce { set1, set2 -> set1.intersect(set2) }
     }
 
@@ -556,7 +562,9 @@ class LibraryScreenModel(
      */
     private suspend fun getMixCategories(animes: List<Anime>): Collection<Category> {
         if (animes.isEmpty()) return emptyList()
+        // AY -->
         val animeCategories = animes.map { getVisibleCategories.await(it.id).toSet() }
+        // <-- AY
         val common = animeCategories.reduce { set1, set2 -> set1.intersect(set2) }
         return animeCategories.flatten().distinct().subtract(common)
     }
@@ -653,7 +661,9 @@ class LibraryScreenModel(
     fun setAnimeCategories(animeList: List<Anime>, addCategories: List<Long>, removeCategories: List<Long>) {
         screenModelScope.launchNonCancellable {
             animeList.forEach { anime ->
+                // AY -->
                 val categoryIds = getVisibleCategories.await(anime.id)
+                // <-- AY
                     .map { it.id }
                     .subtract(removeCategories.toSet())
                     .plus(addCategories)

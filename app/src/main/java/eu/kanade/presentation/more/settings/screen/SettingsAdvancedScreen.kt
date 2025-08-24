@@ -246,7 +246,9 @@ object SettingsAdvancedScreen : SearchableSettings {
                         PREF_DOH_CONTROLD to "Control D",
                         PREF_DOH_NJALLA to "Njalla",
                         PREF_DOH_SHECAN to "Shecan",
+                        // AY -->
                         PREF_DOH_LIBREDNS to "LibreDNS",
+                        // <-- AY
                     ),
                     title = stringResource(MR.strings.pref_dns_over_https),
                     onValueChanged = {

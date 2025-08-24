@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.presentation.theme.colorscheme
 
 import androidx.compose.material3.darkColorScheme
@@ -68,3 +69,4 @@ internal object CottoncandyColorScheme : BaseColorScheme() {
         inversePrimary = Color(0xFFFFB1C1),
     )
 }
+// <-- AY

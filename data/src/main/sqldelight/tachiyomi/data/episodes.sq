@@ -12,7 +12,9 @@ CREATE TABLE episodes(
     fillermark INTEGER AS Boolean NOT NULL,
     -- <-- AM (FILLERMARK)
     last_second_seen INTEGER NOT NULL,
+    -- AY -->
     total_seconds INTEGER NOT NULL,
+    -- <-- AY
     episode_number REAL NOT NULL,
     source_order INTEGER NOT NULL,
     date_fetch INTEGER NOT NULL,
@@ -125,7 +127,9 @@ SET anime_id = coalesce(:animeId, anime_id),
     fillermark = coalesce(:fillermark, fillermark),
     -- <-- AM (FILLERMARK)
     last_second_seen = coalesce(:lastSecondSeen, last_second_seen),
+    -- AY -->
     total_seconds = coalesce(:totalSeconds, total_seconds),
+    -- <-- AY
     episode_number = coalesce(:episodeNumber, episode_number),
     source_order = coalesce(:sourceOrder, source_order),
     date_fetch = coalesce(:dateFetch, date_fetch),

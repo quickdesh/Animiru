@@ -39,8 +39,10 @@ fun AnimeToolbar(
     onClickEditCategory: (() -> Unit)?,
     onClickRefresh: () -> Unit,
     onClickMigrate: (() -> Unit)?,
+    // AY -->
     onClickSettings: (() -> Unit)?,
     onClickSkipIntro: (() -> Unit)?,
+    // <-- AY
     onClickEditNotes: () -> Unit,
     // AM (CUSTOM_INFORMATION) -->
     onClickEditInfo: (() -> Unit)?,
@@ -118,6 +120,7 @@ fun AnimeToolbar(
                             onClick = onClickFilter,
                         ),
                     )
+                    // AY -->
                     if (onClickSkipIntro != null) {
                         add(
                             AppBar.OverflowAction(
@@ -126,6 +129,7 @@ fun AnimeToolbar(
                             ),
                         )
                     }
+                    // <-- AY
                     add(
                         AppBar.OverflowAction(
                             title = stringResource(MR.strings.action_webview_refresh),
@@ -172,6 +176,7 @@ fun AnimeToolbar(
                             onClick = onClickEditNotes,
                         ),
                     )
+                    // AY -->
                     if (onClickSettings != null) {
                         add(
                             AppBar.OverflowAction(
@@ -180,6 +185,7 @@ fun AnimeToolbar(
                             ),
                         )
                     }
+                    // <-- AY
                 }
                     .build(),
             )

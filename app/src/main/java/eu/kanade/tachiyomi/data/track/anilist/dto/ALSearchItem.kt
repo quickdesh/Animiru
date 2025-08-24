@@ -13,7 +13,9 @@ data class ALSearchItem(
     val startDate: ALFuzzyDate,
     val episodes: Long?,
     val averageScore: Int?,
+    // AY -->
     val studios: ALStudios?,
+    // <-- AY
 ) {
     fun toALAnime(): ALAnime = ALAnime(
         remoteId = id,
@@ -25,7 +27,9 @@ data class ALSearchItem(
         startDateFuzzy = startDate.toEpochMilli(),
         totalEpisodes = episodes ?: 0,
         averageScore = averageScore ?: -1,
+        // AY -->
         studios = studios!!,
+        // <-- AY
     )
 }
 
@@ -39,6 +43,7 @@ data class ItemCover(
     val large: String,
 )
 
+// AY -->
 @Serializable
 data class ALStudios(
     val edges: List<ALStudiosEdge>,
@@ -54,3 +59,4 @@ data class ALStudiosEdge(
 data class ALStudiosNode(
     val name: String,
 )
+// <-- AY

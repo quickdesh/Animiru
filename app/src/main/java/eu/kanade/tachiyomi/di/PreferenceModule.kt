@@ -49,6 +49,7 @@ class PreferenceModule(val app: Application) : InjektModule {
         addSingletonFactory {
             LibraryPreferences(get())
         }
+        // AY -->
         addSingletonFactory {
             PlayerPreferences(get())
         }
@@ -67,6 +68,7 @@ class PreferenceModule(val app: Application) : InjektModule {
         addSingletonFactory {
             AdvancedPlayerPreferences(get())
         }
+        // <-- AY
         addSingletonFactory {
             TrackPreferences(get())
         }

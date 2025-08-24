@@ -7,17 +7,20 @@ object EpisodeRecognition {
 
     private const val NUMBER_PATTERN = """([0-9]+)(\.[0-9]+)?(\.?[a-z]+)?"""
 
+    // AY -->
     /**
      * All cases with e.xx, exx, episode xx, or ep xx
      * kaguya-sama wa kokurasetai - s01e01v2 (BD 1080p HEVC) -R> 01
      */
     private val basic = Regex("""(?<=\be\.|\be|episode|\bep) *$NUMBER_PATTERN""")
+    // <-- AY
 
     /**
      * Example: Bleach 567: Down With Snowwhite -R> 567
      */
     private val number = Regex(NUMBER_PATTERN)
 
+    // AY -->
     /**
      * Regex to remove tags
      * Example: [flugel] kaguya-sama wa kokurasetai - s01e01v2 (bd 1080p hevc) [multi audio] [80ac7b2e] ->
@@ -30,6 +33,7 @@ object EpisodeRecognition {
      * Example kaguya-sama wa kokurasetai - s01e01v2 1080p -R> kaguya-sama wa kokurasetai - e01v2
      */
     private val unwanted = Regex("""\b(?:v|ver|version|season|s)[^a-z]?[0-9]+|\b\d+p\b|hi10""")
+    // <-- AY
 
     /**
      * Regex used to remove unwanted whitespace
@@ -57,10 +61,12 @@ object EpisodeRecognition {
             // Remove unwanted white spaces.
             .replace(unwantedWhiteSpace, "")
 
+        // AY -->
         // Remove all tags while they exist
         while (tagRegex.containsMatchIn(cleanEpisodeName)) {
             cleanEpisodeName = tagRegex.replace(cleanEpisodeName, "")
         }
+        // <-- AY
 
         val numberMatch = number.findAll(cleanEpisodeName)
 

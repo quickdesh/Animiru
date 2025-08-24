@@ -26,9 +26,11 @@ dependencyResolutionManagement {
         create("compose") {
             from(files("gradle/compose.versions.toml"))
         }
+        // AY -->
         create("aniyomilibs") {
             from(files("gradle/aniyomi.versions.toml"))
         }
+        // <-- AY
     }
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -48,8 +50,12 @@ include(":core:common")
 include(":data")
 include(":domain")
 include(":i18n")
+// AY -->
 include(":i18n-aniyomi")
+// <-- AY
+// AM -->
 include(":i18n-animiru")
+// <-- AM
 include(":macrobenchmark")
 include(":presentation-core")
 include(":presentation-widget")

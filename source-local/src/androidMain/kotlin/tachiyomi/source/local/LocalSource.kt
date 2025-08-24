@@ -1,6 +1,8 @@
 package tachiyomi.source.local
 
 import android.content.Context
+import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.FFprobeKit
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
 import eu.kanade.tachiyomi.animesource.AnimeSource
@@ -202,6 +204,7 @@ actual class LocalSource(
 
     // Episodes
     override suspend fun getEpisodeList(anime: SAnime): List<SEpisode> = withIOContext {
+        // AY -->
         val episodesData = fileSystem.getFilesInAnimeDirectory(anime.url)
             .firstOrNull {
                 it.extension == "json" && it.nameWithoutExtension == "episodes"
@@ -210,6 +213,7 @@ actual class LocalSource(
                     json.decodeFromStream<List<EpisodeDetails>>(file.openInputStream())
                 }.getOrNull()
             }
+        // <-- AY
 
         val episodes = fileSystem.getFilesInAnimeDirectory(anime.url)
             // Only keep supported formats
@@ -226,6 +230,7 @@ actual class LocalSource(
                         .toFloat()
                     episode_number = episodeNumber
 
+                    // AY -->
                     // Overwrite data from episodes.json file
                     episodesData?.also { dataList ->
                         dataList.firstOrNull { it.episodeNumber.equalsTo(episodeNumber) }?.also { data ->
@@ -234,6 +239,7 @@ actual class LocalSource(
                             scanlator = data.scanlator
                         }
                     }
+                    // <-- AY
                 }
             }
             .sortedWith { e1, e2 ->
@@ -254,6 +260,7 @@ actual class LocalSource(
         episodes
     }
 
+    // AY -->
     private fun parseDate(isoDate: String): Long {
         return dateFormat.parse(isoDate)?.time ?: 0L
     }
@@ -261,6 +268,7 @@ actual class LocalSource(
     private fun Float.equalsTo(other: Float): Boolean {
         return abs(this - other) < 0.0001
     }
+    // <-- AY
 
     // Filters
     override fun getFilterList() = AnimeFilterList(OrderBy.Popular(context))
@@ -268,6 +276,7 @@ actual class LocalSource(
     // Unused stuff
     override suspend fun getVideoList(episode: SEpisode): List<Video> = throw UnsupportedOperationException("Unused")
 
+    // AY -->
     private fun updateCover(episode: SEpisode, anime: SAnime) {
         val tempFile = File.createTempFile(
             "tmp_",
@@ -280,13 +289,13 @@ actual class LocalSource(
         val episodeFile = animeDir.findFile(episodeName)!!
         val episodeFilename = { episodeFile.toFFmpegString(context) }
 
-        val ffProbe = com.arthenica.ffmpegkit.FFprobeKit.execute(
+        val ffProbe = FFprobeKit.execute(
             "-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"${episodeFilename()}\"",
         )
         val duration = ffProbe.allLogsAsString.trim().toFloat()
         val second = duration.toInt() / 2
 
-        com.arthenica.ffmpegkit.FFmpegKit.execute(
+        FFmpegKit.execute(
             "-ss $second -i \"${episodeFilename()}\" -frames:v 1 -update true \"$outFile\" -y",
         )
 
@@ -294,13 +303,16 @@ actual class LocalSource(
             coverManager.update(anime, tempFile.inputStream())
         }
     }
+    // <-- AY
 
     companion object {
         const val ID = 0L
         const val HELP_URL = "https://aniyomi.org/help/guides/local-anime/"
 
+        // AY -->
         private val dateFormat by lazy { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()) }
         private const val DEFAULT_COVER_NAME = "cover.jpg"
+        // <-- AY
         private val LATEST_THRESHOLD = 7.days.inWholeMilliseconds
     }
 }

@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.presentation.anime
 
 import androidx.compose.animation.AnimatedVisibility
@@ -687,3 +688,4 @@ private fun ClickableRow(
         }
     }
 }
+// <-- AY

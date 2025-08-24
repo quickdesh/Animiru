@@ -41,7 +41,9 @@ object SettingsDownloadScreen : SearchableSettings {
         val allCategories by getCategories.subscribe().collectAsState(initial = emptyList())
 
         val downloadPreferences = remember { Injekt.get<DownloadPreferences>() }
+        // AY -->
         val basePreferences = remember { Injekt.get<BasePreferences>() }
+        // <-- AY
         return listOf(
             Preference.PreferenceItem.SwitchPreference(
                 preference = downloadPreferences.downloadOnlyOverWifi(),
@@ -56,10 +58,12 @@ object SettingsDownloadScreen : SearchableSettings {
                 allCategories = allCategories,
             ),
             getDownloadAheadGroup(downloadPreferences = downloadPreferences),
+            // AY -->
             getExternalDownloaderGroup(
                 downloadPreferences = downloadPreferences,
                 basePreferences = basePreferences,
             ),
+            // <-- AY
         )
     }
 
@@ -196,6 +200,7 @@ object SettingsDownloadScreen : SearchableSettings {
         )
     }
 
+    // AY -->
     @Composable
     private fun getExternalDownloaderGroup(
         downloadPreferences: DownloadPreferences,
@@ -237,4 +242,5 @@ object SettingsDownloadScreen : SearchableSettings {
             ),
         )
     }
+    // <-- AY
 }

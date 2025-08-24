@@ -24,7 +24,9 @@ class EpisodeImpl : Episode {
 
     override var last_second_seen: Long = 0
 
+    // AY -->
     override var total_seconds: Long = 0
+    // <-- AY
 
     override var date_fetch: Long = 0
 

@@ -15,10 +15,14 @@ data class BackupOptions(
     val seenEntries: Boolean = true,
     val appSettings: Boolean = true,
     val extensionRepoSettings: Boolean = true,
+    // AY -->
     val customButton: Boolean = true,
+    // <-- AY
     val sourceSettings: Boolean = true,
     val privateSettings: Boolean = false,
+    // AY -->
     val extensions: Boolean = false,
+    // <-- AY
     // AM (CUSTOM_INFORMATION) -->
     val customInfo: Boolean = false,
     // <-- AM (CUSTOM_INFORMATION)
@@ -33,10 +37,14 @@ data class BackupOptions(
         seenEntries,
         appSettings,
         extensionRepoSettings,
+        // AY -->
         customButton,
+        // <-- AY
         sourceSettings,
         privateSettings,
+        // AY -->
         extensions,
+        // <-- AY
         // AM (CUSTOM_INFORMATION) -->
         customInfo,
         // <-- AM (CUSTOM_INFORMATION)
@@ -46,7 +54,9 @@ data class BackupOptions(
         categories ||
         appSettings ||
         extensionRepoSettings ||
+        // AY -->
         customButton ||
+        // <-- AY
         sourceSettings
 
     companion object {
@@ -106,11 +116,13 @@ data class BackupOptions(
                 getter = BackupOptions::extensionRepoSettings,
                 setter = { options, enabled -> options.copy(extensionRepoSettings = enabled) },
             ),
+            // AY -->
             Entry(
                 label = AYMR.strings.custom_button_settings,
                 getter = BackupOptions::customButton,
                 setter = { options, enabled -> options.copy(customButton = enabled) },
             ),
+            // <-- AY
             Entry(
                 label = MR.strings.source_settings,
                 getter = BackupOptions::sourceSettings,
@@ -124,6 +136,7 @@ data class BackupOptions(
             ),
         )
 
+        // AY -->
         val extensionOptions = persistentListOf(
             Entry(
                 label = MR.strings.label_extensions,
@@ -131,6 +144,7 @@ data class BackupOptions(
                 setter = { options, enabled -> options.copy(extensions = enabled) },
             ),
         )
+        // <-- AY
 
         fun fromBooleanArray(array: BooleanArray) = BackupOptions(
             libraryEntries = array[0],
@@ -141,10 +155,14 @@ data class BackupOptions(
             seenEntries = array[5],
             appSettings = array[6],
             extensionRepoSettings = array[7],
+            // AY -->
             customButton = array[8],
+            // <-- AY
             sourceSettings = array[9],
             privateSettings = array[10],
+            // AY -->
             extensions = array[11],
+            // <-- AY
             // AM (CUSTOM_INFORMATION) -->
             customInfo = array[12],
             // <-- AM (CUSTOM_INFORMATION)

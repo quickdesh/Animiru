@@ -170,8 +170,12 @@ kotlin {
 
 dependencies {
     implementation(projects.i18n)
+    // AY -->
     implementation(projects.i18nAniyomi)
+    // <-- AY
+    // AM -->
     implementation(projects.i18nAnimiru)
+    // <-- AM
     implementation(projects.core.archive)
     implementation(projects.core.common)
     implementation(projects.coreMetadata)
@@ -211,7 +215,9 @@ dependencies {
     implementation(androidx.appcompat)
     implementation(androidx.biometricktx)
     implementation(androidx.constraintlayout)
+    // AY -->
     implementation(aniyomilibs.compose.constraintlayout)
+    // <-- AY
     implementation(androidx.corektx)
     implementation(androidx.splashscreen)
     implementation(androidx.recyclerview)
@@ -219,7 +225,9 @@ dependencies {
     // implementation(androidx.viewpager)
     // <-- AM (REMOVE_LIBRARIES)
     implementation(androidx.profileinstaller)
+    // AY -->
     implementation(aniyomilibs.mediasession)
+    // <-- AY
 
     implementation(androidx.bundles.lifecycle)
 
@@ -299,6 +307,7 @@ dependencies {
     // implementation(libs.leakcanary.plumber)
     // <-- AM (REMOVE_LIBRARIES)
 
+    // AY -->
     // mpv-android
     implementation(aniyomilibs.aniyomi.mpv)
 
@@ -311,6 +320,7 @@ dependencies {
 
     // true type parser
     implementation(aniyomilibs.truetypeparser)
+    // <-- AY
 
     // AM (SYNC_DRIVE) -->
     implementation(aniyomilibs.google.api.services.drive)

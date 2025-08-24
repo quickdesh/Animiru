@@ -193,6 +193,7 @@ class DownloadCache(
         return 0
     }
 
+    // AM (STORAGE_SCREEN) -->
     /**
      * Returns the total size of downloaded episodes.
      */
@@ -203,8 +204,6 @@ class DownloadCache(
             sourceDir.dir?.size() ?: 0L
         }
     }
-
-    // AM (STORAGE_SCREEN) -->
 
     /**
      * Returns the total size of downloaded episodes for an anime.
@@ -426,10 +425,12 @@ class DownloadCache(
                                         it.name?.endsWith(Downloader.TMP_DIR_SUFFIX) == true -> null
                                         // Folder of videos
                                         it.isDirectory -> it.name
+                                        // AY -->
                                         // MP4 files
                                         it.isFile && it.extension == "mp4" -> it.nameWithoutExtension
                                         // MKV files
                                         it.isFile && it.extension == "mkv" -> it.nameWithoutExtension
+                                        // <-- AY
                                         // Anything else is irrelevant
                                         else -> null
                                     }

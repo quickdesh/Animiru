@@ -339,13 +339,16 @@ fun AnimeListItem(
     isSelected: Boolean = false,
     coverAlpha: Float = 1f,
     onClickContinueWatching: (() -> Unit)? = null,
+    // AY -->
     entries: Int = 0,
     containerHeight: Int = 0,
+    // <-- AY
 ) {
     Row(
         modifier = Modifier
             .selectedBackground(isSelected)
             .height(
+                // AY -->
                 when (entries) {
                     0 -> 76.dp
                     else -> {
@@ -353,15 +356,20 @@ fun AnimeListItem(
                         with(density) { (containerHeight / entries).toDp() } - (3 / entries).dp
                     }
                 },
+                // <-- AY
             )
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
             )
+            // AY -->
             .padding(horizontal = 16.dp, vertical = 3.dp),
+            // <-- AY
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // AY -->
         AnimeCover.Book(
+        // <-- AY
             modifier = Modifier
                 .fillMaxHeight()
                 .alpha(coverAlpha),

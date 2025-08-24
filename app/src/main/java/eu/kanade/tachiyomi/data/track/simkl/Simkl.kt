@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.tachiyomi.data.track.simkl
 
 import android.graphics.Color
@@ -147,3 +148,4 @@ class Simkl(id: Long) : BaseTracker(id, "Simkl"), Tracker {
         interceptor.newAuth(null)
     }
 }
+// <-- AY

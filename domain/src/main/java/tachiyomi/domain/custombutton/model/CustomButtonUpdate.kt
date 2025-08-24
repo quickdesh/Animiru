@@ -1,3 +1,4 @@
+// AY -->
 package tachiyomi.domain.custombutton.model
 
 data class CustomButtonUpdate(
@@ -9,3 +10,4 @@ data class CustomButtonUpdate(
     val longPressContent: String? = null,
     val onStartup: String? = null,
 )
+// <-- AY

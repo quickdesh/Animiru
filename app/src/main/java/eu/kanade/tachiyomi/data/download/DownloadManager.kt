@@ -37,7 +37,9 @@ import uy.kohesive.injekt.api.get
  */
 class DownloadManager(
     private val context: Context,
+    // AM (STORAGE_SCREEN) -->
     private val storageManager: StorageManager = Injekt.get(),
+    // <-- AM (STORAGE_SCREEN)
     private val provider: DownloadProvider = Injekt.get(),
     private val cache: DownloadCache = Injekt.get(),
     private val getCategories: GetCategories = Injekt.get(),
@@ -140,8 +142,10 @@ class DownloadManager(
         anime: Anime,
         episodes: List<Episode>,
         autoStart: Boolean = true,
+        // AY -->
         alt: Boolean = false,
         video: Video? = null,
+        // <-- AY
     ) {
         // AM (FILLERMARK) -->
         val filteredEpisodes = getEpisodesToDownload(episodes)
@@ -175,19 +179,23 @@ class DownloadManager(
         // AM (CUSTOM_INFORMATION) -->
         val episodeDir = provider.findEpisodeDir(episode.name, episode.scanlator, anime.ogTitle, source)
         // <-- AM (CUSTOM_INFORMATION)
+        // AY -->
         val file = episodeDir?.listFiles().orEmpty()
             .firstOrNull { "video" in it.type.orEmpty() }
+        // <-- AY
 
         if (file == null) {
             throw Exception(context.stringResource(AYMR.strings.video_list_empty_error))
         }
 
+        // AY -->
         return Video(
             file.uri.toString(),
             "download: " + file.uri.toString(),
             file.uri.toString(),
             file.uri,
         ).apply { status = Video.State.READY }
+        // <-- AY
     }
 
     /**
@@ -223,21 +231,22 @@ class DownloadManager(
      */
     fun getDownloadCount(anime: Anime): Int {
         return if (anime.isLocal()) {
+            // AM (STORAGE_SCREEN) -->
             LocalSourceFileSystem(storageManager).getFilesInAnimeDirectory(anime.url)
                 .count { Format.isSupported(it) }
+            // <-- AM (STORAGE_SCREEN)
         } else {
             cache.getDownloadCount(anime)
         }
     }
 
+    // AM (STORAGE_SCREEN) -->
     /**
      * Returns the size of downloaded episodes.
      */
     fun getDownloadSize(): Long {
         return cache.getTotalDownloadSize()
     }
-
-    // AM (STORAGE_SCREEN) -->
 
     /**
      * Returns the size of downloaded episodes for an anime.

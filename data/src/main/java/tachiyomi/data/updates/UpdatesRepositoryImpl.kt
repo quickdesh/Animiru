@@ -58,7 +58,9 @@ class UpdatesRepositoryImpl(
         fillermark: Boolean,
         // <-- AM (FILLERMARK)
         lastSecondSeen: Long,
+        // AY -->
         totalSeconds: Long,
+        // <-- AY
         sourceId: Long,
         favorite: Boolean,
         thumbnailUrl: String?,
@@ -79,7 +81,9 @@ class UpdatesRepositoryImpl(
         fillermark = fillermark,
         // <-- AM (FILLERMARK)
         lastSecondSeen = lastSecondSeen,
+        // AY -->
         totalSeconds = totalSeconds,
+        // <-- AY
         sourceId = sourceId,
         dateFetch = dateFetch,
         coverData = AnimeCover(

@@ -37,7 +37,9 @@ sealed class Preference {
         data class TextPreference(
             override val title: String,
             override val subtitle: String? = null,
+            // AY -->
             override val icon: ImageVector? = null,
+            // <-- AY
             override val enabled: Boolean = true,
             val onClick: (() -> Unit)? = null,
         ) : PreferenceItem<String>() {
@@ -147,6 +149,7 @@ sealed class Preference {
             override val icon: ImageVector? = null
         }
 
+        // AY -->
         /**
          * A [PreferenceItem] that shows a multi-line EditText in the dialog.
          */
@@ -213,6 +216,7 @@ sealed class Preference {
             override val enabled: Boolean = true,
             override val onValueChanged: suspend (value: String) -> Boolean = { true },
         ) : PreferenceItem<String>()
+        // <-- AY
 
         /**
          * A [PreferenceItem] for individual tracker.

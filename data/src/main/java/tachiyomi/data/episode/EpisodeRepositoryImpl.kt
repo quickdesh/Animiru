@@ -28,7 +28,9 @@ class EpisodeRepositoryImpl(
                         episode.fillermark,
                         // <-- AM (FILLERMARK)
                         episode.lastSecondSeen,
+                        // AY -->
                         episode.totalSeconds,
+                        // <-- AY
                         episode.episodeNumber,
                         episode.sourceOrder,
                         episode.dateFetch,
@@ -67,7 +69,9 @@ class EpisodeRepositoryImpl(
                     fillermark = episodeUpdate.fillermark,
                     // <-- AM (FILLERMARK)
                     lastSecondSeen = episodeUpdate.lastSecondSeen,
+                    // AY -->
                     totalSeconds = episodeUpdate.totalSeconds,
+                    // <-- AY
                     episodeNumber = episodeUpdate.episodeNumber,
                     sourceOrder = episodeUpdate.sourceOrder,
                     dateFetch = episodeUpdate.dateFetch,
@@ -153,7 +157,9 @@ class EpisodeRepositoryImpl(
         fillermark: Boolean,
         // <-- AM (FILLERMARK)
         lastSecondSeen: Long,
+        // AY -->
         totalSeconds: Long,
+        // <-- AY
         episodeNumber: Double,
         sourceOrder: Long,
         dateFetch: Long,
@@ -171,7 +177,9 @@ class EpisodeRepositoryImpl(
         fillermark = fillermark,
         // <-- AM (FILLERMARK)
         lastSecondSeen = lastSecondSeen,
+        // AY -->
         totalSeconds = totalSeconds,
+        // <-- AY
         dateFetch = dateFetch,
         sourceOrder = sourceOrder,
         url = url,

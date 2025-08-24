@@ -14,8 +14,10 @@ class TrackerManager {
     companion object {
         const val ANILIST = 2L
         const val KITSU = 3L
+        // AY -->
         const val SIMKL = 101L
         const val JELLYFIN = 102L
+        // <-- AY
     }
 
     val myAnimeList = MyAnimeList(1L)
@@ -23,8 +25,10 @@ class TrackerManager {
     val kitsu = Kitsu(KITSU)
     val shikimori = Shikimori(4L)
     val bangumi = Bangumi(5L)
+    // AY -->
     val simkl = Simkl(SIMKL)
     val jellyfin = Jellyfin(JELLYFIN)
+    // <-- AY
 
     val trackers = listOf<BaseTracker>(
         myAnimeList,
@@ -32,8 +36,10 @@ class TrackerManager {
         kitsu,
         shikimori,
         bangumi,
+        // AY -->
         simkl,
         jellyfin,
+        // <-- AY
     )
 
     fun loggedInTrackers() = trackers.filter { it.isLoggedIn }

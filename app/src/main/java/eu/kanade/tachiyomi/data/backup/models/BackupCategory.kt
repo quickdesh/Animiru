@@ -17,7 +17,9 @@ class BackupCategory(
         name = this@BackupCategory.name,
         flags = this@BackupCategory.flags,
         order = this@BackupCategory.order,
+        // AY -->
         hidden = false,
+        // <-- AY
     )
 }
 

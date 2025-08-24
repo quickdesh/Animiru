@@ -1,3 +1,4 @@
+// AY -->
 package tachiyomi.domain.category.interactor
 
 import kotlinx.coroutines.flow.Flow
@@ -23,3 +24,4 @@ class GetVisibleCategories(
         return categoryRepository.getVisibleCategoriesByAnimeId(animeId)
     }
 }
+// <-- AY

@@ -31,7 +31,9 @@ data class LibrarySort(
         data object EpisodeFetchDate : Type(0b00011000)
         data object DateAdded : Type(0b00011100)
         data object TrackerMean : Type(0b000100000)
+        // AY -->
         data object AiringTime : Type(0b00110000)
+        // <-- AY
         data object Random : Type(0b00111100)
 
         companion object {
@@ -79,7 +81,9 @@ data class LibrarySort(
                 Type.EpisodeFetchDate,
                 Type.DateAdded,
                 Type.TrackerMean,
+                // AY -->
                 Type.AiringTime,
+                // <-- AY
                 Type.Random,
             )
         }
@@ -108,7 +112,9 @@ data class LibrarySort(
                     "EPISODE_FETCH_DATE" -> Type.EpisodeFetchDate
                     "DATE_ADDED" -> Type.DateAdded
                     "TRACKER_MEAN" -> Type.TrackerMean
+                    // AY -->
                     "AIRING_TIME" -> Type.AiringTime
+                    // <-- AY
                     "RANDOM" -> Type.Random
                     else -> Type.Alphabetical
                 }
@@ -131,7 +137,9 @@ data class LibrarySort(
             Type.EpisodeFetchDate -> "EPISODE_FETCH_DATE"
             Type.DateAdded -> "DATE_ADDED"
             Type.TrackerMean -> "TRACKER_MEAN"
+            // AY -->
             Type.AiringTime -> "AIRING_TIME"
+            // <-- AY
             Type.Random -> "RANDOM"
         }
         val direction = if (direction == Direction.Ascending) "ASCENDING" else "DESCENDING"

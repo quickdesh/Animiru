@@ -45,12 +45,16 @@ fun LibraryPager(
     onLongClickAnime: (Category, LibraryAnime) -> Unit,
     onClickContinueWatching: ((LibraryAnime) -> Unit)?,
 ) {
+    // AY -->
     var containerHeight by remember { mutableIntStateOf(0) }
+    // <-- AY
     HorizontalPager(
         modifier = Modifier.fillMaxSize()
+            // AY -->
             .onGloballyPositioned { layoutCoordinates ->
                 containerHeight = layoutCoordinates.size.height
             },
+            // <-- AY
         state = state,
         verticalAlignment = Alignment.Top,
     ) { page ->
@@ -72,9 +76,11 @@ fun LibraryPager(
         }
 
         val displayMode by getDisplayMode(page)
+        // AY -->
         val configuration = LocalConfiguration.current
         val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         val columns by remember(isLandscape) { getColumnsForOrientation(isLandscape) }
+        // <-- AY
 
         val onClickAnime: (LibraryAnime) -> Unit = { onClickAnime(category, it) }
         val onLongClickAnime: (LibraryAnime) -> Unit = { onLongClickAnime(category, it) }
@@ -83,8 +89,10 @@ fun LibraryPager(
             LibraryDisplayMode.List -> {
                 LibraryList(
                     items = items,
+                    // AY -->
                     entries = columns,
                     containerHeight = containerHeight,
+                    // <-- AY
                     contentPadding = contentPadding,
                     selection = selection,
                     onClick = onClickAnime,

@@ -34,7 +34,9 @@ fun CategoryScreen(
     state: CategoryScreenState.Success,
     onClickCreate: () -> Unit,
     onClickRename: (Category) -> Unit,
+    // AY -->
     onClickHide: (Category) -> Unit,
+    // <-- AY
     onClickDelete: (Category) -> Unit,
     onChangeOrder: (Category, Int) -> Unit,
     navigateUp: () -> Unit,
@@ -68,7 +70,9 @@ fun CategoryScreen(
             lazyListState = lazyListState,
             paddingValues = paddingValues,
             onClickRename = onClickRename,
+            // AY -->
             onClickHide = onClickHide,
+            // <-- AY
             onClickDelete = onClickDelete,
             onChangeOrder = onChangeOrder,
         )
@@ -81,7 +85,9 @@ private fun CategoryContent(
     lazyListState: LazyListState,
     paddingValues: PaddingValues,
     onClickRename: (Category) -> Unit,
+    // AY -->
     onClickHide: (Category) -> Unit,
+    // <-- AY
     onClickDelete: (Category) -> Unit,
     onChangeOrder: (Category, Int) -> Unit,
 ) {
@@ -116,7 +122,9 @@ private fun CategoryContent(
                     modifier = Modifier.animateItem(),
                     category = category,
                     onRename = { onClickRename(category) },
+                    // AY -->
                     onHide = { onClickHide(category) },
+                    // <-- AY
                     onDelete = { onClickDelete(category) },
                 )
             }

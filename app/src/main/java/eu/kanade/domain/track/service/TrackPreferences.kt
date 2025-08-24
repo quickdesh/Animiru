@@ -38,12 +38,14 @@ class TrackPreferences(
 
     fun autoUpdateTrack() = preferenceStore.getBoolean("pref_auto_update_anime_sync_key", true)
 
+    // AY -->
     fun trackOnAddingToLibrary() = preferenceStore.getBoolean("track_on_adding_to_library", true)
 
     fun showNextEpisodeAiringTime() = preferenceStore.getBoolean(
         "show_next_episode_airing_time",
         true,
     )
+    // <-- AY
 
     fun autoUpdateTrackOnMarkSeen() = preferenceStore.getEnum(
         "pref_auto_update_anime_on_mark_seen",

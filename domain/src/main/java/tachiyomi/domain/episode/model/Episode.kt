@@ -9,7 +9,9 @@ data class Episode(
     val fillermark: Boolean,
     // <-- AM (FILLERMARK)
     val lastSecondSeen: Long,
+    // AY -->
     val totalSeconds: Long,
+    // <-- AY
     val dateFetch: Long,
     val sourceOrder: Long,
     val url: String,
@@ -43,7 +45,9 @@ data class Episode(
             fillermark = false,
             // <-- AM (FILLERMARK)
             lastSecondSeen = 0,
+            // AY -->
             totalSeconds = 0,
+            // <-- AY
             dateFetch = 0,
             sourceOrder = 0,
             url = "",

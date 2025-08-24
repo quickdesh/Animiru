@@ -88,8 +88,10 @@ fun AnimeBottomActionMenu(
     onMarkPreviousAsSeenClicked: (() -> Unit)? = null,
     onDownloadClicked: (() -> Unit)? = null,
     onDeleteClicked: (() -> Unit)? = null,
+    // AY -->
     onExternalClicked: (() -> Unit)? = null,
     onInternalClicked: (() -> Unit)? = null,
+    // <-- AY
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -97,7 +99,9 @@ fun AnimeBottomActionMenu(
         exit = shrinkVertically(shrinkTowards = Alignment.Bottom),
     ) {
         val scope = rememberCoroutineScope()
+        // AY -->
         val playerPreferences = remember { Injekt.get<PlayerPreferences>() }
+        // <-- AY
         Surface(
             modifier = modifier,
             shape = MaterialTheme.shapes.large.copy(bottomEnd = ZeroCornerSize, bottomStart = ZeroCornerSize),
@@ -213,6 +217,7 @@ fun AnimeBottomActionMenu(
                     )
                 }
 
+                // AY -->
                 if (onExternalClicked != null && !playerPreferences.alwaysUseExternalPlayer().get()) {
                     Button(
                         title = stringResource(AYMR.strings.action_play_externally),
@@ -231,6 +236,7 @@ fun AnimeBottomActionMenu(
                         onClick = onInternalClicked,
                     )
                 }
+                // <-- AY
             }
         }
     }

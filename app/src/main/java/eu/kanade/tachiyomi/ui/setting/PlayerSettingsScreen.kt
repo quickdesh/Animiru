@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.tachiyomi.ui.setting
 
 import androidx.compose.foundation.layout.WindowInsets
@@ -60,3 +61,4 @@ class PlayerSettingsScreen(private val mainSettings: Boolean) : Screen() {
         }
     }
 }
+// <-- AY

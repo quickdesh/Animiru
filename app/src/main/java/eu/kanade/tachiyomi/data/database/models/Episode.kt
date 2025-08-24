@@ -22,7 +22,9 @@ interface Episode : SEpisode, Serializable {
 
     var last_second_seen: Long
 
+    // AY -->
     var total_seconds: Long
+    // <-- AY
 
     var date_fetch: Long
 
@@ -47,7 +49,9 @@ fun Episode.toDomainEpisode(): DomainEpisode? {
         fillermark = fillermark,
         // <-- AM (FILLERMARK)
         lastSecondSeen = last_second_seen,
+        // AY -->
         totalSeconds = total_seconds,
+        // <-- AY
         dateFetch = date_fetch,
         sourceOrder = source_order.toLong(),
         url = url,

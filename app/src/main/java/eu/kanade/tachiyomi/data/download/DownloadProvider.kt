@@ -177,6 +177,7 @@ class DownloadProvider(
         }
     }
 
+    // AY -->
     /**
      * Returns the episode directory name for an episode.
      *
@@ -191,6 +192,7 @@ class DownloadProvider(
             },
         )
     }
+    // <-- AY
 
     fun isEpisodeDirNameChanged(oldEpisode: Episode, newEpisode: Episode): Boolean {
         return oldEpisode.name != newEpisode.name ||
@@ -205,8 +207,10 @@ class DownloadProvider(
      */
     fun getValidEpisodeDirNames(episodeName: String, episodeScanlator: String?): List<String> {
         val episodeDirName = getEpisodeDirName(episodeName, episodeScanlator)
+        // AY -->
         val oldEpisodeDirName = getOldEpisodeDirName(episodeName, episodeScanlator)
         return listOf(episodeDirName, oldEpisodeDirName)
+        // <-- AY
     }
 
     // AM (FILE_SIZE) -->

@@ -296,10 +296,11 @@ class MainActivity : BaseActivity() {
         }
         setSplashScreenExitAnimation(splashScreen)
 
+        // AY -->
         externalPlayerResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult(),
         ) { result: ActivityResult ->
-            if (result.resultCode == Activity.RESULT_OK) {
+            if (result.resultCode == RESULT_OK) {
                 val animeId = savedInstanceState?.getLong(SAVED_STATE_ANIME_KEY)
                 val episodeId = savedInstanceState?.getLong(SAVED_STATE_EPISODE_KEY)
 
@@ -314,6 +315,7 @@ class MainActivity : BaseActivity() {
                 // <-- AM (DISCORD_RPC)
             }
         }
+        // <-- AY
     }
 
     override fun onProvideAssistContent(outContent: AssistContent) {
@@ -502,6 +504,7 @@ class MainActivity : BaseActivity() {
         return true
     }
 
+    // AY -->
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
@@ -512,12 +515,14 @@ class MainActivity : BaseActivity() {
             outState.putLong(SAVED_STATE_EPISODE_KEY, it)
         }
     }
+    // <-- AY
 
     companion object {
         const val INTENT_SEARCH = "eu.kanade.tachiyomi.SEARCH"
         const val INTENT_SEARCH_QUERY = "query"
         const val INTENT_SEARCH_FILTER = "filter"
 
+        // AY -->
         const val SAVED_STATE_ANIME_KEY = "saved_state_anime_key"
         const val SAVED_STATE_EPISODE_KEY = "saved_state_episode_key"
 
@@ -555,6 +560,7 @@ class MainActivity : BaseActivity() {
                 )
             }
         }
+        // <-- AY
     }
 }
 

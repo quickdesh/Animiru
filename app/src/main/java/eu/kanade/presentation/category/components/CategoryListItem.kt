@@ -29,7 +29,9 @@ import tachiyomi.presentation.core.i18n.stringResource
 fun ReorderableCollectionItemScope.CategoryListItem(
     category: Category,
     onRename: () -> Unit,
+    // AY -->
     onHide: () -> Unit,
+    // <-- AY
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -62,6 +64,7 @@ fun ReorderableCollectionItemScope.CategoryListItem(
                     contentDescription = stringResource(MR.strings.action_rename_category),
                 )
             }
+            // AY -->
             IconButton(
                 onClick = onHide,
                 content = {
@@ -75,6 +78,7 @@ fun ReorderableCollectionItemScope.CategoryListItem(
                     )
                 },
             )
+            // <-- AY
             IconButton(onClick = onDelete) {
                 Icon(
                     imageVector = Icons.Outlined.Delete,

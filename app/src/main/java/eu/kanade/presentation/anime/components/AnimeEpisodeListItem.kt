@@ -272,6 +272,7 @@ private fun getSwipeAction(
     }
 }
 
+// AY -->
 @Composable
 fun NextEpisodeAiringListItem(
     title: String,
@@ -310,6 +311,7 @@ fun NextEpisodeAiringListItem(
         }
     }
 }
+// <-- AY
 
 private fun swipeAction(
     onSwipe: () -> Unit,

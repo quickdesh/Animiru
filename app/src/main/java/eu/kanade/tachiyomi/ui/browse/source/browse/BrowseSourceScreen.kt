@@ -125,16 +125,20 @@ data class BrowseSourceScreen(
             assistUrl = (screenModel.source as? AnimeHttpSource)?.baseUrl
         }
 
+        // AY -->
         var topBarHeight by remember { mutableIntStateOf(0) }
+        // <-- AY
         Scaffold(
             topBar = {
                 Column(
                     modifier = Modifier
                         .background(MaterialTheme.colorScheme.surface)
                         .pointerInput(Unit) {}
+                        // AY -->
                         .onGloballyPositioned { layoutCoordinates ->
                             topBarHeight = layoutCoordinates.size.height
                         },
+                        // <-- AY
                 ) {
                     BrowseSourceToolbar(
                         searchQuery = state.toolbarQuery,
@@ -221,8 +225,10 @@ data class BrowseSourceScreen(
                 source = screenModel.source,
                 animeList = screenModel.animePagerFlowFlow.collectAsLazyPagingItems(),
                 columns = screenModel.getColumnsPreference(LocalConfiguration.current.orientation),
+                // AY -->
                 entries = screenModel.getColumnsPreferenceForCurrentOrientation(LocalConfiguration.current.orientation),
                 topBarHeight = topBarHeight,
+                // <-- AY
                 displayMode = screenModel.displayMode,
                 snackbarHostState = snackbarHostState,
                 contentPadding = paddingValues,

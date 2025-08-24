@@ -1,3 +1,4 @@
+// AY -->
 package tachiyomi.domain.category.interactor
 
 import logcat.LogPriority
@@ -31,3 +32,4 @@ class HideCategory(
         data class InternalError(val error: Throwable) : Result()
     }
 }
+// <-- AY

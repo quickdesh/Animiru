@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.tachiyomi.data.track.simkl.dto
 
 import kotlinx.serialization.SerialName
@@ -8,3 +9,4 @@ data class SimklOAuth(
     @SerialName("access_token")
     val accessToken: String,
 )
+// <-- AY

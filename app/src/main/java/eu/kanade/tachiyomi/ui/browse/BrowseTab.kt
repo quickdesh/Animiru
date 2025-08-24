@@ -61,7 +61,9 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import kotlin.math.abs
 
+// AM (BROWSE)  -->
 internal var goToExtensions = false
+// <-- AM (BROWSE)
 
 data object BrowseTab : Tab {
 
@@ -71,7 +73,9 @@ data object BrowseTab : Tab {
             val isSelected = LocalTabNavigator.current.current.key == key
             val image = AnimatedImageVector.animatedVectorResource(R.drawable.anim_browse_enter)
             return TabOptions(
+                // AM (BROWSE)  -->
                 index = 2u,
+                // <-- AM (BROWSE)
                 title = stringResource(MR.strings.browse),
                 icon = rememberAnimatedVectorPainter(image, isSelected),
             )

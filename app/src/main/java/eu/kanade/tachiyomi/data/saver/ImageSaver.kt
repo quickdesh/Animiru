@@ -153,7 +153,9 @@ sealed class Image(
         override val location: Location,
     ) : Image(name, location)
 
+    // AY -->
     data class Screenshot(
+    // <-- AY
         val inputStream: () -> InputStream,
         override val name: String,
         override val location: Location,
@@ -169,7 +171,9 @@ sealed class Image(
                         ByteArrayInputStream(baos.toByteArray())
                     }
                 }
+                // AY -->
                 is Screenshot -> inputStream
+                // <-- AY
             }
         }
 }

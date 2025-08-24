@@ -80,7 +80,7 @@ internal fun LazyListScope.updatesUiItems(
     selectionMode: Boolean,
     onUpdateSelected: (UpdatesItem, Boolean, Boolean, Boolean) -> Unit,
     onClickCover: (UpdatesItem) -> Unit,
-    onClickUpdate: (UpdatesItem, altPlayer: Boolean) -> Unit,
+    onClickUpdate: (UpdatesItem, /* AY --> */ altPlayer: Boolean /* <-- AY */) -> Unit,
     onDownloadEpisode: (List<UpdatesItem>, EpisodeDownloadAction) -> Unit,
 ) {
     items(
@@ -114,11 +114,13 @@ internal fun LazyListScope.updatesUiItems(
                     watchProgress = updatesItem.update.lastSecondSeen
                         .takeIf { !updatesItem.update.seen && it > 0L }
                         ?.let {
+                            // AY -->
                             stringResource(
                                 AYMR.strings.episode_progress,
                                 formatProgress(it),
                                 formatProgress(updatesItem.update.totalSeconds),
                             )
+                            // <-- AY
                         },
                     onLongClick = {
                         onUpdateSelected(updatesItem, !updatesItem.selected, true, true)
@@ -126,7 +128,7 @@ internal fun LazyListScope.updatesUiItems(
                     onClick = {
                         when {
                             selectionMode -> onUpdateSelected(updatesItem, !updatesItem.selected, true, false)
-                            else -> onClickUpdate(updatesItem, false)
+                            else -> onClickUpdate(updatesItem, /* AY --> */ false /* <-- AY */)
                         }
                     },
                     onClickCover = { onClickCover(updatesItem) }.takeIf { !selectionMode },
@@ -279,6 +281,7 @@ private fun UpdatesUiItem(
     }
 }
 
+// AY -->
 private fun formatProgress(milliseconds: Long): String {
     return if (milliseconds > 3600000L) {
         String.format(
@@ -298,6 +301,7 @@ private fun formatProgress(milliseconds: Long): String {
         )
     }
 }
+// <-- AY
 
 // AM (FILE_SIZE) -->
 private val storagePreferences: StoragePreferences by injectLazy()

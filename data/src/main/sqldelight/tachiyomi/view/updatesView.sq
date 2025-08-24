@@ -11,7 +11,9 @@ SELECT
     episodes.fillermark,
     -- <-- AM (FILLERMARK)
     episodes.last_second_seen,
+    -- AY -->
     episodes.total_seconds AS totalSeconds,
+    -- <-- AY
     animes.source,
     animes.favorite,
     animes.thumbnail_url AS thumbnailUrl,

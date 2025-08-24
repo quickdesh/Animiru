@@ -1,3 +1,4 @@
+// AY -->
 package tachiyomi.core.metadata.tachiyomi
 
 import kotlinx.serialization.SerialName
@@ -12,3 +13,4 @@ class EpisodeDetails(
     val dateUpload: String? = null,
     val scanlator: String? = null,
 )
+// <-- AY

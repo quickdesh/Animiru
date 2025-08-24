@@ -19,27 +19,13 @@ class CategoryRepositoryImpl(
         return handler.awaitList { categoriesQueries.getCategories(::mapCategory) }
     }
 
-    override suspend fun getAllVisible(): List<Category> {
-        return handler.awaitList { categoriesQueries.getVisibleCategories(::mapCategory) }
-    }
-
     override fun getAllAsFlow(): Flow<List<Category>> {
         return handler.subscribeToList { categoriesQueries.getCategories(::mapCategory) }
-    }
-
-    override fun getAllVisibleAsFlow(): Flow<List<Category>> {
-        return handler.subscribeToList { categoriesQueries.getVisibleCategories(::mapCategory) }
     }
 
     override suspend fun getCategoriesByAnimeId(animeId: Long): List<Category> {
         return handler.awaitList {
             categoriesQueries.getCategoriesByAnimeId(animeId, ::mapCategory)
-        }
-    }
-
-    override suspend fun getVisibleCategoriesByAnimeId(animeId: Long): List<Category> {
-        return handler.awaitList {
-            categoriesQueries.getVisibleCategoriesByAnimeId(animeId, ::mapCategory)
         }
     }
 
@@ -49,11 +35,27 @@ class CategoryRepositoryImpl(
         }
     }
 
+    // AY -->
+    override suspend fun getAllVisible(): List<Category> {
+        return handler.awaitList { categoriesQueries.getVisibleCategories(::mapCategory) }
+    }
+
+    override fun getAllVisibleAsFlow(): Flow<List<Category>> {
+        return handler.subscribeToList { categoriesQueries.getVisibleCategories(::mapCategory) }
+    }
+
+    override suspend fun getVisibleCategoriesByAnimeId(animeId: Long): List<Category> {
+        return handler.awaitList {
+            categoriesQueries.getVisibleCategoriesByAnimeId(animeId, ::mapCategory)
+        }
+    }
+
     override fun getVisibleCategoriesByAnimeIdAsFlow(animeId: Long): Flow<List<Category>> {
         return handler.subscribeToList {
             categoriesQueries.getVisibleCategoriesByAnimeId(animeId, ::mapCategory)
         }
     }
+    // <-- AY
 
     override suspend fun insert(category: Category) {
         handler.await {
@@ -84,7 +86,9 @@ class CategoryRepositoryImpl(
             name = update.name,
             order = update.order,
             flags = update.flags,
+            // AY -->
             hidden = update.hidden?.let { if (it) 1L else 0L },
+            // <-- AY
             categoryId = update.id,
         )
     }
@@ -108,14 +112,18 @@ class CategoryRepositoryImpl(
         name: String,
         order: Long,
         flags: Long,
+        // AY -->
         hidden: Long,
+        // <-- AY
     ): Category {
         return Category(
             id = id,
             name = name,
             order = order,
             flags = flags,
+            // AY -->
             hidden = hidden == 1L,
+            // <-- AY
         )
     }
 }

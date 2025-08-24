@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.presentation.theme.colorscheme
 
 import androidx.compose.material3.darkColorScheme
@@ -69,3 +70,4 @@ internal object CloudflareColorScheme : BaseColorScheme() {
         outline = Color(0xFFF38020),
     )
 }
+// <-- AY

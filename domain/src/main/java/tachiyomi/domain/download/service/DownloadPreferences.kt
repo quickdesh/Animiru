@@ -11,12 +11,14 @@ class DownloadPreferences(
         true,
     )
 
+    // AY -->
     fun useExternalDownloader() = preferenceStore.getBoolean("use_external_downloader", false)
 
     fun externalDownloaderSelection() = preferenceStore.getString(
         "external_downloader_selection",
         "",
     )
+    // <-- AY
 
     fun autoDownloadWhileWatching() = preferenceStore.getInt("auto_download_while_watching", 0)
 

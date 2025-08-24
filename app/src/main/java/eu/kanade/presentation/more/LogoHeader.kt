@@ -25,8 +25,10 @@ fun LogoHeader() {
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
+                // AM -->
                 .padding(vertical = 8.dp)
                 .size(96.dp),
+                // <-- AM
         )
 
         HorizontalDivider()

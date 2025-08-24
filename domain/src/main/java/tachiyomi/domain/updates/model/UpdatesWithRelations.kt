@@ -18,7 +18,9 @@ data class UpdatesWithRelations(
     val fillermark: Boolean,
     // <-- AM (FILLERMARK)
     val lastSecondSeen: Long,
+    // AY -->
     val totalSeconds: Long,
+    // <-- AY
     val sourceId: Long,
     val dateFetch: Long,
     val coverData: AnimeCover,

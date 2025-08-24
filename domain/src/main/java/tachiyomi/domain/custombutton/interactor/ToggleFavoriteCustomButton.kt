@@ -1,3 +1,4 @@
+// AY -->
 package tachiyomi.domain.custombutton.interactor
 
 import kotlinx.coroutines.sync.Mutex
@@ -48,3 +49,4 @@ class ToggleFavoriteCustomButton(
         data class InternalError(val error: Throwable) : Result
     }
 }
+// <-- AY

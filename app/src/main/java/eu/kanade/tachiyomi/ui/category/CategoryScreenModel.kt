@@ -26,13 +26,15 @@ import uy.kohesive.injekt.api.get
 
 class CategoryScreenModel(
     private val getCategories: GetCategories = Injekt.get(),
-    private val getVisibleCategories: GetVisibleCategories = Injekt.get(),
     private val createCategoryWithName: CreateCategoryWithName = Injekt.get(),
-    private val hideCategory: HideCategory = Injekt.get(),
     private val deleteCategory: DeleteCategory = Injekt.get(),
     private val reorderCategory: ReorderCategory = Injekt.get(),
     private val renameCategory: RenameCategory = Injekt.get(),
+    // AY -->
+    private val getVisibleCategories: GetVisibleCategories = Injekt.get(),
+    private val hideCategory: HideCategory = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
+    // <-- AY
 ) : StateScreenModel<CategoryScreenState>(CategoryScreenState.Loading) {
 
     private val _events: Channel<CategoryEvent> = Channel()
@@ -40,11 +42,13 @@ class CategoryScreenModel(
 
     init {
         screenModelScope.launch {
+            // AY -->
             val allCategories = if (libraryPreferences.hideHiddenCategoriesSettings().get()) {
                 getVisibleCategories.subscribe()
             } else {
                 getCategories.subscribe()
             }
+            // <-- AY
 
             allCategories.collectLatest { categories ->
                 mutableState.update {
@@ -67,6 +71,7 @@ class CategoryScreenModel(
         }
     }
 
+    // AY -->
     fun hideCategory(category: Category) {
         screenModelScope.launch {
             when (hideCategory.await(category)) {
@@ -77,6 +82,7 @@ class CategoryScreenModel(
             }
         }
     }
+    // <-- AY
 
     fun deleteCategory(categoryId: Long) {
         screenModelScope.launch {

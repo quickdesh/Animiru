@@ -21,7 +21,9 @@ const val PREF_DOH_MULLVAD = 9
 const val PREF_DOH_CONTROLD = 10
 const val PREF_DOH_NJALLA = 11
 const val PREF_DOH_SHECAN = 12
+// AY -->
 const val PREF_DOH_LIBREDNS = 13
+// <-- AY
 
 fun OkHttpClient.Builder.dohCloudflare() = dns(
     DnsOverHttps.Builder().client(build())
@@ -185,6 +187,7 @@ fun OkHttpClient.Builder.dohShecan() = dns(
         .build(),
 )
 
+// AY -->
 /**
  * Source: https://libredns.gr/
  */
@@ -197,3 +200,4 @@ fun OkHttpClient.Builder.dohLibreDNS() = dns(
         )
         .build(),
 )
+// <-- AY

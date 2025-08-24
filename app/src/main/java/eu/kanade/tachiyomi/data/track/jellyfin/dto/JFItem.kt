@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.tachiyomi.data.track.jellyfin.dto
 
 import kotlinx.serialization.SerialName
@@ -20,3 +21,4 @@ data class JFUserData(
 data class JFItemList(
     @SerialName("Items") val items: List<JFItem>,
 )
+// <-- AY

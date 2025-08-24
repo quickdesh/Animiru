@@ -30,7 +30,9 @@ import uy.kohesive.injekt.api.get
 class StatsScreenModel(
     private val downloadManager: DownloadManager = Injekt.get(),
     private val getLibraryAnime: GetLibraryAnime = Injekt.get(),
+    // AY -->
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
+    // <-- AY
     private val getTracks: GetTracks = Injekt.get(),
     private val preferences: LibraryPreferences = Injekt.get(),
     private val trackerManager: TrackerManager = Injekt.get(),
@@ -54,7 +56,9 @@ class StatsScreenModel(
                 completedAnimeCount = distinctLibraryAnime.count {
                     it.anime.status.toInt() == SAnime.COMPLETED && it.unseenCount == 0L
                 },
+                // AY -->
                 totalSeenDuration = getWatchTime(distinctLibraryAnime),
+                // <-- AY
             )
 
             val titlesStatData = StatsData.Titles(
@@ -113,6 +117,7 @@ class StatsScreenModel(
         }
     }
 
+    // AY -->
     private suspend fun getWatchTime(libraryAnimeList: List<LibraryAnime>): Long {
         var watchTime = 0L
         libraryAnimeList.forEach { libraryAnime ->
@@ -127,6 +132,7 @@ class StatsScreenModel(
 
         return watchTime
     }
+    // <-- AY
 
     private fun getScoredAnimeTrackMap(animeTrackMap: Map<Long, List<Track>>): Map<Long, List<Track>> {
         return animeTrackMap.mapNotNull { (animeId, tracks) ->

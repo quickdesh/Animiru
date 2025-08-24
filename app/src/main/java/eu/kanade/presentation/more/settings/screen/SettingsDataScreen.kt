@@ -315,10 +315,12 @@ object SettingsDataScreen : SearchableSettings {
                         },
                     )
                 },
+                // AM (STORAGE_SCREEN) -->
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(AMMR.strings.pref_storage_overview),
                     onClick = { navigator.push(StorageScreen()) },
                 ),
+                // <-- AM (STORAGE_SCREEN)
                 // AM (FILE_SIZE) -->
                 Preference.PreferenceItem.SwitchPreference(
                     preference = storagePreferences.showEpisodeFileSize(),

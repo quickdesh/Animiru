@@ -41,7 +41,9 @@ fun MoreScreen(
     onClickCategories: () -> Unit,
     onClickStats: () -> Unit,
     onClickDataAndStorage: () -> Unit,
+    // AY -->
     onClickPlayerSettings: () -> Unit,
+    // <-- AY
     onClickSettings: () -> Unit,
     onClickAbout: () -> Unit,
 ) {
@@ -135,6 +137,7 @@ fun MoreScreen(
                     onPreferenceClick = onClickSettings,
                 )
             }
+            // AY -->
             item {
                 TextPreferenceWidget(
                     title = stringResource(AYMR.strings.label_player_settings),
@@ -142,6 +145,7 @@ fun MoreScreen(
                     onPreferenceClick = onClickPlayerSettings,
                 )
             }
+            // <-- AY
             item {
                 TextPreferenceWidget(
                     title = stringResource(MR.strings.pref_category_about),

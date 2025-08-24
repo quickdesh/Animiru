@@ -109,7 +109,9 @@ class AnimeScreen(
 
         val successState = state as AnimeScreenModel.State.Success
         val isHttpSource = remember { successState.source is AnimeHttpSource }
+        // AY -->
         val isConfigurableSource = remember { successState.source is ConfigurableAnimeSource }
+        // <-- AY
 
         LaunchedEffect(successState.anime, screenModel.source) {
             if (isHttpSource) {
@@ -130,17 +132,21 @@ class AnimeScreen(
             isTabletUi = isTabletUi(),
             episodeSwipeStartAction = screenModel.episodeSwipeStartAction,
             episodeSwipeEndAction = screenModel.episodeSwipeEndAction,
+            // AY -->
             showNextEpisodeAirTime = screenModel.showNextEpisodeAirTime,
             alwaysUseExternalPlayer = screenModel.alwaysUseExternalPlayer,
+            // <-- AY
             navigateUp = navigator::pop,
             // AM (FILE_SIZE) -->
             showFileSize = screenModel.showFileSize,
             // <-- AM (FILE_SIZE)
-            onEpisodeClicked = { episode, alt ->
+            onEpisodeClicked = { episode, /* AY --> */ alt /* <-- AY */ ->
+                // AY -->
                 scope.launchIO {
                     val extPlayer = screenModel.alwaysUseExternalPlayer != alt
                     openEpisode(context, episode, extPlayer)
                 }
+                // <-- AY
             },
             onDownloadEpisode = screenModel::runEpisodeDownloadActions.takeIf { !successState.source.isLocalOrStub() },
             onAddToLibraryClicked = {
@@ -172,17 +178,16 @@ class AnimeScreen(
             onFilterButtonClicked = screenModel::showSettingsDialog,
             onRefresh = screenModel::fetchAllFromSource,
             onContinueWatching = {
+                // AY -->
                 scope.launchIO {
                     val extPlayer = screenModel.alwaysUseExternalPlayer
                     continueWatching(context, screenModel.getNextUnseenEpisode(), extPlayer)
                 }
+                // <-- AY
             },
             onSearch = { query, global -> scope.launch { performSearch(navigator, query, global) } },
             onCoverClicked = screenModel::showCoverDialog,
             onShareClicked = { shareAnime(context, screenModel.anime, screenModel.source) }.takeIf { isHttpSource },
-            onSettingsClicked = {
-                navigator.push(SourcePreferencesScreen(successState.source.id))
-            }.takeIf { isConfigurableSource },
             onDownloadActionClicked = screenModel::runDownloadAction.takeIf { !successState.source.isLocalOrStub() },
             onEditCategoryClicked = screenModel::showChangeCategoryDialog.takeIf { successState.anime.favorite },
             onEditFetchIntervalClicked = screenModel::showSetFetchIntervalDialog.takeIf {
@@ -191,7 +196,12 @@ class AnimeScreen(
             onMigrateClicked = {
                 navigator.push(MigrationConfigScreen(successState.anime.id))
             }.takeIf { successState.anime.favorite },
+            // AY -->
+            onSettingsClicked = {
+                navigator.push(SourcePreferencesScreen(successState.source.id))
+            }.takeIf { isConfigurableSource },
             onSkipIntroClicked = screenModel::showAnimeSkipIntroDialog.takeIf { successState.anime.favorite },
+            // <-- AY
             // AM (CUSTOM_INFORMATION) -->
             onEditInfoClicked = screenModel::showEditAnimeInfoDialog,
             // <-- AM (CUSTOM_INFORMATION)
@@ -213,10 +223,12 @@ class AnimeScreen(
 
         val onDismissRequest = {
             screenModel.dismissDialog()
+            // AY -->
             if (screenModel.autoOpenTrack && screenModel.isFromChangeCategory) {
                 screenModel.isFromChangeCategory = false
                 screenModel.showTrackDialog()
             }
+            // <-- AY
         }
         when (val dialog = successState.dialog) {
             null -> {}
@@ -321,6 +333,7 @@ class AnimeScreen(
                         .takeIf { screenModel.isUpdateIntervalEnabled },
                 )
             }
+            // AY -->
             AnimeScreenModel.Dialog.ChangeAnimeSkipIntro -> {
                 fun updateSkipIntroLength(newLength: Long) {
                     scope.launchIO {
@@ -363,6 +376,7 @@ class AnimeScreen(
                     onDismissRequest = onDismissRequest,
                 )
             }
+            // <-- AY
             // AM (CUSTOM_INFORMATION) -->
             is AnimeScreenModel.Dialog.EditAnimeInfo -> {
                 EditAnimeDialog(
@@ -389,6 +403,7 @@ class AnimeScreen(
     }
 
     private suspend fun openEpisode(context: Context, episode: Episode, useExternalPlayer: Boolean) {
+        // AY -->
         withIOContext {
             MainActivity.startPlayerActivity(
                 context,
@@ -397,6 +412,7 @@ class AnimeScreen(
                 useExternalPlayer,
             )
         }
+        // <-- AY
     }
 
     private fun getAnimeUrl(anime_: Anime?, source_: AnimeSource?): String? {

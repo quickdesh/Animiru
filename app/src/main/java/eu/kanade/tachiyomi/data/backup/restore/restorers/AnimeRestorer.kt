@@ -218,7 +218,9 @@ class AnimeRestorer(
                     episode.fillermark,
                     // <-- AM (FILLERMARK)
                     episode.lastSecondSeen,
+                    // AY -->
                     episode.totalSeconds,
+                    // <-- AY
                     episode.episodeNumber,
                     episode.sourceOrder,
                     episode.dateFetch,
@@ -243,7 +245,9 @@ class AnimeRestorer(
                     fillermark = episode.fillermark,
                     // <-- AM (FILLERMARK)
                     lastSecondSeen = episode.lastSecondSeen,
+                    // AY -->
                     totalSeconds = episode.totalSeconds,
+                    // <-- AY
                     episodeNumber = null,
                     sourceOrder = null,
                     dateFetch = null,

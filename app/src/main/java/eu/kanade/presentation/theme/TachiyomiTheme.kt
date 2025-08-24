@@ -84,6 +84,7 @@ private fun getThemeColorScheme(
     )
 }
 
+// AY -->
 private const val RIPPLE_DRAGGED_ALPHA = .5f
 private const val RIPPLE_FOCUSED_ALPHA = .6f
 private const val RIPPLE_HOVERED_ALPHA = .4f
@@ -99,21 +100,30 @@ val playerRippleConfiguration
             pressedAlpha = RIPPLE_PRESSED_ALPHA,
         ),
     )
+// <-- AY
 
 private val colorSchemes: Map<AppTheme, BaseColorScheme> = mapOf(
     AppTheme.DEFAULT to TachiyomiColorScheme,
     AppTheme.CATPPUCCIN to CatppuccinColorScheme,
+    // AY -->
     AppTheme.CLOUDFLARE to CloudflareColorScheme,
     AppTheme.COTTONCANDY to CottoncandyColorScheme,
     AppTheme.DOOM to DoomColorScheme,
+    // <-- AY
     AppTheme.GREEN_APPLE to GreenAppleColorScheme,
     AppTheme.LAVENDER to LavenderColorScheme,
+    // AY -->
     AppTheme.MATRIX to MatrixColorScheme,
+    // <-- AY
     AppTheme.MIDNIGHT_DUSK to MidnightDuskColorScheme,
+    // AY -->
     AppTheme.MOCHA to MochaColorScheme,
+    // <-- AY
     AppTheme.MONOCHROME to MonochromeColorScheme,
     AppTheme.NORD to NordColorScheme,
+    // AY -->
     AppTheme.SAPPHIRE to SapphireColorScheme,
+    // <-- AY
     AppTheme.STRAWBERRY_DAIQUIRI to StrawberryColorScheme,
     AppTheme.TAKO to TakoColorScheme,
     AppTheme.TEALTURQUOISE to TealTurqoiseColorScheme,

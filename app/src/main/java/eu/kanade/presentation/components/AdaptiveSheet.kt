@@ -39,10 +39,12 @@ fun NavigatorAdaptiveSheet(
                     },
                 )
 
+                // AY -->
                 BackHandler(
                     enabled = sheetNavigator.size > 1,
                     onBack = sheetNavigator::pop,
                 )
+                // <-- AY
             }
 
             // Make sure screens are disposed no matter what

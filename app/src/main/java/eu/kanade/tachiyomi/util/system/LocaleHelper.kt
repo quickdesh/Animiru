@@ -85,10 +85,12 @@ object LocaleHelper {
         return setOf("all", "en", Locale.getDefault().language)
     }
 
+    // AY -->
     /**
      * Return English display string from string language code
      */
     fun getSimpleLocaleDisplayName(): String {
         return LocaleListCompat.getDefault()[0]!!.displayLanguage
     }
+    // <-- AY
 }

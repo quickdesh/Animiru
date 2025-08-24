@@ -39,12 +39,14 @@ class BackupDecoder(
             }.use { it.readByteArray() }
 
             try {
+                // AY -->
                 if (BackupDetector.isLegacyBackup(backupString)) {
                     parser.decodeFromByteArray(LegacyBackup.serializer(), backupString)
                         .toBackup()
                 } else {
                     parser.decodeFromByteArray(Backup.serializer(), backupString)
                 }
+                // <-- AY
             } catch (_: SerializationException) {
                 throw IOException(context.stringResource(MR.strings.invalid_backup_file_unknown))
             }

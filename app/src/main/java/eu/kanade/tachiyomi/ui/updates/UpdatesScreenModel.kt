@@ -59,7 +59,9 @@ class UpdatesScreenModel(
     private val getEpisode: GetEpisode = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
+    // AY -->
     downloadPreferences: DownloadPreferences = Injekt.get(),
+    // <-- AY
 ) : StateScreenModel<UpdatesScreenModel.State>(State()) {
 
     private val _events: Channel<Event> = Channel(Int.MAX_VALUE)
@@ -67,7 +69,9 @@ class UpdatesScreenModel(
 
     val lastUpdated by libraryPreferences.lastUpdatedTimestamp().asState(screenModelScope)
 
+    // AY -->
     val useExternalDownloader = downloadPreferences.useExternalDownloader().get()
+    // <-- AY
 
     // First and last selected index in list
     private val selectedPositions: Array<Int> = arrayOf(-1, -1)
@@ -184,10 +188,12 @@ class UpdatesScreenModel(
                 EpisodeDownloadAction.DELETE -> {
                     deleteEpisodes(items)
                 }
+                // AY -->
                 EpisodeDownloadAction.SHOW_QUALITIES -> {
                     val update = items.singleOrNull()?.update ?: return@launch
                     showQualitiesDialog(update)
                 }
+                // <-- AY
             }
             toggleAllSelection(false)
         }
@@ -293,6 +299,7 @@ class UpdatesScreenModel(
         setDialog(Dialog.DeleteConfirmation(updatesItem))
     }
 
+    // AY -->
     private fun showQualitiesDialog(update: UpdatesWithRelations) {
         setDialog(
             Dialog.ShowQualities(
@@ -303,6 +310,7 @@ class UpdatesScreenModel(
             ),
         )
     }
+    // <-- AY
 
     fun toggleSelection(
         item: UpdatesItem,
@@ -427,12 +435,14 @@ class UpdatesScreenModel(
 
     sealed interface Dialog {
         data class DeleteConfirmation(val toDelete: List<UpdatesItem>) : Dialog
+        // AY -->
         data class ShowQualities(
             val episodeTitle: String,
             val episodeId: Long,
             val animeId: Long,
             val sourceId: Long,
         ) : Dialog
+        // <-- AY
     }
 
     sealed interface Event {

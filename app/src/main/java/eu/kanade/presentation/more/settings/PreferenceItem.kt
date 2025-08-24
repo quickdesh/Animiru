@@ -167,6 +167,7 @@ internal fun PreferenceItem(
                     },
                 )
             }
+            // AY -->
             is Preference.PreferenceItem.MultiLineEditTextPreference -> {
                 val values by item.preference.collectAsState()
                 EditTextPreferenceWidget(
@@ -219,6 +220,7 @@ internal fun PreferenceItem(
                     errorMessage = item.errorMessage,
                 )
             }
+            // <-- AY
             is Preference.PreferenceItem.TrackerPreference -> {
                 val isLoggedIn by item.tracker.let { tracker ->
                     tracker.isLoggedInFlow.collectAsState(tracker.isLoggedIn)

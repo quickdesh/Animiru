@@ -92,6 +92,7 @@ data class Anime(
         get() = episodeFlags and EPISODE_FILLERMARKED_MASK
     // <-- AM (FILLERMARK)
 
+    // AY -->
     val skipIntroLength: Int
         get() = (viewerFlags and ANIME_INTRO_MASK).toInt()
 
@@ -103,6 +104,7 @@ data class Anime(
 
     val nextEpisodeAiringAt: Long
         get() = (viewerFlags and ANIME_AIRING_TIME_MASK).removeHexZeros(zeros = 6)
+    // <-- AY
 
     val unseenFilter: TriState
         get() = when (unseenFilterRaw) {
@@ -131,10 +133,12 @@ data class Anime(
         return episodeFlags and EPISODE_SORT_DIR_MASK == EPISODE_SORT_DESC
     }
 
+    // AY -->
     private fun Long.removeHexZeros(zeros: Int): Long {
         val hex = 16.0
         return this.div(hex.pow(zeros)).toLong()
     }
+    // <-- AY
 
     companion object {
         // Generic filter that does not filter anything
@@ -172,10 +176,12 @@ data class Anime(
         const val EPISODE_DISPLAY_NUMBER = 0x00100000L
         const val EPISODE_DISPLAY_MASK = 0x00100000L
 
+        // AY -->
         const val ANIME_INTRO_MASK = 0x0000000000000FFL
         const val ANIME_AIRING_EPISODE_MASK = 0x000000000FFFF00L
         const val ANIME_AIRING_TIME_MASK = 0x0FFFFFFFF000000L
         const val ANIME_INTRO_DISABLE_MASK = 0x100000000000000L
+        // <-- AY
 
         fun create() = Anime(
             id = -1L,

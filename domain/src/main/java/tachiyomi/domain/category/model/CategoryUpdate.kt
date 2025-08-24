@@ -5,5 +5,7 @@ data class CategoryUpdate(
     val name: String? = null,
     val order: Long? = null,
     val flags: Long? = null,
+    // AY -->
     val hidden: Boolean? = null,
+    // <-- AY
 )

@@ -9,6 +9,7 @@ import kotlin.math.pow
 class SetAnimeViewerFlags(
     private val animeRepository: AnimeRepository,
 ) {
+    // AY -->
     suspend fun awaitSetSkipIntroLength(id: Long, flag: Long) {
         val anime = animeRepository.getAnimeById(id)
         animeRepository.update(
@@ -46,13 +47,16 @@ class SetAnimeViewerFlags(
             ),
         )
     }
+    // <-- AY
 
     private fun Long.setFlag(flag: Long, mask: Long): Long {
         return this and mask.inv() or (flag and mask)
     }
 
+    // AY -->
     private fun Long.addHexZeros(zeros: Int): Long {
         val hex = 16.0
         return this.times(hex.pow(zeros)).toLong()
     }
+    // <-- AY
 }

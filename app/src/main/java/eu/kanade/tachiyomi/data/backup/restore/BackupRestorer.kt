@@ -38,9 +38,11 @@ class BackupRestorer(
     private val categoriesRestorer: CategoriesRestorer = CategoriesRestorer(),
     private val preferenceRestorer: PreferenceRestorer = PreferenceRestorer(context),
     private val extensionRepoRestorer: ExtensionRepoRestorer = ExtensionRepoRestorer(),
-    private val customButtonRestorer: CustomButtonRestorer = CustomButtonRestorer(),
     private val animeRestorer: AnimeRestorer = AnimeRestorer(),
+    // AY -->
+    private val customButtonRestorer: CustomButtonRestorer = CustomButtonRestorer(),
     private val extensionsRestorer: ExtensionsRestorer = ExtensionsRestorer(context),
+    // <-- AY
 ) {
 
     private var restoreAmount = 0
@@ -89,15 +91,17 @@ class BackupRestorer(
         if (options.extensionRepoSettings) {
             restoreAmount += backup.backupExtensionRepo.size
         }
-        if (options.customButtons) {
+        if (options.sourceSettings) {
             restoreAmount += 1
         }
-        if (options.sourceSettings) {
+        // AY -->
+        if (options.customButtons) {
             restoreAmount += 1
         }
         if (options.extensions) {
             restoreAmount += 1
         }
+        // <-- AY
 
         coroutineScope {
             if (options.categories) {
@@ -115,12 +119,14 @@ class BackupRestorer(
             if (options.extensionRepoSettings) {
                 restoreExtensionRepos(backup.backupExtensionRepo)
             }
+            // AY -->
             if (options.customButtons) {
                 restoreCustomButtons(backup.backupCustomButton)
             }
             if (options.extensions) {
                 restoreExtensions(backup.backupExtensions)
             }
+            // <-- AY
 
             // TODO: optionally trigger online library + tracker update
         }
@@ -217,6 +223,7 @@ class BackupRestorer(
             }
     }
 
+    // AY -->
     private fun CoroutineScope.restoreCustomButtons(customButtons: List<BackupCustomButtons>) = launch {
         ensureActive()
         customButtonRestorer(customButtons)
@@ -242,6 +249,7 @@ class BackupRestorer(
             isSync,
         )
     }
+    // <-- AY
 
     private fun writeErrorLog(): File {
         try {

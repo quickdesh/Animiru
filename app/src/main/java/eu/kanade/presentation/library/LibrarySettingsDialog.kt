@@ -214,7 +214,9 @@ private fun ColumnScope.SortPage(
             AYMR.strings.action_sort_episode_fetch_date to LibrarySort.Type.EpisodeFetchDate,
             MR.strings.action_sort_date_added to LibrarySort.Type.DateAdded,
             trackerMeanPair,
+            // AY -->
             AYMR.strings.action_sort_airing_time to LibrarySort.Type.AiringTime,
+            // <-- AY
             MR.strings.action_sort_random to LibrarySort.Type.Random,
         )
     }
@@ -276,6 +278,7 @@ private fun ColumnScope.DisplayPage(
         }
     }
 
+    // AY -->
     val configuration = LocalConfiguration.current
     val columnPreference = remember {
         if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -300,6 +303,7 @@ private fun ColumnScope.DisplayPage(
             pillColor = MaterialTheme.colorScheme.surfaceContainerHighest,
         )
     } else {
+    // <-- AY
         SliderItem(
             value = columns,
             valueRange = 0..10,

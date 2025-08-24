@@ -47,12 +47,14 @@ internal object ExtensionLoader {
         preferences.showNsfwSource().get()
     }
 
+    // AY -->
     private const val EXTENSION_FEATURE = "tachiyomi.animeextension"
     private const val METADATA_SOURCE_CLASS = "tachiyomi.animeextension.class"
     private const val METADATA_SOURCE_FACTORY = "tachiyomi.animeextension.factory"
     private const val METADATA_NSFW = "tachiyomi.animeextension.nsfw"
     const val LIB_VERSION_MIN = 12
     const val LIB_VERSION_MAX = 15
+    // <-- AY
 
     @Suppress("DEPRECATION")
     private val PACKAGE_FLAGS = PackageManager.GET_CONFIGURATIONS or
@@ -297,6 +299,7 @@ internal object ExtensionLoader {
                         else -> throw Exception("Unknown source class type: ${obj.javaClass}")
                     }
                 } catch (e: LinkageError) {
+                    // AY -->
                     try {
                         val fallBackClassLoader = PathClassLoader(appInfo.sourceDir, null, context.classLoader)
                         when (
@@ -316,6 +319,7 @@ internal object ExtensionLoader {
                         logcat(LogPriority.ERROR, e) { "Extension load error: $extName ($it)" }
                         return LoadResult.Error
                     }
+                    // <-- AY
                 } catch (e: Throwable) {
                     logcat(LogPriority.ERROR, e) { "Extension load error: $extName ($it)" }
                     return LoadResult.Error

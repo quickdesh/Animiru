@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.presentation.theme.colorscheme
 
 import androidx.compose.material3.darkColorScheme
@@ -69,3 +70,4 @@ internal object DoomColorScheme : BaseColorScheme() {
         outline = Color(0xFFFF0000),
     )
 }
+// <-- AY

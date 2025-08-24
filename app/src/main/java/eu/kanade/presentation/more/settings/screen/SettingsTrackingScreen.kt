@@ -134,6 +134,7 @@ object SettingsTrackingScreen : SearchableSettings {
                 preference = trackPreferences.autoUpdateTrack(),
                 title = stringResource(AMMR.strings.am_pref_auto_update_anime_sync),
             ),
+            // AY -->
             Preference.PreferenceItem.SwitchPreference(
                 preference = trackPreferences.trackOnAddingToLibrary(),
                 title = stringResource(AYMR.strings.pref_track_on_add_library),
@@ -142,6 +143,7 @@ object SettingsTrackingScreen : SearchableSettings {
                 preference = trackPreferences.showNextEpisodeAiringTime(),
                 title = stringResource(AYMR.strings.pref_show_next_episode_airing_time),
             ),
+            // <-- AY
             Preference.PreferenceItem.ListPreference(
                 preference = trackPreferences.autoUpdateTrackOnMarkSeen(),
                 entries = AutoTrackState.entries
@@ -172,11 +174,13 @@ object SettingsTrackingScreen : SearchableSettings {
                         login = { context.openInBrowser(ShikimoriApi.authUrl(), forceDefaultBrowser = true) },
                         logout = { dialog = LogoutDialog(trackerManager.shikimori) },
                     ),
+                    // AY -->
                     Preference.PreferenceItem.TrackerPreference(
                         tracker = trackerManager.simkl,
                         login = { context.openInBrowser(SimklApi.authUrl(), forceDefaultBrowser = true) },
                         logout = { dialog = LogoutDialog(trackerManager.simkl) },
                     ),
+                    // <-- AY
                     Preference.PreferenceItem.TrackerPreference(
                         tracker = trackerManager.bangumi,
                         login = { context.openInBrowser(BangumiApi.authUrl(), forceDefaultBrowser = true) },

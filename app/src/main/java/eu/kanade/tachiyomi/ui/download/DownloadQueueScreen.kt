@@ -211,11 +211,13 @@ object DownloadQueueScreen : Screen() {
                     val isRunning by screenModel.isDownloaderRunning.collectAsState()
                     ExtendedFloatingActionButton(
                         text = {
+                            // AY -->
                             val id = if (isRunning) {
                                 AYMR.strings.action_stop
                             } else {
                                 AYMR.strings.action_continue
                             }
+                            // <-- AY
                             Text(text = stringResource(id))
                         },
                         icon = {

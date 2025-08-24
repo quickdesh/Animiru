@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.domain.ui.model
 
 import dev.icerock.moko.resources.StringResource
@@ -19,3 +20,5 @@ enum class StartScreen(val titleRes: StringResource, val tab: Tab) {
     BROWSE(MR.strings.browse, BrowseTab),
     // <-- AM (BROWSE)
 }
+// <-- AY
+

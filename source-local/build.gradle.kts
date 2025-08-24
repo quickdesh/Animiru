@@ -47,8 +47,10 @@ android {
         consumerProguardFiles("consumer-rules.pro")
     }
 
+    // AY -->
     dependencies {
         // FFmpeg-kit
         implementation(aniyomilibs.ffmpeg.kit)
     }
+    // <-- AY
 }

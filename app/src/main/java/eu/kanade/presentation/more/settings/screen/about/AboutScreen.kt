@@ -147,6 +147,7 @@ object AboutScreen : Screen() {
                     }
                 }
 
+                // AY -->
                 item {
                     TextPreferenceWidget(
                         title = stringResource(MR.strings.help_translate),
@@ -157,6 +158,7 @@ object AboutScreen : Screen() {
                         },
                     )
                 }
+                // <-- AY
 
                 item {
                     TextPreferenceWidget(

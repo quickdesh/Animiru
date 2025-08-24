@@ -110,10 +110,12 @@ object SettingsLibraryScreen : SearchableSettings {
                         true
                     },
                 ),
+                // AY -->
                 Preference.PreferenceItem.SwitchPreference(
                     preference = libraryPreferences.hideHiddenCategoriesSettings(),
                     title = stringResource(AYMR.strings.pref_category_hide_hidden),
                 ),
+                // <-- AY
             ),
         )
     }

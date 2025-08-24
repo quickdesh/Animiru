@@ -35,7 +35,9 @@ class UiPreferences(
 
     fun tabletUiMode() = preferenceStore.getEnum("tablet_ui_mode", TabletUiMode.AUTOMATIC)
 
+    // AY -->
     fun startScreen() = preferenceStore.getEnum("start_screen", StartScreen.ANIME)
+    // <-- AY
 
     fun imagesInDescription() = preferenceStore.getBoolean("pref_render_images_description", true)
 

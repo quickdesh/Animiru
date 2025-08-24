@@ -140,7 +140,9 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { LocalCoverManager(app, get()) }
         addSingletonFactory { StorageManager(app, get()) }
 
+        // AY -->
         addSingletonFactory { ExternalIntents() }
+        // <-- AY
 
         // AM (SYNC_DRIVE) -->
         addSingletonFactory { GoogleDriveService(app) }

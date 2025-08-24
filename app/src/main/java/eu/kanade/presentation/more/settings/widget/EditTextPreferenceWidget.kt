@@ -31,21 +31,27 @@ import tachiyomi.presentation.core.i18n.stringResource
 fun EditTextPreferenceWidget(
     title: String,
     subtitle: String?,
+    // AY -->
     dialogSubtitle: String? = null,
+    // <-- AY
     icon: ImageVector?,
     value: String,
     onConfirm: suspend (String) -> Boolean,
+    // AY -->
     singleLine: Boolean = true,
     canBeBlank: Boolean = false,
     formatSubtitle: Boolean = true,
     validate: (String) -> Boolean = { true },
     errorMessage: @Composable ((String) -> String)? = null,
+    // <-- AY
 ) {
     var isDialogShown by remember { mutableStateOf(false) }
 
     TextPreferenceWidget(
         title = title,
+        // AY -->
         subtitle = if (formatSubtitle) subtitle?.format(value) else subtitle,
+        // <-- AY
         icon = icon,
         onPreferenceClick = { isDialogShown = true },
     )
@@ -59,19 +65,23 @@ fun EditTextPreferenceWidget(
         AlertDialog(
             onDismissRequest = onDismissRequest,
             title = {
+                // AY -->
                 Column {
                     Text(text = title)
                     if (dialogSubtitle != null) {
                         Text(text = dialogSubtitle, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
+                // <-- AY
             },
             text = {
                 OutlinedTextField(
                     value = textFieldValue,
                     onValueChange = { textFieldValue = it },
                     trailingIcon = {
+                        // AY -->
                         if ((textFieldValue.text.isBlank() && !canBeBlank) || !validate(textFieldValue.text)) {
+                        // <-- AY
                             Icon(imageVector = Icons.Filled.Error, contentDescription = null)
                         } else {
                             IconButton(onClick = { textFieldValue = TextFieldValue("") }) {
@@ -79,6 +89,7 @@ fun EditTextPreferenceWidget(
                             }
                         }
                     },
+                    // AY -->
                     supportingText = {
                         if (!validate(textFieldValue.text) && errorMessage != null) {
                             Text(errorMessage(textFieldValue.text))
@@ -86,6 +97,7 @@ fun EditTextPreferenceWidget(
                     },
                     isError = (textFieldValue.text.isBlank() && !canBeBlank) || !validate(textFieldValue.text),
                     singleLine = singleLine,
+                    // <-- AY
                     modifier = Modifier.fillMaxWidth(),
                 )
             },
@@ -94,9 +106,11 @@ fun EditTextPreferenceWidget(
             ),
             confirmButton = {
                 TextButton(
+                    // AY -->
                     enabled = textFieldValue.text != value &&
                         (textFieldValue.text.isNotBlank() || canBeBlank) &&
                         validate(textFieldValue.text),
+                    // <-- AY
                     onClick = {
                         scope.launch {
                             if (onConfirm(textFieldValue.text)) {

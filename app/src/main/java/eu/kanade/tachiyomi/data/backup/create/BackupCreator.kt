@@ -54,9 +54,11 @@ class BackupCreator(
     private val animeBackupCreator: AnimeBackupCreator = AnimeBackupCreator(),
     private val preferenceBackupCreator: PreferenceBackupCreator = PreferenceBackupCreator(),
     private val extensionRepoBackupCreator: ExtensionRepoBackupCreator = ExtensionRepoBackupCreator(),
-    private val customButtonBackupCreator: CustomButtonBackupCreator = CustomButtonBackupCreator(),
     private val sourcesBackupCreator: SourcesBackupCreator = SourcesBackupCreator(),
+    // AY -->
+    private val customButtonBackupCreator: CustomButtonBackupCreator = CustomButtonBackupCreator(),
     private val extensionsBackupCreator: ExtensionsBackupCreator = ExtensionsBackupCreator(context),
+    // <-- AY
 ) {
 
     suspend fun backup(uri: Uri, options: BackupOptions): String {
@@ -90,6 +92,7 @@ class BackupCreator(
                 backupPreferences = backupAppPreferences(options),
                 backupSourcePreferences = backupSourcePreferences(options),
 
+                // AY -->
                 isLegacy = false,
                 backupAnime = backupAnime,
                 backupCategories = backupCategories(options),
@@ -97,6 +100,7 @@ class BackupCreator(
                 backupExtensions = backupExtensions(options),
                 backupExtensionRepo = backupExtensionRepos(options),
                 backupCustomButton = backupCustomButtons(options),
+                // <-- AY
             )
 
             val byteArray = parser.encodeToByteArray(Backup.serializer(), backup)
@@ -157,16 +161,17 @@ class BackupCreator(
         return extensionRepoBackupCreator()
     }
 
-    private suspend fun backupCustomButtons(options: BackupOptions): List<BackupCustomButtons> {
-        if (!options.customButton) return emptyList()
-
-        return customButtonBackupCreator()
-    }
-
     internal fun backupSourcePreferences(options: BackupOptions): List<BackupSourcePreferences> {
         if (!options.sourceSettings) return emptyList()
 
         return preferenceBackupCreator.createSource(includePrivatePreferences = options.privateSettings)
+    }
+
+    // AY -->
+    private suspend fun backupCustomButtons(options: BackupOptions): List<BackupCustomButtons> {
+        if (!options.customButton) return emptyList()
+
+        return customButtonBackupCreator()
     }
 
     private fun backupExtensions(options: BackupOptions): List<BackupExtension> {
@@ -174,6 +179,7 @@ class BackupCreator(
 
         return extensionsBackupCreator()
     }
+    // <-- AY
 
     companion object {
         private const val MAX_AUTO_BACKUPS: Int = 4

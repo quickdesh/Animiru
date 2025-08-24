@@ -1,3 +1,4 @@
+// AY -->
 package eu.kanade.tachiyomi.util.system
 
 import android.app.UiModeManager
@@ -43,3 +44,4 @@ fun isTvBox(context: Context): Boolean {
     // Default: No TV - use SAF
     return false
 }
+// <-- AY

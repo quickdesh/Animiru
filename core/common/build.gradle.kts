@@ -51,8 +51,10 @@ dependencies {
     // JavaScript engine
     implementation(libs.bundles.js.engine)
 
+    // AY -->
     // FFmpeg-kit
     implementation(aniyomilibs.ffmpeg.kit)
+    // <-- AY
 
     testImplementation(libs.bundles.test)
     testRuntimeOnly(libs.junit.platform.launcher)

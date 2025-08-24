@@ -53,7 +53,9 @@ data class BackupAnime(
     @ProtoNumber(205) var customGenre: List<String>? = null,
     // <-- AM (CUSTOM_INFORMATION)
     // Since ProtoNumber 108 was previously used in the past, we cannot reuse it. May cause issues with aniyomi
+    // AM -->
     @ProtoNumber(206) var excludedScanlators: List<String> = emptyList(),
+    // <-- AM
 ) {
     fun getAnimeImpl(): Anime {
         return Anime.create().copy(

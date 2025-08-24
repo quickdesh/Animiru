@@ -23,19 +23,25 @@ import tachiyomi.presentation.core.util.plus
 @Composable
 fun BrowseSourceList(
     animeList: LazyPagingItems<StateFlow<Anime>>,
+    // AY -->
     entries: Int,
     topBarHeight: Int,
+    // <-- AY
     contentPadding: PaddingValues,
     onAnimeClick: (Anime) -> Unit,
     onAnimeLongClick: (Anime) -> Unit,
 ) {
+    // AY -->
     var containerHeight by remember { mutableIntStateOf(0) }
+    // <-- AY
     LazyColumn(
         contentPadding = contentPadding + PaddingValues(vertical = 8.dp),
+        // AY -->
         modifier = Modifier
             .onGloballyPositioned { layoutCoordinates ->
                 containerHeight = layoutCoordinates.size.height - topBarHeight
             },
+        // <-- AY
     ) {
         item {
             if (animeList.loadState.prepend is LoadState.Loading) {
@@ -49,8 +55,10 @@ fun BrowseSourceList(
                 anime = anime,
                 onClick = { onAnimeClick(anime) },
                 onLongClick = { onAnimeLongClick(anime) },
+                // AY -->
                 entries = entries,
                 containerHeight = containerHeight,
+                // <-- AY
             )
         }
 
@@ -67,8 +75,10 @@ private fun BrowseSourceListItem(
     anime: Anime,
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = onClick,
+    // AY -->
     entries: Int,
     containerHeight: Int,
+    // <-- AY
 ) {
     AnimeListItem(
         title = anime.title,
@@ -85,7 +95,9 @@ private fun BrowseSourceListItem(
         },
         onLongClick = onLongClick,
         onClick = onClick,
+        // AY -->
         entries = entries,
         containerHeight = containerHeight,
+        // <-- AY
     )
 }

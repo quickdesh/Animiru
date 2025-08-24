@@ -130,6 +130,7 @@ class BrowseSourceScreenModel(
         return if (columns == 0) GridCells.Adaptive(128.dp) else GridCells.Fixed(columns)
     }
 
+    // AY -->
     // returns the number from the size slider
     fun getColumnsPreferenceForCurrentOrientation(orientation: Int): Int {
         val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -139,6 +140,7 @@ class BrowseSourceScreenModel(
             libraryPreferences.portraitColumns()
         }.get()
     }
+    // <-- AY
 
     fun resetFilters() {
         if (source !is AnimeCatalogueSource) return

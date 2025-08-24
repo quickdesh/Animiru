@@ -99,13 +99,15 @@ fun AnimeScreen(
     isTabletUi: Boolean,
     episodeSwipeStartAction: LibraryPreferences.EpisodeSwipeAction,
     episodeSwipeEndAction: LibraryPreferences.EpisodeSwipeAction,
+    // AY -->
     showNextEpisodeAirTime: Boolean,
     alwaysUseExternalPlayer: Boolean,
+    // <-- AY
     navigateUp: () -> Unit,
     // AM (FILE_SIZE) -->
     showFileSize: Boolean,
     // <-- AM (FILE_SIZE)
-    onEpisodeClicked: (episode: Episode, alt: Boolean) -> Unit,
+    onEpisodeClicked: (episode: Episode, /* AY --> */ alt: Boolean /* <-- AY */) -> Unit,
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
     onWebViewClicked: (() -> Unit)?,
@@ -125,12 +127,14 @@ fun AnimeScreen(
 
     // For top action menu
     onShareClicked: (() -> Unit)?,
-    onSettingsClicked: (() -> Unit)?,
     onDownloadActionClicked: ((DownloadAction) -> Unit)?,
     onEditCategoryClicked: (() -> Unit)?,
     onEditFetchIntervalClicked: (() -> Unit)?,
     onMigrateClicked: (() -> Unit)?,
+    // AY -->
+    onSettingsClicked: (() -> Unit)?,
     onSkipIntroClicked: (() -> Unit)?,
+    // <-- AY
     // AM (CUSTOM_INFORMATION) -->
     onEditInfoClicked: () -> Unit,
     // <-- AM (CUSTOM_INFORMATION)
@@ -167,8 +171,10 @@ fun AnimeScreen(
             nextUpdate = nextUpdate,
             episodeSwipeStartAction = episodeSwipeStartAction,
             episodeSwipeEndAction = episodeSwipeEndAction,
+            // AY -->
             showNextEpisodeAirTime = showNextEpisodeAirTime,
             alwaysUseExternalPlayer = alwaysUseExternalPlayer,
+            // <-- AY
             navigateUp = navigateUp,
             // AM (FILE_SIZE) -->
             showFileSize = showFileSize,
@@ -187,12 +193,14 @@ fun AnimeScreen(
             onSearch = onSearch,
             onCoverClicked = onCoverClicked,
             onShareClicked = onShareClicked,
-            onSettingsClicked = onSettingsClicked,
             onDownloadActionClicked = onDownloadActionClicked,
             onEditCategoryClicked = onEditCategoryClicked,
             onEditIntervalClicked = onEditFetchIntervalClicked,
             onMigrateClicked = onMigrateClicked,
+            // AY -->
+            onSettingsClicked = onSettingsClicked,
             onSkipIntroClicked = onSkipIntroClicked,
+            // <-- AY
             // AM (CUSTOM_INFORMATION) -->
             onEditInfoClicked = onEditInfoClicked,
             // <-- AM (CUSTOM_INFORMATION)
@@ -216,8 +224,10 @@ fun AnimeScreen(
             nextUpdate = nextUpdate,
             episodeSwipeStartAction = episodeSwipeStartAction,
             episodeSwipeEndAction = episodeSwipeEndAction,
+            // AY -->
             showNextEpisodeAirTime = showNextEpisodeAirTime,
             alwaysUseExternalPlayer = alwaysUseExternalPlayer,
+            // <-- AY
             navigateUp = navigateUp,
             // AM (FILE_SIZE) -->
             showFileSize = showFileSize,
@@ -236,12 +246,14 @@ fun AnimeScreen(
             onSearch = onSearch,
             onCoverClicked = onCoverClicked,
             onShareClicked = onShareClicked,
-            onSettingsClicked = onSettingsClicked,
             onDownloadActionClicked = onDownloadActionClicked,
             onEditCategoryClicked = onEditCategoryClicked,
             onEditIntervalClicked = onEditFetchIntervalClicked,
             onMigrateClicked = onMigrateClicked,
+            // AY -->
+            onSettingsClicked = onSettingsClicked,
             onSkipIntroClicked = onSkipIntroClicked,
+            // <-- AY
             // AM (CUSTOM_INFORMATION) -->
             onEditInfoClicked = onEditInfoClicked,
             // <-- AM (CUSTOM_INFORMATION)
@@ -268,13 +280,15 @@ private fun AnimeScreenSmallImpl(
     nextUpdate: Instant?,
     episodeSwipeStartAction: LibraryPreferences.EpisodeSwipeAction,
     episodeSwipeEndAction: LibraryPreferences.EpisodeSwipeAction,
+    // AY -->
     showNextEpisodeAirTime: Boolean,
     alwaysUseExternalPlayer: Boolean,
+    // <-- AY
     navigateUp: () -> Unit,
     // AM (FILE_SIZE) -->
     showFileSize: Boolean,
     // <-- AM (FILE_SIZE)
-    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    onEpisodeClicked: (Episode, /* AY --> */ Boolean /* <-- AY */) -> Unit,
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
     onWebViewClicked: (() -> Unit)?,
@@ -295,12 +309,14 @@ private fun AnimeScreenSmallImpl(
 
     // For top action menu
     onShareClicked: (() -> Unit)?,
-    onSettingsClicked: (() -> Unit)?,
     onDownloadActionClicked: ((DownloadAction) -> Unit)?,
     onEditCategoryClicked: (() -> Unit)?,
     onEditIntervalClicked: (() -> Unit)?,
     onMigrateClicked: (() -> Unit)?,
+    // AY -->
+    onSettingsClicked: (() -> Unit)?,
     onSkipIntroClicked: (() -> Unit)?,
+    // <-- AY
     // AM (CUSTOM_INFORMATION) -->
     onEditInfoClicked: () -> Unit,
     // <-- AM (CUSTOM_INFORMATION)
@@ -362,12 +378,14 @@ private fun AnimeScreenSmallImpl(
                 navigateUp = navigateUp,
                 onClickFilter = onFilterClicked,
                 onClickShare = onShareClicked,
-                onClickSettings = onSettingsClicked,
                 onClickDownload = onDownloadActionClicked,
                 onClickEditCategory = onEditCategoryClicked,
                 onClickRefresh = onRefresh,
                 onClickMigrate = onMigrateClicked,
+                // AY -->
+                onClickSettings = onSettingsClicked,
                 onClickSkipIntro = onSkipIntroClicked,
+                // <-- AY
                 // AM (CUSTOM_INFORMATION) -->
                 onClickEditInfo = onEditInfoClicked.takeIf { state.anime.favorite },
                 // <-- AM (CUSTOM_INFORMATION)
@@ -386,7 +404,10 @@ private fun AnimeScreenSmallImpl(
             }
             SharedAnimeBottomActionMenu(
                 selected = selectedEpisodes,
+                // AY -->
                 onEpisodeClicked = onEpisodeClicked,
+                alwaysUseExternalPlayer = alwaysUseExternalPlayer,
+                // <-- AY
                 onMultiBookmarkClicked = onMultiBookmarkClicked,
                 // AM (FILLERMARK) -->
                 onMultiFillermarkClicked = onMultiFillermarkClicked,
@@ -396,7 +417,6 @@ private fun AnimeScreenSmallImpl(
                 onDownloadEpisode = onDownloadEpisode,
                 onMultiDeleteClicked = onMultiDeleteClicked,
                 fillFraction = 1f,
-                alwaysUseExternalPlayer = alwaysUseExternalPlayer,
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -513,6 +533,7 @@ private fun AnimeScreenSmallImpl(
                         )
                     }
 
+                    // AY -->
                     if (state.airingTime > 0L) {
                         item(
                             key = AnimeScreenItem.AIRING_TIME,
@@ -540,6 +561,7 @@ private fun AnimeScreenSmallImpl(
                             }
                         }
                     }
+                    // <-- AY
 
                     sharedEpisodeItems(
                         anime = state.anime,
@@ -569,13 +591,15 @@ fun AnimeScreenLargeImpl(
     nextUpdate: Instant?,
     episodeSwipeStartAction: LibraryPreferences.EpisodeSwipeAction,
     episodeSwipeEndAction: LibraryPreferences.EpisodeSwipeAction,
+    // AY -->
     showNextEpisodeAirTime: Boolean,
     alwaysUseExternalPlayer: Boolean,
+    // <-- AY
     navigateUp: () -> Unit,
     // AM (FILE_SIZE) -->
     showFileSize: Boolean,
     // <-- AM (FILE_SIZE)
-    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    onEpisodeClicked: (Episode, /* AY --> */ Boolean /* <-- AY */) -> Unit,
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
     onWebViewClicked: (() -> Unit)?,
@@ -596,12 +620,14 @@ fun AnimeScreenLargeImpl(
 
     // For top action menu
     onShareClicked: (() -> Unit)?,
-    onSettingsClicked: (() -> Unit)?,
     onDownloadActionClicked: ((DownloadAction) -> Unit)?,
     onEditCategoryClicked: (() -> Unit)?,
     onEditIntervalClicked: (() -> Unit)?,
     onMigrateClicked: (() -> Unit)?,
+    // AY -->
+    onSettingsClicked: (() -> Unit)?,
     onSkipIntroClicked: (() -> Unit)?,
+    // <-- AY
     // AM (CUSTOM_INFORMATION) -->
     onEditInfoClicked: () -> Unit,
     // <-- AM (CUSTOM_INFORMATION)
@@ -656,12 +682,14 @@ fun AnimeScreenLargeImpl(
                 navigateUp = navigateUp,
                 onClickFilter = onFilterButtonClicked,
                 onClickShare = onShareClicked,
-                onClickSettings = onSettingsClicked,
                 onClickDownload = onDownloadActionClicked,
                 onClickEditCategory = onEditCategoryClicked,
                 onClickRefresh = onRefresh,
                 onClickMigrate = onMigrateClicked,
+                // AY -->
+                onClickSettings = onSettingsClicked,
                 onClickSkipIntro = onSkipIntroClicked,
+                // <-- AY
                 // AM (CUSTOM_INFORMATION) -->
                 onClickEditInfo = onEditInfoClicked.takeIf { state.anime.favorite },
                 // <-- AM (CUSTOM_INFORMATION)
@@ -684,7 +712,10 @@ fun AnimeScreenLargeImpl(
                 }
                 SharedAnimeBottomActionMenu(
                     selected = selectedEpisodes,
+                    // AY -->
                     onEpisodeClicked = onEpisodeClicked,
+                    alwaysUseExternalPlayer = alwaysUseExternalPlayer,
+                    // <-- AY
                     onMultiBookmarkClicked = onMultiBookmarkClicked,
                     // AM (FILLERMARK) -->
                     onMultiFillermarkClicked = onMultiFillermarkClicked,
@@ -694,7 +725,6 @@ fun AnimeScreenLargeImpl(
                     onDownloadEpisode = onDownloadEpisode,
                     onMultiDeleteClicked = onMultiDeleteClicked,
                     fillFraction = 0.5f,
-                    alwaysUseExternalPlayer = alwaysUseExternalPlayer,
                 )
             }
         },
@@ -807,6 +837,7 @@ fun AnimeScreenLargeImpl(
                                 )
                             }
 
+                            // AY -->
                             if (state.airingTime > 0L) {
                                 item(
                                     key = AnimeScreenItem.AIRING_TIME,
@@ -834,6 +865,7 @@ fun AnimeScreenLargeImpl(
                                     }
                                 }
                             }
+                            // <-- AY
 
                             sharedEpisodeItems(
                                 anime = state.anime,
@@ -861,7 +893,10 @@ fun AnimeScreenLargeImpl(
 @Composable
 private fun SharedAnimeBottomActionMenu(
     selected: List<EpisodeList.Item>,
+    // AY -->
     onEpisodeClicked: (Episode, Boolean) -> Unit,
+    alwaysUseExternalPlayer: Boolean,
+    // <-- AY
     onMultiBookmarkClicked: (List<Episode>, bookmarked: Boolean) -> Unit,
     // AM (FILLERMARK) -->
     onMultiFillermarkClicked: (List<Episode>, fillermarked: Boolean) -> Unit,
@@ -871,7 +906,6 @@ private fun SharedAnimeBottomActionMenu(
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onMultiDeleteClicked: (List<Episode>) -> Unit,
     fillFraction: Float,
-    alwaysUseExternalPlayer: Boolean,
     modifier: Modifier = Modifier,
 ) {
     AnimeBottomActionMenu(
@@ -910,12 +944,14 @@ private fun SharedAnimeBottomActionMenu(
         }.takeIf {
             selected.fastAny { it.downloadState == Download.State.DOWNLOADED }
         },
+        // AY -->
         onExternalClicked = {
             onEpisodeClicked(selected.fastMap { it.episode }.first(), true)
         }.takeIf { !alwaysUseExternalPlayer && selected.size == 1 },
         onInternalClicked = {
             onEpisodeClicked(selected.fastMap { it.episode }.first(), true)
         }.takeIf { alwaysUseExternalPlayer && selected.size == 1 },
+        // <-- AY
     )
 }
 
@@ -929,7 +965,7 @@ private fun LazyListScope.sharedEpisodeItems(
     isAnyEpisodeSelected: Boolean,
     episodeSwipeStartAction: LibraryPreferences.EpisodeSwipeAction,
     episodeSwipeEndAction: LibraryPreferences.EpisodeSwipeAction,
-    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    onEpisodeClicked: (Episode, /* AY --> */ Boolean /* <-- AY */) -> Unit,
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onEpisodeSelected: (EpisodeList.Item, Boolean, Boolean, Boolean) -> Unit,
     onEpisodeSwipe: (EpisodeList.Item, LibraryPreferences.EpisodeSwipeAction) -> Unit,
@@ -984,11 +1020,13 @@ private fun LazyListScope.sharedEpisodeItems(
                     watchProgress = item.episode.lastSecondSeen
                         .takeIf { !item.episode.seen && it > 0L }
                         ?.let {
+                            // AY -->
                             stringResource(
                                 AYMR.strings.episode_progress,
                                 formatTime(it),
                                 formatTime(item.episode.totalSeconds),
                             )
+                            // <-- AY
                         },
                     scanlator = item.episode.scanlator.takeIf { !it.isNullOrBlank() },
                     seen = item.episode.seen,
@@ -1035,7 +1073,7 @@ private fun onEpisodeItemClick(
     episodeItem: EpisodeList.Item,
     isAnyEpisodeSelected: Boolean,
     onToggleSelection: (Boolean) -> Unit,
-    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    onEpisodeClicked: (Episode, /* AY --> */ Boolean /* <-- AY */) -> Unit,
 ) {
     when {
         episodeItem.selected -> onToggleSelection(false)
@@ -1044,6 +1082,7 @@ private fun onEpisodeItemClick(
     }
 }
 
+// AY -->
 private fun formatTime(milliseconds: Long, useDayFormat: Boolean = false): String {
     return if (useDayFormat) {
         String.format(
@@ -1074,6 +1113,7 @@ private fun formatTime(milliseconds: Long, useDayFormat: Boolean = false): Strin
         )
     }
 }
+// <-- AY
 
 // AM (FILE_SIZE) -->
 private val downloadProvider: DownloadProvider by injectLazy()

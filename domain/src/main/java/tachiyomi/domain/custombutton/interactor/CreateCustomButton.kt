@@ -1,3 +1,4 @@
+// AY -->
 package tachiyomi.domain.custombutton.interactor
 
 import logcat.LogPriority
@@ -37,3 +38,4 @@ class CreateCustomButton(
         data class InternalError(val error: Throwable) : Result
     }
 }
+// <-- AY

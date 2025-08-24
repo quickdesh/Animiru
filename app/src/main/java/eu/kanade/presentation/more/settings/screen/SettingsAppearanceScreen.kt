@@ -129,6 +129,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                         true
                     },
                 ),
+                // AY -->
                 Preference.PreferenceItem.ListPreference(
                     preference = uiPreferences.startScreen(),
                     entries = StartScreen.entries
@@ -140,6 +141,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                         true
                     },
                 ),
+                // <-- AY
                 Preference.PreferenceItem.ListPreference(
                     preference = uiPreferences.dateFormat(),
                     entries = DateFormats

@@ -47,7 +47,9 @@ enum class EpisodeDownloadAction {
     START_NOW,
     CANCEL,
     DELETE,
+    // AY -->
     SHOW_QUALITIES,
+    // <-- AY
 }
 
 @Composable
@@ -102,7 +104,9 @@ private fun NotDownloadedIndicator(
             .commonClickable(
                 enabled = enabled,
                 hapticFeedback = LocalHapticFeedback.current,
+                // AY -->
                 onLongClick = { onClick(EpisodeDownloadAction.SHOW_QUALITIES) },
+                // <-- AY
                 onClick = { onClick(EpisodeDownloadAction.START) },
             )
             .secondaryItemAlpha(),

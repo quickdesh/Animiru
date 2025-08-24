@@ -12,7 +12,9 @@ class TrackLoginActivity : BaseOAuthLoginActivity() {
             "bangumi-auth" -> handleBangumi(data)
             "myanimelist-auth" -> handleMyAnimeList(data)
             "shikimori-auth" -> handleShikimori(data)
+            // AY -->
             "simkl-auth" -> handleSimkl(data)
+            // <-- AY
         }
     }
 
@@ -69,6 +71,7 @@ class TrackLoginActivity : BaseOAuthLoginActivity() {
         }
     }
 
+    // AY -->
     private fun handleSimkl(data: Uri?) {
         val code = data?.getQueryParameter("code")
         if (code != null) {
@@ -81,4 +84,5 @@ class TrackLoginActivity : BaseOAuthLoginActivity() {
             returnToSettings()
         }
     }
+    // <-- AY
 }
