@@ -25,8 +25,8 @@ import dev.vivvvek.seeker.Segment
 import eu.kanade.tachiyomi.ui.player.ArtType
 import eu.kanade.tachiyomi.ui.player.Decoder
 import eu.kanade.tachiyomi.ui.player.Panels
-import eu.kanade.tachiyomi.ui.player.PlayerViewModel.VideoTrack
 import eu.kanade.tachiyomi.ui.player.Sheets
+import eu.kanade.tachiyomi.ui.player.TrackNode
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.AudioTracksSheet
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.ChaptersSheet
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
@@ -45,16 +45,14 @@ fun PlayerSheets(
     sheetShown: Sheets,
 
     // subtitles sheet
-    subtitles: ImmutableList<VideoTrack>,
-    selectedSubtitles: ImmutableList<Int>,
+    subtitles: ImmutableList<TrackNode>,
     onAddSubtitle: (Uri) -> Unit,
     onSelectSubtitle: (Int) -> Unit,
 
     // audio sheet
-    audioTracks: ImmutableList<VideoTrack>,
-    selectedAudio: Int,
+    audioTracks: ImmutableList<TrackNode>,
     onAddAudio: (Uri) -> Unit,
-    onSelectAudio: (Int) -> Unit,
+    onSelectAudio: (TrackNode) -> Unit,
 
     // video sheet
     isLoadingHosters: Boolean,
@@ -76,7 +74,13 @@ fun PlayerSheets(
 
     // Speed sheet
     speed: Float,
+    speedPresets: List<Float>,
     onSpeedChange: (Float) -> Unit,
+    onAddSpeedPreset: (Float) -> Unit,
+    onRemoveSpeedPreset: (Float) -> Unit,
+    onResetSpeedPresets: () -> Unit,
+    onMakeDefaultSpeed: (Float) -> Unit,
+    onResetDefaultSpeed: () -> Unit,
 
     // More sheet
     sleepTimerTimeRemaining: Int,
@@ -109,7 +113,6 @@ fun PlayerSheets(
             }
             SubtitlesSheet(
                 tracks = subtitles.toImmutableList(),
-                selectedTracks = selectedSubtitles,
                 onSelect = onSelectSubtitle,
                 onAddSubtitle = { subtitlesPicker.launch(arrayOf("*/*")) },
                 onOpenSubtitleSettings = { onOpenPanel(Panels.SubtitleSettings) },
@@ -127,7 +130,6 @@ fun PlayerSheets(
             }
             AudioTracksSheet(
                 tracks = audioTracks,
-                selectedId = selectedAudio,
                 onSelect = onSelectAudio,
                 onAddAudioTrack = { audioPicker.launch(arrayOf("*/*")) },
                 onOpenDelayPanel = { onOpenPanel(Panels.AudioDelay) },
@@ -176,6 +178,12 @@ fun PlayerSheets(
             PlaybackSpeedSheet(
                 speed,
                 onSpeedChange = onSpeedChange,
+                speedPresets = speedPresets,
+                onAddSpeedPreset = onAddSpeedPreset,
+                onRemoveSpeedPreset = onRemoveSpeedPreset,
+                onResetPresets = onResetSpeedPresets,
+                onMakeDefault = onMakeDefaultSpeed,
+                onResetDefault = onResetDefaultSpeed,
                 onDismissRequest = onDismissRequest,
             )
         }

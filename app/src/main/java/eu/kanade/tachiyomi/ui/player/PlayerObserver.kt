@@ -32,6 +32,7 @@ class PlayerObserver(val activity: PlayerActivity) :
     }
 
     override fun eventProperty(property: String, value: MPVNode) {
+        activity.runOnUiThread { activity.onObserverEvent(property, value) }
     }
 
     override fun event(eventId: Int) {

@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -84,20 +85,15 @@ fun SubtitlesMiscellaneousCard(modifier: Modifier = Modifier) {
                 content = { Text(stringResource(AYMR.strings.player_sheets_sub_override_ass)) },
                 modifier = Modifier.fillMaxWidth(),
             )
-            var subScale by remember {
-                mutableStateOf(MPVLib.getPropertyDouble("sub-scale")!!.toFloat())
-            }
-            var subPos by remember {
-                mutableStateOf(MPVLib.getPropertyInt("sub-pos")!!)
-            }
+            val subScale by MPVLib.propFloat["sub-scale"].collectAsState()
+            val subPos by MPVLib.propInt["sub-pos"].collectAsState()
             SliderItem(
                 label = stringResource(AYMR.strings.player_sheets_sub_scale),
-                value = subScale,
-                valueText = subScale.toFixed(2).toString(),
+                value = subScale ?: 1f,
+                valueText = (subScale ?: 1f).toFixed(2).toString(),
                 onChange = {
-                    subScale = it
                     preferences.subtitleFontScale().set(it)
-                    MPVLib.setPropertyDouble("sub-scale", it.toDouble())
+                    MPVLib.setPropertyFloat("sub-scale", it)
                 },
                 max = 5f,
                 icon = {
@@ -109,10 +105,9 @@ fun SubtitlesMiscellaneousCard(modifier: Modifier = Modifier) {
             )
             SliderItem(
                 label = stringResource(AYMR.strings.player_sheets_sub_position),
-                value = subPos,
+                value = subPos ?: preferences.subtitlePos().get(),
                 valueText = subPos.toString(),
                 onChange = {
-                    subPos = it
                     preferences.subtitlePos().set(it)
                     MPVLib.setPropertyInt("sub-pos", it)
                 },
@@ -133,12 +128,10 @@ fun SubtitlesMiscellaneousCard(modifier: Modifier = Modifier) {
                 TextButton(
                     onClick = {
                         preferences.subtitlePos().deleteAndGet().let {
-                            subPos = it
                             MPVLib.setPropertyInt("sub-pos", it)
                         }
                         preferences.subtitleFontScale().deleteAndGet().let {
-                            subScale = it
-                            MPVLib.setPropertyDouble("sub-scale", it.toDouble())
+                            MPVLib.setPropertyFloat("sub-scale", it)
                         }
                         preferences.overrideSubsASS().deleteAndGet().let { overrideAssSubs = it }
                         MPVLib.setPropertyString("sub-ass-override", "scale") // mpv's default is 'scale'

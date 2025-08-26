@@ -43,14 +43,13 @@ import uy.kohesive.injekt.api.get
 fun BottomLeftPlayerControls(
     playbackSpeed: Float,
     currentChapter: Segment?,
+    showChapterIndicator: Boolean,
     onLockControls: () -> Unit,
     onCycleRotation: () -> Unit,
     onPlaybackSpeedChange: (Float) -> Unit,
     onOpenSheet: (Sheets) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val playerPreferences = remember { Injekt.get<PlayerPreferences>() }
-
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -65,15 +64,11 @@ fun BottomLeftPlayerControls(
         )
         ControlsButton(
             text = stringResource(AYMR.strings.player_speed, playbackSpeed),
-            onClick = {
-                val newSpeed = if (playbackSpeed >= 2) 0.25f else playbackSpeed + 0.25f
-                onPlaybackSpeedChange(newSpeed)
-                playerPreferences.playerSpeed().set(newSpeed)
-            },
+            onClick = { onPlaybackSpeedChange(if (playbackSpeed >= 2) 0.25f else playbackSpeed + 0.25f) },
             onLongClick = { onOpenSheet(Sheets.PlaybackSpeed) },
         )
         AnimatedVisibility(
-            currentChapter != null && playerPreferences.showCurrentChapter().get(),
+            showChapterIndicator && currentChapter != null,
             enter = fadeIn(),
             exit = fadeOut(),
         ) {

@@ -42,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +58,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import eu.kanade.presentation.more.settings.screen.player.custombutton.getButtons
 import eu.kanade.presentation.theme.playerRippleConfiguration
+import eu.kanade.tachiyomi.ui.player.Decoder.Companion.getDecoderFromValue
 import eu.kanade.tachiyomi.ui.player.Dialogs
 import eu.kanade.tachiyomi.ui.player.Panels
 import eu.kanade.tachiyomi.ui.player.PlayerActivity
@@ -76,9 +78,13 @@ import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
 import `is`.xyz.mpv.MPVLib
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
+import tachiyomi.core.common.preference.deleteAndGet
+import tachiyomi.core.common.preference.minusAssign
+import tachiyomi.core.common.preference.plusAssign
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
@@ -105,16 +111,20 @@ fun PlayerControls(
     val controlsShown by viewModel.controlsShown.collectAsState()
     val areControlsLocked by viewModel.areControlsLocked.collectAsState()
     val seekBarShown by viewModel.seekBarShown.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    // TODO(mpv)
     val isLoadingEpisode by viewModel.isLoadingEpisode.collectAsState()
-    val duration by viewModel.duration.collectAsState()
-    val position by viewModel.pos.collectAsState()
-    val paused by viewModel.paused.collectAsState()
+    val pausedForCache by MPVLib.propBoolean["paused-for-cache"].collectAsState()
+    val paused by MPVLib.propBoolean["pause"].collectAsState()
+    val duration by MPVLib.propInt["duration"].collectAsState()
+    val position by MPVLib.propInt["time-pos"].collectAsState()
+    val playbackSpeed by MPVLib.propFloat["speed"].collectAsState()
     val gestureSeekAmount by viewModel.gestureSeekAmount.collectAsState()
     val doubleTapSeekAmount by viewModel.doubleTapSeekAmount.collectAsState()
     val seekText by viewModel.seekText.collectAsState()
-    val currentChapter by viewModel.currentChapter.collectAsState()
-    val chapters by viewModel.chapters.collectAsState()
+    val currentChapter by MPVLib.propInt["chapter"].collectAsState()
+    val mpvDecoder by MPVLib.propString["hwdec-current"].collectAsState()
+    val decoder by remember { derivedStateOf { getDecoderFromValue(mpvDecoder ?: "auto") } }
+    val chapters by viewModel.chapters.collectAsState(persistentListOf())
     val currentBrightness by viewModel.currentBrightness.collectAsState()
 
     val playerTimeToDisappear by playerPreferences.playerTimeToDisappear().collectAsState()
@@ -130,7 +140,7 @@ fun PlayerControls(
         isSeeking,
         resetControls,
     ) {
-        if (controlsShown && !paused && !isSeeking) {
+        if (controlsShown && paused == false && !isSeeking) {
             delay(playerTimeToDisappear.toLong())
             viewModel.hideControls()
         }
@@ -182,7 +192,7 @@ fun PlayerControls(
                 val isVolumeSliderShown by viewModel.isVolumeSliderShown.collectAsState()
                 val brightness by viewModel.currentBrightness.collectAsState()
                 val volume by viewModel.currentVolume.collectAsState()
-                val mpvVolume by viewModel.currentMPVVolume.collectAsState()
+                val mpvVolume by MPVLib.propInt["volume"].collectAsState()
                 val swapVolumeAndBrightness by gesturePreferences.swapVolumeBrightness().collectAsState()
                 val reduceMotion by playerPreferences.reduceMotion().collectAsState()
 
@@ -273,7 +283,7 @@ fun PlayerControls(
                     val displayVolumeAsPercentage by playerPreferences.displayVolPer().collectAsState()
                     VolumeSlider(
                         volume = volume,
-                        mpvVolume = mpvVolume,
+                        mpvVolume = mpvVolume ?: 100,
                         range = 0..viewModel.maxVolume,
                         boostRange = if (boostCap > 0) 0..audioPreferences.volumeBoostCap().get() else null,
                         displayAsPercentage = displayVolumeAsPercentage,
@@ -328,7 +338,7 @@ fun PlayerControls(
                 AnimatedVisibility(
                     visible =
                     (controlsShown && !areControlsLocked || gestureSeekAmount != null) ||
-                        isLoading ||
+                        pausedForCache == true ||
                         isLoadingEpisode,
                     enter = fadeIn(playerControlsEnterAnimationSpec()),
                     exit = fadeOut(playerControlsExitAnimationSpec()),
@@ -345,12 +355,12 @@ fun PlayerControls(
                         onSkipPrevious = { viewModel.changeEpisode(true) },
                         hasNext = hasNextEpisode,
                         onSkipNext = { viewModel.changeEpisode(false) },
-                        isLoading = isLoading,
+                        isLoading = pausedForCache == true,
                         isLoadingEpisode = isLoadingEpisode,
                         controlsShown = controlsShown,
                         areControlsLocked = areControlsLocked,
                         showLoadingCircle = showLoadingCircle,
-                        paused = paused,
+                        paused = paused == true,
                         gestureSeekAmount = gestureSeekAmount,
                         onPlayPauseClick = viewModel::pauseUnpause,
                         enter = fadeIn(playerControlsEnterAnimationSpec()),
@@ -376,22 +386,21 @@ fun PlayerControls(
                     },
                 ) {
                     val invertDuration by playerPreferences.invertDuration().collectAsState()
-                    val readAhead by viewModel.readAhead.collectAsState()
+                    val readAhead by MPVLib.propFloat["demuxer-cache-seconds"].collectAsState()
                     val preciseSeeking by gesturePreferences.playerSmoothSeek().collectAsState()
                     SeekbarWithTimers(
-                        position = position,
-                        duration = duration,
-                        readAheadValue = readAhead,
+                        position = position?.toFloat() ?: 0f,
+                        duration = duration?.toFloat() ?: 0f,
+                        readAheadValue = readAhead ?: 0f,
                         onValueChange = {
                             isSeeking = true
-                            viewModel.updatePlayBackPos(it)
                             viewModel.seekTo(it.toInt(), preciseSeeking)
                         },
                         onValueChangeFinished = { isSeeking = false },
                         timersInverted = Pair(false, invertDuration),
                         durationTimerOnCLick = { playerPreferences.invertDuration().set(!invertDuration) },
                         positionTimerOnClick = {},
-                        chapters = chapters.map { it.toSegment() }.toImmutableList(),
+                        chapters = chapters,
                     )
                 }
                 val mediaTitle by viewModel.mediaTitle.collectAsState()
@@ -505,7 +514,6 @@ fun PlayerControls(
                     )
                 }
                 // Bottom left controls
-                val playbackSpeed by viewModel.playbackSpeed.collectAsState()
                 AnimatedVisibility(
                     controlsShown && !areControlsLocked,
                     enter = if (!reduceMotion) {
@@ -527,13 +535,16 @@ fun PlayerControls(
                         end.linkTo(bottomRightControls.start)
                     },
                 ) {
+                    val showChapterIndicator by playerPreferences.showCurrentChapter().collectAsState()
                     BottomLeftPlayerControls(
-                        playbackSpeed,
-                        currentChapter = currentChapter?.toSegment(),
+                        playbackSpeed = playbackSpeed ?: playerPreferences.playerSpeed().get(),
+                        showChapterIndicator = showChapterIndicator,
+                        currentChapter = chapters.getOrNull(currentChapter ?: 0),
                         onLockControls = viewModel::lockControls,
                         onCycleRotation = viewModel::cycleScreenRotations,
                         onPlaybackSpeedChange = {
-                            MPVLib.setPropertyDouble("speed", it.toDouble())
+                            MPVLib.setPropertyFloat("speed", it)
+                            playerPreferences.playerSpeed().set(it)
                         },
                         onOpenSheet = viewModel::showSheet,
                     )
@@ -543,16 +554,12 @@ fun PlayerControls(
 
         val sheetShown by viewModel.sheetShown.collectAsState()
         val dismissSheet by viewModel.dismissSheet.collectAsState()
-        val subtitles by viewModel.subtitleTracks.collectAsState()
-        val selectedSubtitles by viewModel.selectedSubtitles.collectAsState()
-        val audioTracks by viewModel.audioTracks.collectAsState()
-        val selectedAudio by viewModel.selectedAudio.collectAsState()
         val isLoadingHosters by viewModel.isLoadingHosters.collectAsState()
         val hosterState by viewModel.hosterState.collectAsState()
         val expandedState by viewModel.hosterExpandedList.collectAsState()
         val selectedHosterVideoIndex by viewModel.selectedHosterVideoIndex.collectAsState()
-        val decoder by viewModel.currentDecoder.collectAsState()
-        val speed by viewModel.playbackSpeed.collectAsState()
+        val subtitles by viewModel.subtitleTracks.collectAsState(persistentListOf())
+        val audioTracks by viewModel.audioTracks.collectAsState(persistentListOf())
         val sleepTimerTimeRemaining by viewModel.remainingTime.collectAsState()
         val showSubtitles by subtitlePreferences.screenshotSubtitles().collectAsState()
         val currentSource by viewModel.currentSource.collectAsState()
@@ -561,14 +568,18 @@ fun PlayerControls(
 
         PlayerSheets(
             sheetShown = sheetShown,
-            subtitles = subtitles.toImmutableList(),
-            selectedSubtitles = selectedSubtitles.toList().toImmutableList(),
+            subtitles = subtitles,
             onAddSubtitle = viewModel::addSubtitle,
             onSelectSubtitle = viewModel::selectSub,
-            audioTracks = audioTracks.toImmutableList(),
-            selectedAudio = selectedAudio,
+            audioTracks = audioTracks,
             onAddAudio = viewModel::addAudio,
-            onSelectAudio = viewModel::selectAudio,
+            onSelectAudio = {
+                if (MPVLib.getPropertyInt("aid") == it.id) {
+                    MPVLib.setPropertyBoolean("aid", false)
+                } else {
+                    MPVLib.setPropertyInt("aid", it.id)
+                }
+            },
 
             isLoadingHosters = isLoadingHosters,
 
@@ -579,17 +590,27 @@ fun PlayerControls(
             onClickVideo = viewModel::onVideoClicked,
             displayHosters = Pair(showFailedHosters, emptyHosters),
 
-            chapter = currentChapter?.toSegment(),
-            chapters = chapters.map { it.toSegment() }.toImmutableList(),
+            chapter = chapters.getOrNull(currentChapter ?: 0),
+            chapters = chapters,
             onSeekToChapter = {
-                viewModel.selectChapter(it)
+                MPVLib.setPropertyInt("chapter", it)
                 viewModel.dismissSheet()
                 viewModel.unpause()
             },
             decoder = decoder,
-            onUpdateDecoder = viewModel::updateDecoder,
-            speed = speed,
-            onSpeedChange = { MPVLib.setPropertyDouble("speed", it.toFixed(2).toDouble()) },
+            onUpdateDecoder = { MPVLib.setPropertyString("hwdec", it.value) },
+
+            speed = playbackSpeed ?: playerPreferences.playerSpeed().get(),
+            onSpeedChange = { MPVLib.setPropertyFloat("speed", it.toFixed(2)) },
+            onMakeDefaultSpeed = { playerPreferences.playerSpeed().set(it.toFixed(2)) },
+            onAddSpeedPreset = { playerPreferences.speedPresets() += it.toFixed(2).toString() },
+            onRemoveSpeedPreset = { playerPreferences.speedPresets() -= it.toFixed(2).toString() },
+            onResetSpeedPresets = playerPreferences.speedPresets()::delete,
+            speedPresets = playerPreferences.speedPresets().get().map { it.toFloat() }.sorted(),
+            onResetDefaultSpeed = {
+                MPVLib.setPropertyFloat("speed", playerPreferences.playerSpeed().deleteAndGet().toFixed(2))
+            },
+
             sleepTimerTimeRemaining = sleepTimerTimeRemaining,
             onStartSleepTimer = viewModel::startTimer,
             buttons = customButtons.getButtons().toImmutableList(),

@@ -39,7 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.player.components.PlayerSheet
-import eu.kanade.tachiyomi.ui.player.PlayerViewModel.VideoTrack
+import eu.kanade.tachiyomi.ui.player.TrackNode
 import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
@@ -106,25 +106,17 @@ fun AddTrackRow(
 }
 
 @Composable
-fun getTrackTitle(track: VideoTrack): String {
+fun getTrackTitle(track: TrackNode): String {
+    val hasTitle = !track.title.isNullOrBlank()
+    val hasLang = !track.lang.isNullOrBlank()
+
     return when {
-        track.id == -1 -> {
-            track.name
-        }
-
-        track.language.isNullOrBlank() && track.name.isNotBlank() -> {
-            stringResource(AYMR.strings.player_sheets_track_title_wo_lang, track.id, track.name)
-        }
-
-        !track.language.isNullOrBlank() && track.name.isNotBlank() -> {
-            stringResource(AYMR.strings.player_sheets_track_title_w_lang, track.id, track.name, track.language)
-        }
-
-        !track.language.isNullOrBlank() && track.name.isBlank() -> {
-            stringResource(AYMR.strings.player_sheets_track_lang_wo_title, track.id, track.language)
-        }
-
-        else -> stringResource(AYMR.strings.player_sheets_track_title_wo_lang, track.id, track.name)
+        hasTitle && hasLang -> stringResource(AYMR.strings.player_sheets_track_title_w_lang, track.id, track.title, track.lang)
+        hasTitle && !hasLang -> stringResource(AYMR.strings.player_sheets_track_title_wo_lang, track.id, track.title)
+        !hasTitle && hasLang -> stringResource(AYMR.strings.player_sheets_track_lang_wo_title, track.id, track.lang)
+        track.isSubtitle -> stringResource(AYMR.strings.player_sheets_chapter_title_substitute_subtitle, track.id)
+        track.isAudio -> stringResource(AYMR.strings.player_sheets_chapter_title_substitute_subtitle, track.id)
+        else -> "" // idk what to show tbh
     }
 }
 

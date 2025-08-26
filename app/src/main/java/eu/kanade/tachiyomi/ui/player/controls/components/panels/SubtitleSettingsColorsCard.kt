@@ -51,6 +51,7 @@ import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
+import androidx.core.graphics.toColorInt
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.player.components.ExpandableCard
 import eu.kanade.presentation.player.components.TintedSliderItem
@@ -199,10 +200,8 @@ fun resetColors(preferences: SubtitlePreferences, type: SubColorType) {
     }
 }
 
-val getCurrentMPVColor: (SubColorType) -> Int = { colorType ->
-    MPVLib.getPropertyString(colorType.property)?.let {
-        android.graphics.Color.parseColor(it.uppercase())
-    }!!
+val getCurrentMPVColor: (SubColorType) -> Int = {
+    MPVLib.getPropertyString(it.property)!!.uppercase().toColorInt()
 }
 
 @Composable

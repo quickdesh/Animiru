@@ -38,7 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import eu.kanade.tachiyomi.ui.player.PlayerViewModel.VideoTrack
+import eu.kanade.tachiyomi.ui.player.TrackNode
 import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
@@ -46,8 +46,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun SubtitlesSheet(
-    tracks: ImmutableList<VideoTrack>,
-    selectedTracks: ImmutableList<Int>,
+    tracks: ImmutableList<TrackNode>,
     onSelect: (Int) -> Unit,
     onAddSubtitle: () -> Unit,
     onOpenSubtitleSettings: () -> Unit,
@@ -90,7 +89,7 @@ fun SubtitlesSheet(
         track = { track ->
             SubtitleTrackRow(
                 title = getTrackTitle(track),
-                selected = selectedTracks.indexOf(track.id),
+                selected = track.mainSelection?.toInt() ?: -1,
                 onClick = { onSelect(track.id) },
             )
         },
@@ -113,7 +112,7 @@ fun SubtitlesSheet(
 @Composable
 fun SubtitleTrackRow(
     title: String,
-    selected: Int, // -1 unselected, otherwise return 0 and 1 for the selected indices
+    selected: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {

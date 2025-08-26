@@ -49,61 +49,24 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
 
     var isExiting = false
 
-    private fun getPropertyInt(property: String): Int? {
-        return MPVLib.getPropertyInt(property)
-    }
-
-    private fun getPropertyBoolean(property: String): Boolean? {
-        return MPVLib.getPropertyBoolean(property)
-    }
-
-    private fun getPropertyDouble(property: String): Double? {
-        return MPVLib.getPropertyDouble(property)
-    }
-
-    private fun getPropertyString(property: String): String? {
-        return MPVLib.getPropertyString(property)
-    }
-
-    val duration: Int?
-        get() = getPropertyInt("duration")
-
-    var timePos: Int?
-        get() = getPropertyInt("time-pos")
-        set(position) = MPVLib.setPropertyInt("time-pos", position!!)
-
-    var paused: Boolean?
-        get() = getPropertyBoolean("pause")
-        set(paused) = MPVLib.setPropertyBoolean("pause", paused!!)
-
-    val hwdecActive: String
-        get() = getPropertyString("hwdec-current") ?: "no"
-
-    val videoH: Int?
-        get() = getPropertyInt("video-params/h")
-
     /**
      * Returns the video aspect ratio. Rotation is taken into account.
      */
     fun getVideoOutAspect(): Double? {
-        return getPropertyDouble("video-params/aspect")?.let {
+        return MPVLib.getPropertyDouble("video-params/aspect")?.let {
             if (it < 0.001) return 0.0
-            if ((getPropertyInt("video-params/rotate") ?: 0) % 180 == 90) 1.0 / it else it
+            if ((MPVLib.getPropertyInt("video-params/rotate") ?: 0) % 180 == 90) 1.0 / it else it
         }
     }
 
     inner class TrackDelegate(private val name: String) {
         operator fun getValue(thisRef: Any?, property: KProperty<*>): Int {
-            val v = getPropertyString(name)
+            val v = MPVLib.getPropertyString(name)
             // we can get null here for "no" or other invalid value
             return v?.toIntOrNull() ?: -1
         }
         operator fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
-            if (value == -1) {
-                MPVLib.setPropertyString(name, "no")
-            } else {
-                MPVLib.setPropertyInt(name, value)
-            }
+            if (value == -1) MPVLib.setPropertyString(name, "no") else MPVLib.setPropertyInt(name, value)
         }
     }
 
@@ -138,7 +101,7 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
         val cacheMegs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) 64 else 32
         MPVLib.setOptionString("demuxer-max-bytes", "${cacheMegs * 1024 * 1024}")
         MPVLib.setOptionString("demuxer-max-back-bytes", "${cacheMegs * 1024 * 1024}")
-        //
+
         val screenshotDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
         screenshotDir.mkdirs()
         MPVLib.setOptionString("screenshot-directory", screenshotDir.path)
@@ -173,7 +136,7 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
             return false
         }
 
-        var mapped = KeyMapping.get(event.keyCode)
+        var mapped = KeyMapping[event.keyCode]
         if (mapped == null) {
             // Fallback to produced glyph
             if (!event.isPrintingKey) {
@@ -208,29 +171,8 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
     }
 
     private val observedProps = mapOf(
-        "chapter" to MPVLib.mpvFormat.MPV_FORMAT_INT64,
-        "chapter-list" to MPVLib.mpvFormat.MPV_FORMAT_NONE,
-        "track-list" to MPVLib.mpvFormat.MPV_FORMAT_NONE,
-
-        "time-pos" to MPVLib.mpvFormat.MPV_FORMAT_INT64,
-        "demuxer-cache-time" to MPVLib.mpvFormat.MPV_FORMAT_INT64,
-        "duration" to MPVLib.mpvFormat.MPV_FORMAT_INT64,
-        "volume" to MPVLib.mpvFormat.MPV_FORMAT_INT64,
-        "volume-max" to MPVLib.mpvFormat.MPV_FORMAT_INT64,
-
-        "sid" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "secondary-sid" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "aid" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-
-        "speed" to MPVLib.mpvFormat.MPV_FORMAT_DOUBLE,
-        "video-params/aspect" to MPVLib.mpvFormat.MPV_FORMAT_DOUBLE,
-
-        "hwdec-current" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "hwdec" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-
         "pause" to MPVLib.mpvFormat.MPV_FORMAT_FLAG,
-        "paused-for-cache" to MPVLib.mpvFormat.MPV_FORMAT_FLAG,
-        "seeking" to MPVLib.mpvFormat.MPV_FORMAT_FLAG,
+        "video-params/aspect" to MPVLib.mpvFormat.MPV_FORMAT_DOUBLE,
         "eof-reached" to MPVLib.mpvFormat.MPV_FORMAT_FLAG,
 
         "user-data/aniyomi/show_text" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
