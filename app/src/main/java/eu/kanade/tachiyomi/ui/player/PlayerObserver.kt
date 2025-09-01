@@ -1,11 +1,8 @@
 package eu.kanade.tachiyomi.ui.player
 
-import android.widget.Toast
-import eu.kanade.tachiyomi.util.system.toast
 import `is`.xyz.mpv.MPVLib
 import `is`.xyz.mpv.MPVNode
 import logcat.LogPriority
-import tachiyomi.core.common.util.system.logcat
 
 class PlayerObserver(val activity: PlayerActivity) :
     MPVLib.EventObserver,
@@ -55,6 +52,13 @@ class PlayerObserver(val activity: PlayerActivity) :
     private var httpError: String? = null
 
     override fun logMessage(prefix: String, level: Int, text: String) {
+        if (level == MPVLib.mpvLogLevel.MPV_LOG_LEVEL_ERROR) {
+            if (text.startsWith(TRACK_LOAD_FAILURE)) {
+                val url = text.removePrefix(TRACK_LOAD_FAILURE).substringBeforeLast(".")
+                activity.onTrackLoadedFailure(url)
+            }
+        }
+
         val logPriority = when (level) {
             MPVLib.mpvLogLevel.MPV_LOG_LEVEL_FATAL, MPVLib.mpvLogLevel.MPV_LOG_LEVEL_ERROR -> LogPriority.ERROR
             MPVLib.mpvLogLevel.MPV_LOG_LEVEL_WARN -> LogPriority.WARN
@@ -63,5 +67,9 @@ class PlayerObserver(val activity: PlayerActivity) :
         }
         if (text.contains("HTTP error")) httpError = text
         logcat.logcat("mpv/$prefix", logPriority) { text }
+    }
+
+    companion object {
+        const val TRACK_LOAD_FAILURE = "Can not open external file "
     }
 }

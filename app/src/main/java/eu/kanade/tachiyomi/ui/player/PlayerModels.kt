@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.player
 
 import dev.vivvvek.seeker.Segment
+import eu.kanade.tachiyomi.animesource.model.Track
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -68,4 +69,51 @@ data class TrackNode(
 
     fun getMetadata(key: String): String? = metadata?.get(key)
     fun hasMetadata(): Boolean = !metadata.isNullOrEmpty()
+}
+
+enum class TrackState {
+    Idle,
+    Loading,
+    Error,
+    Loaded,
+}
+
+sealed interface VideoTrack {
+    companion object {
+        const val TRACK_TITLE_TAG = "aniyomi-track-index"
+    }
+
+    data class Internal(val data: TrackNode) : VideoTrack
+
+    data class External(
+        val data: Track,
+        val index: Int,
+        val id: Int? = null,
+        val mainSelection: Int = -1,
+        val state: TrackState = TrackState.Idle,
+    ) : VideoTrack
+
+    val title: String
+        get() = when (this) {
+            is External -> data.lang
+            is Internal -> data.title.orEmpty()
+        }
+
+    val lang: String
+        get() = when (this) {
+            is External -> data.lang
+            is Internal -> data.lang.orEmpty()
+        }
+
+    val selection: Int
+        get() = when (this) {
+            is External -> mainSelection
+            is Internal -> data.mainSelection?.toInt() ?: -1
+        }
+
+    val trackId: Int?
+        get() = when (this) {
+            is External -> id
+            is Internal -> data.id
+        }
 }

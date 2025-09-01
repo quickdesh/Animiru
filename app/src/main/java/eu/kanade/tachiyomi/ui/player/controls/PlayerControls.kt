@@ -66,6 +66,7 @@ import eu.kanade.tachiyomi.ui.player.PlayerUpdates
 import eu.kanade.tachiyomi.ui.player.PlayerViewModel
 import eu.kanade.tachiyomi.ui.player.Sheets
 import eu.kanade.tachiyomi.ui.player.VideoAspect
+import eu.kanade.tachiyomi.ui.player.VideoTrack
 import eu.kanade.tachiyomi.ui.player.controls.components.BrightnessOverlay
 import eu.kanade.tachiyomi.ui.player.controls.components.BrightnessSlider
 import eu.kanade.tachiyomi.ui.player.controls.components.ControlsButton
@@ -558,28 +559,32 @@ fun PlayerControls(
         val hosterState by viewModel.hosterState.collectAsState()
         val expandedState by viewModel.hosterExpandedList.collectAsState()
         val selectedHosterVideoIndex by viewModel.selectedHosterVideoIndex.collectAsState()
-        val subtitles by viewModel.subtitleTracks.collectAsState(persistentListOf())
-        val audioTracks by viewModel.audioTracks.collectAsState(persistentListOf())
         val sleepTimerTimeRemaining by viewModel.remainingTime.collectAsState()
         val showSubtitles by subtitlePreferences.screenshotSubtitles().collectAsState()
         val currentSource by viewModel.currentSource.collectAsState()
         val showFailedHosters by playerPreferences.showFailedHosters().collectAsState()
         val emptyHosters by playerPreferences.showEmptyHosters().collectAsState()
 
+        val internalSubtitles by viewModel.subtitleTracks.collectAsState(persistentListOf())
+        val externalSubtitles by viewModel.externalSubtitleTracks.collectAsState()
+        val subtitles = remember(internalSubtitles, externalSubtitles) {
+            internalSubtitles.map { VideoTrack.Internal(it) } + externalSubtitles
+        }
+
+        val internalAudioTracks by viewModel.audioTracks.collectAsState(persistentListOf())
+        val externalAudioTracks by viewModel.externalAudioTracks.collectAsState()
+        val audioTracks = remember(internalAudioTracks, externalAudioTracks) {
+            internalAudioTracks.map { VideoTrack.Internal(it) } + externalAudioTracks
+        }
+
         PlayerSheets(
             sheetShown = sheetShown,
-            subtitles = subtitles,
+            subtitles = subtitles.toImmutableList(),
             onAddSubtitle = viewModel::addSubtitle,
             onSelectSubtitle = viewModel::selectSub,
-            audioTracks = audioTracks,
+            audioTracks = audioTracks.toImmutableList(),
             onAddAudio = viewModel::addAudio,
-            onSelectAudio = {
-                if (MPVLib.getPropertyInt("aid") == it.id) {
-                    MPVLib.setPropertyBoolean("aid", false)
-                } else {
-                    MPVLib.setPropertyInt("aid", it.id)
-                }
-            },
+            onSelectAudio = viewModel::selectAudio,
 
             isLoadingHosters = isLoadingHosters,
 

@@ -174,6 +174,9 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
         "pause" to MPVLib.mpvFormat.MPV_FORMAT_FLAG,
         "video-params/aspect" to MPVLib.mpvFormat.MPV_FORMAT_DOUBLE,
         "eof-reached" to MPVLib.mpvFormat.MPV_FORMAT_FLAG,
+        "track-list" to MPVLib.mpvFormat.MPV_FORMAT_NODE,
+        "sid" to MPVLib.mpvFormat.MPV_FORMAT_NONE,
+        "secondary-sid" to MPVLib.mpvFormat.MPV_FORMAT_NONE,
 
         "user-data/aniyomi/show_text" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
         "user-data/aniyomi/toggle_ui" to MPVLib.mpvFormat.MPV_FORMAT_STRING,

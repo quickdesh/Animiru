@@ -1,7 +1,7 @@
 package eu.kanade.tachiyomi.ui.player.utils
 
 import androidx.core.os.LocaleListCompat
-import eu.kanade.tachiyomi.ui.player.TrackNode
+import eu.kanade.tachiyomi.ui.player.VideoTrack
 import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
 import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
 import uy.kohesive.injekt.Injekt
@@ -12,7 +12,7 @@ class TrackSelect(
     private val subtitlePreferences: SubtitlePreferences = Injekt.get(),
     private val audioPreferences: AudioPreferences = Injekt.get(),
 ) {
-    fun getPreferredTrackIndex(tracks: List<TrackNode>, subtitle: Boolean = true): TrackNode? {
+    fun getPreferredTrackIndex(tracks: List<VideoTrack>, subtitle: Boolean = true): VideoTrack? {
         val prefLangs = if (subtitle) {
             subtitlePreferences.preferredSubLanguages().get()
         } else {
@@ -41,25 +41,25 @@ class TrackSelect(
 
         val filtered = tracks.withIndex()
             .filterNot { (_, track) ->
-                blacklist.any { track.title.orEmpty().contains(it, true) }
+                blacklist.any { track.title.contains(it, true) }
             }
             .filter { (_, track) ->
                 containsLang(track, chosenLocale)
             }
 
         return filtered.firstOrNull { (_, track) ->
-            whitelist.any { track.title.orEmpty().contains(it, true) }
+            whitelist.any { track.title.contains(it, true) }
         }?.value ?: filtered.getOrNull(0)?.value
     }
 
-    private fun containsLang(track: TrackNode, locale: Locale): Boolean {
+    private fun containsLang(track: VideoTrack, locale: Locale): Boolean {
         val localName = locale.getDisplayName(locale)
         val englishName = locale.getDisplayName(Locale.ENGLISH).substringBefore(" (")
         val langRegex = Regex("""\b${locale.isO3Language}|${locale.language}\b""", RegexOption.IGNORE_CASE)
-        val trackTitle = track.title.orEmpty()
+        val trackTitle = track.title
 
         return trackTitle.contains(localName, true) ||
             trackTitle.contains(englishName, true) ||
-            track.lang?.let { langRegex.find(it) != null } == true
+            track.lang.let { langRegex.find(it) != null }
     }
 }

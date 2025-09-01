@@ -26,7 +26,7 @@ import eu.kanade.tachiyomi.ui.player.ArtType
 import eu.kanade.tachiyomi.ui.player.Decoder
 import eu.kanade.tachiyomi.ui.player.Panels
 import eu.kanade.tachiyomi.ui.player.Sheets
-import eu.kanade.tachiyomi.ui.player.TrackNode
+import eu.kanade.tachiyomi.ui.player.VideoTrack
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.AudioTracksSheet
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.ChaptersSheet
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
@@ -45,14 +45,14 @@ fun PlayerSheets(
     sheetShown: Sheets,
 
     // subtitles sheet
-    subtitles: ImmutableList<TrackNode>,
+    subtitles: ImmutableList<VideoTrack>,
     onAddSubtitle: (Uri) -> Unit,
-    onSelectSubtitle: (Int) -> Unit,
+    onSelectSubtitle: (VideoTrack) -> Unit,
 
     // audio sheet
-    audioTracks: ImmutableList<TrackNode>,
+    audioTracks: ImmutableList<VideoTrack>,
     onAddAudio: (Uri) -> Unit,
-    onSelectAudio: (TrackNode) -> Unit,
+    onSelectAudio: (VideoTrack) -> Unit,
 
     // video sheet
     isLoadingHosters: Boolean,

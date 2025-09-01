@@ -30,7 +30,6 @@ import android.net.Uri
 import android.provider.Settings
 import android.util.DisplayMetrics
 import android.view.inputmethod.InputMethodManager
-import androidx.compose.runtime.Immutable
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -89,6 +88,7 @@ import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.cacheImageDir
 import eu.kanade.tachiyomi.util.system.toast
 import `is`.xyz.mpv.MPVLib
+import `is`.xyz.mpv.MPVNode
 import `is`.xyz.mpv.Utils
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -130,7 +130,6 @@ import tachiyomi.domain.history.model.HistoryUpdate
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
-import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
@@ -183,27 +182,6 @@ class PlayerViewModel @JvmOverloads constructor(
 
     val cachePath: String = activity.cacheDir.path
 
-    init {
-        viewModelScope.launchIO {
-            try {
-                val buttons = getCustomButtons.getAll()
-                buttons.firstOrNull { it.isFavorite }?.let {
-                    _primaryButton.update { _ -> it }
-                    // If the button text is not empty, it has been set buy a lua script in which
-                    // case we don't want to override it
-                    if (_primaryButtonTitle.value.isEmpty()) {
-                        setPrimaryCustomButtonTitle(it)
-                    }
-                }
-                activity.setupCustomButtons(buttons)
-                _customButtons.update { _ -> CustomButtonFetchState.Success(buttons.toImmutableList()) }
-            } catch (e: Exception) {
-                logcat(LogPriority.ERROR, e)
-                _customButtons.update { _ -> CustomButtonFetchState.Error(e.message ?: "Unable to fetch buttons") }
-            }
-        }
-    }
-
     private val _currentPlaylist = MutableStateFlow<List<Episode>>(emptyList())
     val currentPlaylist = _currentPlaylist.asStateFlow()
 
@@ -233,6 +211,13 @@ class PlayerViewModel @JvmOverloads constructor(
 
     val isLoading = MutableStateFlow(true)
     val isLoadingTracks = MutableStateFlow(true)
+    val hasLoadedTracks = MutableStateFlow(false)
+
+    private val _externalSubtitleTracks = MutableStateFlow<List<VideoTrack.External>>(emptyList())
+    val externalSubtitleTracks = _externalSubtitleTracks.asStateFlow()
+
+    private val _externalAudioTracks = MutableStateFlow<List<VideoTrack.External>>(emptyList())
+    val externalAudioTracks = _externalAudioTracks.asStateFlow()
 
     private val _hosterList = MutableStateFlow<List<Hoster>>(emptyList())
     val hosterList = _hosterList.asStateFlow()
@@ -267,13 +252,26 @@ class PlayerViewModel @JvmOverloads constructor(
     private val volumeBoostCap by MPVLib.propInt["volume-max"].collectAsState(viewModelScope)
 
     val subtitleTracks = MPVLib.propNode["track-list"]
-        .map { (it?.toObject<List<TrackNode>>(json)?.filter { it.isSubtitle } ?: persistentListOf()).toImmutableList() }
+        .map { node ->
+            (node?.toObject<List<TrackNode>>(json)
+                ?.filter { it.isSubtitle }
+                ?.filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true }
+                ?: persistentListOf()
+            ).toImmutableList()
+        }
 
     val audioTracks = MPVLib.propNode["track-list"]
-        .map { (it?.toObject<List<TrackNode>>(json)?.filter { it.isAudio } ?: persistentListOf()).toImmutableList() }
+        .map { node ->
+            (node?.toObject<List<TrackNode>>(json)
+                ?.filter { it.isAudio }
+                ?.filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true }
+                ?: persistentListOf()
+            ).toImmutableList()
+        }
 
     val chapters = MPVLib.propNode["chapter-list"]
         .map { (it?.toObject<List<ChapterNode>>(json) ?: persistentListOf()).map { it.toSegment() }.toImmutableList() }
+
     private val _skipIntroText = MutableStateFlow<String?>(null)
     val skipIntroText = _skipIntroText.asStateFlow()
 
@@ -354,22 +352,84 @@ class PlayerViewModel @JvmOverloads constructor(
      * When all subtitle/audio tracks are loaded, select the preferred one based on preferences,
      * or select the first one in the list if trackSelect fails.
      */
-    // TODO(mpv): Update
-    fun onFinishLoadingTracks() {
-        // val preferredSubtitle = trackSelect.getPreferredTrackIndex(subtitleTracks.value)
-        // (preferredSubtitle ?: subtitleTracks.value.firstOrNull())?.let {
-        //     activity.player.sid = it.id
-        //     activity.player.secondarySid = -1
-        // }
-//
-        // val preferredAudio = trackSelect.getPreferredTrackIndex(audioTracks.value, subtitle = false)
-        // (preferredAudio ?: audioTracks.value.getOrNull(1))?.let {
-        //     activity.player.aid = it.id
-        // }
-//
-        // isLoadingTracks.update { _ -> true }
-        // updateIsLoadingEpisode(false)
-        // setPausedState()
+    fun onTrackListChanged(tracks: MPVNode) {
+        val tracks = tracks.toObject<List<TrackNode>>(json).ifEmpty { return }
+        if (hasLoadedTracks.value) {
+            onTrackAdded(tracks)
+        } else {
+            hasLoadedTracks.update { _ -> true }
+            onTracksLoaded(tracks)
+            updateIsLoadingEpisode(false)
+        }
+    }
+
+    private fun onTrackAdded(tracks: List<TrackNode>) {
+        val externalSubtitle = tracks.filter {
+            it.isSubtitle && it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true
+        }
+        val externalAudio = tracks.filter {
+            it.isAudio && it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true
+        }
+
+        externalSubtitle.forEach { track ->
+            val idx = track.title!!.split("=")[1].toInt()
+            val external = externalSubtitleTracks.value[idx]
+
+            if (external.id != null) {
+                // External subtitle has already been added
+                return@forEach
+            }
+
+            updateSubtitleTrackAt(idx) {
+                it.copy(id = track.id, state = TrackState.Loaded)
+            }
+            selectSubById(track.id)
+        }
+
+        externalAudio.forEach { track ->
+            val idx = track.title!!.split("=")[1].toInt()
+            val external = externalAudioTracks.value[idx]
+
+            if (external.id != null) {
+                // External audio has already been added
+                return@forEach
+            }
+
+            updateAudioTrackAt(idx) {
+                it.copy(id = track.id, state = TrackState.Loaded)
+            }
+            selectAudioById(track.id)
+        }
+    }
+
+    /**
+     * Called when embedded tracks are first loaded
+     */
+    private fun onTracksLoaded(tracks: List<TrackNode>) {
+        val embeddedSubs = tracks.filter { it.isSubtitle }
+        val embeddedAudio = tracks.filter { it.isAudio }
+        val externalSubs = currentVideo.value?.subtitleTracks.orEmpty().distinctBy { it.url }
+            .mapIndexed { idx, track -> VideoTrack.External(track, idx) }
+        val externalAudio = currentVideo.value?.audioTracks.orEmpty().distinctBy { it.url }
+            .mapIndexed { idx, track -> VideoTrack.External(track, idx) }
+
+        _externalSubtitleTracks.update { _ -> externalSubs }
+        _externalAudioTracks.update { _ -> externalAudio }
+
+        val preferredSubtitle = trackSelect.getPreferredTrackIndex(
+            embeddedSubs.map { VideoTrack.Internal(it) } + externalSubs
+        )
+        preferredSubtitle?.let {
+            selectSub(it)
+        }
+
+        val preferredAudio = trackSelect.getPreferredTrackIndex(
+            embeddedAudio.map { VideoTrack.Internal(it) } + externalAudio,
+            false,
+        )
+        preferredAudio?.let {
+            selectAudio(it)
+        }
     }
 
     fun addAudio(uri: Uri) {
@@ -398,7 +458,84 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    fun selectSub(id: Int) {
+    fun selectSub(track: VideoTrack) {
+        when (track) {
+            is VideoTrack.External -> {
+                if (track.id == null) {
+                    updateSubtitleTrackAt(track.index) {
+                        it.copy(state = TrackState.Loading)
+                    }
+                    viewModelScope.launchIO {
+                        MPVLib.command("sub-add", track.data.url, "auto", "${VideoTrack.TRACK_TITLE_TAG}=${track.index}")
+                    }
+                } else {
+                    selectSubById(track.id)
+                }
+            }
+            is VideoTrack.Internal -> {
+                selectSubById(track.data.id)
+            }
+        }
+    }
+
+    fun selectAudio(track: VideoTrack) {
+        when (track) {
+            is VideoTrack.External -> {
+                if (track.id == null) {
+                    updateAudioTrackAt(track.index) {
+                        it.copy(state = TrackState.Loading)
+                    }
+                    viewModelScope.launchIO {
+                        MPVLib.command("audio-add", track.data.url, "auto", "${VideoTrack.TRACK_TITLE_TAG}=${track.index}")
+                    }
+                } else {
+                    selectAudioById(track.id)
+                }
+            }
+            is VideoTrack.Internal -> {
+                selectAudioById(track.data.id)
+            }
+        }
+    }
+
+    fun onTrackLoadedFailure(url: String) {
+        val subtitleIdx = externalSubtitleTracks.value.indexOfFirst {
+            it.data.url == url
+        }
+        if (subtitleIdx != -1) {
+            updateSubtitleTrackAt(subtitleIdx) {
+                it.copy(state = TrackState.Error)
+            }
+        }
+        val audioIdx = externalAudioTracks.value.indexOfFirst {
+            it.data.url == url
+        }
+        if (audioIdx != -1) {
+            updateAudioTrackAt(audioIdx) {
+                it.copy(state = TrackState.Error)
+            }
+        }
+    }
+
+    fun onSubtitleTrackSelectChange() {
+        val id = MPVLib.getPropertyInt("sid")
+        val sid = MPVLib.getPropertyInt("secondary-sid")
+
+        _externalSubtitleTracks.update { subtitleTracks ->
+            subtitleTracks.map {
+                it.copy(
+                    mainSelection = when (it.id) {
+                        null -> -1
+                        id -> 0
+                        sid -> 1
+                        else -> -1
+                    }
+                )
+            }
+        }
+    }
+
+    private fun selectSubById(id: Int) {
         val selectedSubs = Pair(MPVLib.getPropertyInt("sid"), MPVLib.getPropertyInt("secondary-sid"))
         when (id) {
             selectedSubs.first -> Pair(selectedSubs.second, null)
@@ -407,6 +544,26 @@ class PlayerViewModel @JvmOverloads constructor(
         }.let {
             it.second?.let { MPVLib.setPropertyInt("secondary-sid", it) } ?: MPVLib.setPropertyBoolean("secondary-sid", false)
             it.first?.let { MPVLib.setPropertyInt("sid", it) } ?: MPVLib.setPropertyBoolean("sid", false)
+        }
+    }
+
+    private fun selectAudioById(id: Int) {
+        MPVLib.setPropertyInt("aid", id)
+    }
+
+    private fun updateSubtitleTrackAt(index: Int, transform: (VideoTrack.External) -> VideoTrack.External) {
+        _externalSubtitleTracks.update { externalSubtitles ->
+            externalSubtitles.toMutableList().apply {
+                this[index] = transform(this[index])
+            }
+        }
+    }
+
+    private fun updateAudioTrackAt(index: Int, transform: (VideoTrack.External) -> VideoTrack.External) {
+        _externalAudioTracks.update { externalAudio ->
+            externalAudio.toMutableList().apply {
+                this[index] = transform(this[index])
+            }
         }
     }
 

@@ -75,7 +75,6 @@ import eu.kanade.tachiyomi.ui.player.settings.AdvancedPlayerPreferences
 import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
 import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
-import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils
 import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils.Companion.getStringRes
 import eu.kanade.tachiyomi.util.system.powerManager
 import eu.kanade.tachiyomi.util.system.toShareIntent
@@ -88,7 +87,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import tachiyomi.core.common.i18n.stringResource
@@ -402,12 +400,6 @@ class PlayerActivity : BaseActivity() {
         }
     }
 
-    private fun executeMPVCommand(commands: Array<String>) {
-        if (!player.isExiting) {
-            MPVLib.command(*commands)
-        }
-    }
-
     private fun UniFile.writeText(text: String) {
         this.openOutputStream().use {
             it.write(text.toByteArray())
@@ -415,8 +407,6 @@ class PlayerActivity : BaseActivity() {
     }
 
     private fun setupPlayerMPV() {
-        val logLevel = if (networkPreferences.verboseLogging().get()) "info" else "warn"
-
         val mpvDir = UniFile.fromFile(applicationContext.filesDir)!!.createDirectory(MPV_DIR)!!
 
         val mpvConfFile = mpvDir.createFile("mpv.conf")!!
@@ -661,9 +651,12 @@ class PlayerActivity : BaseActivity() {
         }
     }
 
-    @Suppress("UnusedParameter")
     internal fun onObserverEvent(property: String) {
         if (player.isExiting) return
+        when (property) {
+            "sid" -> viewModel.onSubtitleTrackSelectChange()
+            "secondary-sid" -> viewModel.onSubtitleTrackSelectChange()
+        }
     }
 
     internal fun onObserverEvent(property: String, value: Boolean) {
@@ -690,9 +683,11 @@ class PlayerActivity : BaseActivity() {
         }
     }
 
-    @Suppress("UnusedParameter")
     internal fun onObserverEvent(property: String, value: MPVNode) {
         if (player.isExiting) return
+        when (property) {
+            "track-list" -> viewModel.onTrackListChanged(value)
+        }
     }
 
     internal fun event(eventId: Int) {
@@ -1081,6 +1076,10 @@ class PlayerActivity : BaseActivity() {
         // MPVLib.setOptionString("cache-dir", cacheDir)
     }
 
+    fun onTrackLoadedFailure(url: String) {
+        viewModel.onTrackLoadedFailure(url)
+    }
+
     /**
      * Called from the presenter when a screenshot is ready to be shared. It shows Android's
      * default sharing tool.
@@ -1204,16 +1203,16 @@ class PlayerActivity : BaseActivity() {
         // If no external audio or subtitle tracks are present, loadTracks() won't be
         // called and we need to call onFinishLoadingTracks() manually
         if (audioTracks == null && subtitleTracks == null) {
-            viewModel.onFinishLoadingTracks()
+            // viewModel.onFinishLoadingTracks()
             return
         }
 
-        audioTracks?.forEach { audio ->
-            executeMPVCommand(arrayOf("audio-add", audio.url, "auto", audio.lang))
-        }
-        subtitleTracks?.forEach { sub ->
-            executeMPVCommand(arrayOf("sub-add", sub.url, "auto", sub.lang))
-        }
+        // audioTracks?.forEach { audio ->
+        //     executeMPVCommand(arrayOf("audio-add", audio.url, "auto", audio.lang))
+        // }
+        // subtitleTracks?.forEach { sub ->
+        //     executeMPVCommand(arrayOf("sub-add", sub.url, "auto", sub.lang))
+        // }
 
         viewModel.isLoadingTracks.update { _ -> false }
     }
