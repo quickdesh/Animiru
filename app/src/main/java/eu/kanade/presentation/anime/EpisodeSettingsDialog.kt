@@ -248,7 +248,10 @@ private fun ColumnScope.DisplayPage(
 }
 
 @Composable
-private fun SetAsDefaultDialog(
+internal fun SetAsDefaultDialog(
+    // AY -->
+    isEpisode: Boolean = true,
+    // <-- AY
     onDismissRequest: () -> Unit,
     onConfirmed: (optionalChecked: Boolean) -> Unit,
 ) {
@@ -256,7 +259,19 @@ private fun SetAsDefaultDialog(
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(text = stringResource(AYMR.strings.episode_settings)) },
+        title = {
+            Text(
+                // AY -->
+                text = if (isEpisode) {
+                    stringResource(
+                        AYMR.strings.episode_settings,
+                    )
+                } else {
+                    stringResource(AYMR.strings.season_settings)
+                },
+                // <-- AY
+            )
+        },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),

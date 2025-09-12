@@ -24,6 +24,10 @@ interface SAnime : Serializable {
 
     var update_strategy: AnimeUpdateStrategy
 
+    var fetch_type: FetchType
+
+    var season_number: Double
+
     var initialized: Boolean
 
     fun getGenres(): List<String>? {
@@ -52,6 +56,8 @@ interface SAnime : Serializable {
         // <-- AM (CUSTOM_INFORMATION)
         it.thumbnail_url = thumbnail_url
         it.update_strategy = update_strategy
+        it.fetch_type = fetch_type
+        it.season_number = season_number
         it.initialized = initialized
     }
 
@@ -80,6 +86,8 @@ fun SAnime.copy(
     genre: String? = this.originalGenre,
     status: Int = this.status,
     thumbnail_url: String? = this.thumbnail_url,
+    fetch_type: FetchType = this.fetch_type,
+    season_number: Double = this.season_number,
     initialized: Boolean = this.initialized,
 ) = SAnime.create().also {
     it.url = url
@@ -90,6 +98,8 @@ fun SAnime.copy(
     it.genre = genre
     it.status = status
     it.thumbnail_url = thumbnail_url
+    it.fetch_type = fetch_type
+    it.season_number = season_number
     it.initialized = initialized
 }
 // <-- AM (CUSTOM_INFORMATION)

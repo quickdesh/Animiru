@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import tachiyomi.i18n.MR
+import eu.kanade.tachiyomi.animesource.model.FetchType
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.SECONDARY_ALPHA
@@ -20,12 +20,15 @@ import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
-fun EpisodeHeader(
+fun ItemHeader(
     enabled: Boolean,
-    episodeCount: Int?,
-    missingEpisodeCount: Int,
+    itemCount: Int?,
+    missingItemsCount: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    // AY -->
+    fetchType: FetchType = FetchType.Episodes,
+    // <-- AY
 ) {
     Column(
         modifier = modifier
@@ -38,16 +41,22 @@ fun EpisodeHeader(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
     ) {
         Text(
-            text = if (episodeCount == null) {
+            text = if (itemCount == null) {
                 stringResource(AYMR.strings.episodes)
             } else {
-                pluralStringResource(AYMR.plurals.anime_num_episodes, count = episodeCount, episodeCount)
+                // AY -->
+                val pluralCount = when (fetchType) {
+                    FetchType.Seasons -> AYMR.plurals.anime_num_seasons
+                    FetchType.Episodes -> AYMR.plurals.anime_num_episodes
+                }
+                pluralStringResource(pluralCount, count = itemCount, itemCount)
+                // <-- AY
             },
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground,
         )
 
-        MissingEpisodesWarning(missingEpisodeCount)
+        MissingEpisodesWarning(missingItemsCount)
     }
 }
 

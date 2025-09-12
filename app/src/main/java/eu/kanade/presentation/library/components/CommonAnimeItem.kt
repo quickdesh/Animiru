@@ -5,6 +5,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
@@ -342,6 +343,7 @@ fun AnimeListItem(
     // AY -->
     entries: Int = 0,
     containerHeight: Int = 0,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 3.dp),
     // <-- AY
 ) {
     Row(
@@ -363,7 +365,7 @@ fun AnimeListItem(
                 onLongClick = onLongClick,
             )
             // AY -->
-            .padding(horizontal = 16.dp, vertical = 3.dp),
+            .padding(contentPadding),
         // <-- AY
         verticalAlignment = Alignment.CenterVertically,
     ) {

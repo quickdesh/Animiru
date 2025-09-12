@@ -11,22 +11,22 @@ class MissingEpisodesTest {
 
     @Test
     fun `missingEpisodesCount returns 0 when empty list`() {
-        emptyList<Double>().missingEpisodesCount() shouldBe 0
+        emptyList<Double>().missingEntriesCount() shouldBe 0
     }
 
     @Test
     fun `missingEpisodesCount returns 0 when all unknown episode numbers`() {
-        listOf(-1.0, -1.0, -1.0).missingEpisodesCount() shouldBe 0
+        listOf(-1.0, -1.0, -1.0).missingEntriesCount() shouldBe 0
     }
 
     @Test
     fun `missingEpisodesCount handles repeated base episode numbers`() {
-        listOf(1.0, 1.0, 1.1, 1.5, 1.6, 1.99).missingEpisodesCount() shouldBe 0
+        listOf(1.0, 1.0, 1.1, 1.5, 1.6, 1.99).missingEntriesCount() shouldBe 0
     }
 
     @Test
     fun `missingEpisodesCount returns number of missing episodes`() {
-        listOf(-1.0, 1.0, 2.0, 2.2, 4.0, 6.0, 10.0, 11.0).missingEpisodesCount() shouldBe 5
+        listOf(-1.0, 1.0, 2.0, 2.2, 4.0, 6.0, 10.0, 11.0).missingEntriesCount() shouldBe 5
     }
 
     @Test

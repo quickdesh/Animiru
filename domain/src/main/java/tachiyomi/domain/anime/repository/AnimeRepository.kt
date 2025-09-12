@@ -1,10 +1,12 @@
 package tachiyomi.domain.anime.repository
 
+import aniyomi.domain.anime.SeasonAnime
 import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
 import tachiyomi.domain.library.model.LibraryAnime
+import tachiyomi.domain.source.model.DeletableAnime
 
 interface AnimeRepository {
 
@@ -39,4 +41,16 @@ interface AnimeRepository {
     suspend fun updateAll(animeUpdates: List<AnimeUpdate>): Boolean
 
     suspend fun insertNetworkAnime(anime: List<Anime>): List<Anime>
+
+    // AY -->
+    suspend fun getAnimeSeasonsById(parentId: Long): List<SeasonAnime>
+
+    fun getAnimeSeasonsByIdAsFlow(parentId: Long): Flow<List<SeasonAnime>>
+
+    suspend fun removeParentIdByIds(animeIds: List<Long>)
+
+    fun getDeletableParentAnime(): Flow<List<DeletableAnime>>
+
+    suspend fun getChildrenByParentId(parentId: Long): List<Anime>
+    // <-- AY
 }

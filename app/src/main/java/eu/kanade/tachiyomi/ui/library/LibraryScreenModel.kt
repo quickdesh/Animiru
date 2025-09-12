@@ -396,7 +396,9 @@ class LibraryScreenModel(
                     else -> anime1.libraryAnime.unseenCount.compareTo(anime2.libraryAnime.unseenCount)
                 }
                 LibrarySort.Type.TotalEpisodes -> {
-                    anime1.libraryAnime.totalEpisodes.compareTo(anime2.libraryAnime.totalEpisodes)
+                    // AY -->
+                    anime1.libraryAnime.totalCount.compareTo(anime2.libraryAnime.totalCount)
+                    // <-- AY
                 }
                 LibrarySort.Type.LatestEpisode -> {
                     anime1.libraryAnime.latestUpload.compareTo(anime2.libraryAnime.latestUpload)

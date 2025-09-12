@@ -114,6 +114,14 @@ private fun Anime.toBackupAnime(
         version = this.version,
         notes = this.notes,
         initialized = this.initialized,
+        // AY -->
+        fetchType = this.fetchType,
+        parentId = this.parentId,
+        id = this.id,
+        seasonFlags = this.seasonFlags,
+        seasonNumber = this.seasonNumber,
+        seasonSourceOrder = this.seasonSourceOrder,
+        // <-- AY
     )
         // AM (CUSTOM_INFORMATION) -->
         .also { backupAnime ->

@@ -32,6 +32,7 @@ import eu.kanade.presentation.anime.DuplicateAnimeDialog
 import eu.kanade.presentation.anime.EditCoverAction
 import eu.kanade.presentation.anime.EpisodeOptionsDialogScreen
 import eu.kanade.presentation.anime.EpisodeSettingsDialog
+import eu.kanade.presentation.anime.SeasonSettingsDialog
 import eu.kanade.presentation.anime.components.AnimeCoverDialog
 import eu.kanade.presentation.anime.components.DeleteEpisodesDialog
 import eu.kanade.presentation.anime.components.ScanlatorFilterDialog
@@ -45,6 +46,7 @@ import eu.kanade.presentation.util.formatEpisodeNumber
 import eu.kanade.presentation.util.isTabletUi
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.ConfigurableAnimeSource
+import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.source.isLocalOrStub
 import eu.kanade.tachiyomi.ui.anime.notes.AnimeNotesScreen
@@ -148,7 +150,11 @@ class AnimeScreen(
                 }
                 // <-- AY
             },
-            onDownloadEpisode = screenModel::runEpisodeDownloadActions.takeIf { !successState.source.isLocalOrStub() },
+            onDownloadEpisode = screenModel::runEpisodeDownloadActions.takeIf {
+                // AY -->
+                !successState.source.isLocalOrStub() && successState.anime.fetchType == FetchType.Episodes
+                // <-- AY
+            },
             onAddToLibraryClicked = {
                 screenModel.toggleFavorite()
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -173,7 +179,9 @@ class AnimeScreen(
                 } else {
                     screenModel.showTrackDialog()
                 }
-            },
+            // AY -->
+            }.takeIf { successState.anime.fetchType == FetchType.Episodes },
+            // <-- AY
             onTagSearch = { scope.launch { performGenreSearch(navigator, it, screenModel.source!!) } },
             onFilterButtonClicked = screenModel::showSettingsDialog,
             onRefresh = screenModel::fetchAllFromSource,
@@ -188,7 +196,11 @@ class AnimeScreen(
             onSearch = { query, global -> scope.launch { performSearch(navigator, query, global) } },
             onCoverClicked = screenModel::showCoverDialog,
             onShareClicked = { shareAnime(context, screenModel.anime, screenModel.source) }.takeIf { isHttpSource },
-            onDownloadActionClicked = screenModel::runDownloadAction.takeIf { !successState.source.isLocalOrStub() },
+            onDownloadActionClicked = screenModel::runDownloadAction.takeIf {
+                // AY -->
+                !successState.source.isLocalOrStub() && successState.anime.fetchType == FetchType.Episodes
+                // <-- AY
+            },
             onEditCategoryClicked = screenModel::showChangeCategoryDialog.takeIf { successState.anime.favorite },
             onEditFetchIntervalClicked = screenModel::showSetFetchIntervalDialog.takeIf {
                 successState.anime.favorite
@@ -200,7 +212,11 @@ class AnimeScreen(
             onSettingsClicked = {
                 navigator.push(SourcePreferencesScreen(successState.source.id))
             }.takeIf { isConfigurableSource },
-            onSkipIntroClicked = screenModel::showAnimeSkipIntroDialog.takeIf { successState.anime.favorite },
+            onSkipIntroClicked = screenModel::showAnimeSkipIntroDialog.takeIf {
+                // AY -->
+                successState.anime.favorite && successState.anime.fetchType == FetchType.Episodes
+                // <-- AY
+            },
             // <-- AY
             // AM (CUSTOM_INFORMATION) -->
             onEditInfoClicked = screenModel::showEditAnimeInfoDialog,
@@ -217,6 +233,19 @@ class AnimeScreen(
             onEpisodeSelected = screenModel::toggleSelection,
             onAllEpisodeSelected = screenModel::toggleAllSelection,
             onInvertSelection = screenModel::invertSelection,
+            // AY -->
+            onSeasonClicked = {
+                navigator.push(AnimeScreen(it.id))
+            },
+            onContinueWatchingClicked = {
+                scope.launchIO {
+                    val episode = screenModel.getNextUnseenEpisode(it.anime)
+                    episode?.let { ep ->
+                        openEpisode(context, ep, screenModel.alwaysUseExternalPlayer)
+                    }
+                }
+            },
+            // <-- AY
         )
 
         var showScanlatorsDialog by remember { mutableStateOf(false) }
@@ -271,7 +300,7 @@ class AnimeScreen(
                     onDismissRequest = onDismissRequest,
                 )
             }
-            AnimeScreenModel.Dialog.SettingsSheet -> EpisodeSettingsDialog(
+            AnimeScreenModel.Dialog.EpisodeSettingsSheet -> EpisodeSettingsDialog(
                 onDismissRequest = onDismissRequest,
                 anime = successState.anime,
                 onDownloadFilterChanged = screenModel::setDownloadedFilter,
@@ -287,6 +316,27 @@ class AnimeScreen(
                 scanlatorFilterActive = successState.scanlatorFilterActive,
                 onScanlatorFilterClicked = { showScanlatorsDialog = true },
             )
+            // AY -->
+            AnimeScreenModel.Dialog.SeasonSettingsSheet -> SeasonSettingsDialog(
+                onDismissRequest = onDismissRequest,
+                anime = successState.anime,
+                onDownloadFilterChanged = screenModel::setSeasonDownloadedFilter,
+                onUnseenFilterChanged = screenModel::setSeasonUnseenFilter,
+                onStartedFilterChanged = screenModel::setSeasonStartedFilter,
+                onBookmarkedFilterChanged = screenModel::setSeasonBookmarkedFilter,
+                onCompletedFilterChanged = screenModel::setSeasonCompletedFilter,
+                onSortModeChanged = screenModel::setSeasonSorting,
+                onDisplayGridModeChanged = screenModel::setSeasonDisplayGridMode,
+                onDisplayGridSizeChanged = screenModel::setSeasonDisplayGridSize,
+                onOverlayDownloadedChanged = screenModel::setSeasonDownloadOverlay,
+                onOverlayUnseenChanged = screenModel::setSeasonUnseenOverlay,
+                onOverlayLocalChanged = screenModel::setSeasonLocalOverlay,
+                onOverlayLangChanged = screenModel::setSeasonLangOverlay,
+                onOverlayContinueChanged = screenModel::setSeasonContinueOverlay,
+                onDisplayModeChanged = screenModel::setSeasonDisplayMode,
+                onSetAsDefault = screenModel::setSeasonCurrentSettingsAsDefault,
+            )
+            // <-- AY
             AnimeScreenModel.Dialog.TrackSheet -> {
                 NavigatorAdaptiveSheet(
                     screen = TrackInfoDialogHomeScreen(

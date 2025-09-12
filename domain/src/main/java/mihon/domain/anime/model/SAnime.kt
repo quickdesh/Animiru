@@ -16,6 +16,10 @@ fun SAnime.toDomainAnime(sourceId: Long): Anime {
         // <-- AM (CUSTOM_INFORMATION)
         thumbnailUrl = thumbnail_url,
         updateStrategy = update_strategy,
+        // AY -->
+        fetchType = fetch_type,
+        seasonNumber = season_number,
+        // <-- AY
         initialized = initialized,
         source = sourceId,
     )

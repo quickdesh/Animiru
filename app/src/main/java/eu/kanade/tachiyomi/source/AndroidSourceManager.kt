@@ -57,6 +57,9 @@ class AndroidSourceManager(
                                 context,
                                 Injekt.get(),
                                 Injekt.get(),
+                                // AY -->
+                                Injekt.get(),
+                                // <-- AY
                             ),
                         ),
                     )

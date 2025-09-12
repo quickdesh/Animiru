@@ -153,11 +153,14 @@ class BackupRestorer(
             .forEach {
                 ensureActive()
 
+                // AY -->
+                val seasons = backupAnimes.filter { s -> s.parentId == it.id }
+                // <-- AY
                 try {
                     // AM (CUSTOM_INFORMATION) -->
                     val customInfo = it.getCustomAnimeInfo()
                     // <-- AM (CUSTOM_INFORMATION)
-                    animeRestorer.restore(it, backupCategories, customInfo)
+                    animeRestorer.restore(it, backupCategories, customInfo, seasons)
                 } catch (e: Exception) {
                     val sourceName = sourceMapping[it.source] ?: it.source.toString()
                     errors.add(Date() to "${it.title} [$sourceName]: ${e.message}")

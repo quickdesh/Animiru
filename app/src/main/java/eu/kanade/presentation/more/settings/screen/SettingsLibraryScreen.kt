@@ -62,6 +62,9 @@ object SettingsLibraryScreen : SearchableSettings {
         return listOf(
             getCategoriesGroup(LocalNavigator.currentOrThrow, allCategories, libraryPreferences),
             getGlobalUpdateGroup(allCategories, libraryPreferences),
+            // AY -->
+            getSeasonBehaviorGroup(libraryPreferences),
+            // <-- AY
             getBehaviorGroup(libraryPreferences),
         )
     }
@@ -232,6 +235,27 @@ object SettingsLibraryScreen : SearchableSettings {
             ),
         )
     }
+
+    // AY -->
+    @Composable
+    private fun getSeasonBehaviorGroup(
+        libraryPreferences: LibraryPreferences,
+    ): Preference.PreferenceGroup {
+        return Preference.PreferenceGroup(
+            title = stringResource(AYMR.strings.pref_library_season),
+            preferenceItems = persistentListOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = libraryPreferences.updateSeasonOnRefresh(),
+                    title = stringResource(AYMR.strings.pref_update_seasons_refresh),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = libraryPreferences.updateSeasonOnLibraryUpdate(),
+                    title = stringResource(AYMR.strings.pref_update_seasons_update),
+                ),
+            ),
+        )
+    }
+    // <-- AY
 
     @Composable
     private fun getBehaviorGroup(

@@ -34,12 +34,14 @@ import tachiyomi.data.Animes
 import tachiyomi.data.Database
 import tachiyomi.data.DatabaseHandler
 import tachiyomi.data.DateColumnAdapter
+import tachiyomi.data.FetchTypeColumnAdapter
 import tachiyomi.data.History
 import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StorageManager
+import tachiyomi.source.local.LocalFetchTypeManager
 import tachiyomi.source.local.image.LocalCoverManager
 import tachiyomi.source.local.io.LocalSourceFileSystem
 import uy.kohesive.injekt.api.InjektModule
@@ -88,6 +90,9 @@ class AppModule(val app: Application) : InjektModule {
                 animesAdapter = Animes.Adapter(
                     genreAdapter = StringListColumnAdapter,
                     update_strategyAdapter = UpdateStrategyColumnAdapter,
+                    // AY -->
+                    fetch_typeAdapter = FetchTypeColumnAdapter,
+                    // <-- AY
                 ),
             )
         }
@@ -138,6 +143,9 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { AndroidStorageFolderProvider(app) }
         addSingletonFactory { LocalSourceFileSystem(get()) }
         addSingletonFactory { LocalCoverManager(app, get()) }
+        // AY -->
+        addSingletonFactory { LocalFetchTypeManager(app, get()) }
+        // <-- AY
         addSingletonFactory { StorageManager(app, get()) }
 
         // AY -->

@@ -48,6 +48,9 @@ actual class LocalSource(
     private val context: Context,
     private val fileSystem: LocalSourceFileSystem,
     private val coverManager: LocalCoverManager,
+    // AY -->
+    private val fetchTypeManager: LocalFetchTypeManager,
+    // <-- AY
 ) : AnimeCatalogueSource, UnmeteredSource {
 
     private val json: Json by injectLazy()
@@ -123,21 +126,30 @@ actual class LocalSource(
         val animes = animeDirs
             .map { animeDir ->
                 async {
-                    SAnime.create().apply {
-                        title = animeDir.name.orEmpty()
-                        url = animeDir.name.orEmpty()
-
-                        // Try to find the cover
-                        coverManager.find(animeDir.name.orEmpty())?.let {
-                            thumbnail_url = it.uri.toString()
-                        }
-                    }
+                    // AY -->
+                    getSAnime(animeDir.name)
+                    // <-- AY
                 }
             }
             .awaitAll()
 
         AnimesPage(animes, false)
     }
+
+    // AY -->
+    private fun getSAnime(animeDir: String?): SAnime {
+        return SAnime.create().apply {
+            title = animeDir.orEmpty().substringAfterLast(File.separator)
+            url = animeDir.orEmpty()
+            fetch_type = fetchTypeManager.find(animeDir.orEmpty())
+
+            // Try to find the cover
+            coverManager.find(animeDir.orEmpty())?.let {
+                thumbnail_url = it.uri.toString()
+            }
+        }
+    }
+    // <-- AY
 
     // Old fetch functions
 
@@ -202,6 +214,32 @@ actual class LocalSource(
         return@withIOContext anime
     }
 
+    // AY -->
+    // Seasons
+    override suspend fun getSeasonList(anime: SAnime): List<SAnime> = withIOContext {
+        val animeDirs = fileSystem.getFilesInAnimeDirectory(anime.url)
+            // Filter out files that are hidden and is not a folder
+            .filter { it.isDirectory && !it.name.orEmpty().startsWith('.') }
+            .distinctBy { it.name }
+
+        animeDirs
+            .map { animeDir ->
+                async {
+                    val url = animeDir.name?.let { season ->
+                        buildString {
+                            append(anime.url)
+                            append(File.separator)
+                            append(season)
+                        }
+                    }
+                    getSAnime(url)
+                }
+            }
+            .awaitAll()
+            .toList()
+    }
+    // <-- AY
+
     // Episodes
     override suspend fun getEpisodeList(anime: SAnime): List<SEpisode> = withIOContext {
         // AY -->
@@ -209,9 +247,7 @@ actual class LocalSource(
             .firstOrNull {
                 it.extension == "json" && it.nameWithoutExtension == "episodes"
             }?.let { file ->
-                runCatching {
-                    json.decodeFromStream<List<EpisodeDetails>>(file.openInputStream())
-                }.getOrNull()
+                json.decodeFromStream<List<EpisodeDetails>>(file.openInputStream())
             }
         // <-- AY
 

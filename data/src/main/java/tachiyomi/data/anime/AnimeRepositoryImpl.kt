@@ -1,9 +1,11 @@
 package tachiyomi.data.anime
 
+import aniyomi.domain.anime.SeasonAnime
 import kotlinx.coroutines.flow.Flow
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.FetchTypeColumnAdapter
 import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
 import tachiyomi.domain.anime.model.Anime
@@ -11,6 +13,7 @@ import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
 import tachiyomi.domain.anime.repository.AnimeRepository
 import tachiyomi.domain.library.model.LibraryAnime
+import tachiyomi.domain.source.model.DeletableAnime
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -142,6 +145,13 @@ class AnimeRepositoryImpl(
                     dateAdded = it.dateAdded,
                     updateStrategy = it.updateStrategy,
                     version = it.version,
+                    // AY -->
+                    fetchType = it.fetchType,
+                    parentId = it.parentId,
+                    seasonFlags = it.seasonFlags,
+                    seasonNumber = it.seasonNumber,
+                    seasonSourceOrder = it.seasonSourceOrder,
+                    // <-- AY
                     updateTitle = it.title.isNotBlank(),
                     updateCover = !it.thumbnailUrl.isNullOrBlank(),
                     updateDetails = it.initialized,
@@ -151,6 +161,36 @@ class AnimeRepositoryImpl(
             }
         }
     }
+
+    // AY -->
+    override suspend fun getAnimeSeasonsById(parentId: Long): List<SeasonAnime> {
+        return handler.awaitList { animeseasonsViewQueries.getAnimeSeasonsById(parentId, AnimeMapper::mapSeasonAnime) }
+    }
+
+    override fun getAnimeSeasonsByIdAsFlow(parentId: Long): Flow<List<SeasonAnime>> {
+        return handler.subscribeToList {
+            animeseasonsViewQueries.getAnimeSeasonsById(parentId, AnimeMapper::mapSeasonAnime)
+        }
+    }
+
+    override suspend fun removeParentIdByIds(animeIds: List<Long>) {
+        try {
+            handler.await { animesQueries.removeParentIdByIds(animeIds) }
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e)
+        }
+    }
+
+    override fun getDeletableParentAnime(): Flow<List<DeletableAnime>> {
+        return handler.subscribeToList {
+            animedeletableViewQueries.getDeletableParentAnime(AnimeMapper::mapDeletableAnime)
+        }
+    }
+
+    override suspend fun getChildrenByParentId(parentId: Long): List<Anime> {
+        return handler.awaitList { animesQueries.getChildrenByParentId(parentId, AnimeMapper::mapAnime) }
+    }
+    // <-- AY
 
     private suspend fun partialUpdate(vararg animeUpdates: AnimeUpdate) {
         handler.await(inTransaction = true) {
@@ -179,6 +219,13 @@ class AnimeRepositoryImpl(
                     version = value.version,
                     isSyncing = 0,
                     notes = value.notes,
+                    // AY -->
+                    fetchType = value.fetchType?.let(FetchTypeColumnAdapter::encode),
+                    parentId = value.parentId,
+                    seasonFlags = value.seasonFlags,
+                    seasonNumber = value.seasonNumber,
+                    seasonSourceOrder = value.seasonSourceOrder,
+                    // <-- AY
                 )
             }
         }

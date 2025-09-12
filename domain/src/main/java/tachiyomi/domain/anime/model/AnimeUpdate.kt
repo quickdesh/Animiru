@@ -1,6 +1,7 @@
 package tachiyomi.domain.anime.model
 
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
+import eu.kanade.tachiyomi.animesource.model.FetchType
 
 data class AnimeUpdate(
     val id: Long,
@@ -25,6 +26,13 @@ data class AnimeUpdate(
     val initialized: Boolean? = null,
     val version: Long? = null,
     val notes: String? = null,
+    // AY -->
+    val fetchType: FetchType? = null,
+    val parentId: Long? = null,
+    val seasonFlags: Long? = null,
+    val seasonNumber: Double? = null,
+    val seasonSourceOrder: Long? = null,
+    // <-- AY
 )
 
 fun Anime.toAnimeUpdate(): AnimeUpdate {
@@ -51,5 +59,12 @@ fun Anime.toAnimeUpdate(): AnimeUpdate {
         initialized = initialized,
         version = version,
         notes = notes,
+        // AY -->
+        fetchType = fetchType,
+        parentId = parentId,
+        seasonFlags = seasonFlags,
+        seasonNumber = seasonNumber,
+        seasonSourceOrder = seasonSourceOrder,
+        // <-- AY
     )
 }

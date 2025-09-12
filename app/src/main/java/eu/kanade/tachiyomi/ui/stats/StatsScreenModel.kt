@@ -68,7 +68,7 @@ class StatsScreenModel(
             )
 
             val episodesStatData = StatsData.Episodes(
-                totalEpisodeCount = distinctLibraryAnime.sumOf { it.totalEpisodes }.toInt(),
+                totalEpisodeCount = distinctLibraryAnime.sumOf { it.totalCount }.toInt(),
                 seenEpisodeCount = distinctLibraryAnime.sumOf { it.seenCount }.toInt(),
                 downloadCount = downloadManager.getDownloadCount(),
             )
@@ -103,7 +103,7 @@ class StatsScreenModel(
             .fastCountNot {
                 (ANIME_NON_COMPLETED in updateRestrictions && it.anime.status.toInt() == SAnime.COMPLETED) ||
                     (ANIME_HAS_UNSEEN in updateRestrictions && it.unseenCount != 0L) ||
-                    (ANIME_NON_SEEN in updateRestrictions && it.totalEpisodes > 0 && !it.hasStarted)
+                    (ANIME_NON_SEEN in updateRestrictions && it.totalCount > 0 && !it.hasStarted)
             }
     }
 

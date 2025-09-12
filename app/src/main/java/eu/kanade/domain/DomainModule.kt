@@ -4,6 +4,7 @@ import android.app.Application
 import eu.kanade.domain.anime.interactor.GetExcludedScanlators
 import eu.kanade.domain.anime.interactor.SetAnimeViewerFlags
 import eu.kanade.domain.anime.interactor.SetExcludedScanlators
+import eu.kanade.domain.anime.interactor.SyncSeasonsWithSource
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.download.interactor.DeleteDownload
 import eu.kanade.domain.episode.interactor.GetAvailableScanlators
@@ -53,7 +54,7 @@ import tachiyomi.data.updates.UpdatesRepositoryImpl
 import tachiyomi.domain.anime.interactor.FetchInterval
 import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.anime.interactor.GetAnimeByUrlAndSourceId
-import tachiyomi.domain.anime.interactor.GetAnimeWithEpisodes
+import tachiyomi.domain.anime.interactor.GetAnimeWithEpisodesAndSeasons
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import tachiyomi.domain.anime.interactor.GetDuplicateLibraryAnime
 import tachiyomi.domain.anime.interactor.GetFavorites
@@ -61,6 +62,7 @@ import tachiyomi.domain.anime.interactor.GetLibraryAnime
 import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
 import tachiyomi.domain.anime.interactor.ResetViewerFlags
 import tachiyomi.domain.anime.interactor.SetAnimeEpisodeFlags
+import tachiyomi.domain.anime.interactor.SetAnimeSeasonFlags
 import tachiyomi.domain.anime.interactor.SetCustomAnimeInfo
 import tachiyomi.domain.anime.interactor.UpdateAnimeNotes
 import tachiyomi.domain.anime.repository.AnimeRepository
@@ -99,6 +101,9 @@ import tachiyomi.domain.history.interactor.UpsertHistory
 import tachiyomi.domain.history.repository.HistoryRepository
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.domain.release.service.ReleaseService
+import tachiyomi.domain.season.interactor.GetAnimeSeasonsByParentId
+import tachiyomi.domain.season.interactor.SetAnimeDefaultSeasonFlags
+import tachiyomi.domain.season.interactor.ShouldUpdateDbSeason
 import tachiyomi.domain.source.interactor.GetRemoteAnime
 import tachiyomi.domain.source.interactor.GetSourcesWithNonLibraryAnime
 import tachiyomi.domain.source.repository.SourceRepository
@@ -138,7 +143,6 @@ class DomainModule : InjektModule {
         addFactory { GetDuplicateLibraryAnime(get()) }
         addFactory { GetFavorites(get()) }
         addFactory { GetLibraryAnime(get()) }
-        addFactory { GetAnimeWithEpisodes(get(), get()) }
         addFactory { GetAnimeByUrlAndSourceId(get()) }
         addFactory { GetAnime(get()) }
         addFactory { GetNextEpisodes(get(), get(), get()) }
@@ -159,6 +163,14 @@ class DomainModule : InjektModule {
                 get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(),
             )
         }
+        // AY -->
+        addFactory { GetAnimeWithEpisodesAndSeasons(get(), get()) }
+        addFactory { GetAnimeSeasonsByParentId(get()) }
+        addFactory { SetAnimeSeasonFlags(get()) }
+        addFactory { SetAnimeDefaultSeasonFlags(get(), get(), get()) }
+        addFactory { ShouldUpdateDbSeason() }
+        addFactory { SyncSeasonsWithSource(get(), get(), get(), get(), get()) }
+        // <-- AY
 
         addSingletonFactory<ReleaseService> { ReleaseServiceImpl(get(), get()) }
         addFactory { GetApplicationRelease(get(), get()) }

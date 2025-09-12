@@ -3,38 +3,38 @@ package tachiyomi.domain.episode.service
 import tachiyomi.domain.episode.model.Episode
 import kotlin.math.floor
 
-fun List<Double>.missingEpisodesCount(): Int {
+fun List<Double>.missingEntriesCount(): Int {
     if (this.isEmpty()) {
         return 0
     }
 
-    val episodes = this
-        // Ignore unknown episode numbers
+    val entries = this
+        // Ignore unknown entry numbers
         .filterNot { it == -1.0 }
         // Convert to integers, as we cannot check if 16.5 is missing
         .map(Double::toInt)
-        // Only keep unique episodes so that -1 or 16 are not counted multiple times
+        // Only keep unique entries so that -1 or 16 are not counted multiple times
         .distinct()
         .sorted()
 
-    if (episodes.isEmpty()) {
+    if (entries.isEmpty()) {
         return 0
     }
 
-    var missingEpisodesCount = 0
-    var previousEpisode = 0 // The actual episode number, not the array index
+    var missingEntriesCount = 0
+    var previousEntry = 0 // The actual entry number, not the array index
 
-    // We go from 0 to lastEpisode - Make sure to use the current index instead of the value
-    for (i in episodes.indices) {
-        val currentEpisode = episodes[i]
-        if (currentEpisode > previousEpisode + 1) {
-            // Add the amount of missing episodes
-            missingEpisodesCount += currentEpisode - previousEpisode - 1
+    // We go from 0 to lastEntry - Make sure to use the current index instead of the value
+    for (i in entries.indices) {
+        val currentEntry = entries[i]
+        if (currentEntry > previousEntry + 1) {
+            // Add the amount of missing entries
+            missingEntriesCount += currentEntry - previousEntry - 1
         }
-        previousEpisode = currentEpisode
+        previousEntry = currentEntry
     }
 
-    return missingEpisodesCount
+    return missingEntriesCount
 }
 
 fun calculateEpisodeGap(higherEpisode: Episode?, lowerEpisode: Episode?): Int {
