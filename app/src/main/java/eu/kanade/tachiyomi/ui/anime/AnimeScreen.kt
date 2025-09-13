@@ -52,6 +52,7 @@ import eu.kanade.tachiyomi.source.isLocalOrStub
 import eu.kanade.tachiyomi.ui.anime.notes.AnimeNotesScreen
 import eu.kanade.tachiyomi.ui.anime.track.TrackInfoDialogHomeScreen
 import eu.kanade.tachiyomi.ui.browse.extension.details.SourcePreferencesScreen
+import eu.kanade.tachiyomi.ui.browse.migration.season.MigrateSeasonSelectScreen
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
@@ -179,7 +180,7 @@ class AnimeScreen(
                 } else {
                     screenModel.showTrackDialog()
                 }
-            // AY -->
+                // AY -->
             }.takeIf { successState.anime.fetchType == FetchType.Episodes },
             // <-- AY
             onTagSearch = { scope.launch { performGenreSearch(navigator, it, screenModel.source!!) } },
@@ -297,6 +298,9 @@ class AnimeScreen(
                     target = dialog.target,
                     // Initiated from the context of [dialog.target] so we show [dialog.current].
                     onClickTitle = { navigator.push(AnimeScreen(dialog.current.id)) },
+                    // AY -->
+                    onClickSeasons = { navigator.push(MigrateSeasonSelectScreen(dialog.current, dialog.target)) },
+                    // <-- AY
                     onDismissRequest = onDismissRequest,
                 )
             }

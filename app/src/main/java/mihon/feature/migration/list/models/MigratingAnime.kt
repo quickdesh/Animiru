@@ -21,6 +21,15 @@ class MigratingAnime(
     sealed interface SearchResult {
         data object Searching : SearchResult
         data object NotFound : SearchResult
+
+        // AY -->
+        data class MismatchedFetchType(
+            val anime: Anime,
+            val episodeCount: Int,
+            val source: String,
+        ) : SearchResult
+
+        // <-- AY
         data class Success(
             val anime: Anime,
             val episodeCount: Int,

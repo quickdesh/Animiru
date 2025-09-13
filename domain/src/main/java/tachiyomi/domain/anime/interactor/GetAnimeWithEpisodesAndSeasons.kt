@@ -13,7 +13,10 @@ class GetAnimeWithEpisodesAndSeasons(
     private val episodeRepository: EpisodeRepository,
 ) {
 
-    suspend fun subscribe(id: Long, applyScanlatorFilter: Boolean = false): Flow<Triple<Anime, List<Episode>, List<SeasonAnime>>> {
+    suspend fun subscribe(
+        id: Long,
+        applyScanlatorFilter: Boolean = false,
+    ): Flow<Triple<Anime, List<Episode>, List<SeasonAnime>>> {
         return combine(
             animeRepository.getAnimeByIdAsFlow(id),
             episodeRepository.getEpisodeByAnimeIdAsFlow(id, applyScanlatorFilter),

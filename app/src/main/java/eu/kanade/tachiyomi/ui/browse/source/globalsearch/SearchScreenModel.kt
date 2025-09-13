@@ -209,6 +209,12 @@ abstract class SearchScreenModel(
         }
     }
 
+    // AY -->
+    fun setSelectDialog(selected: Anime) {
+        mutableState.update { it.copy(dialog = Dialog.Select(selected)) }
+    }
+    // <-- AY
+
     fun clearDialog() {
         mutableState.update { it.copy(dialog = null) }
     }
@@ -228,6 +234,10 @@ abstract class SearchScreenModel(
     }
 
     sealed interface Dialog {
+        // AY -->
+        data class Select(val anime: Anime) : Dialog
+
+        // <-- AY
         data class Migrate(val target: Anime, val current: Anime) : Dialog
     }
 }

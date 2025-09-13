@@ -65,8 +65,8 @@ import eu.kanade.presentation.anime.components.AnimeInfoBox
 import eu.kanade.presentation.anime.components.AnimeSeasonListItem
 import eu.kanade.presentation.anime.components.AnimeToolbar
 import eu.kanade.presentation.anime.components.EpisodeDownloadAction
-import eu.kanade.presentation.anime.components.ItemHeader
 import eu.kanade.presentation.anime.components.ExpandableAnimeDescription
+import eu.kanade.presentation.anime.components.ItemHeader
 import eu.kanade.presentation.anime.components.MissingEpisodeCountListItem
 import eu.kanade.presentation.anime.components.NextEpisodeAiringListItem
 import eu.kanade.presentation.components.relativeDateText
@@ -522,7 +522,7 @@ private fun AnimeScreenSmallImpl(
                     bottom = contentPadding.calculateBottomPadding(),
                 ),
             ) {
-            // <-- AY
+                // <-- AY
                 item(
                     key = AnimeScreenItem.INFO_BOX,
                     contentType = AnimeScreenItem.INFO_BOX,
@@ -948,7 +948,7 @@ fun AnimeScreenLargeImpl(
                             bottom = contentPadding.calculateBottomPadding(),
                         ),
                     ) {
-                    // <-- AY
+                        // <-- AY
                         item(
                             key = AnimeScreenItem.EPISODE_HEADER,
                             contentType = AnimeScreenItem.EPISODE_HEADER,

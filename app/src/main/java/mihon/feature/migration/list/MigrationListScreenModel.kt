@@ -3,11 +3,13 @@ package mihon.feature.migration.list
 import androidx.annotation.FloatRange
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import eu.kanade.domain.anime.interactor.SyncSeasonsWithSource
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
+import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.source.getNameForAnimeInfo
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -51,6 +53,9 @@ class MigrationListScreenModel(
     private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
     private val updateAnime: UpdateAnime = Injekt.get(),
     private val syncEpisodesWithSource: SyncEpisodesWithSource = Injekt.get(),
+    // AY -->
+    private val syncSeasonsWithSource: SyncSeasonsWithSource = Injekt.get(),
+    // <-- AY
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
     private val migrateAnime: MigrateAnimeUseCase = Injekt.get(),
 ) : StateScreenModel<MigrationListScreenModel.State>(State()) {
@@ -97,6 +102,18 @@ class MigrationListScreenModel(
             episodeCount = episodes.size,
         )
     }
+
+    // AY -->
+    private suspend fun Anime.toMismatchSearchResult(): SearchResult.MismatchedFetchType {
+        val episodeInfo = getEpisodeInfo(id)
+        val source = sourceManager.getOrStub(source).getNameForAnimeInfo()
+        return SearchResult.MismatchedFetchType(
+            anime = this,
+            episodeCount = episodeInfo.episodeCount,
+            source = source,
+        )
+    }
+    // <-- AY
 
     private suspend fun Anime.toSuccessSearchResult(): SearchResult.Success {
         val episodeInfo = getEpisodeInfo(id)
@@ -160,7 +177,15 @@ class MigrationListScreenModel(
                 }
             }
 
-            anime.searchResult.value = result?.first?.toSuccessSearchResult() ?: SearchResult.NotFound
+            anime.searchResult.value = result?.first?.let {
+                // AY -->
+                if (anime.anime.fetchType == it.fetchType) {
+                    it.toSuccessSearchResult()
+                } else {
+                    it.toMismatchSearchResult()
+                }
+                // <-- AY
+            } ?: SearchResult.NotFound
 
             if (result == null && hideUnmatched) {
                 removeAnime(anime)
@@ -217,10 +242,22 @@ class MigrationListScreenModel(
         }
     }
 
-    private fun migrationComplete() = items.all { it.searchResult.value != SearchResult.Searching } &&
+    private fun migrationComplete() = items.all {
+        it.searchResult.value != SearchResult.Searching &&
+            // AY -->
+            it.searchResult.value !is SearchResult.MismatchedFetchType
+        // <-- AY
+    } &&
         items.any { it.searchResult.value is SearchResult.Success }
 
-    fun useAnimeForMigration(current: Long, target: Long, onMissingEpisodes: () -> Unit) {
+    // AY -->
+    sealed interface MigrateSearchResult {
+        data class Success(val anime: Anime) : MigrateSearchResult
+        data class Failure(val fetchType: FetchType) : MigrateSearchResult
+    }
+    // <-- AY
+
+    fun useAnimeForMigration(current: Long, target: Long, onMissingEntries: (FetchType) -> Unit) {
         val migratingAnime = items.find { it.anime.id == current } ?: return
         migratingAnime.searchResult.value = SearchResult.Searching
         screenModelScope.launchIO {
@@ -228,29 +265,47 @@ class MigrationListScreenModel(
                 val anime = getAnime.await(target) ?: return@async null
                 try {
                     val source = sourceManager.get(anime.source)!!
-                    val episodes = source.getEpisodeList(anime.toSAnime())
-                    syncEpisodesWithSource.await(episodes, anime, source)
+                    when (anime.fetchType) {
+                        // AY -->
+                        FetchType.Seasons -> {
+                            val seasons = source.getSeasonList(anime.toSAnime())
+                            syncSeasonsWithSource.await(seasons, anime, source)
+                        }
+                        // <-- AY
+                        FetchType.Episodes -> {
+                            val episodes = source.getEpisodeList(anime.toSAnime())
+                            syncEpisodesWithSource.await(episodes, anime, source)
+                        }
+                    }
                 } catch (_: Exception) {
-                    return@async null
+                    return@async MigrateSearchResult.Failure(anime.fetchType)
                 }
-                anime
+                MigrateSearchResult.Success(anime)
             }
                 .await()
 
-            if (result == null) {
+            if (result is MigrateSearchResult.Failure) {
                 migratingAnime.searchResult.value = SearchResult.NotFound
-                withUIContext { onMissingEpisodes() }
+                withUIContext { onMissingEntries(result.fetchType) }
                 return@launchIO
             }
 
+            // AY -->
+            val resultAnime = (result as MigrateSearchResult.Success).anime
+            if (migratingAnime.anime.fetchType != resultAnime.fetchType) {
+                migratingAnime.searchResult.value = resultAnime.toMismatchSearchResult()
+                return@launchIO
+            }
+            // <-- AY
+
             try {
-                val newAnime = sourceManager.getOrStub(result.source).getAnimeDetails(result.toSAnime())
-                updateAnime.awaitUpdateFromSource(result, newAnime, true)
+                val newAnime = sourceManager.getOrStub(resultAnime.source).getAnimeDetails(resultAnime.toSAnime())
+                updateAnime.awaitUpdateFromSource(resultAnime, newAnime, true)
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
             }
-            migratingAnime.searchResult.value = result.toSuccessSearchResult()
+            migratingAnime.searchResult.value = resultAnime.toSuccessSearchResult()
         }
     }
 

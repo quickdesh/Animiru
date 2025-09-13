@@ -39,6 +39,7 @@ import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.core.common.preference.toggle
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.components.material.Button
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
@@ -143,8 +144,8 @@ fun MigrationConfigScreenSheet(
                     preference = preferences.migrationHideUnmatched(),
                 )
                 MigrationSheetSwitchItem(
-                    title = stringResource(MR.strings.migrationConfigScreen_hideWithoutUpdatesTitle),
-                    subtitle = stringResource(MR.strings.migrationConfigScreen_hideWithoutUpdatesSubtitle),
+                    title = stringResource(AMMR.strings.am_migrationConfigScreen_hideWithoutUpdatesTitle),
+                    subtitle = stringResource(AMMR.strings.am_migrationConfigScreen_hideWithoutUpdatesSubtitle),
                     preference = preferences.migrationHideWithoutUpdates(),
                 )
                 MigrationSheetDividerItem()
@@ -155,7 +156,7 @@ fun MigrationConfigScreenSheet(
                     preference = preferences.migrationDeepSearchMode(),
                 )
                 MigrationSheetSwitchItem(
-                    title = stringResource(MR.strings.migrationConfigScreen_prioritizeByChaptersTitle),
+                    title = stringResource(AMMR.strings.am_migrationConfigScreen_prioritizeByChaptersTitle),
                     subtitle = stringResource(MR.strings.migrationConfigScreen_prioritizeByChaptersSubtitle),
                     preference = preferences.migrationPrioritizeByEpisodes(),
                 )

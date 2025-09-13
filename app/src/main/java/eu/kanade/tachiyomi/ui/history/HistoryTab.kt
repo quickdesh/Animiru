@@ -17,6 +17,7 @@ import eu.kanade.presentation.history.HistoryScreen
 import eu.kanade.presentation.history.components.HistoryDeleteAllDialog
 import eu.kanade.presentation.history.components.HistoryDeleteDialog
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
+import eu.kanade.tachiyomi.ui.browse.migration.season.MigrateSeasonSelectScreen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.player.PlayerActivity
@@ -99,6 +100,9 @@ fun Screen.HistoryHalfTab(
                 target = dialog.target,
                 // Initiated from the context of [dialog.target] so we show [dialog.current].
                 onClickTitle = { navigator.push(AnimeScreen(dialog.current.id)) },
+                // AY -->
+                onClickSeasons = { navigator.push(MigrateSeasonSelectScreen(dialog.current, dialog.target)) },
+                // <-- AY
                 onDismissRequest = onDismissRequest,
             )
         }

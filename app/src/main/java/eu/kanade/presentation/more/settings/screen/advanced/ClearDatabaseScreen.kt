@@ -271,6 +271,7 @@ private class ClearDatabaseScreenModel : StateScreenModel<ClearDatabaseScreenMod
     }
 
     // AY -->
+
     /**
      * Get all children of an anime that can be deleted, as well as any orphans.
      * Children that are favorited needs their parentId removed or else they won't be

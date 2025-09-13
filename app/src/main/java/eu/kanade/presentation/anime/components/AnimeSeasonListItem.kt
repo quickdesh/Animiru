@@ -6,10 +6,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import aniyomi.domain.anime.SeasonAnime
 import aniyomi.domain.anime.SeasonDisplayMode
-import eu.kanade.presentation.library.components.DownloadsBadge
 import eu.kanade.presentation.library.components.AnimeComfortableGridItem
 import eu.kanade.presentation.library.components.AnimeCompactGridItem
 import eu.kanade.presentation.library.components.AnimeListItem
+import eu.kanade.presentation.library.components.DownloadsBadge
 import eu.kanade.presentation.library.components.LanguageBadge
 import eu.kanade.presentation.library.components.UnseenBadge
 import eu.kanade.presentation.util.formatEpisodeNumber

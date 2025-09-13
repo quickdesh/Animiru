@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.CopyAll
@@ -55,11 +57,14 @@ import eu.kanade.presentation.util.animateItemFastScroll
 import eu.kanade.presentation.util.formatEpisodeNumber
 import eu.kanade.presentation.util.rememberResourceBitmapPainter
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.animesource.model.FetchType
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import mihon.feature.migration.list.models.MigratingAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.Badge
 import tachiyomi.presentation.core.components.BadgeGroup
 import tachiyomi.presentation.core.components.FastScrollLazyColumn
@@ -76,6 +81,9 @@ fun MigrationListScreenContent(
     finishedCount: Int,
     onItemClick: (Anime) -> Unit,
     onSearchManually: (MigratingAnime) -> Unit,
+    // AY -->
+    onSearchSeasons: (Anime, Anime) -> Unit,
+    // <-- AY
     onSkip: (Long) -> Unit,
     onMigrate: (Long) -> Unit,
     onCopy: (Long) -> Unit,
@@ -157,6 +165,9 @@ fun MigrationListScreenContent(
                         modifier = Modifier.weight(0.2f),
                         result = result,
                         onSearchManually = { onSearchManually(item) },
+                        // AY -->
+                        onSearchSeasons = { onSearchSeasons(item.anime, it) },
+                        // <-- AY
                         onSkip = { onSkip(item.anime.id) },
                         onMigrate = { onMigrate(item.anime.id) },
                         onCopy = { onCopy(item.anime.id) },
@@ -166,6 +177,91 @@ fun MigrationListScreenContent(
         }
     }
 }
+
+// AY -->
+@Composable
+fun MigrationMismatchListItem(
+    modifier: Modifier,
+    anime: Anime,
+    source: String,
+    episodeCount: Int,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .widthIn(max = 150.dp)
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.small)
+            .clickable(onClick = onClick)
+            .padding(4.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(AnimeCover.Book.ratio),
+        ) {
+            AnimeCover.Book(
+                modifier = Modifier.fillMaxWidth(),
+                data = anime,
+            )
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            0f to Color.Transparent,
+                            1f to MaterialTheme.colorScheme.background,
+                        ),
+                    )
+                    .fillMaxHeight(0.4f)
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter),
+            )
+            Text(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .align(Alignment.BottomStart),
+                text = anime.title,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 2,
+                style = MaterialTheme.typography.labelMedium,
+            )
+            BadgeGroup(modifier = Modifier.padding(4.dp)) {
+                Badge(text = "$episodeCount")
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .padding(MaterialTheme.padding.extraSmall),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = source,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                style = MaterialTheme.typography.titleSmall,
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Warning,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.error,
+                )
+
+                Text(
+                    text = stringResource(AMMR.strings.migrationListScreen_mismatchedFetchType),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+    }
+}
+// <-- AY
 
 @Composable
 fun MigrationListItem(
@@ -289,6 +385,17 @@ fun MigrationListItemResult(
                     )
                 }
             }
+            // AY -->
+            is MigratingAnime.SearchResult.MismatchedFetchType -> {
+                MigrationMismatchListItem(
+                    modifier = Modifier.fillMaxSize(),
+                    anime = result.anime,
+                    source = result.source,
+                    episodeCount = result.episodeCount,
+                    onClick = { onItemClick(result.anime) },
+                )
+            }
+            // <-- AY
             is MigratingAnime.SearchResult.Success -> {
                 MigrationListItem(
                     modifier = Modifier.fillMaxSize(),
@@ -308,6 +415,9 @@ private fun MigrationListItemAction(
     modifier: Modifier,
     result: MigratingAnime.SearchResult,
     onSearchManually: () -> Unit,
+    // AY -->
+    onSearchSeasons: (Anime) -> Unit,
+    // <-- AY
     onSkip: () -> Unit,
     onMigrate: () -> Unit,
     onCopy: () -> Unit,
@@ -324,7 +434,12 @@ private fun MigrationListItemAction(
                     )
                 }
             }
-            MigratingAnime.SearchResult.NotFound, is MigratingAnime.SearchResult.Success -> {
+            MigratingAnime.SearchResult.NotFound,
+            // AY -->
+            is MigratingAnime.SearchResult.MismatchedFetchType,
+            // <-- AY
+            is MigratingAnime.SearchResult.Success,
+            -> {
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(
                         imageVector = Icons.Outlined.MoreVert,
@@ -343,6 +458,27 @@ private fun MigrationListItemAction(
                             onSearchManually()
                         },
                     )
+                    // AY -->
+                    if (result is MigratingAnime.SearchResult.MismatchedFetchType ||
+                        result is MigratingAnime.SearchResult.Success
+                    ) {
+                        val anime = when (result) {
+                            is MigratingAnime.SearchResult.MismatchedFetchType -> result.anime
+                            is MigratingAnime.SearchResult.Success -> result.anime
+                            else -> error("How did we get here?")
+                        }
+
+                        if (anime.fetchType == FetchType.Seasons) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(AYMR.strings.label_show_seasons)) },
+                                onClick = {
+                                    closeMenu()
+                                    onSearchSeasons(anime)
+                                },
+                            )
+                        }
+                    }
+                    // <-- AY
                     DropdownMenuItem(
                         text = { Text(stringResource(MR.strings.migrationListScreen_skipActionLabel)) },
                         onClick = {

@@ -1292,6 +1292,7 @@ class AnimeScreenModel(
     }
 
     // AY -->
+
     /**
      * Sets the season download filter and requests an UI update.
      * @param state whether to display only downloaded seasons or all seasons.
@@ -1680,9 +1681,11 @@ class AnimeScreenModel(
 
         // <-- AM (CUSTOM_INFORMATION)
         data object ChangeAnimeSkipIntro : Dialog
+
         // AY -->
         data object EpisodeSettingsSheet : Dialog
         data object SeasonSettingsSheet : Dialog
+
         // <-- AY
         data object TrackSheet : Dialog
         data object FullCover : Dialog
@@ -1835,10 +1838,10 @@ class AnimeScreenModel(
             val filterActive: Boolean
                 // AY -->
                 get() = scanlatorFilterActive || when (anime.fetchType) {
-                        FetchType.Episodes -> anime.episodesFiltered()
-                        FetchType.Seasons -> anime.seasonsFiltered()
-                    }
-                // <-- AY
+                    FetchType.Episodes -> anime.episodesFiltered()
+                    FetchType.Seasons -> anime.seasonsFiltered()
+                }
+            // <-- AY
 
             /**
              * Applies the view filters to the list of episodes obtained from the database.
@@ -1892,9 +1895,9 @@ class AnimeScreenModel(
                             isLocal = anime.seasonLocalOverlay && it.isLocal,
                             sourceLanguage = if (anime.seasonLangOverlay) it.sourceLanguage else "",
                             showContinueOverlay =
-                                anime.seasonContinueOverlay &&
-                                    it.unseenCount > 0 &&
-                                    itemAnime.fetchType == FetchType.Episodes,
+                            anime.seasonContinueOverlay &&
+                                it.unseenCount > 0 &&
+                                itemAnime.fetchType == FetchType.Episodes,
                         )
                     }
             }

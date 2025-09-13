@@ -103,6 +103,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     private val syncEpisodesWithSource: SyncEpisodesWithSource = Injekt.get()
     private val fetchInterval: FetchInterval = Injekt.get()
     private val filterEpisodesForDownload: FilterEpisodesForDownload = Injekt.get()
+
     // AY -->
     private val getAnimeSeasonsByParentId: GetAnimeSeasonsByParentId = Injekt.get()
     // <-- AY
@@ -287,7 +288,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                         false
                     }
 
-                    ANIME_NON_SEEN in restrictions && /* AY --> */ it.totalCount /* <-- AY */ > 0L && !it.hasStarted -> {
+                    ANIME_NON_SEEN in restrictions && it.totalCount > 0L && !it.hasStarted -> {
                         skippedUpdates.add(
                             it.anime to context.stringResource(AMMR.strings.skipped_reason_not_started_anime),
                         )
@@ -348,7 +349,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                                 // Don't continue to update if anime is not in library
                                 // AY -->
                                 if (anime.parentId == null && getAnime.await(anime.id)?.favorite != true) {
-                                // <-- AY
+                                    // <-- AY
                                     return@forEach
                                 }
 

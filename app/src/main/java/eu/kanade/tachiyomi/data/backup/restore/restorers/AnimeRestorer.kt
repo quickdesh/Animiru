@@ -113,9 +113,13 @@ class AnimeRestorer(
 
     private suspend fun restoreExistingAnime(anime: Anime, dbAnime: Anime): Anime {
         return if (anime.version > dbAnime.version) {
-            updateAnime(dbAnime.copyFrom(anime).copy(id = dbAnime.id, /* AY --> */ parentId = anime.parentId /* <-- AY */))
+            updateAnime(
+                dbAnime.copyFrom(anime).copy(id = dbAnime.id, /* AY --> */ parentId = anime.parentId /* <-- AY */),
+            )
         } else {
-            updateAnime(anime.copyFrom(dbAnime).copy(id = dbAnime.id, /* AY --> */ parentId = anime.parentId /* <-- AY */))
+            updateAnime(
+                anime.copyFrom(dbAnime).copy(id = dbAnime.id, /* AY --> */ parentId = anime.parentId /* <-- AY */),
+            )
         }
     }
 

@@ -11,13 +11,15 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.util.Screen
+import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.browse.migration.search.MigrateSearchScreen
+import eu.kanade.tachiyomi.ui.browse.migration.season.MigrateSeasonSelectScreen
 import eu.kanade.tachiyomi.util.system.toast
 import mihon.feature.migration.list.components.MigrationAnimeDialog
 import mihon.feature.migration.list.components.MigrationExitDialog
 import mihon.feature.migration.list.components.MigrationProgressDialog
-import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 
 class MigrationListScreen(private val animeIds: Collection<Long>, private val extraSearchQuery: String?) : Screen() {
 
@@ -39,8 +41,14 @@ class MigrationListScreen(private val animeIds: Collection<Long>, private val ex
             screenModel.useAnimeForMigration(
                 current = current,
                 target = target,
-                onMissingEpisodes = {
-                    context.toast(MR.strings.migrationListScreen_matchWithoutChapterToast, Toast.LENGTH_LONG)
+                onMissingEntries = {
+                    // AY -->
+                    val stringResource = when (it) {
+                        FetchType.Seasons -> AMMR.strings.am_migrationListScreen_matchWithoutSeasonToast
+                        FetchType.Episodes -> AMMR.strings.am_migrationListScreen_matchWithoutEpisodeToast
+                    }
+                    // <-- AY
+                    context.toast(stringResource, Toast.LENGTH_LONG)
                 },
             )
             matchOverride = null
@@ -61,6 +69,11 @@ class MigrationListScreen(private val animeIds: Collection<Long>, private val ex
             onSearchManually = { migrationItem ->
                 navigator push MigrateSearchScreen(migrationItem.anime.id)
             },
+            // AY -->
+            onSearchSeasons = { current, target ->
+                navigator push MigrateSeasonSelectScreen(current, target, true)
+            },
+            // <-- AY
             onSkip = { screenModel.removeAnime(it) },
             onMigrate = { screenModel.migrateNow(animeId = it, replace = true) },
             onCopy = { screenModel.migrateNow(animeId = it, replace = false) },

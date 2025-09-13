@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.animesource.model
 
-
 /**
  * Define what type of content the anime should fetch.
  * The fetch type for a [SAnime] will not update after it's been initialized

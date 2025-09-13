@@ -226,7 +226,7 @@ fun AnimeActionRow(
         )
         // AY -->
         if (onTrackingClicked != null) {
-        // <-- AY
+            // <-- AY
             AnimeActionButton(
                 title = if (trackingCount == 0) {
                     stringResource(MR.strings.manga_tracking_tab)

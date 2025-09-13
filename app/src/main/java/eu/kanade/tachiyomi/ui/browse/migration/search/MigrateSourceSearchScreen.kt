@@ -23,6 +23,7 @@ import eu.kanade.presentation.components.SearchToolbar
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
+import eu.kanade.tachiyomi.ui.browse.migration.season.MigrateSeasonSelectScreen
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.browse.SourceFilterDialog
 import eu.kanade.tachiyomi.ui.home.HomeScreen
@@ -137,6 +138,9 @@ data class MigrateSourceSearchScreen(
                     // Initiated from the context of [currentAnime] so we show [dialog.target].
                     onClickTitle = { navigator.push(AnimeScreen(dialog.target.id)) },
                     onDismissRequest = onDismissRequest,
+                    // AY -->
+                    onClickSeasons = { navigator.push(MigrateSeasonSelectScreen(currentAnime, dialog.target)) },
+                    // <-- AY
                     onComplete = {
                         scope.launch {
                             navigator.popUntilRoot()
