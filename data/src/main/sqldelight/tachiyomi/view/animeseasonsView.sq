@@ -57,12 +57,6 @@ LEFT JOIN episodestatsView AS ES
 ON A._id = ES.anime_id
 LEFT JOIN historystatsView AS HS
 ON A._id = HS.anime_id
-LEFT JOIN (
-    SELECT anime_id, group_concat(category_id) AS categories
-    FROM animes_categories
-    GROUP BY anime_id
-) AS AC
-ON AC.anime_id = A._id
 WHERE A.parent_id IS NOT NULL;
 
 getAnimeSeasonsById:

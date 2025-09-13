@@ -56,18 +56,24 @@ fun ItemHeader(
             color = MaterialTheme.colorScheme.onBackground,
         )
 
-        MissingEpisodesWarning(missingItemsCount)
+        MissingEpisodesWarning(fetchType, missingItemsCount)
     }
 }
 
 @Composable
-private fun MissingEpisodesWarning(count: Int) {
+private fun MissingEpisodesWarning(fetchType: FetchType, count: Int) {
     if (count == 0) {
         return
     }
 
+    // AM -->
+    val pluralRes = when (fetchType) {
+        FetchType.Seasons -> AMMR.plurals.missing_seasons
+        FetchType.Episodes -> AMMR.plurals.missing_episodes
+    }
+    // <-- AM
     Text(
-        text = pluralStringResource(AMMR.plurals.missing_episodes, count = count, count),
+        text = pluralStringResource(pluralRes, count = count, count),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         style = MaterialTheme.typography.bodySmall,
