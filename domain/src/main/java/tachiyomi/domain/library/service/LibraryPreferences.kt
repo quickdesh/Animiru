@@ -205,6 +205,10 @@ class LibraryPreferences(
         sortEpisodeByAscendingOrDescending().set(
             if (anime.sortDescending()) Anime.EPISODE_SORT_DESC else Anime.EPISODE_SORT_ASC,
         )
+        // AY -->
+        showEpisodeThumbnailPreviews().set(anime.showPreviewsRaw)
+        showEpisodeSummaries().set(anime.showSummariesRaw)
+        // <-- AY
     }
 
     fun hideMissingEpisodes() = preferenceStore.getBoolean("pref_hide_missing_episode_indicators", false)

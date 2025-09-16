@@ -149,9 +149,15 @@ data class Anime(
     }
 
     // AY -->
+    val showPreviewsRaw: Long
+        get() = episodeFlags and EPISODE_PREVIEWS_MASK
+
     fun showPreviews(): Boolean {
         return episodeFlags and EPISODE_PREVIEWS_MASK == EPISODE_SHOW_PREVIEWS
     }
+
+    val showSummariesRaw: Long
+        get() = episodeFlags and EPISODE_SUMMARIES_MASK
 
     fun showSummaries(): Boolean {
         return episodeFlags and EPISODE_SUMMARIES_MASK == EPISODE_SHOW_SUMMARIES
