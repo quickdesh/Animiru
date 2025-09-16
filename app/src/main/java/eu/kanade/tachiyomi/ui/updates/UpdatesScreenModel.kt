@@ -240,7 +240,7 @@ class UpdatesScreenModel(
         toggleAllSelection(false)
     }
 
-    // AM (FILLERMARK) -->
+    // AY -->
 
     /**
      * Fillermarks the given list of episodes.
@@ -255,7 +255,7 @@ class UpdatesScreenModel(
         }
         toggleAllSelection(false)
     }
-    // <-- AM (FILLERMARK)
+    // <-- AY
 
     /**
      * Downloads the given list of episodes with the manager.

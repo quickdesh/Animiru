@@ -54,9 +54,9 @@ class UpdatesRepositoryImpl(
         scanlator: String?,
         seen: Boolean,
         bookmark: Boolean,
-        // AM (FILLERMARK) -->
+        // AY -->
         fillermark: Boolean,
-        // <-- AM (FILLERMARK)
+        // <-- AY
         lastSecondSeen: Long,
         // AY -->
         totalSeconds: Long,
@@ -77,9 +77,9 @@ class UpdatesRepositoryImpl(
         scanlator = scanlator,
         seen = seen,
         bookmark = bookmark,
-        // AM (FILLERMARK) -->
+        // AY -->
         fillermark = fillermark,
-        // <-- AM (FILLERMARK)
+        // <-- AY
         lastSecondSeen = lastSecondSeen,
         // AY -->
         totalSeconds = totalSeconds,

@@ -15,6 +15,9 @@ fun SAnime.toDomainAnime(sourceId: Long): Anime {
         ogStatus = status.toLong(),
         // <-- AM (CUSTOM_INFORMATION)
         thumbnailUrl = thumbnail_url,
+        // AY -->
+        backgroundUrl = background_url,
+        // <-- AY
         updateStrategy = update_strategy,
         // AY -->
         fetchType = fetch_type,

@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
@@ -136,9 +137,7 @@ data class BrowseSourceScreen(
                         .background(MaterialTheme.colorScheme.surface)
                         .pointerInput(Unit) {}
                         // AY -->
-                        .onGloballyPositioned { layoutCoordinates ->
-                            topBarHeight = layoutCoordinates.size.height
-                        },
+                        .onSizeChanged { topBarHeight = it.height },
                     // <-- AY
                 ) {
                     BrowseSourceToolbar(

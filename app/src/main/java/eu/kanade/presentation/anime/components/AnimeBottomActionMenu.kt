@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Input
 import androidx.compose.material.icons.automirrored.outlined.Label
+import androidx.compose.material.icons.automirrored.outlined.LabelOff
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.BookmarkAdd
 import androidx.compose.material.icons.outlined.BookmarkRemove
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.NewLabel
 import androidx.compose.material.icons.outlined.RemoveDone
 import androidx.compose.material.icons.outlined.SwapCalls
 import androidx.compose.material3.DropdownMenuItem
@@ -79,10 +81,10 @@ fun AnimeBottomActionMenu(
     modifier: Modifier = Modifier,
     onBookmarkClicked: (() -> Unit)? = null,
     onRemoveBookmarkClicked: (() -> Unit)? = null,
-    // AM (FILLERMARK) -->
+    // AY -->
     onFillermarkClicked: (() -> Unit)? = null,
     onRemoveFillermarkClicked: (() -> Unit)? = null,
-    // <-- AM (FILLERMARK)
+    // <-- AY
     onMarkAsSeenClicked: (() -> Unit)? = null,
     onMarkAsUnseenClicked: (() -> Unit)? = null,
     onMarkPreviousAsSeenClicked: (() -> Unit)? = null,
@@ -108,12 +110,12 @@ fun AnimeBottomActionMenu(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             val haptic = LocalHapticFeedback.current
-            // AM (FILLERMARK) -->
+            // AY -->
             val confirm = remember {
                 mutableStateListOf(false, false, false, false, false, false, false, false, false, false, false)
             }
             val confirmRange = 0..<11
-            // <-- AM (FILLERMARK)
+            // <-- AY
             var resetJob: Job? = remember { null }
             val onLongClickItem: (Int) -> Unit = { toConfirmIndex ->
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -151,11 +153,11 @@ fun AnimeBottomActionMenu(
                         onClick = onRemoveBookmarkClicked,
                     )
                 }
-                // AM (FILLERMARK) -->
+                // AY -->
                 if (onFillermarkClicked != null) {
                     Button(
-                        title = stringResource(AMMR.strings.action_fillermark_episode),
-                        icon = ImageVector.vectorResource(id = R.drawable.ic_fillermark_24dp),
+                        title = stringResource(AYMR.strings.action_fillermark_episode),
+                        icon = Icons.Outlined.NewLabel,
                         toConfirm = confirm[2],
                         onLongClick = { onLongClickItem(2) },
                         onClick = onFillermarkClicked,
@@ -163,14 +165,14 @@ fun AnimeBottomActionMenu(
                 }
                 if (onRemoveFillermarkClicked != null) {
                     Button(
-                        title = stringResource(AMMR.strings.action_remove_fillermark_episode),
-                        icon = ImageVector.vectorResource(id = R.drawable.ic_fillermark_border_24dp),
+                        title = stringResource(AYMR.strings.action_remove_fillermark_episode),
+                        icon = Icons.AutoMirrored.Outlined.LabelOff,
                         toConfirm = confirm[3],
                         onLongClick = { onLongClickItem(3) },
                         onClick = onRemoveFillermarkClicked,
                     )
                 }
-                // <-- AM (FILLERMARK)
+                // <-- AY
                 if (onMarkAsSeenClicked != null) {
                     Button(
                         title = stringResource(AMMR.strings.am_action_mark_as_seen),

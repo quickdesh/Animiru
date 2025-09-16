@@ -14,9 +14,9 @@ data class UpdatesWithRelations(
     val scanlator: String?,
     val seen: Boolean,
     val bookmark: Boolean,
-    // AM (FILLERMARK) -->
+    // AY -->
     val fillermark: Boolean,
-    // <-- AM (FILLERMARK)
+    // <-- AY
     val lastSecondSeen: Long,
     // AY -->
     val totalSeconds: Long,

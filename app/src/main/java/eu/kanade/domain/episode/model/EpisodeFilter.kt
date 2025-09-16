@@ -18,15 +18,15 @@ fun List<Episode>.applyFilters(anime: Anime, downloadManager: DownloadManager): 
     val unseenFilter = anime.unseenFilter
     val downloadedFilter = anime.downloadedFilter
     val bookmarkedFilter = anime.bookmarkedFilter
-    // AM (FILLERMARK) -->
+    // AY -->
     val fillermarkedFilter = anime.fillermarkedFilter
-    // <-- AM (FILLERMARK)
+    // <-- AY
 
     return filter { episode -> applyFilter(unseenFilter) { !episode.seen } }
         .filter { episode -> applyFilter(bookmarkedFilter) { episode.bookmark } }
-        // AM (FILLERMARK) -->
+        // AY -->
         .filter { episode -> applyFilter(fillermarkedFilter) { episode.fillermark } }
-        // <-- AM (FILLERMARK)
+        // <-- AY
         .filter { episode ->
             applyFilter(downloadedFilter) {
                 val downloaded = downloadManager.isEpisodeDownloaded(
@@ -52,15 +52,15 @@ fun List<EpisodeList.Item>.applyFilters(anime: Anime): Sequence<EpisodeList.Item
     val unseenFilter = anime.unseenFilter
     val downloadedFilter = anime.downloadedFilter
     val bookmarkedFilter = anime.bookmarkedFilter
-    // AM (FILLERMARK) -->
+    // AY -->
     val fillermarkedFilter = anime.fillermarkedFilter
-    // <-- AM (FILLERMARK)
+    // <-- AY
     return asSequence()
         .filter { (episode) -> applyFilter(unseenFilter) { !episode.seen } }
         .filter { (episode) -> applyFilter(bookmarkedFilter) { episode.bookmark } }
-        // AM (FILLERMARK) -->
+        // AY -->
         .filter { (episode) -> applyFilter(fillermarkedFilter) { episode.fillermark } }
-        // <-- AM (FILLERMARK)
+        // <-- AY
         .filter { applyFilter(downloadedFilter) { it.isDownloaded || isLocalAnime } }
         .sortedWith { (episode1), (episode2) -> getEpisodeSort(anime).invoke(episode1, episode2) }
 }

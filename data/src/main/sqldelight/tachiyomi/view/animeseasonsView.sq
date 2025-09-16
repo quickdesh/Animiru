@@ -1,65 +1,46 @@
+-- AY -->
 CREATE VIEW animeseasonsView AS
 SELECT
     A.*,
     CASE A.fetch_type
         WHEN 1 THEN coalesce(ES.total, 0)
-        WHEN 0 THEN (SELECT count(*) FROM animes WHERE parent_id = A._id)
+        WHEN 0 THEN coalesce(ASS.child_count, 0)
     END AS totalCount,
     CASE A.fetch_type
         WHEN 1 THEN coalesce(ES.seenCount, 0)
-        WHEN 0 THEN (
-            SELECT count(*)
-            FROM animes season
-            LEFT JOIN episodestatsView season_stats ON season._id = season_stats.anime_id
-            WHERE season.parent_id = A._id
-              AND season.fetch_type = 1
-              AND coalesce(season_stats.total, 0) = coalesce(season_stats.seenCount, 0)
-        )
+        WHEN 0 THEN coalesce(ASS.fully_seen_seasons, 0)
     END AS seenCount,
     CASE A.fetch_type
         WHEN 1 THEN coalesce(ES.latestUpload, 0)
-        WHEN 0 THEN (
-            SELECT coalesce(max(season_stats.latestUpload), 0)
-            FROM animes season
-            LEFT JOIN episodestatsView season_stats ON season._id = season_stats.anime_id
-            WHERE season.parent_id = A._id
-        )
+        WHEN 0 THEN coalesce(ASS.max_latest_upload, 0)
     END AS latestUpload,
     CASE A.fetch_type
         WHEN 1 THEN coalesce(ES.fetchedAt, 0)
-        WHEN 0 THEN (
-            SELECT coalesce(max(season_stats.fetchedAt), 0)
-            FROM animes season
-            LEFT JOIN episodestatsView season_stats ON season._id = season_stats.anime_id
-            WHERE season.parent_id = A._id
-        )
+        WHEN 0 THEN coalesce(ASS.max_fetched_at, 0)
     END AS episodeFetchedAt,
     CASE A.fetch_type
         WHEN 1 THEN coalesce(HS.lastSeen, 0)
-        WHEN 0 THEN (
-            SELECT coalesce(max(child_history.lastSeen), 0)
-            FROM animes season
-            LEFT JOIN historystatsView child_history ON season._id = child_history.anime_id
-            WHERE season.parent_id = A._id
-        )
+        WHEN 0 THEN coalesce(ASS.max_last_seen, 0)
     END AS lastSeen,
     CASE A.fetch_type
         WHEN 1 THEN coalesce(ES.bookmarkCount, 0)
-        WHEN 0 THEN (
-            SELECT coalesce(sum(season_stats.bookmarkCount), 0)
-            FROM animes season
-            LEFT JOIN episodestatsView season_stats ON season._id = season_stats.anime_id
-            WHERE season.parent_id = A._id
-        )
-    END AS bookmarkCount
+        WHEN 0 THEN coalesce(ASS.total_bookmarks, 0)
+    END AS bookmarkCount,
+    CASE A.fetch_type
+        WHEN 1 THEN coalesce(ES.fillermarkCount, 0)
+        WHEN 0 THEN coalesce(ASS.total_fillermarks, 0)
+    END AS fillermarkCount
 FROM animes AS A
 LEFT JOIN episodestatsView AS ES
 ON A._id = ES.anime_id
 LEFT JOIN historystatsView AS HS
 ON A._id = HS.anime_id
+LEFT JOIN animeseasonstatsView AS ASS
+ON A._id = ASS.parent_id
 WHERE A.parent_id IS NOT NULL;
 
 getAnimeSeasonsById:
 SELECT *
 FROM animeseasonsView
 WHERE parent_id = :parentId;
+-- <-- AY

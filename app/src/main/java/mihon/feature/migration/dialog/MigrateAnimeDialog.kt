@@ -29,10 +29,12 @@ import androidx.compose.ui.util.fastForEach
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import eu.kanade.domain.anime.model.hasCustomBackground
 import eu.kanade.domain.anime.model.hasCustomCover
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.anime.components.IndicatorSize
 import eu.kanade.tachiyomi.animesource.model.FetchType
+import eu.kanade.tachiyomi.data.cache.BackgroundCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import kotlinx.coroutines.flow.update
@@ -187,6 +189,9 @@ private class MigrateDialogScreenModel(
     private val _target: Anime,
     private val sourcePreference: SourcePreferences = Injekt.get(),
     private val coverCache: CoverCache = Injekt.get(),
+    // AY -->
+    private val backgroundCache: BackgroundCache = Injekt.get(),
+    // <-- AY
     private val downloadManager: DownloadManager = Injekt.get(),
     private val migrateAnime: MigrateAnimeUseCase = Injekt.get(),
 ) : StateScreenModel<MigrateDialogScreenModel.State>(State()) {
@@ -207,6 +212,9 @@ private class MigrateDialogScreenModel(
                     MigrationFlag.EPISODE -> true
                     MigrationFlag.CATEGORY -> true
                     MigrationFlag.CUSTOM_COVER -> current.hasCustomCover(coverCache)
+                    // AY -->
+                    MigrationFlag.CUSTOM_BACKGROUND -> current.hasCustomBackground(backgroundCache)
+                    // <-- AY
                     MigrationFlag.NOTES -> current.notes.isNotBlank()
                     MigrationFlag.REMOVE_DOWNLOAD -> downloadManager.getDownloadCount(current) > 0
                 }

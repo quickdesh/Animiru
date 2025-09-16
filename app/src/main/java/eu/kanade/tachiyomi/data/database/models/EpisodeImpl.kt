@@ -14,13 +14,19 @@ class EpisodeImpl : Episode {
 
     override var scanlator: String? = null
 
+    // AY -->
+    override var summary: String? = null
+
+    override var preview_url: String? = null
+    // <-- AY
+
     override var seen: Boolean = false
 
     override var bookmark: Boolean = false
 
-    // AM (FILLERMARK) -->
+    // AY -->
     override var fillermark: Boolean = false
-    // <-- AM (FILLERMARK)
+    // <-- AY
 
     override var last_second_seen: Long = 0
 

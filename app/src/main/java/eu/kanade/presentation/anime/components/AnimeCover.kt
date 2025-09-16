@@ -18,6 +18,10 @@ import eu.kanade.tachiyomi.R
 enum class AnimeCover(val ratio: Float) {
     Square(1f / 1f),
     Book(2f / 3f),
+
+    // AY -->
+    Thumb(16f / 9f),
+    // <-- AY
     ;
 
     @Composable

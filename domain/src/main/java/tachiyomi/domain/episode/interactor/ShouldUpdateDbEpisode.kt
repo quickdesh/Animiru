@@ -9,6 +9,11 @@ class ShouldUpdateDbEpisode {
             dbEpisode.name != sourceEpisode.name ||
             dbEpisode.dateUpload != sourceEpisode.dateUpload ||
             dbEpisode.episodeNumber != sourceEpisode.episodeNumber ||
-            dbEpisode.sourceOrder != sourceEpisode.sourceOrder
+            dbEpisode.sourceOrder != sourceEpisode.sourceOrder ||
+            // AY -->
+            dbEpisode.summary != sourceEpisode.summary ||
+            dbEpisode.fillermark != sourceEpisode.fillermark ||
+            dbEpisode.previewUrl != sourceEpisode.previewUrl
+        // <-- AY
     }
 }

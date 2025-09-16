@@ -29,8 +29,8 @@ import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.domain.ui.model.setAppCompatDelegateThemeMode
 import eu.kanade.tachiyomi.crash.CrashActivity
 import eu.kanade.tachiyomi.crash.GlobalExceptionHandler
-import eu.kanade.tachiyomi.data.coil.AnimeCoverFetcher
 import eu.kanade.tachiyomi.data.coil.AnimeCoverKeyer
+import eu.kanade.tachiyomi.data.coil.AnimeImageFetcher
 import eu.kanade.tachiyomi.data.coil.AnimeKeyer
 import eu.kanade.tachiyomi.data.coil.BufferedSourceFetcher
 import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
@@ -42,7 +42,6 @@ import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.ui.base.delegate.SecureActivityDelegate
 import eu.kanade.tachiyomi.util.system.DeviceUtil
-import eu.kanade.tachiyomi.util.system.GLUtil
 import eu.kanade.tachiyomi.util.system.WebViewUtil
 import eu.kanade.tachiyomi.util.system.animatorDurationScale
 import eu.kanade.tachiyomi.util.system.cancelNotification
@@ -59,7 +58,6 @@ import org.conscrypt.Conscrypt
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
-import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.widget.WidgetManager
@@ -175,8 +173,8 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                 add(OkHttpNetworkFetcherFactory(callFactoryLazy::value))
                 // Fetcher.Factory
                 add(BufferedSourceFetcher.Factory())
-                add(AnimeCoverFetcher.AnimeCoverFactory(callFactoryLazy))
-                add(AnimeCoverFetcher.AnimeFactory(callFactoryLazy))
+                add(AnimeImageFetcher.AnimeCoverFactory(callFactoryLazy))
+                add(AnimeImageFetcher.AnimeFactory(callFactoryLazy))
                 // Keyer
                 add(AnimeCoverKeyer())
                 add(AnimeKeyer())

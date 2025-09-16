@@ -7,9 +7,7 @@ SELECT
     coalesce(max(episodes.date_upload), 0) AS latestUpload,
     coalesce(max(episodes.date_fetch), 0) AS fetchedAt,
     sum(episodes.bookmark) AS bookmarkCount,
-    -- AM (FILLERMARK) -->
     sum(episodes.fillermark) AS fillermarkCount
-    -- <-- AM (FILLERMARK)
 FROM episodes
 LEFT JOIN excluded_scanlators
     ON episodes.anime_id = excluded_scanlators.anime_id

@@ -82,10 +82,10 @@ class LibraryPreferences(
         TriState.DISABLED,
     )
 
-    // AM (FILLERMARK) -->
+    // AY -->
     fun filterFillermarked() =
         preferenceStore.getEnum("pref_filter_library_fillermarked_v2", TriState.DISABLED)
-    // <-- AM (FILLERMARK)
+    // <-- AY
 
     fun filterCompleted() = preferenceStore.getEnum(
         "pref_filter_library_completed_v2",
@@ -158,12 +158,12 @@ class LibraryPreferences(
         Anime.SHOW_ALL,
     )
 
-    // AM (FILLERMARK) -->
+    // AY-->
     fun filterEpisodeByFillermarked() = preferenceStore.getLong(
         "default_episode_filter_by_fillermarked",
         Anime.SHOW_ALL,
     )
-    // <-- AM (FILLERMARK)
+    // <-- AY
 
     // and upload date
     fun sortEpisodeBySourceOrNumber() = preferenceStore.getLong(
@@ -181,13 +181,25 @@ class LibraryPreferences(
         Anime.EPISODE_SORT_DESC,
     )
 
+    // AY -->
+    fun showEpisodeThumbnailPreviews() = preferenceStore.getLong(
+        "default_episode_show_thumbnail_previews",
+        Anime.EPISODE_SHOW_PREVIEWS,
+    )
+
+    fun showEpisodeSummaries() = preferenceStore.getLong(
+        "default_episode_show_summaries",
+        Anime.EPISODE_SHOW_SUMMARIES,
+    )
+    // <-- AY
+
     fun setEpisodeSettingsDefault(anime: Anime) {
         filterEpisodeBySeen().set(anime.unseenFilterRaw)
         filterEpisodeByDownloaded().set(anime.downloadedFilterRaw)
         filterEpisodeByBookmarked().set(anime.bookmarkedFilterRaw)
-        // AM (FILLERMARK) -->
+        // AY -->
         filterEpisodeByFillermarked().set(anime.fillermarkedFilterRaw)
-        // <-- AM (FILLERMARK)
+        // <-- AY
         sortEpisodeBySourceOrNumber().set(anime.sorting)
         displayEpisodeByNameOrNumber().set(anime.displayMode)
         sortEpisodeByAscendingOrDescending().set(
@@ -210,11 +222,14 @@ class LibraryPreferences(
     fun filterSeasonByStarted() =
         preferenceStore.getLong("default_season_filter_by_started", Anime.SHOW_ALL)
 
+    fun filterSeasonByCompleted() =
+        preferenceStore.getLong("default_season_filter_by_completed", Anime.SHOW_ALL)
+
     fun filterSeasonByBookmarked() =
         preferenceStore.getLong("default_season_filter_by_bookmarked", Anime.SHOW_ALL)
 
-    fun filterSeasonByCompleted() =
-        preferenceStore.getLong("default_season_filter_by_completed", Anime.SHOW_ALL)
+    fun filterSeasonByFillermarked() =
+        preferenceStore.getLong("default_season_filter_by_fillermarked", Anime.SHOW_ALL)
 
     fun sortSeasonBySourceOrNumber() = preferenceStore.getLong(
         "default_season_sort_by_source_or_number",
@@ -270,8 +285,9 @@ class LibraryPreferences(
         filterSeasonByDownload().set(anime.seasonUnseenFilterRaw)
         filterSeasonByUnseen().set(anime.seasonUnseenFilterRaw)
         filterSeasonByStarted().set(anime.seasonStartedFilterRaw)
-        filterSeasonByBookmarked().set(anime.seasonBookmarkedFilterRaw)
         filterSeasonByCompleted().set(anime.seasonCompletedFilterRaw)
+        filterSeasonByBookmarked().set(anime.seasonBookmarkedFilterRaw)
+        filterSeasonByFillermarked().set(anime.seasonFillermarkedFilterRaw)
         sortSeasonBySourceOrNumber().set(anime.seasonSorting)
         sortSeasonByAscendingOrDescending().set(
             if (anime.seasonSortDescending()) Anime.SEASON_SORT_DESC else Anime.SEASON_SORT_ASC,
@@ -315,10 +331,10 @@ class LibraryPreferences(
         ToggleSeen,
         ToggleBookmark,
 
-        // AM (FILLERMARK) -->
+        // AY -->
         ToggleFillermark,
 
-        // <-- AM (FILLERMARK)
+        // <-- AY
         Download,
         Disabled,
     }

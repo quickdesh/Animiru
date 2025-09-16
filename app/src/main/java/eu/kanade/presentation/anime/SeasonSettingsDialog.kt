@@ -48,8 +48,9 @@ fun SeasonSettingsDialog(
     onDownloadFilterChanged: (TriState) -> Unit,
     onUnseenFilterChanged: (TriState) -> Unit,
     onStartedFilterChanged: (TriState) -> Unit,
-    onBookmarkedFilterChanged: (TriState) -> Unit,
     onCompletedFilterChanged: (TriState) -> Unit,
+    onBookmarkedFilterChanged: (TriState) -> Unit,
+    onFillermarkedFilterChanged: (TriState) -> Unit,
 
     // Sort page
     onSortModeChanged: (Long) -> Unit,
@@ -110,10 +111,12 @@ fun SeasonSettingsDialog(
                         onUnseenFilterChanged = onUnseenFilterChanged,
                         startedFilter = anime?.seasonStartedFilter ?: TriState.DISABLED,
                         onStartedFilterChanged = onStartedFilterChanged,
-                        bookmarkedFilter = anime?.seasonBookmarkedFilter ?: TriState.DISABLED,
-                        onBookmarkedFilterChanged = onBookmarkedFilterChanged,
                         completedFilter = anime?.seasonCompletedFilter ?: TriState.DISABLED,
                         onCompletedFilterChanged = onCompletedFilterChanged,
+                        bookmarkedFilter = anime?.seasonBookmarkedFilter ?: TriState.DISABLED,
+                        onBookmarkedFilterChanged = onBookmarkedFilterChanged,
+                        fillermarkedFilter = anime?.seasonFillermarkedFilter ?: TriState.DISABLED,
+                        onFillermarkedFilterChanged = onFillermarkedFilterChanged,
                     )
                 }
                 1 -> {
@@ -156,10 +159,12 @@ private fun ColumnScope.SeasonFilterPage(
     onUnseenFilterChanged: (TriState) -> Unit,
     startedFilter: TriState,
     onStartedFilterChanged: (TriState) -> Unit,
-    bookmarkedFilter: TriState,
-    onBookmarkedFilterChanged: (TriState) -> Unit,
     completedFilter: TriState,
     onCompletedFilterChanged: (TriState) -> Unit,
+    bookmarkedFilter: TriState,
+    onBookmarkedFilterChanged: (TriState) -> Unit,
+    fillermarkedFilter: TriState,
+    onFillermarkedFilterChanged: (TriState) -> Unit,
 ) {
     TriStateItem(
         label = stringResource(MR.strings.label_downloaded),
@@ -177,14 +182,19 @@ private fun ColumnScope.SeasonFilterPage(
         onClick = onStartedFilterChanged,
     )
     TriStateItem(
+        label = stringResource(MR.strings.completed),
+        state = completedFilter,
+        onClick = onCompletedFilterChanged,
+    )
+    TriStateItem(
         label = stringResource(MR.strings.action_filter_bookmarked),
         state = bookmarkedFilter,
         onClick = onBookmarkedFilterChanged,
     )
     TriStateItem(
-        label = stringResource(MR.strings.completed),
-        state = completedFilter,
-        onClick = onCompletedFilterChanged,
+        label = stringResource(AYMR.strings.action_filter_fillermarked),
+        state = fillermarkedFilter,
+        onClick = onFillermarkedFilterChanged,
     )
 }
 

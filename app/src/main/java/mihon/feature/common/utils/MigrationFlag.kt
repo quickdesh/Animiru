@@ -10,6 +10,9 @@ fun MigrationFlag.getLabel(): StringResource {
         MigrationFlag.EPISODE -> AYMR.strings.episodes
         MigrationFlag.CATEGORY -> MR.strings.categories
         MigrationFlag.CUSTOM_COVER -> MR.strings.custom_cover
+        // AY -->
+        MigrationFlag.CUSTOM_BACKGROUND -> AYMR.strings.custom_background
+        // <-- AY
         MigrationFlag.NOTES -> MR.strings.action_notes
         MigrationFlag.REMOVE_DOWNLOAD -> MR.strings.delete_downloaded
     }

@@ -11,6 +11,10 @@ class EpisodeDetails(
     val name: String? = null,
     @SerialName("date_upload")
     val dateUpload: String? = null,
+    val fillermark: Boolean = false,
     val scanlator: String? = null,
+    val summary: String? = null,
+    @SerialName("preview_url")
+    val previewUrl: String? = null,
 )
 // <-- AY

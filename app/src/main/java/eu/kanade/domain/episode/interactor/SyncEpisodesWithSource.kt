@@ -127,11 +127,26 @@ class SyncEpisodesWithSource(
                         name = episode.name,
                         episodeNumber = episode.episodeNumber,
                         scanlator = episode.scanlator,
+                        // AY -->
+                        summary = episode.summary,
+                        // <-- AY
                         sourceOrder = episode.sourceOrder,
                     )
                     if (episode.dateUpload != 0L) {
                         toChangeEpisode = toChangeEpisode.copy(dateUpload = episode.dateUpload)
                     }
+                    // AY -->
+                    if (!toChangeEpisode.fillermark) {
+                        toChangeEpisode = toChangeEpisode.copy(
+                            fillermark = sourceEpisode.fillermark,
+                        )
+                    }
+                    if (toChangeEpisode.previewUrl.isNullOrBlank()) {
+                        toChangeEpisode = toChangeEpisode.copy(
+                            previewUrl = sourceEpisode.previewUrl,
+                        )
+                    }
+                    // <-- AY
                     updatedEpisodes.add(toChangeEpisode)
                 }
             }

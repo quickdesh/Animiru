@@ -12,7 +12,14 @@ fun Episode.toSEpisode(): SEpisode {
         it.name = name
         it.date_upload = dateUpload
         it.episode_number = episodeNumber.toFloat()
+        // AY -->
+        it.fillermark = fillermark
+        // <-- AY
         it.scanlator = scanlator
+        // AY -->
+        it.summary = summary
+        it.preview_url = previewUrl
+        // <-- AY
     }
 }
 
@@ -22,7 +29,14 @@ fun Episode.copyFromSEpisode(sEpisode: SEpisode): Episode {
         url = sEpisode.url,
         dateUpload = sEpisode.date_upload,
         episodeNumber = sEpisode.episode_number.toDouble(),
+        // AY -->
+        fillermark = sEpisode.fillermark,
+        // <-- AY
         scanlator = sEpisode.scanlator?.ifBlank { null }?.trim(),
+        // AY -->
+        summary = sEpisode.summary?.ifBlank { null },
+        previewUrl = sEpisode.preview_url?.ifBlank { null },
+        // <-- AY
     )
 }
 
@@ -32,11 +46,15 @@ fun Episode.toDbEpisode(): DbEpisode = EpisodeImpl().also {
     it.url = url
     it.name = name
     it.scanlator = scanlator
+    // AY -->
+    it.summary = summary
+    it.preview_url = previewUrl
+    // <-- AY
     it.seen = seen
     it.bookmark = bookmark
-    // AM (FILLERMARK) -->
+    // AY -->
     it.fillermark = fillermark
-    // <-- AM (FILLERMARK)
+    // <-- AY
     it.last_second_seen = lastSecondSeen
     it.date_fetch = dateFetch
     it.date_upload = dateUpload

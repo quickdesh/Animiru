@@ -13,8 +13,10 @@ import androidx.work.WorkerParameters
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.anime.model.copyFrom
 import eu.kanade.domain.anime.model.toSAnime
+import eu.kanade.tachiyomi.data.cache.BackgroundCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.notification.Notifications
+import eu.kanade.tachiyomi.util.prepUpdateBackground
 import eu.kanade.tachiyomi.util.prepUpdateCover
 import eu.kanade.tachiyomi.util.system.isRunning
 import eu.kanade.tachiyomi.util.system.setForegroundSafely
@@ -47,6 +49,11 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
 
     private val sourceManager: SourceManager = Injekt.get()
     private val coverCache: CoverCache = Injekt.get()
+
+    // AY -->
+    private val backgroundCache: BackgroundCache = Injekt.get()
+
+    // <-- AY
     private val getLibraryAnime: GetLibraryAnime = Injekt.get()
     private val updateAnime: UpdateAnime = Injekt.get()
 
@@ -121,7 +128,11 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
                                     val source = sourceManager.get(anime.source) ?: return@withUpdateNotification
                                     try {
                                         val networkAnime = source.getAnimeDetails(anime.toSAnime())
-                                        val updatedAnime = anime.prepUpdateCover(coverCache, networkAnime, true)
+                                        val updatedAnime = anime
+                                            .prepUpdateCover(coverCache, networkAnime, true)
+                                            // AY -->
+                                            .prepUpdateBackground(backgroundCache, networkAnime, true)
+                                            // <-- AY
                                             .copyFrom(networkAnime)
                                         try {
                                             updateAnime.await(updatedAnime.toAnimeUpdate())

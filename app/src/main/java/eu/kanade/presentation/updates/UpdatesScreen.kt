@@ -159,9 +159,9 @@ fun UpdatesBottomBar(
     selected: List<UpdatesItem>,
     onDownloadEpisode: (List<UpdatesItem>, EpisodeDownloadAction) -> Unit,
     onMultiBookmarkClicked: (List<UpdatesItem>, bookmark: Boolean) -> Unit,
-    // AM (FILLERMARK) -->
+    // AY -->
     onMultiFillermarkClicked: (List<UpdatesItem>, fillermarked: Boolean) -> Unit,
-    // <-- AM (FILLERMARK)
+    // <-- AY
     onMultiMarkAsSeenClicked: (List<UpdatesItem>, seen: Boolean) -> Unit,
     onMultiDeleteClicked: (List<UpdatesItem>) -> Unit,
     onOpenEpisode: (UpdatesItem, altPlayer: Boolean) -> Unit,
@@ -176,14 +176,14 @@ fun UpdatesBottomBar(
         onRemoveBookmarkClicked = {
             onMultiBookmarkClicked.invoke(selected, false)
         }.takeIf { selected.fastAll { it.update.bookmark } },
-        // AM (FILLERMARK) -->
+        // AY -->
         onFillermarkClicked = {
             onMultiFillermarkClicked.invoke(selected, true)
         }.takeIf { selected.fastAny { !it.update.fillermark } },
         onRemoveFillermarkClicked = {
             onMultiFillermarkClicked.invoke(selected, false)
         }.takeIf { selected.fastAll { it.update.fillermark } },
-        // <-- AM (FILLERMARK)
+        // <-- AY
         onMarkAsSeenClicked = {
             onMultiMarkAsSeenClicked(selected, true)
         }.takeIf { selected.fastAny { !it.update.seen } },

@@ -21,7 +21,9 @@ import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.presentation.util.ioCoroutineScope
 import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
 import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
+import eu.kanade.tachiyomi.data.cache.BackgroundCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
+import eu.kanade.tachiyomi.util.removeBackgrounds
 import eu.kanade.tachiyomi.util.removeCovers
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -60,6 +62,9 @@ class BrowseSourceScreenModel(
     sourcePreferences: SourcePreferences = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
     private val coverCache: CoverCache = Injekt.get(),
+    // AY -->
+    private val backgroundCache: BackgroundCache = Injekt.get(),
+    // <-- AY
     private val getRemoteAnime: GetRemoteAnime = Injekt.get(),
     private val getDuplicateLibraryAnime: GetDuplicateLibraryAnime = Injekt.get(),
     private val getCategories: GetCategories = Injekt.get(),
@@ -241,6 +246,9 @@ class BrowseSourceScreenModel(
 
             if (!new.favorite) {
                 new = new.removeCovers(coverCache)
+                // AY -->
+                new = new.removeBackgrounds(backgroundCache)
+                // <-- AY
             } else {
                 setAnimeDefaultEpisodeFlags.await(anime)
                 addTracks.bindEnhancedTrackers(anime, source)

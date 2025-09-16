@@ -36,7 +36,6 @@ Surround the new code with:
 - **AM (REMOVE_TABBED_SCREENS)** --> Refactoring from Aniyomi code to Animiru!
 - **AM (REMOVE_ACRA_FIREBASE)** --> Refactoring from Aniyomi code to Animiru!
 - **AM (REMOVE_LIBRARIES)** --> Refactoring from Aniyomi code to Animiru!
-- **AM (FILLERMARK)** --> Thank you Quickdesh!
 - **AM (BROWSE)** --> Thank you Quickdesh!
 - **AM (KEYBOARD_CONTROLS)** --> Thank you Quickdesh!
 - **AM (NAVIGATION_PILL)** --> Thank you Quickdesh!

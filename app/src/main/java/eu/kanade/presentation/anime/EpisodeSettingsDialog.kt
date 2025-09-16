@@ -37,6 +37,7 @@ import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
+import tachiyomi.presentation.core.components.CheckboxItem
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.components.RadioItem
 import tachiyomi.presentation.core.components.SortItem
@@ -53,13 +54,17 @@ fun EpisodeSettingsDialog(
     onDownloadFilterChanged: (TriState) -> Unit,
     onUnseenFilterChanged: (TriState) -> Unit,
     onBookmarkedFilterChanged: (TriState) -> Unit,
-    // AM (FILLERMARK) -->
+    // AY -->
     onFillermarkedFilterChanged: (TriState) -> Unit,
-    // <-- AM (FILLERMARK)
+    // <-- AY
     scanlatorFilterActive: Boolean,
     onScanlatorFilterClicked: (() -> Unit),
     onSortModeChanged: (Long) -> Unit,
     onDisplayModeChanged: (Long) -> Unit,
+    // AY -->
+    onShowPreviewsEnabled: (Long) -> Unit,
+    onShowSummariesEnabled: (Long) -> Unit,
+    // <-- AY
     onSetAsDefault: (applyToExistingAnime: Boolean) -> Unit,
     onResetToDefault: () -> Unit,
 ) {
@@ -112,10 +117,10 @@ fun EpisodeSettingsDialog(
                         onUnseenFilterChanged = onUnseenFilterChanged,
                         bookmarkedFilter = anime?.bookmarkedFilter ?: TriState.DISABLED,
                         onBookmarkedFilterChanged = onBookmarkedFilterChanged,
-                        // AM (FILLERMARK) -->
+                        // AY -->
                         fillermarkedFilter = anime?.fillermarkedFilter ?: TriState.DISABLED,
                         onFillermarkedFilterChanged = onFillermarkedFilterChanged,
-                        // <-- AM (FILLERMARK)
+                        // <-- AY
                         scanlatorFilterActive = scanlatorFilterActive,
                         onScanlatorFilterClicked = onScanlatorFilterClicked,
                     )
@@ -130,7 +135,13 @@ fun EpisodeSettingsDialog(
                 2 -> {
                     DisplayPage(
                         displayMode = anime?.displayMode ?: 0,
-                        onItemSelected = onDisplayModeChanged,
+                        // AY -->
+                        onDisplayModeChanged = onDisplayModeChanged,
+                        showPreviews = anime?.showPreviews() ?: true,
+                        onShowPreviewsEnabled = onShowPreviewsEnabled,
+                        showSummaries = anime?.showSummaries() ?: true,
+                        onShowSummariesEnabled = onShowSummariesEnabled,
+                        // <-- AY
                     )
                 }
             }
@@ -146,10 +157,10 @@ private fun ColumnScope.FilterPage(
     onUnseenFilterChanged: (TriState) -> Unit,
     bookmarkedFilter: TriState,
     onBookmarkedFilterChanged: (TriState) -> Unit,
-    // AM (FILLERMARK) -->
+    // AY -->
     fillermarkedFilter: TriState,
     onFillermarkedFilterChanged: (TriState) -> Unit,
-    // <-- AM (FILLERMARK)
+    // <-- AY
     scanlatorFilterActive: Boolean,
     onScanlatorFilterClicked: (() -> Unit),
 ) {
@@ -168,13 +179,13 @@ private fun ColumnScope.FilterPage(
         state = bookmarkedFilter,
         onClick = onBookmarkedFilterChanged,
     )
-    // AM (FILLERMARK) -->
+    // AY -->
     TriStateItem(
-        label = stringResource(AMMR.strings.action_filter_fillermarked),
+        label = stringResource(AYMR.strings.action_filter_fillermarked),
         state = fillermarkedFilter,
         onClick = onFillermarkedFilterChanged,
     )
-    // <-- AM (FILLERMARK)
+    // <-- AY
     ScanlatorFilterItem(
         active = scanlatorFilterActive,
         onClick = onScanlatorFilterClicked,
@@ -233,7 +244,13 @@ private fun ColumnScope.SortPage(
 @Composable
 private fun ColumnScope.DisplayPage(
     displayMode: Long,
-    onItemSelected: (Long) -> Unit,
+    // AY -->
+    onDisplayModeChanged: (Long) -> Unit,
+    showPreviews: Boolean,
+    onShowPreviewsEnabled: (Long) -> Unit,
+    showSummaries: Boolean,
+    onShowSummariesEnabled: (Long) -> Unit,
+    // <-- AY
 ) {
     listOf(
         MR.strings.show_title to Anime.EPISODE_DISPLAY_NAME,
@@ -242,9 +259,23 @@ private fun ColumnScope.DisplayPage(
         RadioItem(
             label = stringResource(titleRes),
             selected = displayMode == mode,
-            onClick = { onItemSelected(mode) },
+            onClick = { onDisplayModeChanged(mode) },
         )
     }
+    // AY -->
+    val showPreviewsFlag = if (showPreviews) Anime.EPISODE_SHOW_NOT_PREVIEWS else Anime.EPISODE_SHOW_PREVIEWS
+    CheckboxItem(
+        label = stringResource(AYMR.strings.show_episode_previews),
+        checked = showPreviews,
+        onClick = { onShowPreviewsEnabled(showPreviewsFlag) },
+    )
+    val showSummariesFlag = if (showSummaries) Anime.EPISODE_SHOW_NOT_SUMMARIES else Anime.EPISODE_SHOW_SUMMARIES
+    CheckboxItem(
+        label = stringResource(AYMR.strings.show_episode_summaries),
+        checked = showSummaries,
+        onClick = { onShowSummariesEnabled(showSummariesFlag) },
+    )
+    // <-- AY
 }
 
 @Composable

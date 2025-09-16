@@ -90,6 +90,7 @@ import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.animesource.model.SAnime
+import eu.kanade.tachiyomi.data.coil.useBackground
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
@@ -129,6 +130,9 @@ fun AnimeInfoBox(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(anime)
+                // AY -->
+                .useBackground(true)
+                // <-- AY
                 .crossfade(true)
                 .build(),
             contentDescription = null,

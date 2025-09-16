@@ -25,6 +25,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.core.util.ifSourcesLoaded
+import eu.kanade.domain.anime.model.hasCustomBackground
 import eu.kanade.domain.anime.model.hasCustomCover
 import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.presentation.anime.AnimeScreen
@@ -33,7 +34,7 @@ import eu.kanade.presentation.anime.EditCoverAction
 import eu.kanade.presentation.anime.EpisodeOptionsDialogScreen
 import eu.kanade.presentation.anime.EpisodeSettingsDialog
 import eu.kanade.presentation.anime.SeasonSettingsDialog
-import eu.kanade.presentation.anime.components.AnimeCoverDialog
+import eu.kanade.presentation.anime.components.AnimeImagesDialog
 import eu.kanade.presentation.anime.components.DeleteEpisodesDialog
 import eu.kanade.presentation.anime.components.ScanlatorFilterDialog
 import eu.kanade.presentation.anime.components.SetIntervalDialog
@@ -195,7 +196,7 @@ class AnimeScreen(
                 // <-- AY
             },
             onSearch = { query, global -> scope.launch { performSearch(navigator, query, global) } },
-            onCoverClicked = screenModel::showCoverDialog,
+            onCoverClicked = screenModel::showImagesDialog,
             onShareClicked = { shareAnime(context, screenModel.anime, screenModel.source) }.takeIf { isHttpSource },
             onDownloadActionClicked = screenModel::runDownloadAction.takeIf {
                 // AY -->
@@ -223,9 +224,9 @@ class AnimeScreen(
             onEditInfoClicked = screenModel::showEditAnimeInfoDialog,
             // <-- AM (CUSTOM_INFORMATION)
             onMultiBookmarkClicked = screenModel::bookmarkEpisodes,
-            // AM (FILLERMARK) -->
+            // AY -->
             onMultiFillermarkClicked = screenModel::fillermarkEpisodes,
-            // <-- AM (FILLERMARK)
+            // <-- AY
             onEditNotesClicked = { navigator.push(AnimeNotesScreen(anime = successState.anime)) },
             onMultiMarkAsSeenClicked = screenModel::markEpisodesSeen,
             onMarkPreviousAsSeenClicked = screenModel::markPreviousEpisodeSeen,
@@ -310,11 +311,15 @@ class AnimeScreen(
                 onDownloadFilterChanged = screenModel::setDownloadedFilter,
                 onUnseenFilterChanged = screenModel::setUnseenFilter,
                 onBookmarkedFilterChanged = screenModel::setBookmarkedFilter,
-                // AM (FILLERMARK) -->
+                // AY -->
                 onFillermarkedFilterChanged = screenModel::setFillermarkedFilter,
-                // <-- AM (FILLERMARK)
+                // <-- AY
                 onSortModeChanged = screenModel::setSorting,
                 onDisplayModeChanged = screenModel::setDisplayMode,
+                // AY -->
+                onShowPreviewsEnabled = screenModel::showEpisodePreviews,
+                onShowSummariesEnabled = screenModel::showEpisodeSummaries,
+                // <-- AY
                 onSetAsDefault = screenModel::setCurrentSettingsAsDefault,
                 onResetToDefault = screenModel::resetToDefaultSettings,
                 scanlatorFilterActive = successState.scanlatorFilterActive,
@@ -327,8 +332,9 @@ class AnimeScreen(
                 onDownloadFilterChanged = screenModel::setSeasonDownloadedFilter,
                 onUnseenFilterChanged = screenModel::setSeasonUnseenFilter,
                 onStartedFilterChanged = screenModel::setSeasonStartedFilter,
-                onBookmarkedFilterChanged = screenModel::setSeasonBookmarkedFilter,
                 onCompletedFilterChanged = screenModel::setSeasonCompletedFilter,
+                onBookmarkedFilterChanged = screenModel::setSeasonBookmarkedFilter,
+                onFillermarkedFilterChanged = screenModel::setSeasonFillermarkedFilter,
                 onSortModeChanged = screenModel::setSeasonSorting,
                 onDisplayGridModeChanged = screenModel::setSeasonDisplayGridMode,
                 onDisplayGridSizeChanged = screenModel::setSeasonDisplayGridSize,
@@ -352,24 +358,30 @@ class AnimeScreen(
                     onDismissRequest = onDismissRequest,
                 )
             }
-            AnimeScreenModel.Dialog.FullCover -> {
-                val sm = rememberScreenModel { AnimeCoverScreenModel(successState.anime.id) }
+            AnimeScreenModel.Dialog.FullImages -> {
+                val sm = rememberScreenModel { AnimeImageScreenModel(successState.anime.id) }
                 val anime by sm.state.collectAsState()
                 if (anime != null) {
                     val getContent = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
                         if (it == null) return@rememberLauncherForActivityResult
-                        sm.editCover(context, it)
+                        sm.editImage(context, it)
                     }
-                    AnimeCoverDialog(
+                    AnimeImagesDialog(
                         anime = anime!!,
                         snackbarHostState = sm.snackbarHostState,
+                        // AY -->
+                        pagerState = sm.pagerState,
+                        // <-- AY
                         isCustomCover = remember(anime) { anime!!.hasCustomCover() },
-                        onShareClick = { sm.shareCover(context) },
-                        onSaveClick = { sm.saveCover(context) },
+                        // AY -->
+                        isCustomBackground = remember(anime) { anime!!.hasCustomBackground() },
+                        // <-- AY
+                        onShareClick = { sm.shareImage(context) },
+                        onSaveClick = { sm.saveImage(context) },
                         onEditClick = {
                             when (it) {
                                 EditCoverAction.EDIT -> getContent.launch("image/*")
-                                EditCoverAction.DELETE -> sm.deleteCustomCover(context)
+                                EditCoverAction.DELETE -> sm.deleteCustomImage(context)
                             }
                         },
                         onDismissRequest = onDismissRequest,

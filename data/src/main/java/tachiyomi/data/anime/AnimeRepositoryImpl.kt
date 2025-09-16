@@ -134,6 +134,9 @@ class AnimeRepositoryImpl(
                     title = it.title,
                     status = it.status,
                     thumbnailUrl = it.thumbnailUrl,
+                    // AY -->
+                    backgroundUrl = it.backgroundUrl,
+                    // <-- AY
                     favorite = it.favorite,
                     lastUpdate = it.lastUpdate,
                     nextUpdate = it.nextUpdate,
@@ -142,6 +145,9 @@ class AnimeRepositoryImpl(
                     viewerFlags = it.viewerFlags,
                     episodeFlags = it.episodeFlags,
                     coverLastModified = it.coverLastModified,
+                    // AY -->
+                    backgroundLastModified = it.backgroundLastModified,
+                    // <-- AY
                     dateAdded = it.dateAdded,
                     updateStrategy = it.updateStrategy,
                     version = it.version,
@@ -205,6 +211,9 @@ class AnimeRepositoryImpl(
                     title = value.title,
                     status = value.status,
                     thumbnailUrl = value.thumbnailUrl,
+                    // AY -->
+                    backgroundUrl = value.backgroundUrl,
+                    // <-- AY
                     favorite = value.favorite,
                     lastUpdate = value.lastUpdate,
                     nextUpdate = value.nextUpdate,
@@ -213,6 +222,9 @@ class AnimeRepositoryImpl(
                     viewer = value.viewerFlags,
                     episodeFlags = value.episodeFlags,
                     coverLastModified = value.coverLastModified,
+                    // AY -->
+                    backgroundLastModified = value.backgroundLastModified,
+                    // <-- AY
                     dateAdded = value.dateAdded,
                     animeId = value.id,
                     updateStrategy = value.updateStrategy?.let(UpdateStrategyColumnAdapter::encode),

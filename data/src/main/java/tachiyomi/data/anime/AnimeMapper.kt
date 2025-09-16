@@ -42,6 +42,8 @@ object AnimeMapper {
         seasonFlags: Long,
         seasonNumber: Double,
         seasonSourceOrder: Long,
+        backgroundUrl: String?,
+        backgroundLastModified: Long,
         // <-- AY
     ): Anime = Anime(
         id = id,
@@ -54,6 +56,9 @@ object AnimeMapper {
         viewerFlags = viewerFlags,
         episodeFlags = episodeFlags,
         coverLastModified = coverLastModified,
+        // AY -->
+        backgroundLastModified = backgroundLastModified,
+        // <-- AY
         url = url,
         // AM (CUSTOM_INFORMATION) -->
         ogTitle = title,
@@ -64,6 +69,9 @@ object AnimeMapper {
         ogStatus = status,
         // <-- AM (CUSTOM_INFORMATION)
         thumbnailUrl = thumbnailUrl,
+        // AY -->
+        backgroundUrl = backgroundUrl,
+        // <-- AY
         updateStrategy = updateStrategy,
         initialized = initialized,
         lastModifiedAt = lastModifiedAt,
@@ -111,6 +119,8 @@ object AnimeMapper {
         seasonFlags: Long,
         seasonNumber: Double,
         seasonSourceOrder: Long,
+        backgroundUrl: String?,
+        backgroundLastModified: Long,
         // <-- AY
         totalCount: Long,
         seenCount: Double,
@@ -118,9 +128,9 @@ object AnimeMapper {
         episodeFetchedAt: Long,
         lastSeen: Long,
         bookmarkCount: Double,
-        // AM (FILLERMARK) -->
+        // AY -->
         fillermarkCount: Double,
-        // <-- AM (FILLERMARK)
+        // <-- AY
         categories: String,
     ): LibraryAnime = LibraryAnime(
         anime = mapAnime(
@@ -155,15 +165,17 @@ object AnimeMapper {
             seasonFlags,
             seasonNumber,
             seasonSourceOrder,
+            backgroundUrl,
+            backgroundLastModified,
             // <-- AY
         ),
         categories = categories.split(",").map { it.toLong() },
         totalCount = totalCount,
         seenCount = seenCount.toLong(),
         bookmarkCount = bookmarkCount.toLong(),
-        // AM (FILLERMARK) -->
+        // AY -->
         fillermarkCount = fillermarkCount.toLong(),
-        // <-- AM (FILLERMARK)
+        // <-- AY
         latestUpload = latestUpload,
         episodeFetchedAt = episodeFetchedAt,
         lastSeen = lastSeen,
@@ -201,6 +213,8 @@ object AnimeMapper {
         seasonFlags: Long,
         seasonNumber: Double,
         seasonSourceOrder: Long,
+        backgroundUrl: String?,
+        backgroundLastModified: Long,
         // <-- AY
         totalCount: Long,
     ): AnimeWithEpisodeCount = AnimeWithEpisodeCount(
@@ -236,6 +250,8 @@ object AnimeMapper {
             seasonFlags,
             seasonNumber,
             seasonSourceOrder,
+            backgroundUrl,
+            backgroundLastModified,
             // <-- AY
         ),
         episodeCount = totalCount,
@@ -273,12 +289,15 @@ object AnimeMapper {
         seasonFlags: Long,
         seasonNumber: Double,
         seasonSourceOrder: Long,
+        backgroundUrl: String?,
+        backgroundLastModified: Long,
         totalCount: Long,
         seenCount: Double,
         latestUpload: Long,
         fetchedAt: Long,
         lastSeen: Long,
         bookmarkCount: Double,
+        fillermarkCount: Double,
     ): SeasonAnime = SeasonAnime(
         anime = mapAnime(
             id,
@@ -311,10 +330,13 @@ object AnimeMapper {
             seasonFlags,
             seasonNumber,
             seasonSourceOrder,
+            backgroundUrl,
+            backgroundLastModified,
         ),
         totalCount = totalCount,
         seenCount = seenCount.toLong(),
         bookmarkCount = bookmarkCount.toLong(),
+        fillermarkCount = fillermarkCount.toLong(),
         latestUpload = latestUpload,
         fetchedAt = fetchedAt,
         lastSeen = lastSeen,

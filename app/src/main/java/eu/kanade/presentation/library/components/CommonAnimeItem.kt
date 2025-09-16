@@ -343,11 +343,11 @@ fun AnimeListItem(
     // AY -->
     entries: Int = 0,
     containerHeight: Int = 0,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 3.dp),
+    modifier: Modifier = Modifier,
     // <-- AY
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .selectedBackground(isSelected)
             .height(
                 // AY -->
@@ -365,7 +365,7 @@ fun AnimeListItem(
                 onLongClick = onLongClick,
             )
             // AY -->
-            .padding(contentPadding),
+            .padding(horizontal = 16.dp, vertical = 3.dp),
         // <-- AY
         verticalAlignment = Alignment.CenterVertically,
     ) {

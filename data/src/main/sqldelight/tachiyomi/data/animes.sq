@@ -35,12 +35,18 @@ CREATE TABLE animes(
     parent_id INTEGER,
     season_flags INTEGER NOT NULL,
     season_number REAL NOT NULL,
-    season_source_order INTEGER NOT NULL
+    season_source_order INTEGER NOT NULL,
+    background_url TEXT,
+    background_last_modified INTEGER NOT NULL
     -- <-- AY
 );
 
 CREATE INDEX library_favorite_index ON animes(favorite) WHERE favorite = 1;
 CREATE INDEX animes_url_index ON animes(url);
+-- AY -->
+CREATE INDEX animes_parent_id ON animes(parent_id);
+CREATE INDEX animes_fetch_type ON animes(fetch_type);
+-- <-- AY
 
 CREATE TRIGGER update_last_favorited_at_animes
 AFTER UPDATE OF favorite ON animes
@@ -196,8 +202,8 @@ AND (
 );
 
 insert:
-INSERT INTO animes(source, url, artist, author, description, genre, title, status, thumbnail_url, favorite, last_update, next_update, initialized, viewer, episode_flags, cover_last_modified, date_added, update_strategy, calculate_interval, last_modified_at, version, notes, fetch_type, parent_id, season_flags, season_number, season_source_order)
-VALUES (:source, :url, :artist, :author, :description, :genre, :title, :status, :thumbnailUrl, :favorite, :lastUpdate, :nextUpdate, :initialized, :viewerFlags, :episodeFlags, :coverLastModified, :dateAdded, :updateStrategy, :calculateInterval, 0, :version, :notes, :fetchType, :parentId, :seasonFlags, :seasonNumber, :seasonSourceOrder);
+INSERT INTO animes(source, url, artist, author, description, genre, title, status, thumbnail_url, favorite, last_update, next_update, initialized, viewer, episode_flags, cover_last_modified, date_added, update_strategy, calculate_interval, last_modified_at, version, notes, fetch_type, parent_id, season_flags, season_number, season_source_order, background_url, background_last_modified)
+VALUES (:source, :url, :artist, :author, :description, :genre, :title, :status, :thumbnailUrl, :favorite, :lastUpdate, :nextUpdate, :initialized, :viewerFlags, :episodeFlags, :coverLastModified, :dateAdded, :updateStrategy, :calculateInterval, 0, :version, :notes, :fetchType, :parentId, :seasonFlags, :seasonNumber, :seasonSourceOrder, :backgroundUrl, :backgroundLastModified);
 
 update:
 UPDATE animes SET
@@ -228,7 +234,9 @@ UPDATE animes SET
     parent_id = coalesce(:parentId, parent_id),
     season_flags = coalesce(:seasonFlags, season_flags),
     season_number = coalesce(:seasonNumber, season_number),
-    season_source_order = coalesce(:seasonSourceOrder, season_source_order)
+    season_source_order = coalesce(:seasonSourceOrder, season_source_order),
+    background_url = coalesce(:backgroundUrl, background_url),
+    background_last_modified = coalesce(:backgroundLastModified, background_last_modified)
     -- <-- AY
 WHERE _id = :animeId;
 
@@ -241,13 +249,13 @@ insertNetworkAnime {
         source, url, artist, author, description, genre, title, status, thumbnail_url, favorite,
         last_update, next_update, initialized, viewer, episode_flags, cover_last_modified, date_added,
         update_strategy, calculate_interval, last_modified_at, version, fetch_type, parent_id, season_flags,
-        season_number, season_source_order
+        season_number, season_source_order, background_url, background_last_modified
     )
     SELECT
         :source, :url, :artist, :author, :description, :genre, :title, :status, :thumbnailUrl, :favorite,
         :lastUpdate, :nextUpdate, :initialized, :viewerFlags, :episodeFlags, :coverLastModified, :dateAdded,
         :updateStrategy, :calculateInterval, 0, :version, :fetchType, :parentId, :seasonFlags, :seasonNumber,
-        :seasonSourceOrder
+        :seasonSourceOrder, :backgroundUrl, :backgroundLastModified
     WHERE NOT EXISTS(SELECT 0 FROM animes WHERE source = :source AND url = :url);
 
     -- Update the relevant details if applicable and not favorite
@@ -264,7 +272,8 @@ insertNetworkAnime {
         initialized = :updateDetails,
         -- AY -->
         season_number = CASE WHEN :updateDetails THEN :seasonNumber ELSE season_number END,
-        season_source_order = CASE WHEN :updateDetails THEN :seasonSourceOrder ELSE season_source_order END
+        season_source_order = CASE WHEN :updateDetails THEN :seasonSourceOrder ELSE season_source_order END,
+        background_url = CASE WHEN :updateDetails THEN :backgroundUrl ELSE background_url END
         -- <-- AY
     WHERE source = :source
     AND url = :url

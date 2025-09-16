@@ -175,6 +175,8 @@ class AnimeRestorer(
                 seasonFlags = anime.seasonFlags,
                 seasonNumber = anime.seasonNumber,
                 seasonSourceOrder = anime.seasonSourceOrder,
+                backgroundUrl = anime.backgroundUrl,
+                backgroundLastModified = anime.backgroundLastModified,
                 // <-- AY
             )
         }
@@ -212,9 +214,9 @@ class AnimeRestorer(
                     .copy(
                         id = dbEpisode.id,
                         bookmark = episode.bookmark || dbEpisode.bookmark,
-                        // AM (FILLERMARK) -->
+                        // AY -->
                         fillermark = episode.fillermark || dbEpisode.fillermark,
-                        // <-- AM (FILLERMARK)
+                        // <-- AY
                     )
                 if (dbEpisode.seen && !updatedEpisode.seen) {
                     updatedEpisode = updatedEpisode.copy(
@@ -247,9 +249,9 @@ class AnimeRestorer(
                     episode.scanlator,
                     episode.seen,
                     episode.bookmark,
-                    // AM (FILLERMARK) -->
+                    // AY -->
                     episode.fillermark,
-                    // <-- AM (FILLERMARK)
+                    // <-- AY
                     episode.lastSecondSeen,
                     // AY -->
                     episode.totalSeconds,
@@ -259,6 +261,10 @@ class AnimeRestorer(
                     episode.dateFetch,
                     episode.dateUpload,
                     episode.version,
+                    // AY -->
+                    episode.summary,
+                    episode.previewUrl,
+                    // <-- AY
                 )
             }
         }
@@ -272,11 +278,15 @@ class AnimeRestorer(
                     url = null,
                     name = null,
                     scanlator = null,
+                    // AY -->
+                    summary = null,
+                    previewUrl = null,
+                    // <-- AY
                     seen = episode.seen,
                     bookmark = episode.bookmark,
-                    // AM (FILLERMARK) -->
+                    // AY -->
                     fillermark = episode.fillermark,
-                    // <-- AM (FILLERMARK)
+                    // <-- AY
                     lastSecondSeen = episode.lastSecondSeen,
                     // AY -->
                     totalSeconds = episode.totalSeconds,
@@ -328,6 +338,8 @@ class AnimeRestorer(
                 seasonFlags = anime.seasonFlags,
                 seasonNumber = anime.seasonNumber,
                 seasonSourceOrder = anime.seasonSourceOrder,
+                backgroundUrl = anime.backgroundUrl,
+                backgroundLastModified = anime.backgroundLastModified,
                 // <-- AY
             )
             animesQueries.selectLastInsertedRowId()

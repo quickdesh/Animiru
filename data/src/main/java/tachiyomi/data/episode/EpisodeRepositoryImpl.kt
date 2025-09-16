@@ -24,9 +24,9 @@ class EpisodeRepositoryImpl(
                         episode.scanlator,
                         episode.seen,
                         episode.bookmark,
-                        // AM (FILLERMARK) -->
+                        // AY -->
                         episode.fillermark,
-                        // <-- AM (FILLERMARK)
+                        // <-- AY
                         episode.lastSecondSeen,
                         // AY -->
                         episode.totalSeconds,
@@ -36,6 +36,10 @@ class EpisodeRepositoryImpl(
                         episode.dateFetch,
                         episode.dateUpload,
                         episode.version,
+                        // AY -->
+                        episode.summary,
+                        episode.previewUrl,
+                        // <-- AY
                     )
                     val lastInsertId = episodesQueries.selectLastInsertedRowId().executeAsOne()
                     episode.copy(id = lastInsertId)
@@ -65,9 +69,9 @@ class EpisodeRepositoryImpl(
                     scanlator = episodeUpdate.scanlator,
                     seen = episodeUpdate.seen,
                     bookmark = episodeUpdate.bookmark,
-                    // AM (FILLERMARK) -->
+                    // AY -->
                     fillermark = episodeUpdate.fillermark,
-                    // <-- AM (FILLERMARK)
+                    // <-- AY
                     lastSecondSeen = episodeUpdate.lastSecondSeen,
                     // AY -->
                     totalSeconds = episodeUpdate.totalSeconds,
@@ -79,6 +83,10 @@ class EpisodeRepositoryImpl(
                     episodeId = episodeUpdate.id,
                     version = episodeUpdate.version,
                     isSyncing = 0,
+                    // AY -->
+                    summary = episodeUpdate.summary,
+                    previewUrl = episodeUpdate.previewUrl,
+                    // <-- AY
                 )
             }
         }
@@ -119,12 +127,6 @@ class EpisodeRepositoryImpl(
         }
     }
 
-    // AM (FILLERMARK) -->
-    override suspend fun getFillermarkedEpisodesByAnimeId(animeId: Long): List<Episode> {
-        return handler.awaitList { episodesQueries.getFillermarkedEpisodesByAnimeId(animeId, ::mapEpisode) }
-    }
-    // <-- AM (FILLERMARK)
-
     override suspend fun getEpisodeById(id: Long): Episode? {
         return handler.awaitOneOrNull { episodesQueries.getEpisodeById(id, ::mapEpisode) }
     }
@@ -153,9 +155,9 @@ class EpisodeRepositoryImpl(
         scanlator: String?,
         seen: Boolean,
         bookmark: Boolean,
-        // AM (FILLERMARK) -->
+        // AY -->
         fillermark: Boolean,
-        // <-- AM (FILLERMARK)
+        // <-- AY
         lastSecondSeen: Long,
         // AY -->
         totalSeconds: Long,
@@ -168,14 +170,18 @@ class EpisodeRepositoryImpl(
         version: Long,
         @Suppress("UNUSED_PARAMETER")
         isSyncing: Long,
+        // AY -->
+        summary: String?,
+        previewUrl: String?,
+        // <-- AY
     ): Episode = Episode(
         id = id,
         animeId = animeId,
         seen = seen,
         bookmark = bookmark,
-        // AM (FILLERMARK) -->
+        // AY -->
         fillermark = fillermark,
-        // <-- AM (FILLERMARK)
+        // <-- AY
         lastSecondSeen = lastSecondSeen,
         // AY -->
         totalSeconds = totalSeconds,
@@ -187,6 +193,10 @@ class EpisodeRepositoryImpl(
         dateUpload = dateUpload,
         episodeNumber = episodeNumber,
         scanlator = scanlator,
+        // AY -->
+        summary = summary,
+        previewUrl = previewUrl,
+        // <-- AY
         lastModifiedAt = lastModifiedAt,
         version = version,
     )
