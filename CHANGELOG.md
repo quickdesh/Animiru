@@ -21,6 +21,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 
 ### Other
 - Merged from Aniyomi and Mihon ([@Secozzi](https://github.com/Secozzi)) ([#102](https://github.com/quickdesh/Animiru/pull/102))
+- Add support for extension lib 16 ([@Secozzi](https://github.com/Secozzi)) ([#104](https://github.com/quickdesh/Animiru/pull/104))
 
 ## [v0.17.2.0] - 2024-07-27
 ### Fixes
