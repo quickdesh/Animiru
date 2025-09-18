@@ -42,7 +42,7 @@ class JellyfinApi(
                 }.apply { tracking_url = url }
 
                 when {
-                    fragment.startsWith("seriesId") -> {
+                    fragment.startsWith("season") -> {
                         getTrackFromSeries(track, httpUrl)
                     }
                     else -> track
