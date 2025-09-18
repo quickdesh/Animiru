@@ -75,9 +75,9 @@ LEFT JOIN animeseasonstatsView AS ASS
 ON A._id = ASS.parent_id
 WHERE A.parent_id IS NOT NULL;
 
--- Change libview
-DROP VIEW IF EXISTS animelibView;
-CREATE VIEW animelibView AS
+-- Change libraryView
+DROP VIEW IF EXISTS libraryView;
+CREATE VIEW libraryView AS
 SELECT
     A.*,
     CASE A.fetch_type
