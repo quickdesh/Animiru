@@ -544,7 +544,7 @@ class AnimeScreenModel(
                 // Finally match with enhanced tracking when available
                 addTracks.bindEnhancedTrackers(anime, state.source)
                 // AY -->
-                if (autoOpenTrack) {
+                if (autoOpenTrack && anime.fetchType == FetchType.Episodes) {
                     showTrackDialog()
                 }
                 // <-- AY
