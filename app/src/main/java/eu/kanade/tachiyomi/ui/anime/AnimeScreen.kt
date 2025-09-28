@@ -255,7 +255,9 @@ class AnimeScreen(
         val onDismissRequest = {
             screenModel.dismissDialog()
             // AY -->
-            if (screenModel.autoOpenTrack && screenModel.isFromChangeCategory) {
+            if (screenModel.autoOpenTrack && screenModel.isFromChangeCategory &&
+                successState.anime.fetchType == FetchType.Episodes
+            ) {
                 screenModel.isFromChangeCategory = false
                 screenModel.showTrackDialog()
             }
