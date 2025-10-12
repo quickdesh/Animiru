@@ -53,7 +53,7 @@ internal object ExtensionLoader {
     private const val METADATA_SOURCE_FACTORY = "tachiyomi.animeextension.factory"
     private const val METADATA_NSFW = "tachiyomi.animeextension.nsfw"
     const val LIB_VERSION_MIN = 12
-    const val LIB_VERSION_MAX = 15
+    const val LIB_VERSION_MAX = 16
     // <-- AY
 
     @Suppress("DEPRECATION")
