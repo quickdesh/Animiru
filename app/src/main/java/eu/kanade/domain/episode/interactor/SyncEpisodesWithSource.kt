@@ -114,6 +114,7 @@ class SyncEpisodesWithSource(
                         downloadManager.isEpisodeDownloaded(
                             dbEpisode.name,
                             dbEpisode.scanlator,
+                            dbEpisode.url,
                             // AM (CUSTOM_INFORMATION) -->
                             anime.ogTitle,
                             // <-- AM (CUSTOM_INFORMATION)
@@ -123,6 +124,7 @@ class SyncEpisodesWithSource(
                     if (shouldRenameEpisode) {
                         downloadManager.renameEpisode(source, anime, dbEpisode, episode)
                     }
+
                     var toChangeEpisode = dbEpisode.copy(
                         name = episode.name,
                         episodeNumber = episode.episodeNumber,
@@ -132,9 +134,11 @@ class SyncEpisodesWithSource(
                         // <-- AY
                         sourceOrder = episode.sourceOrder,
                     )
+
                     if (episode.dateUpload != 0L) {
                         toChangeEpisode = toChangeEpisode.copy(dateUpload = episode.dateUpload)
                     }
+
                     // AY -->
                     if (!toChangeEpisode.fillermark) {
                         toChangeEpisode = toChangeEpisode.copy(
@@ -147,6 +151,7 @@ class SyncEpisodesWithSource(
                         )
                     }
                     // <-- AY
+
                     updatedEpisodes.add(toChangeEpisode)
                 }
             }

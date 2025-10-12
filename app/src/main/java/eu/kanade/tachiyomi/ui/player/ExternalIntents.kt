@@ -157,6 +157,7 @@ class ExternalIntents {
                 downloadManager.isEpisodeDownloaded(
                     episodeName = episode.name,
                     episodeScanlator = episode.scanlator,
+                    episodeUrl = episode.url,
                     // AM (CUSTOM_INFORMATION) -->
                     animeTitle = anime.ogTitle,
                     // <-- AM (CUSTOM_INFORMATION)

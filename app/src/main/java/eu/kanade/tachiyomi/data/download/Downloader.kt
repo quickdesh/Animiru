@@ -288,7 +288,7 @@ class Downloader(
         val episodesToQueue = episodes.asSequence()
             // Filter out those already downloaded.
             // AM (CUSTOM_INFORMATION) -->
-            .filter { provider.findEpisodeDir(it.name, it.scanlator, anime.ogTitle, source) == null }
+            .filter { provider.findEpisodeDir(it.name, it.scanlator, it.url, anime.ogTitle, source) == null }
             // <-- AM (CUSTOM_INFORMATION)
             // Add episodes to queue from the start.
             .sortedByDescending { it.sourceOrder }
@@ -353,7 +353,11 @@ class Downloader(
             return
         }
 
-        val episodeDirname = provider.getEpisodeDirName(download.episode.name, download.episode.scanlator)
+        val episodeDirname = provider.getEpisodeDirName(
+            download.episode.name,
+            download.episode.scanlator,
+            download.episode.url,
+        )
         val tmpDir = animeDir.createDirectory(episodeDirname + TMP_DIR_SUFFIX)!!
 
         try {

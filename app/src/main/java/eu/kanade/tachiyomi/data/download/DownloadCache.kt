@@ -129,6 +129,7 @@ class DownloadCache(
      *
      * @param episodeName the name of the episode to query.
      * @param episodeScanlator scanlator of the episode to query
+     * @param episodeUrl the url of the chapter to query
      * @param animeTitle the title of the anime to query.
      * @param sourceId the id of the source of the episode.
      * @param skipCache whether to skip the directory cache and check in the filesystem.
@@ -136,13 +137,14 @@ class DownloadCache(
     fun isEpisodeDownloaded(
         episodeName: String,
         episodeScanlator: String?,
+        episodeUrl: String,
         animeTitle: String,
         sourceId: Long,
         skipCache: Boolean,
     ): Boolean {
         if (skipCache) {
             val source = sourceManager.getOrStub(sourceId)
-            return provider.findEpisodeDir(episodeName, episodeScanlator, animeTitle, source) != null
+            return provider.findEpisodeDir(episodeName, episodeScanlator, episodeUrl, animeTitle, source) != null
         }
 
         renewCache()
@@ -154,6 +156,7 @@ class DownloadCache(
                 return provider.getValidEpisodeDirNames(
                     episodeName,
                     episodeScanlator,
+                    episodeUrl,
                 ).any { it in animeDir.episodeDirs }
             }
         }
@@ -271,7 +274,7 @@ class DownloadCache(
             // AM (CUSTOM_INFORMATION) -->
             val animeDir = sourceDir.animeDirs[provider.getAnimeDirName(anime.ogTitle)] ?: return
             // <-- AM (CUSTOM_INFORMATION)
-            provider.getValidEpisodeDirNames(episode.name, episode.scanlator).forEach {
+            provider.getValidEpisodeDirNames(episode.name, episode.scanlator, episode.url).forEach {
                 if (it in animeDir.episodeDirs) {
                     animeDir.episodeDirs -= it
                 }
@@ -294,7 +297,7 @@ class DownloadCache(
             val animeDir = sourceDir.animeDirs[provider.getAnimeDirName(anime.ogTitle)] ?: return
             // <-- AM (CUSTOM_INFORMATION)
             episodes.forEach { episode ->
-                provider.getValidEpisodeDirNames(episode.name, episode.scanlator).forEach {
+                provider.getValidEpisodeDirNames(episode.name, episode.scanlator, episode.url).forEach {
                     if (it in animeDir.episodeDirs) {
                         animeDir.episodeDirs -= it
                     }

@@ -32,6 +32,7 @@ fun List<Episode>.applyFilters(anime: Anime, downloadManager: DownloadManager): 
                 val downloaded = downloadManager.isEpisodeDownloaded(
                     episode.name,
                     episode.scanlator,
+                    episode.url,
                     // AM (CUSTOM_INFORMATION) -->
                     anime.ogTitle,
                     // <-- AM (CUSTOM_INFORMATION)

@@ -1083,6 +1083,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 !downloadManager.isEpisodeDownloaded(
                     it.name,
                     it.scanlator,
+                    it.url,
                     // AM (CUSTOM_INFORMATION) -->
                     anime.ogTitle,
                     // <-- AM (CUSTOM_INFORMATION)
@@ -1092,6 +1093,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 downloadManager.isEpisodeDownloaded(
                     it.name,
                     it.scanlator,
+                    it.url,
                     // AM (CUSTOM_INFORMATION) -->
                     anime.ogTitle,
                     // <-- AM (CUSTOM_INFORMATION)

@@ -12,6 +12,7 @@ data class UpdatesWithRelations(
     val episodeId: Long,
     val episodeName: String,
     val scanlator: String?,
+    val episodeUrl: String,
     val seen: Boolean,
     val bookmark: Boolean,
     // AY -->

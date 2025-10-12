@@ -329,6 +329,8 @@ class LibraryPreferences(
 
     fun updateAnimeTitles() = preferenceStore.getBoolean("pref_update_library_anime_titles", false)
 
+    fun disallowNonAsciiFilenames() = preferenceStore.getBoolean("disallow_non_ascii_filenames", false)
+
     // endregion
 
     enum class EpisodeSwipeAction {

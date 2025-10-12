@@ -717,6 +717,7 @@ class AnimeScreenModel(
                 downloadManager.isEpisodeDownloaded(
                     episode.name,
                     episode.scanlator,
+                    episode.url,
                     // AM (CUSTOM_INFORMATION) -->
                     anime.ogTitle,
                     // <-- AM (CUSTOM_INFORMATION)

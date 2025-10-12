@@ -52,6 +52,7 @@ class UpdatesRepositoryImpl(
         episodeId: Long,
         episodeName: String,
         scanlator: String?,
+        episodeUrl: String,
         seen: Boolean,
         bookmark: Boolean,
         // AY -->
@@ -75,6 +76,7 @@ class UpdatesRepositoryImpl(
         episodeId = episodeId,
         episodeName = episodeName,
         scanlator = scanlator,
+        episodeUrl = episodeUrl,
         seen = seen,
         bookmark = bookmark,
         // AY -->
