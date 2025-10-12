@@ -272,6 +272,7 @@ class DownloadProvider(
     }
 
     // AM (FILE_SIZE) -->
+
     /**
      * Returns an episode file size in bytes.
      * Returns null if the episode is not found in expected location
