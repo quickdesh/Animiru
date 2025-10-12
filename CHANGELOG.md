@@ -10,7 +10,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
-## [Unreleased]
+## [v0.19.0.0] - 2025-10-12
 ### Changed
 - Remove circular edges, add background and sliding animations ([@Quickdev](https://github.com/quickdesh)) ([`8e45259`](https://github.com/quickdesh/Animiru/commit/8e45259))
 - Use filter chips in recents tab ([@Quickdev](https://github.com/quickdesh)) ([`38c9c52`](https://github.com/quickdesh/Animiru/commit/38c9c52))
@@ -21,7 +21,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - Fix jellyfin enhanced tracker for newer versions of the extension ([@Secozzi](https://github.com/Secozzi)) ([#107](https://github.com/quickdesh/Animiru/pull/107))
 
 ### Other
-- Merged from Aniyomi and Mihon ([@Secozzi](https://github.com/Secozzi)) ([#102](https://github.com/quickdesh/Animiru/pull/102))
+- Merged from Aniyomi and Mihon ([@Secozzi](https://github.com/Secozzi)) ([#102](https://github.com/quickdesh/Animiru/pull/102) [#110](https://github.com/quickdesh/Animiru/pull/110))
 - Add support for extension lib 16 ([@Secozzi](https://github.com/Secozzi)) ([#104](https://github.com/quickdesh/Animiru/pull/104))
 
 ## [v0.17.2.0] - 2024-07-27
