@@ -306,6 +306,7 @@ class MigrationListScreenModel(
             } catch (_: Exception) {
             }
             migratingAnime.searchResult.value = resultAnime.toSuccessSearchResult()
+            updateMigrationProgress()
         }
     }
 

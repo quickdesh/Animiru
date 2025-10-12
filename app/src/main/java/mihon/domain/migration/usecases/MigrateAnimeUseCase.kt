@@ -116,7 +116,7 @@ class MigrateAnimeUseCase(
             }
 
             // Update categories
-            if (MigrationFlag.EPISODE in flags) {
+            if (MigrationFlag.CATEGORY in flags) {
                 val categoryIds = getCategories.await(current.id).map { it.id }
                 setAnimeCategories.await(target.id, categoryIds)
             }
