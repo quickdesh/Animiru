@@ -2,7 +2,6 @@
 package eu.kanade.tachiyomi.data.track.simkl
 
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.model.TrackSearch

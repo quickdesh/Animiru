@@ -3,7 +3,6 @@ package tachiyomi.data.anime
 
 import android.content.Context
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import tachiyomi.domain.anime.model.CustomAnimeInfo
 import tachiyomi.domain.anime.repository.CustomAnimeRepository

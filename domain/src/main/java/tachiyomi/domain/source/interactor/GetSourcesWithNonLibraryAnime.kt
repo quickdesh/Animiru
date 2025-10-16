@@ -4,8 +4,6 @@ import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.repository.AnimeRepository
 import tachiyomi.domain.source.model.DeletableAnime
-import tachiyomi.domain.source.model.SourceWithIds
-import tachiyomi.domain.source.repository.SourceRepository
 
 class GetSourcesWithNonLibraryAnime(
     private val repository: AnimeRepository,

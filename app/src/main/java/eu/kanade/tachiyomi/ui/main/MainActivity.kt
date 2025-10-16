@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.ui.main
 
 import android.animation.ValueAnimator
-import android.app.Activity
 import android.app.Application
 import android.app.SearchManager
 import android.app.assist.AssistContent

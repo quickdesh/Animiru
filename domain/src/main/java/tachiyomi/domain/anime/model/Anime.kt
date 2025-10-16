@@ -10,7 +10,6 @@ import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import uy.kohesive.injekt.injectLazy
 import java.io.Serializable
 import java.time.Instant
-import kotlin.getValue
 import kotlin.math.pow
 
 @Immutable

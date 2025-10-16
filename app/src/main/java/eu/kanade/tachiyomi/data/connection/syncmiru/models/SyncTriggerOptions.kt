@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.data.connection.syncmiru.models
 
 import dev.icerock.moko.resources.StringResource
 import kotlinx.collections.immutable.persistentListOf
-import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 
 data class SyncTriggerOptions(

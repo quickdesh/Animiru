@@ -2,7 +2,6 @@ package eu.kanade.tachiyomi.animesource.model
 
 import android.net.Uri
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.Headers
 

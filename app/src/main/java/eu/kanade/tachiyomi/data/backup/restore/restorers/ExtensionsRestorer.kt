@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import eu.kanade.tachiyomi.data.backup.models.BackupExtension
 import eu.kanade.tachiyomi.util.storage.getUriCompat
-import uy.kohesive.injekt.api.get
 import java.io.File
 
 class ExtensionsRestorer(

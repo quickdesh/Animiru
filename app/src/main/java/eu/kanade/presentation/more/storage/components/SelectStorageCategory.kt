@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import eu.kanade.tachiyomi.ui.storage.StorageScreenModel
 import tachiyomi.domain.category.model.Category
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.SelectItem
 import tachiyomi.presentation.core.i18n.stringResource

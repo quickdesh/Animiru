@@ -1,10 +1,8 @@
 // AY -->
 package eu.kanade.presentation.anime.components
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import aniyomi.domain.anime.SeasonAnime
 import aniyomi.domain.anime.SeasonDisplayMode
 import eu.kanade.presentation.library.components.AnimeComfortableGridItem

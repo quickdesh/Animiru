@@ -75,7 +75,6 @@ import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import kotlin.collections.flatten
 import kotlin.random.Random
 
 class LibraryScreenModel(

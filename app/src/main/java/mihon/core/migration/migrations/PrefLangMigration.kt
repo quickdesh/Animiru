@@ -9,7 +9,6 @@ import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
 import java.util.Locale
 import java.util.MissingResourceException
-import kotlin.text.split
 
 class PrefLangMigration : Migration {
     override val version = 130f
