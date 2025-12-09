@@ -2,24 +2,20 @@ package eu.kanade.tachiyomi.ui.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.TabNavigator
@@ -68,42 +64,33 @@ object HomeScreen : Screen() {
             tab = LibraryTab,
             key = TabNavigatorKey,
         ) { tabNavigator ->
-            // AM (NAVIGATION_PILL) -->
+            // AM (TV_NAVIGATION_RAIL) -->
             // Provide usable navigator to content screen
             CompositionLocalProvider(LocalNavigator provides navigator) {
-                Scaffold(
-                    bottomBar = {
-                        val bottomNavVisible by produceState(initialValue = true) {
-                            showBottomNavEvent.receiveAsFlow().collectLatest { value = it }
-                        }
-                        AnimatedVisibility(
-                            visible = bottomNavVisible,
-                            enter = expandVertically(),
-                            exit = shrinkVertically(),
+
+                Scaffold(contentWindowInsets = WindowInsets(0)) { contentPadding ->
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        TvNavigationRail(
+                            tabs = TABS,
+                            modifier = Modifier.fillMaxHeight().width(90.dp)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(contentPadding)
+                                .consumeWindowInsets(contentPadding)
                         ) {
-                            NavigationPill(
-                                tabs = TABS,
-                                labelFade = TabFadeDuration / 2,
-                            )
-                        }
-                    },
-                    contentWindowInsets = WindowInsets(0),
-                ) { contentPadding ->
-                    Box(
-                        modifier = Modifier
-                            .padding(contentPadding)
-                            .consumeWindowInsets(contentPadding),
-                    ) {
-                        AnimatedContent(
-                            targetState = tabNavigator.current,
-                            transitionSpec = {
-                                materialFadeThroughIn(initialScale = 1f, durationMillis = TabFadeDuration) togetherWith
-                                    materialFadeThroughOut(durationMillis = TabFadeDuration)
-                            },
-                            label = "tabContent",
-                        ) {
-                            tabNavigator.saveableState(key = "currentTab", it) {
-                                it.Content()
+                            AnimatedContent(
+                                targetState = tabNavigator.current,
+                                transitionSpec = {
+                                    materialFadeThroughIn(initialScale = 1f, durationMillis = TabFadeDuration) togetherWith
+                                        materialFadeThroughOut(durationMillis = TabFadeDuration)
+                                },
+                                label = "tabContent",
+                            ) {
+                                tabNavigator.saveableState(key = "currentTab", it) {
+                                    it.Content()
+                                }
                             }
                         }
                     }
