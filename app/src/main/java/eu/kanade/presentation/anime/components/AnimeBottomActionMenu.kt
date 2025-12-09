@@ -90,10 +90,6 @@ fun AnimeBottomActionMenu(
     onMarkPreviousAsSeenClicked: (() -> Unit)? = null,
     onDownloadClicked: (() -> Unit)? = null,
     onDeleteClicked: (() -> Unit)? = null,
-    // AY -->
-    onExternalClicked: (() -> Unit)? = null,
-    onInternalClicked: (() -> Unit)? = null,
-    // <-- AY
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -218,27 +214,6 @@ fun AnimeBottomActionMenu(
                         onClick = onDeleteClicked,
                     )
                 }
-
-                // AY -->
-                if (onExternalClicked != null && !playerPreferences.alwaysUseExternalPlayer().get()) {
-                    Button(
-                        title = stringResource(AYMR.strings.action_play_externally),
-                        icon = Icons.AutoMirrored.Outlined.OpenInNew,
-                        toConfirm = confirm[9],
-                        onLongClick = { onLongClickItem(9) },
-                        onClick = onExternalClicked,
-                    )
-                }
-                if (onInternalClicked != null && playerPreferences.alwaysUseExternalPlayer().get()) {
-                    Button(
-                        title = stringResource(AYMR.strings.action_play_internally),
-                        icon = Icons.AutoMirrored.Outlined.Input,
-                        toConfirm = confirm[10],
-                        onLongClick = { onLongClickItem(10) },
-                        onClick = onInternalClicked,
-                    )
-                }
-                // <-- AY
             }
         }
     }

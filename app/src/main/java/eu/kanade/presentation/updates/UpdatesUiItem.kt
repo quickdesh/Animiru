@@ -82,7 +82,7 @@ internal fun LazyListScope.updatesUiItems(
     onUpdateSelected: (UpdatesItem, Boolean, Boolean, Boolean) -> Unit,
     onClickCover: (UpdatesItem) -> Unit,
     // AY -->
-    onClickUpdate: (UpdatesItem, altPlayer: Boolean) -> Unit,
+    onClickUpdate: (UpdatesItem) -> Unit,
     // <-- AY
     onDownloadEpisode: (List<UpdatesItem>, EpisodeDownloadAction) -> Unit,
 ) {
@@ -131,7 +131,7 @@ internal fun LazyListScope.updatesUiItems(
                     onClick = {
                         when {
                             selectionMode -> onUpdateSelected(updatesItem, !updatesItem.selected, true, false)
-                            else -> onClickUpdate(updatesItem, /* AY --> */ false /* <-- AY */)
+                            else -> onClickUpdate(updatesItem)
                         }
                     },
                     onClickCover = { onClickCover(updatesItem) }.takeIf { !selectionMode },

@@ -139,10 +139,8 @@ data object LibraryTab : Tab {
         // <-- AM (GROUPING)
 
         // AY -->
-        suspend fun openEpisode(episode: Episode) {
-            val playerPreferences: PlayerPreferences by injectLazy()
-            val extPlayer = playerPreferences.alwaysUseExternalPlayer().get()
-            MainActivity.startPlayerActivity(context, episode.animeId, episode.id, extPlayer)
+        fun openEpisode(episode: Episode) {
+            MainActivity.startPlayerActivity(context, episode.animeId, episode.id)
         }
         // <-- AY
 

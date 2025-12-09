@@ -8,19 +8,7 @@ import androidx.compose.runtime.remember
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.SearchableSettings
-import eu.kanade.tachiyomi.ui.player.JUST_PLAYER
-import eu.kanade.tachiyomi.ui.player.MPV_KT
-import eu.kanade.tachiyomi.ui.player.MPV_KT_PREVIEW
-import eu.kanade.tachiyomi.ui.player.MPV_PLAYER
-import eu.kanade.tachiyomi.ui.player.MPV_REMOTE
-import eu.kanade.tachiyomi.ui.player.MX_PLAYER
-import eu.kanade.tachiyomi.ui.player.MX_PLAYER_FREE
-import eu.kanade.tachiyomi.ui.player.MX_PLAYER_PRO
-import eu.kanade.tachiyomi.ui.player.NEXT_PLAYER
 import eu.kanade.tachiyomi.ui.player.PlayerOrientation
-import eu.kanade.tachiyomi.ui.player.VLC_PLAYER
-import eu.kanade.tachiyomi.ui.player.WEB_VIDEO_CASTER
-import eu.kanade.tachiyomi.ui.player.X_PLAYER
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
@@ -75,10 +63,6 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
             getDisplayGroup(playerPreferences = playerPreferences),
             getIntroSkipGroup(playerPreferences = playerPreferences),
             if (deviceSupportsPip) getPipGroup(playerPreferences = playerPreferences) else null,
-            getExternalPlayerGroup(
-                playerPreferences = playerPreferences,
-                basePreferences = basePreferences,
-            ),
         )
     }
 
@@ -292,55 +276,4 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
             ),
         )
     }
-
-    @Composable
-    private fun getExternalPlayerGroup(
-        playerPreferences: PlayerPreferences,
-        basePreferences: BasePreferences,
-    ): Preference.PreferenceGroup {
-        val alwaysUseExternalPlayer = playerPreferences.alwaysUseExternalPlayer()
-        val externalPlayerPreference = playerPreferences.externalPlayerPreference()
-
-        val pm = basePreferences.context.packageManager
-        val installedPackages = pm.getInstalledPackages(0)
-        val supportedPlayers = installedPackages.filter { it.packageName in externalPlayers }
-
-        val packageNames = supportedPlayers.map { it.packageName }
-        val packageNamesReadable = supportedPlayers
-            .map { pm.getApplicationLabel(it.applicationInfo!!).toString() }
-
-        val packageNamesMap: Map<String, String> =
-            packageNames.zip(packageNamesReadable)
-                .toMap()
-
-        return Preference.PreferenceGroup(
-            title = stringResource(AYMR.strings.pref_category_external_player),
-            preferenceItems = persistentListOf(
-                Preference.PreferenceItem.SwitchPreference(
-                    preference = alwaysUseExternalPlayer,
-                    title = stringResource(AYMR.strings.pref_always_use_external_player),
-                ),
-                Preference.PreferenceItem.ListPreference(
-                    preference = externalPlayerPreference,
-                    entries = (mapOf("" to "None") + packageNamesMap).toPersistentMap(),
-                    title = stringResource(AYMR.strings.pref_external_player_preference),
-                ),
-            ),
-        )
-    }
 }
-
-val externalPlayers = listOf(
-    MPV_PLAYER,
-    MX_PLAYER,
-    MX_PLAYER_FREE,
-    MX_PLAYER_PRO,
-    VLC_PLAYER,
-    MPV_KT,
-    MPV_KT_PREVIEW,
-    MPV_REMOTE,
-    JUST_PLAYER,
-    NEXT_PLAYER,
-    X_PLAYER,
-    WEB_VIDEO_CASTER,
-)

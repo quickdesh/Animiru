@@ -207,7 +207,6 @@ class AnimeScreenModel(
 
     // AY -->
     val showNextEpisodeAirTime = trackPreferences.showNextEpisodeAiringTime().get()
-    val alwaysUseExternalPlayer = playerPreferences.alwaysUseExternalPlayer().get()
     val useExternalDownloader = downloadPreferences.useExternalDownloader().get()
 
     internal var isFromChangeCategory: Boolean = false

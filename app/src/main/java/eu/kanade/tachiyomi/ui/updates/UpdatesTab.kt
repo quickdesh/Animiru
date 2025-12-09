@@ -41,9 +41,9 @@ fun AnimeUpdatesHalfTab(screenModel: UpdatesScreenModel, contentPadding: Padding
         onUpdateLibrary = screenModel::updateLibrary,
         onDownloadEpisode = screenModel::downloadEpisodes,
         onUpdateSelected = screenModel::toggleSelection,
-        onOpenEpisode = { updateItem: UpdatesItem, altPlayer: Boolean ->
+        onOpenEpisode = { updateItem: UpdatesItem ->
             scope.launchIO {
-                openEpisode(context, updateItem, altPlayer)
+                openEpisode(context, updateItem)
             }
             Unit
         },
@@ -111,9 +111,7 @@ fun AnimeUpdatesHalfTab(screenModel: UpdatesScreenModel, contentPadding: Padding
     }
 }
 
-suspend fun openEpisode(context: Context, updateItem: UpdatesItem, altPlayer: Boolean = false) {
-    val playerPreferences: PlayerPreferences by injectLazy()
+fun openEpisode(context: Context, updateItem: UpdatesItem) {
     val update = updateItem.update
-    val extPlayer = playerPreferences.alwaysUseExternalPlayer().get() != altPlayer
-    MainActivity.startPlayerActivity(context, update.animeId, update.episodeId, extPlayer)
+    MainActivity.startPlayerActivity(context, update.animeId, update.episodeId)
 }

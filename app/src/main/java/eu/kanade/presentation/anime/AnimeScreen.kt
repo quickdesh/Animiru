@@ -111,14 +111,13 @@ fun AnimeScreen(
     episodeSwipeEndAction: LibraryPreferences.EpisodeSwipeAction,
     // AY -->
     showNextEpisodeAirTime: Boolean,
-    alwaysUseExternalPlayer: Boolean,
     // <-- AY
     navigateUp: () -> Unit,
     // AM (FILE_SIZE) -->
     showFileSize: Boolean,
     // <-- AM (FILE_SIZE)
     // AY -->
-    onEpisodeClicked: (episode: Episode, alt: Boolean) -> Unit,
+    onEpisodeClicked: (episode: Episode) -> Unit,
     // <-- AY
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
@@ -193,7 +192,6 @@ fun AnimeScreen(
             episodeSwipeEndAction = episodeSwipeEndAction,
             // AY -->
             showNextEpisodeAirTime = showNextEpisodeAirTime,
-            alwaysUseExternalPlayer = alwaysUseExternalPlayer,
             // <-- AY
             navigateUp = navigateUp,
             // AM (FILE_SIZE) -->
@@ -250,7 +248,6 @@ fun AnimeScreen(
             episodeSwipeEndAction = episodeSwipeEndAction,
             // AY -->
             showNextEpisodeAirTime = showNextEpisodeAirTime,
-            alwaysUseExternalPlayer = alwaysUseExternalPlayer,
             // <-- AY
             navigateUp = navigateUp,
             // AM (FILE_SIZE) -->
@@ -310,14 +307,13 @@ private fun AnimeScreenSmallImpl(
     episodeSwipeEndAction: LibraryPreferences.EpisodeSwipeAction,
     // AY -->
     showNextEpisodeAirTime: Boolean,
-    alwaysUseExternalPlayer: Boolean,
     // <-- AY
     navigateUp: () -> Unit,
     // AM (FILE_SIZE) -->
     showFileSize: Boolean,
     // <-- AM (FILE_SIZE)
     // AY -->
-    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    onEpisodeClicked: (Episode) -> Unit,
     // <-- AY
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
@@ -460,7 +456,6 @@ private fun AnimeScreenSmallImpl(
                     selected = selectedEpisodes,
                     // AY -->
                     onEpisodeClicked = onEpisodeClicked,
-                    alwaysUseExternalPlayer = alwaysUseExternalPlayer,
                     // <-- AY
                     onMultiBookmarkClicked = onMultiBookmarkClicked,
                     // AY -->
@@ -702,14 +697,13 @@ fun AnimeScreenLargeImpl(
     episodeSwipeEndAction: LibraryPreferences.EpisodeSwipeAction,
     // AY -->
     showNextEpisodeAirTime: Boolean,
-    alwaysUseExternalPlayer: Boolean,
     // <-- AY
     navigateUp: () -> Unit,
     // AM (FILE_SIZE) -->
     showFileSize: Boolean,
     // <-- AM (FILE_SIZE)
     // AY -->
-    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    onEpisodeClicked: (Episode) -> Unit,
     // <-- AY
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onAddToLibraryClicked: () -> Unit,
@@ -843,7 +837,6 @@ fun AnimeScreenLargeImpl(
                         selected = selectedEpisodes,
                         // AY -->
                         onEpisodeClicked = onEpisodeClicked,
-                        alwaysUseExternalPlayer = alwaysUseExternalPlayer,
                         // <-- AY
                         onMultiBookmarkClicked = onMultiBookmarkClicked,
                         // AY -->
@@ -1064,8 +1057,7 @@ fun AnimeScreenLargeImpl(
 private fun SharedAnimeBottomActionMenu(
     selected: List<EpisodeList.Item>,
     // AY -->
-    onEpisodeClicked: (Episode, Boolean) -> Unit,
-    alwaysUseExternalPlayer: Boolean,
+    onEpisodeClicked: (Episode) -> Unit,
     // <-- AY
     onMultiBookmarkClicked: (List<Episode>, bookmarked: Boolean) -> Unit,
     // AY -->
@@ -1114,14 +1106,6 @@ private fun SharedAnimeBottomActionMenu(
         }.takeIf {
             selected.fastAny { it.downloadState == Download.State.DOWNLOADED }
         },
-        // AY -->
-        onExternalClicked = {
-            onEpisodeClicked(selected.fastMap { it.episode }.first(), true)
-        }.takeIf { !alwaysUseExternalPlayer && selected.size == 1 },
-        onInternalClicked = {
-            onEpisodeClicked(selected.fastMap { it.episode }.first(), true)
-        }.takeIf { alwaysUseExternalPlayer && selected.size == 1 },
-        // <-- AY
     )
 }
 
@@ -1166,7 +1150,7 @@ private fun LazyGridScope.sharedEpisodeItems(
     episodeSwipeStartAction: LibraryPreferences.EpisodeSwipeAction,
     episodeSwipeEndAction: LibraryPreferences.EpisodeSwipeAction,
     // AY -->
-    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    onEpisodeClicked: (Episode) -> Unit,
     // <-- AY
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
     onEpisodeSelected: (EpisodeList.Item, Boolean, Boolean, Boolean) -> Unit,
@@ -1297,13 +1281,13 @@ private fun onEpisodeItemClick(
     isAnyEpisodeSelected: Boolean,
     onToggleSelection: (Boolean) -> Unit,
     // AY -->
-    onEpisodeClicked: (Episode, Boolean) -> Unit,
+    onEpisodeClicked: (Episode) -> Unit,
     // <-- AY
 ) {
     when {
         episodeItem.selected -> onToggleSelection(false)
         isAnyEpisodeSelected -> onToggleSelection(true)
-        else -> onEpisodeClicked(episodeItem.episode, false)
+        else -> onEpisodeClicked(episodeItem.episode)
     }
 }
 

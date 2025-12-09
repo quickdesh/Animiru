@@ -49,7 +49,7 @@ fun UpdateScreen(
     onUpdateLibrary: () -> Boolean,
     onDownloadEpisode: (List<UpdatesItem>, EpisodeDownloadAction) -> Unit,
     onUpdateSelected: (UpdatesItem, Boolean, Boolean, Boolean) -> Unit,
-    onOpenEpisode: (UpdatesItem, altPlayer: Boolean) -> Unit,
+    onOpenEpisode: (UpdatesItem) -> Unit,
     contentPadding: PaddingValues,
 ) {
     when {
@@ -194,12 +194,6 @@ fun UpdatesBottomBar(
         onDeleteClicked = {
             onMultiDeleteClicked(selected)
         }.takeIf { selected.fastAny { it.downloadStateProvider() == Download.State.DOWNLOADED } },
-        onExternalClicked = {
-            onOpenEpisode(selected[0], true)
-        }.takeIf { !playerPreferences.alwaysUseExternalPlayer().get() && selected.size == 1 },
-        onInternalClicked = {
-            onOpenEpisode(selected[0], true)
-        }.takeIf { playerPreferences.alwaysUseExternalPlayer().get() && selected.size == 1 },
     )
 }
 

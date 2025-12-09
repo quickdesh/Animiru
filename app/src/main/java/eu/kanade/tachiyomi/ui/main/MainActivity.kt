@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.ui.main
 
 import android.animation.ValueAnimator
-import android.app.Application
 import android.app.SearchManager
 import android.app.assist.AssistContent
 import android.content.Context
@@ -13,9 +12,7 @@ import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -84,12 +81,10 @@ import eu.kanade.tachiyomi.ui.deeplink.DeepLinkScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.more.NewUpdateScreen
 import eu.kanade.tachiyomi.ui.more.OnboardingScreen
-import eu.kanade.tachiyomi.ui.player.ExternalIntents
 import eu.kanade.tachiyomi.ui.player.PlayerActivity
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.isNavigationBarNeedsScrim
 import eu.kanade.tachiyomi.util.system.openInBrowser
-import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.system.updaterEnabled
 import eu.kanade.tachiyomi.util.view.setComposeContent
 import kotlinx.coroutines.channels.awaitClose
@@ -100,28 +95,20 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
 import mihon.core.migration.Migrator
 import tachiyomi.core.common.Constants
-import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 
 class MainActivity : BaseActivity() {
 
     private val preferences: BasePreferences by injectLazy()
-
-    // AM (CONNECTION) -->
-    private val connectionPreferences: ConnectionPreferences by injectLazy()
-    // <-- AM (CONNECTION)
 
     private val downloadCache: DownloadCache by injectLazy()
 
@@ -280,23 +267,6 @@ class MainActivity : BaseActivity() {
             elapsed <= SPLASH_MIN_DURATION || (!ready && elapsed <= SPLASH_MAX_DURATION)
         }
         setSplashScreenExitAnimation(splashScreen)
-
-        // AY -->
-        externalPlayerResult = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult(),
-        ) { result: ActivityResult ->
-            if (result.resultCode == RESULT_OK) {
-                val animeId = savedInstanceState?.getLong(SAVED_STATE_ANIME_KEY)
-                val episodeId = savedInstanceState?.getLong(SAVED_STATE_EPISODE_KEY)
-
-                if (animeId != null && episodeId != null) {
-                    runBlocking {
-                        ExternalIntents.externalIntents.initAnime(animeId, episodeId)
-                    }
-                }
-            }
-        }
-        // <-- AY
     }
 
     override fun onProvideAssistContent(outContent: AssistContent) {
@@ -485,61 +455,31 @@ class MainActivity : BaseActivity() {
         return true
     }
 
-    // AY -->
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-
-        ExternalIntents.externalIntents.animeId?.let {
-            outState.putLong(SAVED_STATE_ANIME_KEY, it)
-        }
-        ExternalIntents.externalIntents.episodeId?.let {
-            outState.putLong(SAVED_STATE_EPISODE_KEY, it)
-        }
-    }
-    // <-- AY
-
     companion object {
         const val INTENT_SEARCH = "eu.kanade.tachiyomi.SEARCH"
         const val INTENT_SEARCH_QUERY = "query"
         const val INTENT_SEARCH_FILTER = "filter"
 
         // AY -->
-        const val SAVED_STATE_ANIME_KEY = "saved_state_anime_key"
-        const val SAVED_STATE_EPISODE_KEY = "saved_state_episode_key"
-
-        private var externalPlayerResult: ActivityResultLauncher<Intent>? = null
-
-        suspend fun startPlayerActivity(
+        fun startPlayerActivity(
             context: Context,
             animeId: Long,
             episodeId: Long,
-            extPlayer: Boolean,
             video: Video? = null,
             hosterIndex: Int = -1,
             videoIndex: Int = -1,
             hosterList: List<Hoster>? = null,
         ) {
-            if (extPlayer) {
-                val intent = try {
-                    ExternalIntents.newIntent(context, animeId, episodeId, video)
-                } catch (e: Exception) {
-                    logcat(LogPriority.ERROR, e)
-                    withUIContext { Injekt.get<Application>().toast(e.message) }
-                    null
-                } ?: return
-                externalPlayerResult?.launch(intent) ?: return
-            } else {
-                context.startActivity(
-                    PlayerActivity.newIntent(
-                        context,
-                        animeId,
-                        episodeId,
-                        hosterList,
-                        hosterIndex,
-                        videoIndex,
-                    ),
-                )
-            }
+            context.startActivity(
+                PlayerActivity.newIntent(
+                    context,
+                    animeId,
+                    episodeId,
+                    hosterList,
+                    hosterIndex,
+                    videoIndex,
+                ),
+            )
         }
         // <-- AY
     }

@@ -527,7 +527,6 @@ private fun VideoList(
                                 context,
                                 anime.id,
                                 episode.id,
-                                true,
                                 currentVideo,
                             )
                         }
@@ -538,7 +537,6 @@ private fun VideoList(
                                 context,
                                 anime.id,
                                 episode.id,
-                                false,
                                 currentVideo,
                                 selectedHosterVideoIndex.first,
                                 selectedHosterVideoIndex.second,

@@ -138,19 +138,15 @@ class AnimeScreen(
             episodeSwipeEndAction = screenModel.episodeSwipeEndAction,
             // AY -->
             showNextEpisodeAirTime = screenModel.showNextEpisodeAirTime,
-            alwaysUseExternalPlayer = screenModel.alwaysUseExternalPlayer,
             // <-- AY
             navigateUp = navigator::pop,
             // AM (FILE_SIZE) -->
             showFileSize = screenModel.showFileSize,
             // <-- AM (FILE_SIZE)
-            onEpisodeClicked = { episode, /* AY --> */ alt /* <-- AY */ ->
-                // AY -->
+            onEpisodeClicked = { episode ->
                 scope.launchIO {
-                    val extPlayer = screenModel.alwaysUseExternalPlayer != alt
-                    openEpisode(context, episode, extPlayer)
+                    openEpisode(context, episode)
                 }
-                // <-- AY
             },
             onDownloadEpisode = screenModel::runEpisodeDownloadActions.takeIf {
                 // AY -->
@@ -188,12 +184,9 @@ class AnimeScreen(
             onFilterButtonClicked = screenModel::showSettingsDialog,
             onRefresh = screenModel::fetchAllFromSource,
             onContinueWatching = {
-                // AY -->
                 scope.launchIO {
-                    val extPlayer = screenModel.alwaysUseExternalPlayer
-                    continueWatching(context, screenModel.getNextUnseenEpisode(), extPlayer)
+                    continueWatching(context, screenModel.getNextUnseenEpisode())
                 }
-                // <-- AY
             },
             onSearch = { query, global -> scope.launch { performSearch(navigator, query, global) } },
             onCoverClicked = screenModel::showImagesDialog,
@@ -243,7 +236,7 @@ class AnimeScreen(
                 scope.launchIO {
                     val episode = screenModel.getNextUnseenEpisode(it.anime)
                     episode?.let { ep ->
-                        openEpisode(context, ep, screenModel.alwaysUseExternalPlayer)
+                        openEpisode(context, ep)
                     }
                 }
             },
@@ -466,18 +459,17 @@ class AnimeScreen(
         }
     }
 
-    private suspend fun continueWatching(context: Context, unseenEpisode: Episode?, useExternalPlayer: Boolean) {
-        if (unseenEpisode != null) openEpisode(context, unseenEpisode, useExternalPlayer)
+    private suspend fun continueWatching(context: Context, unseenEpisode: Episode?) {
+        if (unseenEpisode != null) openEpisode(context, unseenEpisode)
     }
 
-    private suspend fun openEpisode(context: Context, episode: Episode, useExternalPlayer: Boolean) {
+    private suspend fun openEpisode(context: Context, episode: Episode) {
         // AY -->
         withIOContext {
             MainActivity.startPlayerActivity(
                 context,
                 episode.animeId,
                 episode.id,
-                useExternalPlayer,
             )
         }
         // <-- AY

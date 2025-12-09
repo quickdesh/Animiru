@@ -62,14 +62,6 @@ class PlayerPreferences(
     fun pipOnExit() = preferenceStore.getBoolean("pref_pip_on_exit", false)
     fun pipReplaceWithPrevious() = preferenceStore.getBoolean("pip_replace_with_previous", false)
 
-    // External player
-
-    fun alwaysUseExternalPlayer() = preferenceStore.getBoolean(
-        "pref_always_use_external_player",
-        false,
-    )
-    fun externalPlayerPreference() = preferenceStore.getString("external_player_preference", "")
-
     // Non-preferences
 
     fun playerSpeed() = preferenceStore.getFloat("pref_player_speed", 1f)
