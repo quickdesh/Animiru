@@ -82,6 +82,7 @@ fun <T> TriStateListDialog(
                                     .clickable {
                                         selected[index] = when (state) {
                                             State.UNCHECKED -> State.CHECKED
+                                            State.CHECKED -> State.INVERSED
                                             State.INVERSED -> State.UNCHECKED
                                         }
                                     }

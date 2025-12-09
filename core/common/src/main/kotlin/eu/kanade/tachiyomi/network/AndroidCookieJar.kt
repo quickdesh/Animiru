@@ -5,14 +5,15 @@ import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
 
+// TODO: Figure out here (ANIMIRU_TV)
 class AndroidCookieJar : CookieJar {
 
-    private val manager = CookieManager.getInstance()
+    private val manager: CookieManager? = null
 
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
         val urlString = url.toString()
 
-        cookies.forEach { manager.setCookie(urlString, it.toString()) }
+        cookies.forEach { manager?.setCookie(urlString, it.toString()) }
     }
 
     override fun loadForRequest(url: HttpUrl): List<Cookie> {
@@ -20,7 +21,7 @@ class AndroidCookieJar : CookieJar {
     }
 
     fun get(url: HttpUrl): List<Cookie> {
-        val cookies = manager.getCookie(url.toString())
+        val cookies = manager?.getCookie(url.toString())
 
         return if (cookies != null && cookies.isNotEmpty()) {
             cookies.split(";").mapNotNull { Cookie.parse(url, it) }
@@ -31,7 +32,7 @@ class AndroidCookieJar : CookieJar {
 
     fun remove(url: HttpUrl, cookieNames: List<String>? = null, maxAge: Int = -1): Int {
         val urlString = url.toString()
-        val cookies = manager.getCookie(urlString) ?: return 0
+        val cookies = manager?.getCookie(urlString) ?: return 0
 
         fun List<String>.filterNames(): List<String> {
             return if (cookieNames != null) {
@@ -49,6 +50,6 @@ class AndroidCookieJar : CookieJar {
     }
 
     fun removeAll() {
-        manager.removeAllCookies {}
+        manager?.removeAllCookies {}
     }
 }
