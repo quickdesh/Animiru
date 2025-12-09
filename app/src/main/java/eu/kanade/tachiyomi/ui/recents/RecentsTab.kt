@@ -44,8 +44,6 @@ import eu.kanade.presentation.updates.UpdatesBottomBar
 import eu.kanade.presentation.updates.UpdatesTopBar
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
-import eu.kanade.tachiyomi.data.connection.discord.DiscordScreen
 import eu.kanade.tachiyomi.ui.download.DownloadQueueScreen
 import eu.kanade.tachiyomi.ui.history.HistoryHalfTab
 import eu.kanade.tachiyomi.ui.history.HistoryScreenModel
@@ -133,11 +131,6 @@ data object RecentsTab : Tab {
         // <-- AM (RECENTS_FILTER_CHIP)
 
         LaunchedEffect(Unit) {
-            // AM (DISCORD_RPC) -->
-            with(DiscordRPCService) {
-                discordScope.launchIO { setScreen(context.applicationContext, DiscordScreen.RECENTS) }
-            }
-            // <-- AM (DISCORD_RPC)
             (context as? MainActivity)?.ready = true
             // AM (TAB_HOLD) -->
             resumeLastEpisodeSeenEvent.receiveAsFlow().collectLatest {

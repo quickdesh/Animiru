@@ -12,7 +12,6 @@ import android.provider.Settings
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import com.hippo.unifile.UniFile
-import eu.kanade.tachiyomi.ui.setting.connection.DiscordLoginActivity
 import eu.kanade.tachiyomi.util.lang.truncateCenter
 import logcat.LogPriority
 import rikka.sui.Sui
@@ -65,17 +64,6 @@ fun Context.openInBrowser(uri: Uri, forceDefaultBrowser: Boolean = false) {
         toast(e.message)
     }
 }
-
-// AM (DISCORD_RPC) -->
-fun Context.openDiscordLoginActivity() {
-    try {
-        val intent = Intent(this, DiscordLoginActivity::class.java)
-        startActivity(intent)
-    } catch (e: Exception) {
-        toast(e.message)
-    }
-}
-// <-- AM (DISCORD_RPC)
 
 private fun Context.defaultBrowserPackageName(): String? {
     val browserIntent = Intent(Intent.ACTION_VIEW, "http://".toUri())

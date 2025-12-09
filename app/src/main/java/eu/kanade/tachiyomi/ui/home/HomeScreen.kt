@@ -71,18 +71,6 @@ object HomeScreen : Screen() {
             // AM (NAVIGATION_PILL) -->
             // Provide usable navigator to content screen
             CompositionLocalProvider(LocalNavigator provides navigator) {
-                val currentTabIndex by remember {
-                    // AM (RECENTS_FILTER_CHIP) -->
-                    derivedStateOf { TABS.indexOfFirst { it::class == tabNavigator.current::class } }
-                    // <-- AM (RECENTS_FILTER_CHIP)
-                }
-
-                var oldIndex by remember { mutableIntStateOf(currentTabIndex) }
-
-                LaunchedEffect(currentTabIndex) {
-                    oldIndex = currentTabIndex
-                }
-
                 Scaffold(
                     bottomBar = {
                         val bottomNavVisible by produceState(initialValue = true) {

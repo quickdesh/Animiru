@@ -37,8 +37,6 @@ import eu.kanade.presentation.library.components.LibraryToolbar
 import eu.kanade.presentation.more.onboarding.GETTING_STARTED_URL
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
-import eu.kanade.tachiyomi.data.connection.discord.DiscordScreen
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
@@ -320,11 +318,6 @@ data object LibraryTab : Tab {
         }
 
         LaunchedEffect(Unit) {
-            // AM (DISCORD_RPC) -->
-            with(DiscordRPCService) {
-                discordScope.launchIO { setScreen(context.applicationContext, DiscordScreen.LIBRARY) }
-            }
-            // <-- AM (DISCORD_RPC)
             launch { queryEvent.receiveAsFlow().collect(screenModel::search) }
             launch { requestSettingsSheetEvent.receiveAsFlow().collectLatest { screenModel.showSettingsDialog() } }
             // AM (TAB_HOLD) -->

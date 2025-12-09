@@ -33,7 +33,6 @@ import eu.kanade.tachiyomi.data.coil.AnimeCoverKeyer
 import eu.kanade.tachiyomi.data.coil.AnimeImageFetcher
 import eu.kanade.tachiyomi.data.coil.AnimeKeyer
 import eu.kanade.tachiyomi.data.coil.BufferedSourceFetcher
-import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncDataJob
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.di.AppModule
@@ -193,9 +192,6 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     override fun onStart(owner: LifecycleOwner) {
         SecureActivityDelegate.onApplicationStart()
-        // AM (DISCORD_RPC) -->
-        DiscordRPCService.start(applicationContext)
-        // <-- AM (DISCORD_RPC)
         // AM (SYNC) -->
         startSyncJob(syncPreferences.getSyncTriggerOptions().syncOnAppResume)
         // <-- AM (SYNC)
@@ -203,9 +199,6 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     override fun onStop(owner: LifecycleOwner) {
         SecureActivityDelegate.onApplicationStopped()
-        // AM (DISCORD_RPC) -->
-        DiscordRPCService.stop(applicationContext, 10000L)
-        // <-- AM (DISCORD_RPC)
         // AM (SYNC) -->
         startSyncJob(syncPreferences.getSyncTriggerOptions().syncOnAppStart)
         // <-- AM (SYNC)

@@ -22,8 +22,6 @@ import eu.kanade.domain.base.BasePreferences
 import eu.kanade.presentation.more.MoreScreen
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
-import eu.kanade.tachiyomi.data.connection.discord.DiscordScreen
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.download.DownloadQueueScreen
@@ -90,14 +88,6 @@ data object MoreTab : Tab {
             onClickSettings = { navigator.push(SettingsScreen()) },
             onClickAbout = { navigator.push(SettingsScreen(SettingsScreen.Destination.About)) },
         )
-
-        // AM (DISCORD_RPC) -->
-        LaunchedEffect(Unit) {
-            with(DiscordRPCService) {
-                discordScope.launchIO { setScreen(context.applicationContext, DiscordScreen.MORE) }
-            }
-        }
-        // <-- AM (DISCORD_RPC)
     }
 }
 

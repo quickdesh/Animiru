@@ -34,8 +34,6 @@ import eu.kanade.presentation.browse.SourceOptionsDialog
 import eu.kanade.presentation.browse.SourcesScreen
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
-import eu.kanade.tachiyomi.data.connection.discord.DiscordScreen
 import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.ui.browse.extension.ExtensionsScreenModel
 import eu.kanade.tachiyomi.ui.browse.extension.details.ExtensionDetailsScreen
@@ -207,11 +205,6 @@ data object BrowseTab : Tab {
         }
 
         LaunchedEffect(Unit) {
-            // AM (DISCORD_RPC) -->
-            with(DiscordRPCService) {
-                discordScope.launchIO { setScreen(context.applicationContext, DiscordScreen.BROWSE) }
-            }
-            // <-- AM (DISCORD_RPC)
             (context as? MainActivity)?.ready = true
         }
 

@@ -1,7 +1,6 @@
 // AM (CONNECTION) -->
 package eu.kanade.tachiyomi.data.connection
 
-import eu.kanade.tachiyomi.data.connection.discord.Discord
 import eu.kanade.tachiyomi.data.connection.syncmiru.GoogleDrive
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncMiru
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncYomi
@@ -9,9 +8,6 @@ import eu.kanade.tachiyomi.data.connection.syncmiru.SyncYomi
 class ConnectionManager {
 
     companion object {
-        // AM (DISCORD_RPC) -->
-        const val DISCORD = 201L
-        // <-- AM (DISCORD_RPC)
 
         // AM (SYNC) -->
         const val SYNCMIRU = 202L
@@ -27,10 +23,6 @@ class ConnectionManager {
         // <-- AM (SYNC)
     }
 
-    // AM (DISCORD_RPC) -->
-    val discord = Discord(DISCORD)
-    // <-- AM (DISCORD_RPC)
-
     // AM (SYNC) -->
     val syncmiru = SyncMiru(SYNCMIRU)
 
@@ -44,6 +36,6 @@ class ConnectionManager {
 
     // <-- AM (SYNC)
 
-    val services: List<BaseConnection> = listOf(discord, syncmiru)
+    val services: List<BaseConnection> = listOf(syncmiru)
 }
 // <-- AM (CONNECTION)

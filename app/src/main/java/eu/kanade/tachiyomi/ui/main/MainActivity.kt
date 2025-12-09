@@ -71,7 +71,6 @@ import eu.kanade.presentation.util.DefaultNavigatorScreenTransition
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.animesource.model.Hoster
 import eu.kanade.tachiyomi.animesource.model.Video
-import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.updater.AppUpdateChecker
@@ -248,19 +247,6 @@ class MainActivity : BaseActivity() {
                             }
                         }
                         .launchIn(this)
-
-                    // AM (DISCORD_RPC) -->
-                    val appContext = this@MainActivity.applicationContext
-                    connectionPreferences.enableDiscordRPC().changes()
-                        .drop(1)
-                        .onEach {
-                            if (it) {
-                                DiscordRPCService.start(appContext)
-                            } else {
-                                DiscordRPCService.stop(appContext, 0L)
-                            }
-                        }.launchIn(this)
-                    // <-- AM (DISCORD_RPC)
                 }
 
                 HandleOnNewIntent(context = context, navigator = navigator)
@@ -308,10 +294,6 @@ class MainActivity : BaseActivity() {
                         ExternalIntents.externalIntents.initAnime(animeId, episodeId)
                     }
                 }
-
-                // AM (DISCORD_RPC) -->
-                ExternalIntents.externalIntents.onActivityResult(this.applicationContext, result.data)
-                // <-- AM (DISCORD_RPC)
             }
         }
         // <-- AY

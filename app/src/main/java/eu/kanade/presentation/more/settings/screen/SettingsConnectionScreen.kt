@@ -22,7 +22,6 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.tachiyomi.data.connection.Connection
 import eu.kanade.tachiyomi.data.connection.ConnectionManager
-import eu.kanade.tachiyomi.util.system.openDiscordLoginActivity
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
@@ -47,14 +46,6 @@ object SettingsConnectionScreen : SearchableSettings {
             Preference.PreferenceGroup(
                 title = stringResource(AMMR.strings.special_services),
                 preferenceItems = persistentListOf(
-                    // AM (DISCORD_RPC) -->
-                    Preference.PreferenceItem.ConnectionPreference(
-                        title = connectionManager.discord.name,
-                        connection = connectionManager.discord,
-                        login = { context.openDiscordLoginActivity() },
-                        openSettings = { navigator.push(SettingsDiscordScreen) },
-                    ),
-                    // <-- AM (DISCORD_RPC)
                     // AM (SYNC) -->
                     Preference.PreferenceItem.ConnectionPreference(
                         title = connectionManager.syncmiru.name,
@@ -63,9 +54,6 @@ object SettingsConnectionScreen : SearchableSettings {
                         openSettings = { navigator.push(SettingsSyncmiruScreen) },
                     ),
                     // <-- AM (SYNC)
-                    // AM (DISCORD_RPC) -->
-                    Preference.PreferenceItem.InfoPreference(stringResource(AMMR.strings.connection_discord_info)),
-                    // <-- AM (DISCORD_RPC)
                 ),
             ),
         )

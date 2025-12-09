@@ -58,7 +58,6 @@ import androidx.media.AudioAttributesCompat
 import androidx.media.AudioFocusRequestCompat
 import androidx.media.AudioManagerCompat
 import com.hippo.unifile.UniFile
-import eu.kanade.domain.connection.service.ConnectionPreferences
 import eu.kanade.presentation.theme.TachiyomiTheme
 import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.animesource.model.Hoster
@@ -123,10 +122,6 @@ class PlayerActivity : BaseActivity() {
     private val advancedPlayerPreferences: AdvancedPlayerPreferences = Injekt.get()
     private val networkPreferences: NetworkPreferences = Injekt.get()
     private val storageManager: StorageManager = Injekt.get()
-
-    // AM (DISCORD_RPC) -->
-    private val connectionPreferences: ConnectionPreferences = Injekt.get()
-    // <-- AM (DISCORD_RPC)
 
     private var audioFocusRequest: AudioFocusRequestCompat? = null
     private var restoreAudioFocus: () -> Unit = {}
@@ -1319,33 +1314,4 @@ class PlayerActivity : BaseActivity() {
             viewModel.changeEpisode(previous = false, autoPlay = true)
         }
     }
-
-    // AM (DISCORD_RPC) -->
-    /**
-     private fun updateDiscordRPC(exitingPlayer: Boolean) {
-     DiscordRPCService.discordScope.launchIO {
-     if (connectionPreferences.enableDiscordRPC().get()) {
-     if (!exitingPlayer) {
-     DiscordRPCService.setPlayerActivity(
-     context = applicationContext,
-     PlayerData(
-     incognitoMode = viewModel.currentSource.isNsfw() || viewModel.incognitoMode,
-     animeId = viewModel.currentAnime?.id,
-     // AM (CUSTOM_INFORMATION) -->
-     animeTitle = viewModel.currentAnime?.ogTitle,
-     // <-- AM (CUSTOM_INFORMATION)
-     episodeNumber = viewModel.currentEpisode?.episode_number?.toString(),
-     thumbnailUrl = viewModel.currentAnime?.thumbnailUrl,
-     ),
-     )
-     } else {
-     with(DiscordRPCService) {
-     setScreen(this@PlayerActivity.applicationContext, lastUsedScreen)
-     }
-     }
-     }
-     }
-     }
-     // <-- AM (DISCORD_RPC)
-     **/
 }

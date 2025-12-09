@@ -11,8 +11,6 @@ import androidx.core.net.toUri
 import eu.kanade.presentation.webview.WebViewScreenContent
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
-import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
-import eu.kanade.tachiyomi.data.connection.discord.DiscordScreen
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.ui.base.activity.BaseActivity
 import eu.kanade.tachiyomi.util.system.WebViewUtil
@@ -22,7 +20,6 @@ import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.setComposeContent
 import logcat.LogPriority
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
@@ -82,22 +79,7 @@ class WebViewActivity : BaseActivity() {
                 onClearCookies = this::clearCookies,
             )
         }
-
-        // AM (DISCORD_RPC) -->
-        with(DiscordRPCService) {
-            discordScope.launchIO { setScreen(this@WebViewActivity.applicationContext, DiscordScreen.WEBVIEW) }
-        }
-        // <-- AM (DISCORD_RPC)
     }
-
-    // AM (DISCORD_RPC) -->
-    override fun onDestroy() {
-        super.onDestroy()
-        with(DiscordRPCService) {
-            discordScope.launchIO { setScreen(this@WebViewActivity.applicationContext, lastUsedScreen) }
-        }
-    }
-    // <-- AM (DISCORD_RPC)
 
     override fun onProvideAssistContent(outContent: AssistContent) {
         super.onProvideAssistContent(outContent)

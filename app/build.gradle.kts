@@ -328,6 +328,8 @@ dependencies {
     // <-- AM (SYNC_DRIVE)
 
     testImplementation(kotlinx.coroutines.test)
+
+    implementation(compose.tv.material)
 }
 
 androidComponents {
