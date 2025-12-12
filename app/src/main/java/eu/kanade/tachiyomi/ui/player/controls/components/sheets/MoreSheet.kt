@@ -194,10 +194,10 @@ fun MoreSheet(
                         },
                         onClick = {
                             if ((page == 0) xor (statisticsPage == 0)) {
-                                MPVLib.command(arrayOf("script-binding", "stats/display-stats-toggle"))
+                                MPVLib.command("script-binding", "stats/display-stats-toggle")
                             }
                             if (page != 0) {
-                                MPVLib.command(arrayOf("script-binding", "stats/display-page-$page"))
+                                MPVLib.command("script-binding", "stats/display-page-$page")
                             }
                             advancedPreferences.playerStatisticsPage().set(page)
                         },

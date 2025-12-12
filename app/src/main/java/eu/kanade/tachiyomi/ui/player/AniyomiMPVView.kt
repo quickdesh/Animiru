@@ -50,19 +50,19 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
     var isExiting = false
 
     private fun getPropertyInt(property: String): Int? {
-        return MPVLib.getPropertyInt(property) as Int?
+        return MPVLib.getPropertyInt(property)
     }
 
     private fun getPropertyBoolean(property: String): Boolean? {
-        return MPVLib.getPropertyBoolean(property) as Boolean?
+        return MPVLib.getPropertyBoolean(property)
     }
 
     private fun getPropertyDouble(property: String): Double? {
-        return MPVLib.getPropertyDouble(property) as Double?
+        return MPVLib.getPropertyDouble(property)
     }
 
     private fun getPropertyString(property: String): String? {
-        return MPVLib.getPropertyString(property) as String?
+        return MPVLib.getPropertyString(property)
     }
 
     val duration: Int?
@@ -111,7 +111,7 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
     var secondarySid: Int by TrackDelegate("secondary-sid")
     var aid: Int by TrackDelegate("aid")
 
-    override fun initOptions(vo: String) {
+    override fun initOptions() {
         setVo(if (decoderPreferences.gpuNext().get()) "gpu-next" else "gpu")
         MPVLib.setPropertyBoolean("pause", true)
         MPVLib.setOptionString("profile", "fast")
@@ -162,8 +162,8 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
     override fun postInitOptions() {
         advancedPreferences.playerStatisticsPage().get().let {
             if (it != 0) {
-                MPVLib.command(arrayOf("script-binding", "stats/display-stats-toggle"))
-                MPVLib.command(arrayOf("script-binding", "stats/display-page-$it"))
+                MPVLib.command("script-binding", "stats/display-stats-toggle")
+                MPVLib.command("script-binding", "stats/display-page-$it")
             }
         }
     }
@@ -173,7 +173,7 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
             return false
         }
 
-        var mapped = KeyMapping.map.get(event.keyCode)
+        var mapped = KeyMapping.get(event.keyCode)
         if (mapped == null) {
             // Fallback to produced glyph
             if (!event.isPrintingKey) {
@@ -202,7 +202,7 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
 
         val action = if (event.action == KeyEvent.ACTION_DOWN) "keydown" else "keyup"
         mod.add(mapped)
-        MPVLib.command(arrayOf(action, mod.joinToString("+")))
+        MPVLib.command(action, mod.joinToString("+"))
 
         return true
     }

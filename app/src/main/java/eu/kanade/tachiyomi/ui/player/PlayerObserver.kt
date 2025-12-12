@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.ui.player
 import android.widget.Toast
 import eu.kanade.tachiyomi.util.system.toast
 import `is`.xyz.mpv.MPVLib
+import `is`.xyz.mpv.MPVNode
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 
@@ -30,21 +31,25 @@ class PlayerObserver(val activity: PlayerActivity) :
         activity.runOnUiThread { activity.onObserverEvent(property, value) }
     }
 
+    override fun eventProperty(property: String, value: MPVNode) {
+    }
+
     override fun event(eventId: Int) {
         activity.runOnUiThread { activity.event(eventId) }
     }
 
-    override fun efEvent(err: String?) {
-        var errorMessage = err ?: "Error: File ended"
-        if (!httpError.isNullOrEmpty()) {
-            errorMessage += ": $httpError"
-            httpError = null
-        }
-        logcat(LogPriority.ERROR) { errorMessage }
-        activity.runOnUiThread {
-            activity.toast(errorMessage, Toast.LENGTH_LONG)
-        }
-    }
+    // TODO(mpv): Add to `event`
+    // override fun efEvent(err: String?) {
+    //     var errorMessage = err ?: "Error: File ended"
+    //     if (!httpError.isNullOrEmpty()) {
+    //         errorMessage += ": $httpError"
+    //         httpError = null
+    //     }
+    //     logcat(LogPriority.ERROR) { errorMessage }
+    //     activity.runOnUiThread {
+    //         activity.toast(errorMessage, Toast.LENGTH_LONG)
+    //     }
+    // }
 
     private var httpError: String? = null
 

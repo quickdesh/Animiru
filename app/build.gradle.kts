@@ -89,6 +89,19 @@ android {
 
     packaging {
         jniLibs {
+            // AM -->
+            pickFirsts += setOf(
+                "**/libavcodec.so",
+                "**/libavdevice.so",
+                "**/libavfilter.so",
+                "**/libavformat.so",
+                "**/libavutil.so",
+                "**/libswresample.so",
+                "**/libswscale.so",
+                "**/libc++_shared.so",
+            )
+            // <-- AM
+
             keepDebugSymbols += listOf(
                 "libandroidx.graphics.path",
                 "libarchive-jni",
@@ -309,7 +322,7 @@ dependencies {
 
     // AY -->
     // mpv-android
-    implementation(aniyomilibs.aniyomi.mpv)
+    implementation(aniyomilibs.mpv.lib)
 
     // FFmpeg-kit
     implementation(aniyomilibs.ffmpeg.kit)

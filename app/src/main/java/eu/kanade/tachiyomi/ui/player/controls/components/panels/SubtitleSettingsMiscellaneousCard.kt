@@ -85,10 +85,10 @@ fun SubtitlesMiscellaneousCard(modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth(),
             )
             var subScale by remember {
-                mutableStateOf(MPVLib.getPropertyDouble("sub-scale").toFloat())
+                mutableStateOf(MPVLib.getPropertyDouble("sub-scale")!!.toFloat())
             }
             var subPos by remember {
-                mutableStateOf(MPVLib.getPropertyInt("sub-pos"))
+                mutableStateOf(MPVLib.getPropertyInt("sub-pos")!!)
             }
             SliderItem(
                 label = stringResource(AYMR.strings.player_sheets_sub_scale),

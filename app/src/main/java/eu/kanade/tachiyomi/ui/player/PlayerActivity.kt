@@ -325,7 +325,7 @@ class PlayerActivity : BaseActivity() {
         player.isExiting = true
         if (isFinishing) {
             viewModel.deletePendingEpisodes()
-            MPVLib.command(arrayOf("stop"))
+            MPVLib.command("stop")
         } else {
             viewModel.pause()
         }
@@ -403,7 +403,7 @@ class PlayerActivity : BaseActivity() {
 
     private fun executeMPVCommand(commands: Array<String>) {
         if (!player.isExiting) {
-            MPVLib.command(commands)
+            MPVLib.command(*commands)
         }
     }
 
@@ -427,14 +427,13 @@ class PlayerActivity : BaseActivity() {
         copyAssets(mpvDir)
         copyFontsDirectory(mpvDir)
 
-        MPVLib.setOptionString("sub-ass-force-margins", "yes")
-        MPVLib.setOptionString("sub-use-margins", "yes")
-
         player.initialize(
             configDir = mpvDir.filePath!!,
             cacheDir = applicationContext.cacheDir.path,
-            logLvl = logLevel,
+            // logLvl = logLevel,
         )
+        MPVLib.setOptionString("sub-ass-force-margins", "yes")
+        MPVLib.setOptionString("sub-use-margins", "yes")
         MPVLib.addLogObserver(playerObserver)
         MPVLib.addObserver(playerObserver)
     }
@@ -568,7 +567,7 @@ class PlayerActivity : BaseActivity() {
             }
 
             file?.let {
-                MPVLib.command(arrayOf("load-script", it.filePath))
+                MPVLib.command("load-script", it.filePath!!)
             }
         }
     }
@@ -606,9 +605,9 @@ class PlayerActivity : BaseActivity() {
             }
 
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                MPVLib.command(arrayOf("multiply", "volume", "0.5"))
+                MPVLib.command("multiply", "volume", "0.5")
                 restoreAudioFocus = {
-                    MPVLib.command(arrayOf("multiply", "volume", "2"))
+                    MPVLib.command("multiply", "volume", "2")
                 }
             }
 
@@ -893,7 +892,7 @@ class PlayerActivity : BaseActivity() {
                                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                             }
                             SingleActionGesture.Custom -> {
-                                MPVLib.command(arrayOf("keypress", CustomKeyCodes.MediaPlay.keyCode))
+                                MPVLib.command("keypress", CustomKeyCodes.MediaPlay.keyCode)
                             }
 
                             SingleActionGesture.Switch -> {}
@@ -910,7 +909,7 @@ class PlayerActivity : BaseActivity() {
                                 window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                             }
                             SingleActionGesture.Custom -> {
-                                MPVLib.command(arrayOf("keypress", CustomKeyCodes.MediaPlay.keyCode))
+                                MPVLib.command("keypress", CustomKeyCodes.MediaPlay.keyCode)
                             }
 
                             SingleActionGesture.Switch -> {}
@@ -927,7 +926,7 @@ class PlayerActivity : BaseActivity() {
                                 viewModel.pauseUnpause()
                             }
                             SingleActionGesture.Custom -> {
-                                MPVLib.command(arrayOf("keypress", CustomKeyCodes.MediaPrevious.keyCode))
+                                MPVLib.command("keypress", CustomKeyCodes.MediaPrevious.keyCode)
                             }
 
                             SingleActionGesture.Switch -> viewModel.changeEpisode(true)
@@ -944,7 +943,7 @@ class PlayerActivity : BaseActivity() {
                                 viewModel.pauseUnpause()
                             }
                             SingleActionGesture.Custom -> {
-                                MPVLib.command(arrayOf("keypress", CustomKeyCodes.MediaNext.keyCode))
+                                MPVLib.command("keypress", CustomKeyCodes.MediaNext.keyCode)
                             }
 
                             SingleActionGesture.Switch -> viewModel.changeEpisode(false)
@@ -1068,11 +1067,11 @@ class PlayerActivity : BaseActivity() {
                     } else {
                         episode.last_second_seen
                     }
-                MPVLib.command(arrayOf("set", "start", "${resumePosition / 1000F}"))
+                MPVLib.command("set", "start", "${resumePosition / 1000F}")
             }
         } else {
             player.timePos?.let {
-                MPVLib.command(arrayOf("set", "start", "${player.timePos}"))
+                MPVLib.command("set", "start", "${player.timePos}")
             }
         }
 
@@ -1081,13 +1080,11 @@ class PlayerActivity : BaseActivity() {
         }
 
         MPVLib.command(
-            arrayOf(
-                "loadfile",
-                parseVideoUrl(video.videoUrl),
-                "replace",
-                "0",
-                videoOptions,
-            ),
+            "loadfile",
+            parseVideoUrl(video.videoUrl)!!,
+            "replace",
+            "0",
+            videoOptions,
         )
     }
 
@@ -1227,7 +1224,7 @@ class PlayerActivity : BaseActivity() {
 
         try {
             val metadata = Json.decodeFromString<Map<String, String>>(
-                MPVLib.getPropertyString("metadata"),
+                MPVLib.getPropertyString("metadata")!!,
             )
 
             val opts = metadata[Video.MPV_ARGS_TAG]

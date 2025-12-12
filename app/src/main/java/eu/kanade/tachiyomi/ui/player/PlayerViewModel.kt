@@ -199,7 +199,7 @@ class PlayerViewModel @JvmOverloads constructor(
     private val _isLoadingEpisode = MutableStateFlow(false)
     val isLoadingEpisode = _isLoadingEpisode.asStateFlow()
 
-    private val _currentDecoder = MutableStateFlow(getDecoderFromValue(MPVLib.getPropertyString("hwdec")))
+    private val _currentDecoder = MutableStateFlow(getDecoderFromValue(MPVLib.getPropertyString("hwdec")!!))
     val currentDecoder = _currentDecoder.asStateFlow()
 
     val mediaTitle = MutableStateFlow("")
@@ -272,8 +272,8 @@ class PlayerViewModel @JvmOverloads constructor(
         }.getOrElse { 0f },
     )
     val currentVolume = MutableStateFlow(activity.audioManager.getStreamVolume(AudioManager.STREAM_MUSIC))
-    val currentMPVVolume = MutableStateFlow(MPVLib.getPropertyInt("volume"))
-    var volumeBoostCap: Int = MPVLib.getPropertyInt("volume-max")
+    val currentMPVVolume = MutableStateFlow(MPVLib.getPropertyInt("volume")!!)
+    var volumeBoostCap: Int = MPVLib.getPropertyInt("volume-max")!!
 
     // Pair(startingPosition, seekAmount)
     val gestureSeekAmount = MutableStateFlow<Pair<Int, Int>?>(null)
@@ -388,7 +388,7 @@ class PlayerViewModel @JvmOverloads constructor(
     }
     val getTrackMPVId: (Int) -> Int = {
         if (it != -1) {
-            MPVLib.getPropertyInt("track-list/$it/id")
+            MPVLib.getPropertyInt("track-list/$it/id")!!
         } else {
             -1
         }
@@ -462,7 +462,7 @@ class PlayerViewModel @JvmOverloads constructor(
         val chapters = mutableListOf<IndexedSegment>()
         val count = MPVLib.getPropertyInt("chapter-list/count")!!
         for (i in 0 until count) {
-            val title = MPVLib.getPropertyString("chapter-list/$i/title")
+            val title = MPVLib.getPropertyString("chapter-list/$i/title")!!
             val time = MPVLib.getPropertyInt("chapter-list/$i/time")!!
             chapters.add(
                 IndexedSegment(
@@ -496,9 +496,9 @@ class PlayerViewModel @JvmOverloads constructor(
             ?: return
         val name = if (isContentUri) uri.getFileName(activity) else null
         if (name == null) {
-            MPVLib.command(arrayOf("audio-add", path, "cached"))
+            MPVLib.command("audio-add", path, "cached")
         } else {
-            MPVLib.command(arrayOf("audio-add", path, "cached", name))
+            MPVLib.command("audio-add", path, "cached", name)
         }
     }
 
@@ -517,9 +517,9 @@ class PlayerViewModel @JvmOverloads constructor(
             ?: return
         val name = if (isContentUri) uri.getFileName(activity) else null
         if (name == null) {
-            MPVLib.command(arrayOf("sub-add", path, "cached"))
+            MPVLib.command("sub-add", path, "cached")
         } else {
-            MPVLib.command(arrayOf("sub-add", path, "cached", name))
+            MPVLib.command("sub-add", path, "cached", name)
         }
     }
 
@@ -673,12 +673,12 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun seekBy(offset: Int, precise: Boolean = false) {
-        MPVLib.command(arrayOf("seek", offset.toString(), if (precise) "relative+exact" else "relative"))
+        MPVLib.command("seek", offset.toString(), if (precise) "relative+exact" else "relative")
     }
 
     fun seekTo(position: Int, precise: Boolean = true) {
         if (position !in 0..(activity.player.duration ?: 0)) return
-        MPVLib.command(arrayOf("seek", position.toString(), if (precise) "absolute" else "absolute+keyframes"))
+        MPVLib.command("seek", position.toString(), if (precise) "absolute" else "absolute+keyframes")
     }
 
     fun changeBrightnessTo(
@@ -696,7 +696,7 @@ class PlayerViewModel @JvmOverloads constructor(
 
     val maxVolume = activity.audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
     fun changeVolumeBy(change: Int) {
-        val mpvVolume = MPVLib.getPropertyInt("volume")
+        val mpvVolume = MPVLib.getPropertyInt("volume")!!
         if (volumeBoostCap > 0 && currentVolume.value == maxVolume) {
             if (mpvVolume == 100 && change < 0) changeVolumeTo(currentVolume.value + change)
             val finalMPVVolume = (mpvVolume + change).coerceAtLeast(100)
@@ -831,7 +831,7 @@ class PlayerViewModel @JvmOverloads constructor(
             }
             "launch_int_picker" -> {
                 val (title, nameFormat, start, stop, step, pickerProperty) = data.split("|")
-                val defaultValue = MPVLib.getPropertyInt(pickerProperty)
+                val defaultValue = MPVLib.getPropertyInt(pickerProperty)!!
                 showDialog(
                     Dialogs.IntegerPicker(
                         defaultValue = defaultValue,
@@ -983,7 +983,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 pauseUnpause()
             }
             SingleActionGesture.Custom -> {
-                MPVLib.command(arrayOf("keypress", CustomKeyCodes.DoubleTapLeft.keyCode))
+                MPVLib.command("keypress", CustomKeyCodes.DoubleTapLeft.keyCode)
             }
             SingleActionGesture.None -> {}
             SingleActionGesture.Switch -> changeEpisode(true)
@@ -996,7 +996,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 pauseUnpause()
             }
             SingleActionGesture.Custom -> {
-                MPVLib.command(arrayOf("keypress", CustomKeyCodes.DoubleTapCenter.keyCode))
+                MPVLib.command("keypress", CustomKeyCodes.DoubleTapCenter.keyCode)
             }
             SingleActionGesture.Seek -> {}
             SingleActionGesture.None -> {}
@@ -1013,7 +1013,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 pauseUnpause()
             }
             SingleActionGesture.Custom -> {
-                MPVLib.command(arrayOf("keypress", CustomKeyCodes.DoubleTapRight.keyCode))
+                MPVLib.command("keypress", CustomKeyCodes.DoubleTapRight.keyCode)
             }
             SingleActionGesture.None -> {}
             SingleActionGesture.Switch -> changeEpisode(false)
@@ -1741,7 +1741,7 @@ class PlayerViewModel @JvmOverloads constructor(
         val filename = cachePath + "/${System.currentTimeMillis()}_mpv_screenshot_tmp.png"
         val subtitleFlag = if (showSubtitles) "subtitles" else "video"
 
-        MPVLib.command(arrayOf("screenshot-to-file", filename, subtitleFlag))
+        MPVLib.command("screenshot-to-file", filename, subtitleFlag)
         val tempFile = File(filename).takeIf { it.exists() } ?: return null
         val newFile = File("$cachePath/mpv_screenshot.png")
 
@@ -2074,11 +2074,11 @@ class PlayerViewModel @JvmOverloads constructor(
 }
 
 fun CustomButton.execute() {
-    MPVLib.command(arrayOf("script-message", "call_button_$id"))
+    MPVLib.command("script-message", "call_button_$id")
 }
 
 fun CustomButton.executeLongPress() {
-    MPVLib.command(arrayOf("script-message", "call_button_${id}_long"))
+    MPVLib.command("script-message", "call_button_${id}_long")
 }
 
 fun Float.normalize(inMin: Float, inMax: Float, outMin: Float, outMax: Float): Float {
