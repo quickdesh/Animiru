@@ -364,15 +364,16 @@ private fun NavigationPillItemBackground(
             .height(pillItemHeight)
             .graphicsLayer {
                 translationX = pillOffsetX.value.toPx()
+            }
+            .background(
+                color = MaterialTheme.colorScheme.secondaryContainer,
                 shape = RoundedCornerShape(
                     topStart = cornerSizes.value.topStart,
                     topEnd = cornerSizes.value.topEnd,
                     bottomStart = cornerSizes.value.bottomStart,
                     bottomEnd = cornerSizes.value.bottomEnd,
-                )
-                clip = true
-            }
-            .background(MaterialTheme.colorScheme.secondaryContainer),
+                ),
+            ),
     )
 }
 

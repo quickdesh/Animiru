@@ -10,7 +10,11 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
-## [v0.19.0.0] - 2025-10-12
+## [Unreleased]
+### Fixed
+- Fix navigation pill background disappearing on older devices ([@Secozzi](https://github.com/Secozzi)) ([#114](https://github.com/quickdesh/Animiru/pull/114))
+
+## [v0.19.0.0] - 2025-12-24
 ### Changed
 - Remove circular edges, add background and sliding animations ([@Quickdev](https://github.com/quickdesh)) ([`8e45259`](https://github.com/quickdesh/Animiru/commit/8e45259))
 - Use filter chips in recents tab ([@Quickdev](https://github.com/quickdesh)) ([`38c9c52`](https://github.com/quickdesh/Animiru/commit/38c9c52))
