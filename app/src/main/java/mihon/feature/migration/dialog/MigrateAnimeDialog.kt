@@ -66,13 +66,16 @@ internal fun Screen.MigrateAnimeDialog(
 ) {
     val scope = rememberCoroutineScope()
 
-    val screenModel = rememberScreenModel { MigrateDialogScreenModel(current, target) }
+    val screenModel = rememberScreenModel { MigrateDialogScreenModel() }
+    LaunchedEffect(current, target) {
+        screenModel.init(current, target)
+    }
     val state by screenModel.state.collectAsState()
+
+    if (state.isMigrated) return
+
     // AY -->
     val canMigrate = remember(current.fetchType, target.fetchType) { current.fetchType == target.fetchType }
-    LaunchedEffect(current, target) {
-        screenModel.initialize(current, target)
-    }
     // <-- AY
 
     if (state.isMigrating) {
@@ -185,8 +188,6 @@ internal fun Screen.MigrateAnimeDialog(
 }
 
 private class MigrateDialogScreenModel(
-    private val _current: Anime,
-    private val _target: Anime,
     private val sourcePreference: SourcePreferences = Injekt.get(),
     private val coverCache: CoverCache = Injekt.get(),
     // AY -->
@@ -196,16 +197,7 @@ private class MigrateDialogScreenModel(
     private val migrateAnime: MigrateAnimeUseCase = Injekt.get(),
 ) : StateScreenModel<MigrateDialogScreenModel.State>(State()) {
 
-    // AY -->
-    // Hack do get around screenmodel not being disposed
-    private var current: Anime = _current
-    private var target: Anime = _target
-    private var hasInitialized: Boolean = false
-    fun initialize(currentAnime: Anime, targetAnime: Anime) {
-        if (hasInitialized && currentAnime == current && targetAnime == target) return
-        current = currentAnime
-        target = targetAnime
-
+    fun init(current: Anime, target: Anime) {
         val applicableFlags = buildList {
             MigrationFlag.entries.forEach {
                 val applicable = when (it) {
@@ -222,13 +214,14 @@ private class MigrateDialogScreenModel(
             }
         }
         val selectedFlags = sourcePreference.migrationFlags().get()
-        mutableState.update { it.copy(applicableFlags = applicableFlags, selectedFlags = selectedFlags) }
-        hasInitialized = true
-    }
-    // <-- AY
-
-    init {
-        initialize(_current, _target)
+        mutableState.update {
+            it.copy(
+                current = current,
+                target = target,
+                applicableFlags = applicableFlags,
+                selectedFlags = selectedFlags,
+            )
+        }
     }
 
     fun toggleSelection(flag: MigrationFlag) {
@@ -241,15 +234,21 @@ private class MigrateDialogScreenModel(
     }
 
     suspend fun migrateAnime(replace: Boolean) {
-        sourcePreference.migrationFlags().set(state.value.selectedFlags)
+        val state = state.value
+        val current = state.current ?: return
+        val target = state.target ?: return
+        sourcePreference.migrationFlags().set(state.selectedFlags)
         mutableState.update { it.copy(isMigrating = true) }
         migrateAnime(current, target, replace)
-        mutableState.update { it.copy(isMigrating = false) }
+        mutableState.update { it.copy(isMigrating = false, isMigrated = true) }
     }
 
     data class State(
+        val current: Anime? = null,
+        val target: Anime? = null,
         val applicableFlags: List<MigrationFlag> = emptyList(),
         val selectedFlags: Set<MigrationFlag> = emptySet(),
         val isMigrating: Boolean = false,
+        val isMigrated: Boolean = false,
     )
 }
