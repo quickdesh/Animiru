@@ -294,7 +294,7 @@ private fun ColumnScope.DisplayPage(
             value = columns,
             valueRange = 0..10,
             label = stringResource(AYMR.strings.pref_library_rows),
-            valueText = if (columns > 0) {
+            valueString = if (columns > 0) {
                 columns.toString()
             } else {
                 stringResource(MR.strings.label_auto)
@@ -308,7 +308,7 @@ private fun ColumnScope.DisplayPage(
             value = columns,
             valueRange = 0..10,
             label = stringResource(MR.strings.pref_library_columns),
-            valueText = if (columns > 0) {
+            valueString = if (columns > 0) {
                 columns.toString()
             } else {
                 stringResource(MR.strings.label_auto)
