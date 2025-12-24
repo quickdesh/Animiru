@@ -276,7 +276,6 @@ dependencies {
     // implementation(libs.directionalviewpager) {
     //     exclude(group = "androidx.viewpager", module = "viewpager")
     // }
-    // implementation(libs.insetter)
     // <-- AM (REMOVE_LIBRARIES)
     implementation(libs.richeditor.compose)
     implementation(libs.aboutLibraries.compose)
