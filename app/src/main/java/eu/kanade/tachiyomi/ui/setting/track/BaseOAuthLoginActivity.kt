@@ -23,7 +23,6 @@ abstract class BaseOAuthLoginActivity : BaseActivity() {
             LoadingScreen()
         }
 
-
         val data = intent.data
         if (data == null) {
             returnToSettings()

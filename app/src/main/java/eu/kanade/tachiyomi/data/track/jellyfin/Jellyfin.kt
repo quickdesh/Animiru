@@ -1,7 +1,6 @@
 // AY -->
 package eu.kanade.tachiyomi.data.track.jellyfin
 
-import android.graphics.Color
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.animesource.AnimeSource
@@ -34,9 +33,7 @@ class Jellyfin(id: Long) : BaseTracker(id, "Jellyfin"), EnhancedTracker {
 
     val api by lazy { JellyfinApi(id, client) }
 
-    override fun getLogo() = R.drawable.ic_tracker_jellyfin
-
-    override fun getLogoColor() = Color.rgb(0, 11, 37)
+    override fun getLogo() = R.drawable.brand_jellyfin
 
     override fun getStatusList(): List<Long> = listOf(UNSEEN, WATCHING, COMPLETED)
 

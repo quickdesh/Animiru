@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.util.system
 
-import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
