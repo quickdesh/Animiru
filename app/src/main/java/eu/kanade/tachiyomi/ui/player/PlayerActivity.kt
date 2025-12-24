@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-/**
+/*
  * Code is a mix between PlayerActivity from mpvKt and the former
  * PlayerActivity from Aniyomi.
  */
@@ -1321,7 +1321,7 @@ class PlayerActivity : BaseActivity() {
     }
 
     // AM (DISCORD_RPC) -->
-    /**
+    /*
      private fun updateDiscordRPC(exitingPlayer: Boolean) {
      DiscordRPCService.discordScope.launchIO {
      if (connectionPreferences.enableDiscordRPC().get()) {
