@@ -11,6 +11,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Fixed
+- Make the scrollbar on the anime screen less buggy ([@Secozzi](https://github.com/Secozzi)) ([#118](https://github.com/quickdesh/Animiru/pull/118))
 
 ## [v0.19.3.0] - 2025-12-25
 ### Fixed
