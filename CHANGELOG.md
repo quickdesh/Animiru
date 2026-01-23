@@ -11,6 +11,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Fixed
+- Fixed start screen setting not working ([@Secozzi](https://github.com/Secozzi)) ([#128](https://github.com/quickdesh/Animiru/pull/128))
 
 ## [v0.19.3.1] - 2025-12-25
 ### Fixed
