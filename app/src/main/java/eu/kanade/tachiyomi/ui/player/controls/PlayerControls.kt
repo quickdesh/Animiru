@@ -625,8 +625,8 @@ fun PlayerControls(
             onToggleShowSubtitles = { subtitlePreferences.screenshotSubtitles().set(it) },
             cachePath = viewModel.cachePath,
             onSetAsArt = viewModel::setAsArt,
-            onShare = { viewModel.shareImage(it, viewModel.pos.value.toInt()) },
-            onSave = { viewModel.saveImage(it, viewModel.pos.value.toInt()) },
+            onShare = { viewModel.shareImage(it, viewModel.pos) },
+            onSave = { viewModel.saveImage(it, viewModel.pos) },
             takeScreenshot = viewModel::takeScreenshot,
             onDismissScreenshot = {
                 viewModel.showSheet(Sheets.None)

@@ -648,6 +648,7 @@ class PlayerActivity : BaseActivity() {
         if (player.isExiting) return
         when (property) {
             "user-data/current-anime/intro-length" -> viewModel.setAnimeSkipIntroLength(value)
+            "time-pos" -> viewModel.onSecondReached(value)
         }
     }
 
@@ -1129,19 +1130,13 @@ class PlayerActivity : BaseActivity() {
         )
     }
 
-    // TODO: exception java.util.ConcurrentModificationException:
-    //  UPDATE: MAY HAVE BEEN FIXED
-    // at java.lang.Object java.util.ArrayList$Itr.next() (ArrayList.java:860)
-    // at void eu.kanade.tachiyomi.ui.player.PlayerActivity.fileLoaded() (PlayerActivity.kt:1874)
-    // at void eu.kanade.tachiyomi.ui.player.PlayerActivity.event(int) (PlayerActivity.kt:1566)
-    // at void is.xyz.mpv.MPVLib.event(int) (MPVLib.java:86)
     private fun fileLoaded() {
         if (player.isExiting) return
         setMpvOptions()
         setMpvMediaTitle()
         setupPlayerOrientation()
         setupChapters()
-        setupTracks()
+        viewModel.setPausedState()
 
         // aniSkip stuff
         viewModel.waitingSkipIntro = playerPreferences.waitingTimeIntroSkip().get()
@@ -1191,30 +1186,6 @@ class PlayerActivity : BaseActivity() {
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e) { "Failed to read video metadata" }
         }
-    }
-
-    private fun setupTracks() {
-        if (player.isExiting) return
-        viewModel.isLoadingTracks.update { _ -> true }
-
-        val audioTracks = viewModel.currentVideo.value?.audioTracks?.takeIf { it.isNotEmpty() }
-        val subtitleTracks = viewModel.currentVideo.value?.subtitleTracks?.takeIf { it.isNotEmpty() }
-
-        // If no external audio or subtitle tracks are present, loadTracks() won't be
-        // called and we need to call onFinishLoadingTracks() manually
-        if (audioTracks == null && subtitleTracks == null) {
-            // viewModel.onFinishLoadingTracks()
-            return
-        }
-
-        // audioTracks?.forEach { audio ->
-        //     executeMPVCommand(arrayOf("audio-add", audio.url, "auto", audio.lang))
-        // }
-        // subtitleTracks?.forEach { sub ->
-        //     executeMPVCommand(arrayOf("sub-add", sub.url, "auto", sub.lang))
-        // }
-
-        viewModel.isLoadingTracks.update { _ -> false }
     }
 
     private fun setupChapters() {

@@ -59,21 +59,6 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
         }
     }
 
-    inner class TrackDelegate(private val name: String) {
-        operator fun getValue(thisRef: Any?, property: KProperty<*>): Int {
-            val v = MPVLib.getPropertyString(name)
-            // we can get null here for "no" or other invalid value
-            return v?.toIntOrNull() ?: -1
-        }
-        operator fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
-            if (value == -1) MPVLib.setPropertyString(name, "no") else MPVLib.setPropertyInt(name, value)
-        }
-    }
-
-    var sid: Int by TrackDelegate("sid")
-    var secondarySid: Int by TrackDelegate("secondary-sid")
-    var aid: Int by TrackDelegate("aid")
-
     override fun initOptions() {
         setVo(if (decoderPreferences.gpuNext().get()) "gpu-next" else "gpu")
         MPVLib.setPropertyBoolean("pause", true)

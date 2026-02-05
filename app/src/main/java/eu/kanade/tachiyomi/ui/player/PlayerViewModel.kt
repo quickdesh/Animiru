@@ -210,7 +210,6 @@ class PlayerViewModel @JvmOverloads constructor(
     val animeTitle = MutableStateFlow("")
 
     val isLoading = MutableStateFlow(true)
-    val isLoadingTracks = MutableStateFlow(true)
     val hasLoadedTracks = MutableStateFlow(false)
 
     private val _externalSubtitleTracks = MutableStateFlow<List<VideoTrack.External>>(emptyList())
@@ -231,6 +230,9 @@ class PlayerViewModel @JvmOverloads constructor(
     val selectedHosterVideoIndex = _selectedHosterVideoIndex.asStateFlow()
     private val _currentVideo = MutableStateFlow<Video?>(null)
     val currentVideo = _currentVideo.asStateFlow()
+
+    private val _pausedState = MutableStateFlow<Boolean?>(false)
+    val pausedState = _pausedState.asStateFlow()
 
     // Start mpvKt
 
@@ -417,15 +419,16 @@ class PlayerViewModel @JvmOverloads constructor(
         _externalAudioTracks.update { _ -> externalAudio }
 
         val preferredSubtitle = trackSelect.getPreferredTrackIndex(
-            embeddedSubs.map { VideoTrack.Internal(it) } + externalSubs
+            tracks = embeddedSubs.map { VideoTrack.Internal(it) } + externalSubs,
+            subtitle = true,
         )
         preferredSubtitle?.let {
             selectSub(it)
         }
 
         val preferredAudio = trackSelect.getPreferredTrackIndex(
-            embeddedAudio.map { VideoTrack.Internal(it) } + externalAudio,
-            false,
+            tracks = embeddedAudio.map { VideoTrack.Internal(it) } + externalAudio,
+            subtitle = false,
         )
         preferredAudio?.let {
             selectAudio(it)
@@ -458,7 +461,7 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    fun selectSub(track: VideoTrack) {
+    fun selectSub(track: VideoTrack, forceSingle: Boolean = false) {
         when (track) {
             is VideoTrack.External -> {
                 if (track.id == null) {
@@ -469,11 +472,11 @@ class PlayerViewModel @JvmOverloads constructor(
                         MPVLib.command("sub-add", track.data.url, "auto", "${VideoTrack.TRACK_TITLE_TAG}=${track.index}")
                     }
                 } else {
-                    selectSubById(track.id)
+                    selectSubById(track.id, forceSingle)
                 }
             }
             is VideoTrack.Internal -> {
-                selectSubById(track.data.id)
+                selectSubById(track.data.id, forceSingle)
             }
         }
     }
@@ -535,7 +538,13 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    private fun selectSubById(id: Int) {
+    private fun selectSubById(id: Int, forceSingle: Boolean = false) {
+        if (forceSingle) {
+            MPVLib.setPropertyBoolean("secondary-sid", false)
+            MPVLib.setPropertyInt("sid", id)
+            return
+        }
+
         val selectedSubs = Pair(MPVLib.getPropertyInt("sid"), MPVLib.getPropertyInt("secondary-sid"))
         when (id) {
             selectedSubs.first -> Pair(selectedSubs.second, null)
@@ -564,6 +573,23 @@ class PlayerViewModel @JvmOverloads constructor(
             externalAudio.toMutableList().apply {
                 this[index] = transform(this[index])
             }
+        }
+    }
+
+    private fun updatePausedState() {
+        if (pausedState.value == null) {
+            _pausedState.update { _ -> paused }
+        }
+    }
+
+    fun setPausedState() {
+        pausedState.value?.let {
+            if (it) {
+                pause()
+            } else {
+                unpause()
+            }
+            _pausedState.update { _ -> null }
         }
     }
 
@@ -1373,8 +1399,7 @@ class PlayerViewModel @JvmOverloads constructor(
         )
 
         // Pause until everything has loaded
-        // TODO(mpv)
-        // updatePausedState()
+        updatePausedState()
         pause()
 
         val resolvedVideo = if (selectedHosterState.videoState[videoIndex] != Video.State.READY) {
@@ -1442,12 +1467,11 @@ class PlayerViewModel @JvmOverloads constructor(
 
         viewModelScope.launchIO {
             val success = loadVideo(currentSource.value, video, hosterIndex, videoIndex)
+            updateIsLoadingEpisode(false)
             if (success) {
                 if (sheetShown.value == Sheets.QualityTracks) {
                     dismissSheet()
                 }
-            } else {
-                updateIsLoadingEpisode(false)
             }
         }
     }
@@ -1526,14 +1550,15 @@ class PlayerViewModel @JvmOverloads constructor(
      * seen, update tracking services, enqueue downloaded episode deletion and download next episode.
      */
     // TODO(mpv)
-    private fun onSecondReached(position: Int, duration: Int) {
+    fun onSecondReached(position: Long) {
         if (isLoadingEpisode.value) return
         val currentEp = currentEpisode.value ?: return
         if (episodeId == -1L) return
-        if (duration == 0) return
+        val dur = duration ?: return
+        if (dur == 0) return
 
         val seconds = position * 1000L
-        val totalSeconds = duration * 1000L
+        val totalSeconds = dur * 1000L
         // Save last second seen and mark as seen if needed
         currentEp.last_second_seen = seconds
         currentEp.total_seconds = totalSeconds
@@ -1700,7 +1725,6 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     // AY -->
-
     /**
      * Fillermarks the currently active episode.
      */
