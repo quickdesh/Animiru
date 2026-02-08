@@ -264,7 +264,9 @@ class PlayerActivity : BaseActivity() {
                 PlayerControls(
                     viewModel = viewModel,
                     onBackPress = {
-                        if (isPipSupportedAndEnabled && viewModel.paused == false && playerPreferences.pipOnExit().get()) {
+                        if (isPipSupportedAndEnabled && viewModel.paused == false &&
+                            playerPreferences.pipOnExit().get()
+                        ) {
                             enterPictureInPictureMode(createPipParams())
                         } else {
                             finish()
@@ -1139,26 +1141,15 @@ class PlayerActivity : BaseActivity() {
         viewModel.setPausedState()
 
         // aniSkip stuff
-        viewModel.waitingSkipIntro = playerPreferences.waitingTimeIntroSkip().get()
-        // TODO(mpv)
-        // runBlocking {
-        //     if (
-        //         viewModel.introSkipEnabled &&
-        //         playerPreferences.aniSkipEnabled().get() &&
-        //         !(playerPreferences.disableAniSkipOnChapters().get() && viewModel.chapters.value.isNotEmpty())
-        //     ) {
-        //         viewModel.aniSkipResponse(viewModel.duration)?.let {
-        //             viewModel.updateChapters(
-        //                 ChapterUtils.mergeChapters(
-        //                     currentChapters = viewModel.chapters.value,
-        //                     stamps = it,
-        //                     duration = viewModel.duration,
-        //                 ),
-        //             )
-        //             viewModel.setChapter(viewModel.pos.value)
-        //         }
-        //     }
-        // }
+        viewModel.viewModelScope.launchIO {
+            if (viewModel.introSkipEnabled && playerPreferences.aniSkipEnabled().get() &&
+                !(playerPreferences.disableAniSkipOnChapters().get() && viewModel.getChapterCount() > 0)
+            ) {
+                viewModel.aniSkipResponse(viewModel.duration)?.let {
+                    viewModel.addTimestamps(it)
+                }
+            }
+        }
     }
 
     private fun setMpvOptions() {
@@ -1203,15 +1194,7 @@ class PlayerActivity : BaseActivity() {
             }
             ?: return
 
-        // TODO(mpv): Update
-        // viewModel.updateChapters(
-        //     ChapterUtils.mergeChapters(
-        //         currentChapters = viewModel.chapters.value,
-        //         stamps = timestamps,
-        //         duration = viewModel.duration,
-        //     ),
-        // )
-        // viewModel.setChapter(viewModel.pos.value)
+        viewModel.addTimestamps(timestamps)
     }
 
     private fun setMpvMediaTitle() {

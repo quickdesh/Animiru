@@ -1,16 +1,33 @@
 package eu.kanade.tachiyomi.ui.player
 
 import dev.vivvvek.seeker.Segment
+import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.animesource.model.Track
+import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class ChapterNode(
     val time: Float,
-    val title: String,
+    private val title: String,
 ) {
-    fun toSegment(): Segment = Segment(title, time)
+    val chapterTitle: String
+        get() = title.substringBeforeLast(ChapterUtils.ANIYOMI_CHAPTER_IDENTIFIER)
+
+    // Ugly hack but the alternative is worse
+    fun chapterType(): ChapterType {
+        val ordinal = title.substringAfterLast(
+            delimiter = ChapterUtils.ANIYOMI_CHAPTER_IDENTIFIER,
+            missingDelimiterValue = ChapterType.Other.ordinal.toString(),
+        ).toInt()
+        return ChapterType.entries[ordinal]
+    }
+
+    fun toSegment(): Segment = Segment(
+        name = title.substringBeforeLast(ChapterUtils.ANIYOMI_CHAPTER_IDENTIFIER),
+        start = time,
+    )
 }
 
 @Serializable
@@ -60,7 +77,7 @@ data class TrackNode(
     @SerialName("replaygain-album-gain") val replayGainAlbumGain: Double? = null,
     @SerialName("dolby-vision-profile") val dolbyVisionProfile: Long? = null,
     @SerialName("dolby-vision-level") val dolbyVisionLevel: Long? = null,
-    val metadata: Map<String, String?>? = null
+    val metadata: Map<String, String?>? = null,
 ) {
     val isVideo = type == "video"
     val isAudio = type == "audio"

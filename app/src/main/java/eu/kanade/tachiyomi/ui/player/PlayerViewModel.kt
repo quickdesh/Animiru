@@ -76,6 +76,7 @@ import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
 import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import eu.kanade.tachiyomi.ui.player.utils.AniSkipApi
+import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils
 import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils.Companion.getStringRes
 import eu.kanade.tachiyomi.ui.player.utils.TrackSelect
 import eu.kanade.tachiyomi.util.editBackground
@@ -101,7 +102,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -234,6 +237,8 @@ class PlayerViewModel @JvmOverloads constructor(
     private val _pausedState = MutableStateFlow<Boolean?>(false)
     val pausedState = _pausedState.asStateFlow()
 
+    private val netflixTimeout = MutableStateFlow<Int?>(null)
+
     // Start mpvKt
 
     private val _customButtons = MutableStateFlow<CustomButtonFetchState>(CustomButtonFetchState.Loading)
@@ -255,20 +260,22 @@ class PlayerViewModel @JvmOverloads constructor(
 
     val subtitleTracks = MPVLib.propNode["track-list"]
         .map { node ->
-            (node?.toObject<List<TrackNode>>(json)
-                ?.filter { it.isSubtitle }
-                ?.filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true }
-                ?: persistentListOf()
-            ).toImmutableList()
+            (
+                node?.toObject<List<TrackNode>>(json)
+                    ?.filter { it.isSubtitle }
+                    ?.filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true }
+                    ?: persistentListOf()
+                ).toImmutableList()
         }
 
     val audioTracks = MPVLib.propNode["track-list"]
         .map { node ->
-            (node?.toObject<List<TrackNode>>(json)
-                ?.filter { it.isAudio }
-                ?.filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true }
-                ?: persistentListOf()
-            ).toImmutableList()
+            (
+                node?.toObject<List<TrackNode>>(json)
+                    ?.filter { it.isAudio }
+                    ?.filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true }
+                    ?: persistentListOf()
+                ).toImmutableList()
         }
 
     val chapters = MPVLib.propNode["chapter-list"]
@@ -313,6 +320,12 @@ class PlayerViewModel @JvmOverloads constructor(
     private var timerJob: Job? = null
     private val _remainingTime = MutableStateFlow(0)
     val remainingTime = _remainingTime.asStateFlow()
+
+    init {
+        MPVLib.propInt["chapter"]
+            .onEach { onChapterChanged(it) }
+            .launchIn(viewModelScope)
+    }
 
     /**
      * Starts a sleep timer/cancels the current timer if [seconds] is less than 1.
@@ -469,7 +482,12 @@ class PlayerViewModel @JvmOverloads constructor(
                         it.copy(state = TrackState.Loading)
                     }
                     viewModelScope.launchIO {
-                        MPVLib.command("sub-add", track.data.url, "auto", "${VideoTrack.TRACK_TITLE_TAG}=${track.index}")
+                        MPVLib.command(
+                            "sub-add",
+                            track.data.url,
+                            "auto",
+                            "${VideoTrack.TRACK_TITLE_TAG}=${track.index}",
+                        )
                     }
                 } else {
                     selectSubById(track.id, forceSingle)
@@ -489,7 +507,12 @@ class PlayerViewModel @JvmOverloads constructor(
                         it.copy(state = TrackState.Loading)
                     }
                     viewModelScope.launchIO {
-                        MPVLib.command("audio-add", track.data.url, "auto", "${VideoTrack.TRACK_TITLE_TAG}=${track.index}")
+                        MPVLib.command(
+                            "audio-add",
+                            track.data.url,
+                            "auto",
+                            "${VideoTrack.TRACK_TITLE_TAG}=${track.index}",
+                        )
                     }
                 } else {
                     selectAudioById(track.id)
@@ -532,7 +555,7 @@ class PlayerViewModel @JvmOverloads constructor(
                         id -> 0
                         sid -> 1
                         else -> -1
-                    }
+                    },
                 )
             }
         }
@@ -551,7 +574,8 @@ class PlayerViewModel @JvmOverloads constructor(
             selectedSubs.second -> Pair(selectedSubs.first, null)
             else -> if (selectedSubs.first != null) Pair(selectedSubs.first, id) else Pair(id, null)
         }.let {
-            it.second?.let { MPVLib.setPropertyInt("secondary-sid", it) } ?: MPVLib.setPropertyBoolean("secondary-sid", false)
+            it.second?.let { MPVLib.setPropertyInt("secondary-sid", it) }
+                ?: MPVLib.setPropertyBoolean("secondary-sid", false)
             it.first?.let { MPVLib.setPropertyInt("sid", it) } ?: MPVLib.setPropertyBoolean("sid", false)
         }
     }
@@ -574,6 +598,32 @@ class PlayerViewModel @JvmOverloads constructor(
                 this[index] = transform(this[index])
             }
         }
+    }
+
+    fun getChapterCount(): Int {
+        return MPVLib.getPropertyInt("chapter-list/count") ?: 0
+    }
+
+    fun addTimestamps(timestamps: List<TimeStamp>) {
+        if (timestamps.isEmpty()) return
+        val current = (
+            MPVLib.getPropertyNode("chapter-list")
+                ?.toObject<List<ChapterNode>>(json) ?: emptyList()
+            )
+            .map { IndexedSegment(name = it.chapterTitle, start = it.time, index = 0) }
+        val merged = ChapterUtils.mergeChapters(current, timestamps, duration)
+
+        val node = MPVNode.ArrayNode(
+            merged.map { c ->
+                MPVNode.MapNode(
+                    value = mapOf(
+                        "time" to MPVNode.DoubleNode(c.start.toDouble()),
+                        "title" to MPVNode.StringNode(c.name),
+                    ),
+                )
+            }.toTypedArray(),
+        )
+        MPVLib.setPropertyNode("chapter-list", node)
     }
 
     private fun updatePausedState() {
@@ -1557,6 +1607,15 @@ class PlayerViewModel @JvmOverloads constructor(
         val dur = duration ?: return
         if (dur == 0) return
 
+        // Set netflix-style timeout
+        netflixTimeout.value?.let {
+            if (it > 0) {
+                netflixTimeout.value = it - 1
+            } else {
+                onSkipIntro()
+            }
+        }
+
         val seconds = position * 1000L
         val totalSeconds = dur * 1000L
         // Save last second seen and mark as seen if needed
@@ -1970,51 +2029,42 @@ class PlayerViewModel @JvmOverloads constructor(
     private val netflixStyle = playerPreferences.enableNetflixStyleIntroSkip().get()
 
     private val defaultWaitingTime = playerPreferences.waitingTimeIntroSkip().get()
-    var waitingSkipIntro = defaultWaitingTime
 
-    fun setChapter(position: Float) {
-        // TODO(mpv)
-        /*
-        getCurrentChapter(position)?.let { (chapterIndex, chapter) ->
-            if (currentChapter.value != chapter) {
-                _currentChapter.update { _ -> chapter }
-            }
+    fun onChapterChanged(chapterIndex: Int?) {
+        if (chapterIndex == null) return
+        if (!introSkipEnabled) return
 
-            if (!introSkipEnabled) {
-                return
-            }
+        val chapterList = (MPVLib.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json) ?: emptyList())
+        val chapter = chapterList.getOrNull(chapterIndex) ?: return
+        val chapterType = chapter.chapterType()
 
-            if (chapter.chapterType == ChapterType.Other) {
-                _skipIntroText.update { _ -> null }
-                waitingSkipIntro = defaultWaitingTime
+        if (chapterType == ChapterType.Other) {
+            _skipIntroText.update { _ -> null }
+            netflixTimeout.update { _ -> null }
+        } else {
+            val nextChapterPos = chapterList.getOrNull(chapterIndex + 1)?.time
+                ?: pos?.toFloat()
+                ?: 0f
+            if (netflixStyle) {
+                // show a toast with the seconds before the skip
+                activity.showToast(
+                    "Skip Intro: ${activity.stringResource(
+                        AYMR.strings.player_aniskip_dontskip_toast,
+                        chapter.chapterTitle,
+                        defaultWaitingTime,
+                    )}",
+                )
+                _skipIntroText.update { _ -> activity.stringResource(AYMR.strings.player_aniskip_dontskip) }
+                netflixTimeout.update { _ -> defaultWaitingTime }
+            } else if (autoSkip) {
+                seekToWithText(
+                    seekValue = nextChapterPos.toInt(),
+                    text = activity.stringResource(AYMR.strings.player_intro_skipped, chapter.chapterTitle),
+                )
             } else {
-                val nextChapterPos = chapters.value.getOrNull(chapterIndex + 1)?.start ?: pos.value
-
-                if (netflixStyle) {
-                    // show a toast with the seconds before the skip
-                    if (waitingSkipIntro == defaultWaitingTime) {
-                        activity.showToast(
-                            "Skip Intro: ${activity.stringResource(
-                                AYMR.strings.player_aniskip_dontskip_toast,
-                                chapter.name,
-                                waitingSkipIntro,
-                            )}",
-                        )
-                    }
-                    showSkipIntroButton(chapter, nextChapterPos, waitingSkipIntro)
-                    waitingSkipIntro--
-                } else if (autoSkip) {
-                    seekToWithText(
-                        seekValue = nextChapterPos.toInt(),
-                        text = activity.stringResource(AYMR.strings.player_intro_skipped, chapter.name),
-                    )
-                } else {
-                    updateSkipIntroButton(chapter.chapterType)
-                }
+                updateSkipIntroButton(chapterType)
             }
         }
-
-         */
     }
 
     private fun updateSkipIntroButton(chapterType: ChapterType) {
@@ -2030,46 +2080,26 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    private fun showSkipIntroButton(chapter: IndexedSegment, nextChapterPos: Float, waitingTime: Int) {
-        if (waitingTime > -1) {
-            if (waitingTime > 0) {
-                _skipIntroText.update { _ -> activity.stringResource(AYMR.strings.player_aniskip_dontskip) }
-            } else {
-                seekToWithText(
-                    seekValue = nextChapterPos.toInt(),
-                    text = activity.stringResource(AYMR.strings.player_aniskip_skip, chapter.name),
-                )
-            }
-        } else {
-            // when waitingTime is -1, it means that the user cancelled the skip
-            updateSkipIntroButton(chapter.chapterType)
-        }
-    }
-
     fun onSkipIntro() {
-        getCurrentChapter()?.let { (chapterIndex, chapter) ->
-            // this stops the counter
-            if (waitingSkipIntro > 0 && netflixStyle) {
-                waitingSkipIntro = -1
-                return
-            }
+        val chapterIndex = MPVLib.getPropertyInt("chapter") ?: return
+        val chapterList = (MPVLib.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json) ?: emptyList())
+        val chapter = chapterList.getOrNull(chapterIndex) ?: return
+        val nextChapterPos = chapterList.getOrNull(chapterIndex + 1)?.time
+            ?: pos?.toFloat()
+            ?: 0f
 
-            // TODO(mpv)
-            // val nextChapterPos = chapters.value.getOrNull(chapterIndex + 1)?.start ?: pos.value
-//
-            // seekToWithText(
-            //     seekValue = nextChapterPos.toInt(),
-            //     text = activity.stringResource(AYMR.strings.player_aniskip_skip, chapter.name),
-            // )
+        if ((netflixTimeout.value ?: 0) > 0 && netflixStyle) {
+            netflixTimeout.update { _ -> null }
+            updateSkipIntroButton(chapter.chapterType())
+            return
         }
-    }
 
-    private fun getCurrentChapter(position: Float? = null): IndexedValue<IndexedSegment>? {
-        // TODO(mpv)
-        // return chapters.value.withIndex()
-        //     .filter { it.value.start <= (position ?: pos.value) }
-        //     .maxByOrNull { it.value.start }
-        return null
+        netflixTimeout.update { _ -> null }
+
+        seekToWithText(
+            seekValue = nextChapterPos.toInt(),
+            text = activity.stringResource(AYMR.strings.player_aniskip_skip, chapter.chapterTitle),
+        )
     }
 
     fun setPrimaryCustomButtonTitle(button: CustomButton) {

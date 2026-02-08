@@ -112,7 +112,11 @@ fun SubtitleDelayPanel(
             onTypeChange = { affectedSubtitle = it },
             onApply = {
                 preferences.subtitlesDelay().set(delayInt)
-                if ((speed ?: preferences.subtitlesSpeed().get()) in 0.1f..10f) preferences.subtitlesSpeed().set(speed!!)
+                if ((speed ?: preferences.subtitlesSpeed().get()) in
+                    0.1f..10f
+                ) {
+                    preferences.subtitlesSpeed().set(speed!!)
+                }
             },
             onReset = {
                 MPVLib.setPropertyFloat("sub-delay", preferences.subtitlesDelay().get() / 1000f)
