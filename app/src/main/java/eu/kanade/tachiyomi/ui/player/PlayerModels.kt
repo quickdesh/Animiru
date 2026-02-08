@@ -16,13 +16,14 @@ data class ChapterNode(
         get() = title.substringBeforeLast(ChapterUtils.ANIYOMI_CHAPTER_IDENTIFIER)
 
     // Ugly hack but the alternative is worse
-    fun chapterType(): ChapterType {
-        val ordinal = title.substringAfterLast(
-            delimiter = ChapterUtils.ANIYOMI_CHAPTER_IDENTIFIER,
-            missingDelimiterValue = ChapterType.Other.ordinal.toString(),
-        ).toInt()
-        return ChapterType.entries[ordinal]
-    }
+    val chapterType: ChapterType
+        get() {
+            val ordinal = title.substringAfterLast(
+                delimiter = ChapterUtils.ANIYOMI_CHAPTER_IDENTIFIER,
+                missingDelimiterValue = ChapterType.Other.ordinal.toString(),
+            ).toInt()
+            return ChapterType.entries[ordinal]
+        }
 
     fun toSegment(): Segment = Segment(
         name = title.substringBeforeLast(ChapterUtils.ANIYOMI_CHAPTER_IDENTIFIER),

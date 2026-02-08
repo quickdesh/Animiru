@@ -112,7 +112,6 @@ fun PlayerControls(
     val controlsShown by viewModel.controlsShown.collectAsState()
     val areControlsLocked by viewModel.areControlsLocked.collectAsState()
     val seekBarShown by viewModel.seekBarShown.collectAsState()
-    // TODO(mpv)
     val isLoadingEpisode by viewModel.isLoadingEpisode.collectAsState()
     val pausedForCache by MPVLib.propBoolean["paused-for-cache"].collectAsState()
     val paused by MPVLib.propBoolean["pause"].collectAsState()

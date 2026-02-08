@@ -474,7 +474,7 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    fun selectSub(track: VideoTrack, forceSingle: Boolean = false) {
+    fun selectSub(track: VideoTrack) {
         when (track) {
             is VideoTrack.External -> {
                 if (track.id == null) {
@@ -490,11 +490,11 @@ class PlayerViewModel @JvmOverloads constructor(
                         )
                     }
                 } else {
-                    selectSubById(track.id, forceSingle)
+                    selectSubById(track.id)
                 }
             }
             is VideoTrack.Internal -> {
-                selectSubById(track.data.id, forceSingle)
+                selectSubById(track.data.id)
             }
         }
     }
@@ -561,13 +561,7 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    private fun selectSubById(id: Int, forceSingle: Boolean = false) {
-        if (forceSingle) {
-            MPVLib.setPropertyBoolean("secondary-sid", false)
-            MPVLib.setPropertyInt("sid", id)
-            return
-        }
-
+    private fun selectSubById(id: Int) {
         val selectedSubs = Pair(MPVLib.getPropertyInt("sid"), MPVLib.getPropertyInt("secondary-sid"))
         when (id) {
             selectedSubs.first -> Pair(selectedSubs.second, null)
@@ -773,10 +767,6 @@ class PlayerViewModel @JvmOverloads constructor(
 
     fun changeMPVVolumeTo(volume: Int) {
         MPVLib.setPropertyInt("volume", volume)
-    }
-
-    fun setMPVVolume(volume: Int) {
-        if (volume != currentMPVVolume) displayVolumeSlider()
     }
 
     fun displayVolumeSlider() {
@@ -1002,8 +992,7 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun resetHosterState() {
-        // TODO(mpv)
-        // _pausedState.update { _ -> false }
+        _pausedState.update { _ -> false }
         _hosterState.update { _ -> emptyList() }
         _hosterList.update { _ -> emptyList() }
         _hosterExpandedList.update { _ -> emptyList() }
@@ -1599,7 +1588,6 @@ class PlayerViewModel @JvmOverloads constructor(
      * Called every time a second is reached in the player. Used to mark the flag of episode being
      * seen, update tracking services, enqueue downloaded episode deletion and download next episode.
      */
-    // TODO(mpv)
     fun onSecondReached(position: Long) {
         if (isLoadingEpisode.value) return
         val currentEp = currentEpisode.value ?: return
@@ -1784,6 +1772,7 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     // AY -->
+
     /**
      * Fillermarks the currently active episode.
      */
@@ -2036,15 +2025,12 @@ class PlayerViewModel @JvmOverloads constructor(
 
         val chapterList = (MPVLib.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json) ?: emptyList())
         val chapter = chapterList.getOrNull(chapterIndex) ?: return
-        val chapterType = chapter.chapterType()
+        val chapterType = chapter.chapterType
 
         if (chapterType == ChapterType.Other) {
             _skipIntroText.update { _ -> null }
             netflixTimeout.update { _ -> null }
         } else {
-            val nextChapterPos = chapterList.getOrNull(chapterIndex + 1)?.time
-                ?: pos?.toFloat()
-                ?: 0f
             if (netflixStyle) {
                 // show a toast with the seconds before the skip
                 activity.showToast(
@@ -2057,14 +2043,19 @@ class PlayerViewModel @JvmOverloads constructor(
                 _skipIntroText.update { _ -> activity.stringResource(AYMR.strings.player_aniskip_dontskip) }
                 netflixTimeout.update { _ -> defaultWaitingTime }
             } else if (autoSkip) {
-                seekToWithText(
-                    seekValue = nextChapterPos.toInt(),
-                    text = activity.stringResource(AYMR.strings.player_intro_skipped, chapter.chapterTitle),
-                )
+                skipIntro(chapter.chapterTitle)
             } else {
                 updateSkipIntroButton(chapterType)
             }
         }
+    }
+
+    private fun skipIntro(chapterName: String) {
+        MPVLib.command("add", "chapter", "1")
+        _seekText.update { _ -> activity.stringResource(AYMR.strings.player_intro_skipped, chapterName) }
+        _isSeekingForwards.update { _ -> true }
+        _doubleTapSeekAmount.update { _ -> 1 }
+        if (showSeekBar) showSeekBar()
     }
 
     private fun updateSkipIntroButton(chapterType: ChapterType) {
@@ -2084,22 +2075,15 @@ class PlayerViewModel @JvmOverloads constructor(
         val chapterIndex = MPVLib.getPropertyInt("chapter") ?: return
         val chapterList = (MPVLib.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json) ?: emptyList())
         val chapter = chapterList.getOrNull(chapterIndex) ?: return
-        val nextChapterPos = chapterList.getOrNull(chapterIndex + 1)?.time
-            ?: pos?.toFloat()
-            ?: 0f
 
         if ((netflixTimeout.value ?: 0) > 0 && netflixStyle) {
             netflixTimeout.update { _ -> null }
-            updateSkipIntroButton(chapter.chapterType())
+            updateSkipIntroButton(chapter.chapterType)
             return
         }
 
         netflixTimeout.update { _ -> null }
-
-        seekToWithText(
-            seekValue = nextChapterPos.toInt(),
-            text = activity.stringResource(AYMR.strings.player_aniskip_skip, chapter.chapterTitle),
-        )
+        skipIntro(chapter.chapterTitle)
     }
 
     fun setPrimaryCustomButtonTitle(button: CustomButton) {
