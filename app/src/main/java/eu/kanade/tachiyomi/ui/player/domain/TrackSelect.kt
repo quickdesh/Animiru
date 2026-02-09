@@ -37,14 +37,14 @@ class TrackSelect(
 
         val chosenLocale = locales.firstOrNull { locale ->
             tracks.any { t -> containsLang(t, locale) }
-        } ?: return null
+        }
 
         val filtered = tracks.withIndex()
             .filterNot { (_, track) ->
                 blacklist.any { track.title.contains(it, true) }
             }
             .filter { (_, track) ->
-                containsLang(track, chosenLocale)
+                chosenLocale?.let { containsLang(track, it) } ?: true
             }
 
         return filtered.firstOrNull { (_, track) ->
