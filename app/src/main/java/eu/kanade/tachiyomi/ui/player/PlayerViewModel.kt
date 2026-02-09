@@ -369,7 +369,6 @@ class PlayerViewModel @JvmOverloads constructor(
         } else {
             hasLoadedTracks.update { _ -> true }
             onTracksLoaded(tracks)
-            updateIsLoadingEpisode(false)
         }
     }
 
@@ -1471,7 +1470,6 @@ class PlayerViewModel @JvmOverloads constructor(
 
         viewModelScope.launchIO {
             val success = loadVideo(currentSource.value, video, hosterIndex, videoIndex)
-            updateIsLoadingEpisode(false)
             if (success) {
                 if (sheetShown.value == Sheets.QualityTracks) {
                     dismissSheet()

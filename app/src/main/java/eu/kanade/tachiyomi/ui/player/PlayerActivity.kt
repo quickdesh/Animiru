@@ -1238,6 +1238,7 @@ class PlayerActivity : BaseActivity() {
         setupPlayerOrientation()
         setupChapters()
         viewModel.setPausedState()
+        viewModel.updateIsLoadingEpisode(false)
 
         // aniSkip stuff
         viewModel.viewModelScope.launchIO {
