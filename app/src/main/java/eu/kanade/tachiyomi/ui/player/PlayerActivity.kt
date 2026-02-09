@@ -39,10 +39,12 @@ import android.media.session.PlaybackState
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Rational
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.ui.Modifier
@@ -106,12 +108,13 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 class PlayerActivity : BaseActivity() {
-    private val viewModel by viewModels<PlayerViewModel>(factoryProducer = { PlayerViewModelProviderFactory(this) })
+    private val viewModel by viewModels<PlayerViewModel>()
     private val binding by lazy { PlayerLayoutBinding.inflate(layoutInflater) }
     private val playerObserver by lazy { PlayerObserver(this) }
-    val player by lazy { binding.player }
-    val windowInsetsController by lazy { WindowCompat.getInsetsController(window, window.decorView) }
-    val audioManager by lazy { getSystemService(Context.AUDIO_SERVICE) as AudioManager }
+    private val player by lazy { binding.player }
+    private val windowInsetsController by lazy { WindowCompat.getInsetsController(window, window.decorView) }
+    private val audioManager by lazy { getSystemService(AUDIO_SERVICE) as AudioManager }
+    private val inputMethodManager by lazy { getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager }
 
     private var mediaSession: MediaSession? = null
     private val gesturePreferences: GesturePreferences by lazy { viewModel.gesturePreferences }
@@ -251,6 +254,46 @@ class PlayerActivity : BaseActivity() {
                     }
                     is PlayerViewModel.Event.SetArtResult -> {
                         onSetAsArtResult(event.result, event.artType)
+                    }
+                    is PlayerViewModel.Event.ShowToast -> {
+                        toast(event.stringResource)
+                    }
+                    is PlayerViewModel.Event.ShowToastString -> {
+                        toast(event.string)
+                    }
+                    is PlayerViewModel.Event.ChangeEpisode -> {
+                        changeEpisode(event.episodeId, event.autoPlay)
+                    }
+                    is PlayerViewModel.Event.SetVideo -> {
+                        setVideo(event.video)
+                    }
+                    is PlayerViewModel.Event.SetStatusBar -> {
+                        if (event.show) {
+                            windowInsetsController.show(WindowInsetsCompat.Type.statusBars())
+                        } else {
+                            windowInsetsController.hide(WindowInsetsCompat.Type.statusBars())
+                        }
+                    }
+                    is PlayerViewModel.Event.SetBrightness -> {
+                        window.attributes = window.attributes.apply {
+                            screenBrightness = event.brightness
+                        }
+                    }
+                    is PlayerViewModel.Event.ChangeVideoAspect -> {
+                        changeVideoAspect(event.aspect)
+                    }
+                    PlayerViewModel.Event.CycleRotations -> {
+                        cycleRotations()
+                    }
+                    is PlayerViewModel.Event.SetKeyboard -> {
+                        if (event.show) {
+                            forceShowSoftwareKeyboard()
+                        } else {
+                            forceHideSoftwareKeyboard()
+                        }
+                    }
+                    PlayerViewModel.Event.ToggleKeyboard -> {
+                        toggleShowSoftwareKeyboard()
                     }
                 }
             }
@@ -1126,6 +1169,62 @@ class PlayerActivity : BaseActivity() {
                 SetAsArt.Error -> MR.strings.notification_cover_update_failed
             },
         )
+    }
+
+    private fun changeVideoAspect(aspect: VideoAspect) {
+        var ratio = -1.0
+        val pan: Double
+        when (aspect) {
+            VideoAspect.Crop -> {
+                pan = 1.0
+            }
+
+            VideoAspect.Fit -> {
+                pan = 0.0
+                MPVLib.setPropertyDouble("panscan", 0.0)
+            }
+
+            VideoAspect.Stretch -> {
+                val dm = DisplayMetrics()
+                windowManager.defaultDisplay.getRealMetrics(dm)
+                ratio = dm.widthPixels / dm.heightPixels.toDouble()
+                pan = 0.0
+            }
+        }
+        viewModel.setAspect(aspect, pan, ratio)
+    }
+
+    private fun cycleRotations() {
+        requestedOrientation = when (requestedOrientation) {
+            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
+            ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
+            -> {
+                playerPreferences.defaultPlayerOrientationType().set(PlayerOrientation.SensorPortrait)
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            }
+
+            else -> {
+                playerPreferences.defaultPlayerOrientationType().set(PlayerOrientation.SensorLandscape)
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
+        }
+    }
+
+    private fun toggleShowSoftwareKeyboard() {
+        if (inputMethodManager.isActive) {
+            forceHideSoftwareKeyboard()
+        } else {
+            forceShowSoftwareKeyboard()
+        }
+    }
+
+    private fun forceShowSoftwareKeyboard() {
+        inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+    }
+
+    private fun forceHideSoftwareKeyboard() {
+        inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0)
     }
 
     private fun fileLoaded() {

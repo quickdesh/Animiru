@@ -23,20 +23,10 @@
 package eu.kanade.tachiyomi.ui.player
 
 import android.app.Application
-import android.content.Context
-import android.content.pm.ActivityInfo
-import android.media.AudioManager
 import android.net.Uri
-import android.provider.Settings
-import android.util.DisplayMetrics
-import android.view.inputmethod.InputMethodManager
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.anime.interactor.SetAnimeViewerFlags
 import eu.kanade.domain.base.BasePreferences
@@ -70,6 +60,11 @@ import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
 import eu.kanade.tachiyomi.ui.player.controls.components.IndexedSegment
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.getChangedAt
+import eu.kanade.tachiyomi.ui.player.domain.AudioManager
+import eu.kanade.tachiyomi.ui.player.domain.BrightnessManager
+import eu.kanade.tachiyomi.ui.player.domain.StringResourceManager
+import eu.kanade.tachiyomi.ui.player.domain.TrackSelect
+import eu.kanade.tachiyomi.ui.player.domain.UriManager
 import eu.kanade.tachiyomi.ui.player.loader.EpisodeLoader
 import eu.kanade.tachiyomi.ui.player.loader.HosterLoader
 import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
@@ -78,7 +73,6 @@ import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import eu.kanade.tachiyomi.ui.player.utils.AniSkipApi
 import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils
 import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils.Companion.getStringRes
-import eu.kanade.tachiyomi.ui.player.utils.TrackSelect
 import eu.kanade.tachiyomi.util.editBackground
 import eu.kanade.tachiyomi.util.editCover
 import eu.kanade.tachiyomi.util.editThumbnail
@@ -87,7 +81,6 @@ import eu.kanade.tachiyomi.util.lang.byteSize
 import eu.kanade.tachiyomi.util.lang.takeBytes
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.cacheImageDir
-import eu.kanade.tachiyomi.util.system.toast
 import `is`.xyz.mpv.MPVLib
 import `is`.xyz.mpv.MPVNode
 import `is`.xyz.mpv.Utils
@@ -111,11 +104,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
-import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.lang.withIOContext
-import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.anime.model.Anime
@@ -143,16 +134,7 @@ import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.cancellation.CancellationException
 
-class PlayerViewModelProviderFactory(
-    private val activity: PlayerActivity,
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-        return PlayerViewModel(activity, extras.createSavedStateHandle()) as T
-    }
-}
-
 class PlayerViewModel @JvmOverloads constructor(
-    private val activity: PlayerActivity,
     private val savedState: SavedStateHandle,
     private val json: Json = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
@@ -177,13 +159,17 @@ class PlayerViewModel @JvmOverloads constructor(
     private val trackSelect: TrackSelect = Injekt.get(),
     private val getIncognitoState: GetIncognitoState = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
+    private val audioManager: AudioManager = Injekt.get(),
+    brightnessManager: BrightnessManager = Injekt.get(),
+    private val uriManager: UriManager = Injekt.get(),
+    private val stringResourceManager: StringResourceManager = Injekt.get(),
     // AM (SYNC) -->
     private val syncPreferences: SyncPreferences = Injekt.get(),
     // <-- AM (SYNC)
     uiPreferences: UiPreferences = Injekt.get(),
 ) : ViewModel() {
 
-    val cachePath: String = activity.cacheDir.path
+    val cachePath: String = uriManager.getCachePath()
 
     private val _currentPlaylist = MutableStateFlow<List<Episode>>(emptyList())
     val currentPlaylist = _currentPlaylist.asStateFlow()
@@ -255,7 +241,7 @@ class PlayerViewModel @JvmOverloads constructor(
     val duration by MPVLib.propInt["duration"].collectAsState(viewModelScope)
     private val currentMPVVolume by MPVLib.propInt["volume"].collectAsState(viewModelScope)
 
-    val currentVolume = MutableStateFlow(activity.audioManager.getStreamVolume(AudioManager.STREAM_MUSIC))
+    val currentVolume = MutableStateFlow(audioManager.getVolume())
     private val volumeBoostCap by MPVLib.propInt["volume-max"].collectAsState(viewModelScope)
 
     val subtitleTracks = MPVLib.propNode["track-list"]
@@ -294,12 +280,7 @@ class PlayerViewModel @JvmOverloads constructor(
     val playerUpdate = MutableStateFlow<PlayerUpdates>(PlayerUpdates.None)
     val isBrightnessSliderShown = MutableStateFlow(false)
     val isVolumeSliderShown = MutableStateFlow(false)
-    val currentBrightness = MutableStateFlow(
-        runCatching {
-            Settings.System.getFloat(activity.contentResolver, Settings.System.SCREEN_BRIGHTNESS)
-                .normalize(0f, 255f, 0f, 1f)
-        }.getOrElse { 0f },
-    )
+    val currentBrightness = MutableStateFlow(brightnessManager.getCurrentBrightness())
 
     val sheetShown = MutableStateFlow(Sheets.None)
     val panelShown = MutableStateFlow(Panels.None)
@@ -340,7 +321,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 delay(1000)
             }
             MPVLib.setPropertyBoolean("pause", true)
-            withUIContext { Injekt.get<Application>().toast(AYMR.strings.toast_sleep_timer_ended) }
+            eventChannel.send(Event.ShowToast(AYMR.strings.toast_sleep_timer_ended))
         }
     }
 
@@ -451,9 +432,9 @@ class PlayerViewModel @JvmOverloads constructor(
     fun addAudio(uri: Uri) {
         val url = uri.toString()
         val isContentUri = url.startsWith("content://")
-        val path = (if (isContentUri) uri.openContentFd(activity) else url)
+        val path = (if (isContentUri) uriManager.openContentFd(uri) else url)
             ?: return
-        val name = if (isContentUri) uri.getFileName(activity) else null
+        val name = if (isContentUri) uriManager.getFileName(uri) else null
         if (name == null) {
             MPVLib.command("audio-add", path, "cached")
         } else {
@@ -464,9 +445,9 @@ class PlayerViewModel @JvmOverloads constructor(
     fun addSubtitle(uri: Uri) {
         val url = uri.toString()
         val isContentUri = url.startsWith("content://")
-        val path = (if (isContentUri) uri.openContentFd(activity) else url)
+        val path = (if (isContentUri) uriManager.openContentFd(uri) else url)
             ?: return
-        val name = if (isContentUri) uri.getFileName(activity) else null
+        val name = if (isContentUri) uriManager.getFileName(uri) else null
         if (name == null) {
             MPVLib.command("sub-add", path, "cached")
         } else {
@@ -650,13 +631,17 @@ class PlayerViewModel @JvmOverloads constructor(
             return
         }
         if (showStatusBar) {
-            activity.windowInsetsController.show(WindowInsetsCompat.Type.statusBars())
+            viewModelScope.launch {
+                eventChannel.send(Event.SetStatusBar(true))
+            }
         }
         _controlsShown.update { true }
     }
 
     fun hideControls() {
-        activity.windowInsetsController.hide(WindowInsetsCompat.Type.statusBars())
+        viewModelScope.launch {
+            eventChannel.send(Event.SetStatusBar(false))
+        }
         _controlsShown.update { false }
     }
 
@@ -732,8 +717,8 @@ class PlayerViewModel @JvmOverloads constructor(
         brightness: Float,
     ) {
         currentBrightness.update { _ -> brightness.coerceIn(-0.75f, 1f) }
-        activity.window.attributes = activity.window.attributes.apply {
-            screenBrightness = brightness.coerceIn(0f, 1f)
+        viewModelScope.launch {
+            eventChannel.send(Event.SetBrightness(brightness.coerceIn(0f, 1f)))
         }
     }
 
@@ -741,7 +726,7 @@ class PlayerViewModel @JvmOverloads constructor(
         isBrightnessSliderShown.update { true }
     }
 
-    val maxVolume = activity.audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+    val maxVolume = audioManager.getMaxVolume()
     fun changeVolumeBy(change: Int) {
         val mpvVolume = MPVLib.getPropertyInt("volume")
         if ((volumeBoostCap ?: audioPreferences.volumeBoostCap().get()) > 0 && currentVolume.value == maxVolume) {
@@ -757,11 +742,7 @@ class PlayerViewModel @JvmOverloads constructor(
 
     fun changeVolumeTo(volume: Int) {
         val newVolume = volume.coerceIn(0..maxVolume)
-        activity.audioManager.setStreamVolume(
-            AudioManager.STREAM_MUSIC,
-            newVolume,
-            0,
-        )
+        audioManager.setVolume(newVolume)
         currentVolume.update { newVolume }
     }
 
@@ -785,25 +766,12 @@ class PlayerViewModel @JvmOverloads constructor(
 
     @Suppress("DEPRECATION")
     fun changeVideoAspect(aspect: VideoAspect) {
-        var ratio = -1.0
-        val pan: Double
-        when (aspect) {
-            VideoAspect.Crop -> {
-                pan = 1.0
-            }
-
-            VideoAspect.Fit -> {
-                pan = 0.0
-                MPVLib.setPropertyDouble("panscan", 0.0)
-            }
-
-            VideoAspect.Stretch -> {
-                val dm = DisplayMetrics()
-                activity.windowManager.defaultDisplay.getRealMetrics(dm)
-                ratio = dm.widthPixels / dm.heightPixels.toDouble()
-                pan = 0.0
-            }
+        viewModelScope.launch {
+            eventChannel.send(Event.ChangeVideoAspect(aspect))
         }
+    }
+
+    fun setAspect(aspect: VideoAspect, pan: Double, ratio: Double) {
         MPVLib.setPropertyDouble("panscan", pan)
         MPVLib.setPropertyDouble("video-aspect-override", ratio)
         playerPreferences.aspectState().set(aspect)
@@ -811,19 +779,8 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun cycleScreenRotations() {
-        activity.requestedOrientation = when (activity.requestedOrientation) {
-            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
-            ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
-            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
-            -> {
-                playerPreferences.defaultPlayerOrientationType().set(PlayerOrientation.SensorPortrait)
-                ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-            }
-
-            else -> {
-                playerPreferences.defaultPlayerOrientationType().set(PlayerOrientation.SensorLandscape)
-                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-            }
+        viewModelScope.launch {
+            eventChannel.send(Event.CycleRotations)
         }
     }
 
@@ -919,14 +876,13 @@ class PlayerViewModel @JvmOverloads constructor(
                     "toggle" -> if (_primaryButton.value == null) showButton() else _primaryButton.update { null }
                 }
             }
-
-            "software_keyboard" -> when (data) {
-                "show" -> forceShowSoftwareKeyboard()
-                "hide" -> forceHideSoftwareKeyboard()
-                "toggle" -> if (inputMethodManager.isActive) {
-                    forceHideSoftwareKeyboard()
-                } else {
-                    forceShowSoftwareKeyboard()
+            "software_keyboard" -> {
+                viewModelScope.launch {
+                    when (data) {
+                        "show" -> eventChannel.send(Event.SetKeyboard(true))
+                        "hide" -> eventChannel.send(Event.SetKeyboard(false))
+                        "toggle" -> eventChannel.send(Event.ToggleKeyboard)
+                    }
                 }
             }
         }
@@ -935,15 +891,6 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     private operator fun <T> List<T>.component6(): T = get(5)
-
-    private val inputMethodManager = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    private fun forceShowSoftwareKeyboard() {
-        inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
-    }
-
-    private fun forceHideSoftwareKeyboard() {
-        inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0)
-    }
 
     private val doubleTapToSeekDuration = gesturePreferences.skipLengthPreference().get()
     private val preciseSeek = gesturePreferences.playerSmoothSeek().get()
@@ -1000,20 +947,24 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun changeEpisode(previous: Boolean, autoPlay: Boolean = false) {
-        if (previous && !hasPreviousEpisode.value) {
-            activity.showToast(activity.stringResource(AYMR.strings.no_prev_episode))
-            return
-        }
+        viewModelScope.launch {
+            if (previous && !hasPreviousEpisode.value) {
+                eventChannel.send(Event.ShowToast(AYMR.strings.no_prev_episode))
+                return@launch
+            }
 
-        if (!previous && !hasNextEpisode.value) {
-            activity.showToast(activity.stringResource(AYMR.strings.no_next_episode))
-            return
-        }
+            if (!previous && !hasNextEpisode.value) {
+                eventChannel.send(Event.ShowToast(AYMR.strings.no_next_episode))
+                return@launch
+            }
 
-        activity.changeEpisode(
-            episodeId = getAdjacentEpisodeId(previous = previous),
-            autoPlay = autoPlay,
-        )
+            eventChannel.send(
+                Event.ChangeEpisode(
+                    episodeId = getAdjacentEpisodeId(previous = previous),
+                    autoPlay = autoPlay,
+                ),
+            )
+        }
     }
 
     fun handleLeftDoubleTap() {
@@ -1486,7 +1437,7 @@ class PlayerViewModel @JvmOverloads constructor(
 
         qualityIndex = Pair(hosterIndex, videoIndex)
 
-        activity.setVideo(resolvedVideo)
+        eventChannel.send(Event.SetVideo(resolvedVideo))
         return true
     }
 
@@ -2033,14 +1984,16 @@ class PlayerViewModel @JvmOverloads constructor(
         } else {
             if (netflixStyle) {
                 // show a toast with the seconds before the skip
-                activity.showToast(
-                    "Skip Intro: ${activity.stringResource(
-                        AYMR.strings.player_aniskip_dontskip_toast,
-                        chapter.chapterTitle,
-                        defaultWaitingTime,
-                    )}",
+                eventChannel.trySend(
+                    Event.ShowToastString(
+                        "Skip Intro: ${stringResourceManager.get(
+                            AYMR.strings.player_aniskip_dontskip_toast,
+                            chapter.chapterTitle,
+                            defaultWaitingTime,
+                        )}",
+                    ),
                 )
-                _skipIntroText.update { _ -> activity.stringResource(AYMR.strings.player_aniskip_dontskip) }
+                _skipIntroText.update { _ -> stringResourceManager.get(AYMR.strings.player_aniskip_dontskip) }
                 netflixTimeout.update { _ -> defaultWaitingTime }
             } else if (autoSkip) {
                 skipIntro(chapter.chapterTitle)
@@ -2052,7 +2005,7 @@ class PlayerViewModel @JvmOverloads constructor(
 
     private fun skipIntro(chapterName: String) {
         MPVLib.command("add", "chapter", "1")
-        _seekText.update { _ -> activity.stringResource(AYMR.strings.player_intro_skipped, chapterName) }
+        _seekText.update { _ -> stringResourceManager.get(AYMR.strings.player_intro_skipped, chapterName) }
         _isSeekingForwards.update { _ -> true }
         _doubleTapSeekAmount.update { _ -> 1 }
         if (showSeekBar) showSeekBar()
@@ -2063,9 +2016,9 @@ class PlayerViewModel @JvmOverloads constructor(
 
         _skipIntroText.update { _ ->
             skipButtonString?.let {
-                activity.stringResource(
+                stringResourceManager.get(
                     AYMR.strings.player_skip_action,
-                    activity.stringResource(skipButtonString),
+                    stringResourceManager.get(skipButtonString),
                 )
             }
         }
@@ -2094,6 +2047,16 @@ class PlayerViewModel @JvmOverloads constructor(
         data class SetArtResult(val result: SetAsArt, val artType: ArtType) : Event()
         data class SavedImage(val result: SaveImageResult) : Event()
         data class ShareImage(val uri: Uri, val seconds: String) : Event()
+        data class ShowToast(val stringResource: StringResource) : Event()
+        data class ShowToastString(val string: String) : Event()
+        data class ChangeEpisode(val episodeId: Long, val autoPlay: Boolean) : Event()
+        data class SetVideo(val video: Video?) : Event()
+        data class SetStatusBar(val show: Boolean) : Event()
+        data class SetBrightness(val brightness: Float) : Event()
+        data class ChangeVideoAspect(val aspect: VideoAspect) : Event()
+        data object CycleRotations : Event()
+        data object ToggleKeyboard : Event()
+        data class SetKeyboard(val show: Boolean) : Event()
     }
 }
 

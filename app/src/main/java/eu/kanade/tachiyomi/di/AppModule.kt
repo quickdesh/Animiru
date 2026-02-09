@@ -23,6 +23,10 @@ import eu.kanade.tachiyomi.network.JavaScriptEngine
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.ui.player.ExternalIntents
+import eu.kanade.tachiyomi.ui.player.domain.AudioManager
+import eu.kanade.tachiyomi.ui.player.domain.BrightnessManager
+import eu.kanade.tachiyomi.ui.player.domain.StringResourceManager
+import eu.kanade.tachiyomi.ui.player.domain.UriManager
 import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
@@ -163,6 +167,13 @@ class AppModule(val app: Application) : InjektModule {
         // AM (SYNC_DRIVE) -->
         addSingletonFactory { GoogleDriveService(app) }
         // <-- AM (SYNC_DRIVE)
+
+        // AM -->
+        addSingletonFactory { AudioManager(app) }
+        addSingletonFactory { BrightnessManager(app) }
+        addSingletonFactory { UriManager(app) }
+        addSingletonFactory { StringResourceManager(app) }
+        // <-- AM
 
         // Asynchronously init expensive components for a faster cold start
         ContextCompat.getMainExecutor(app).execute {

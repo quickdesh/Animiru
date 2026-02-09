@@ -20,7 +20,6 @@ package eu.kanade.tachiyomi.ui.player
 import android.content.Context
 import android.net.Uri
 import android.os.ParcelFileDescriptor
-import android.provider.OpenableColumns
 import `is`.xyz.mpv.MPVNode
 import `is`.xyz.mpv.Utils
 import kotlinx.coroutines.CoroutineScope
@@ -51,14 +50,6 @@ internal fun Uri.resolveUri(context: Context): String? {
 
     if (filepath == null) logcat(LogPriority.ERROR) { "unknown scheme: $scheme" }
     return filepath
-}
-
-internal fun Uri.getFileName(context: Context): String? {
-    return context.contentResolver.query(this, null, null, null, null)?.use { cursor ->
-        val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-        cursor.moveToFirst()
-        cursor.getString(nameIndex)
-    }
 }
 
 inline fun <reified T> MPVNode.toObject(json: Json): T = json.decodeFromString<T>(toJson())

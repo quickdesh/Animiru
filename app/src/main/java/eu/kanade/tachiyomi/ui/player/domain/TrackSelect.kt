@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.ui.player.utils
+package eu.kanade.tachiyomi.ui.player.domain
 
 import androidx.core.os.LocaleListCompat
 import eu.kanade.tachiyomi.ui.player.VideoTrack
