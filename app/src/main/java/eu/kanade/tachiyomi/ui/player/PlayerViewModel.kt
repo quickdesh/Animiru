@@ -36,8 +36,6 @@ import eu.kanade.domain.source.interactor.GetIncognitoState
 import eu.kanade.domain.track.interactor.TrackEpisode
 import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.domain.ui.UiPreferences
-import eu.kanade.presentation.more.settings.screen.player.custombutton.CustomButtonFetchState
-import eu.kanade.presentation.more.settings.screen.player.custombutton.getButtons
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.animesource.model.Hoster
@@ -84,8 +82,10 @@ import eu.kanade.tachiyomi.util.storage.cacheImageDir
 import `is`.xyz.mpv.MPVLib
 import `is`.xyz.mpv.MPVNode
 import `is`.xyz.mpv.Utils
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -227,7 +227,7 @@ class PlayerViewModel @JvmOverloads constructor(
 
     // Start mpvKt
 
-    private val _customButtons = MutableStateFlow<CustomButtonFetchState>(CustomButtonFetchState.Loading)
+    private val _customButtons = MutableStateFlow<ImmutableList<CustomButton>>(persistentListOf())
     val customButtons = _customButtons.asStateFlow()
 
     private val _primaryButtonTitle = MutableStateFlow("")
@@ -322,6 +322,20 @@ class PlayerViewModel @JvmOverloads constructor(
             }
             MPVLib.setPropertyBoolean("pause", true)
             eventChannel.send(Event.ShowToast(AYMR.strings.toast_sleep_timer_ended))
+        }
+    }
+
+    suspend fun getCustomButtons(): List<CustomButton> {
+        return getCustomButtons.getAll()
+    }
+
+    fun setCustomButtons(buttons: List<CustomButton>) {
+        _customButtons.update { _ -> buttons.toPersistentList() }
+        buttons.firstOrNull { it.isFavorite }?.let {
+            _primaryButton.update { _ -> it }
+            if (primaryButtonTitle.value.isEmpty()) {
+                setPrimaryCustomButtonTitle(it)
+            }
         }
     }
 
@@ -818,7 +832,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 _primaryButtonTitle.update { _ -> data }
             }
             "reset_button_title" -> {
-                _customButtons.value.getButtons().firstOrNull { it.isFavorite }?.let {
+                _customButtons.value.firstOrNull { it.isFavorite }?.let {
                     setPrimaryCustomButtonTitle(it)
                 }
             }
@@ -865,7 +879,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 fun showButton() {
                     if (_primaryButton.value == null) {
                         _primaryButton.update {
-                            customButtons.value.getButtons().firstOrNull { it.isFavorite }
+                            customButtons.value.firstOrNull { it.isFavorite }
                         }
                     }
                 }

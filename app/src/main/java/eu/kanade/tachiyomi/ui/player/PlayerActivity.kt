@@ -95,7 +95,6 @@ import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.custombutton.model.CustomButton
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
@@ -230,6 +229,7 @@ class PlayerActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        setupCustomButtons()
         setupPlayerMPV()
         setupPlayerAudio()
         setupMediaSession()
@@ -555,8 +555,11 @@ class PlayerActivity : BaseActivity() {
         }
     }
 
-    fun setupCustomButtons(buttons: List<CustomButton>) {
+    fun setupCustomButtons() {
         CoroutineScope(Dispatchers.IO).launchIO {
+            val buttons = viewModel.getCustomButtons()
+            viewModel.setCustomButtons(buttons)
+
             val scriptsDir = {
                 UniFile.fromFile(applicationContext.filesDir)
                     ?.createDirectory(MPV_DIR)
@@ -1229,6 +1232,7 @@ class PlayerActivity : BaseActivity() {
 
     private fun fileLoaded() {
         if (player.isExiting) return
+
         setMpvOptions()
         setMpvMediaTitle()
         setupPlayerOrientation()
