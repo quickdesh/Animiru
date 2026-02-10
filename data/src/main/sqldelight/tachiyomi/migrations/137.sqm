@@ -1,3 +1,6 @@
+-- Add excluded_scanlators to updatesView
+DROP VIEW IF EXISTS updatesView;
+
 CREATE VIEW updatesView AS
 SELECT
     animes._id AS animeId,
@@ -30,34 +33,3 @@ AND episodes.scanlator = excluded_scanlators.scanlator
 WHERE favorite = 1
 AND date_fetch > date_added
 ORDER BY date_fetch DESC;
-
-getRecentUpdates:
-SELECT *
-FROM updatesView
-WHERE dateUpload > :after
-LIMIT :limit;
-
-getRecentUpdatesWithFilters:
-SELECT *
-FROM updatesView
-WHERE dateUpload > :after
-AND (:seen IS NULL OR seen = :seen)
--- Started means some progress but not finished, Seen means finished episode, thus:
-AND (
-    :started IS NULL
-    OR (:started = 1 AND last_second_seen > 0 AND seen = 0)
-    OR (:started = 0 AND last_second_seen = 0 AND seen = 0)
-)
-AND (:bookmarked IS NULL OR bookmark = :bookmarked)
-AND (:fillermarked IS NULL OR fillermark = :fillermarked)
-AND (
-    (excludedScanlator IS NULL OR :hideExcludedScanlators = 0)
-)
-LIMIT :limit;
-
-getUpdatesBySeenStatus:
-SELECT *
-FROM updatesView
-WHERE seen = :seen
-AND dateUpload > :after
-LIMIT :limit;

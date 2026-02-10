@@ -54,6 +54,7 @@ import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import eu.kanade.tachiyomi.ui.updates.AnimeUpdatesHalfTab
 import eu.kanade.tachiyomi.ui.updates.UpdatesScreenModel
+import eu.kanade.tachiyomi.ui.updates.UpdatesSettingsScreenModel
 import eu.kanade.tachiyomi.ui.updates.openEpisode
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -106,6 +107,7 @@ data object RecentsTab : Tab {
         val historyScreenModel = rememberScreenModel { HistoryScreenModel() }
         // AM (RECENTS_FILTER_CHIP) -->
         val updatesScreenModel = rememberScreenModel { UpdatesScreenModel() }
+        val updatesSettingsScreenModel = rememberScreenModel { UpdatesSettingsScreenModel() }
         // AM (TAB_HOLD) -->
         val snackbarHostState = SnackbarHostState()
         // <-- AM (TAB_HOLD)
@@ -120,7 +122,7 @@ data object RecentsTab : Tab {
         ) { contentPadding ->
             Crossfade(targetState = showHistoryScreen, label = "recents_crossfade") { showHistory ->
                 if (!showHistory) {
-                    AnimeUpdatesHalfTab(updatesScreenModel, contentPadding)
+                    AnimeUpdatesHalfTab(updatesScreenModel, updatesSettingsScreenModel, contentPadding)
                 } else {
                     HistoryHalfTab(historyScreenModel, snackbarHostState, contentPadding)
                 }
@@ -182,6 +184,8 @@ fun RecentsScaffold(
                 if (!showHistoryScreen) {
                     UpdatesTopBar(
                         onCalendarClicked = { navigator.push(UpcomingScreen()) },
+                        onFilterClicked = updatesScreenModel::showFilterDialog,
+                        hasFilters = updatesState.hasActiveFilters,
                         onUpdateLibrary = updatesScreenModel::updateLibrary,
                         actionModeCounter = updatesState.selected.size,
                         onSelectAll = { updatesScreenModel.toggleAllSelection(true) },

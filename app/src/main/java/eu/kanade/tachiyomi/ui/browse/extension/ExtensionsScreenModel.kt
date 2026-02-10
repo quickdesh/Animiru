@@ -111,7 +111,6 @@ class ExtensionsScreenModel(
             .launchIn(screenModelScope)
     }
 
-
     fun searchQueryPredicate(query: String): (Extension) -> Boolean {
         val subqueries = query.split(",")
             .map { it.trim() }

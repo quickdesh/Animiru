@@ -13,8 +13,23 @@ class GetUpdates(
         return repository.awaitWithSeen(seen, after, limit = 500)
     }
 
-    fun subscribe(instant: Instant): Flow<List<UpdatesWithRelations>> {
-        return repository.subscribeAll(instant.toEpochMilli(), limit = 500)
+    fun subscribe(
+        instant: Instant,
+        unseen: Boolean?,
+        started: Boolean?,
+        bookmarked: Boolean?,
+        fillermarked: Boolean?,
+        hideExcludedScanlators: Boolean,
+    ): Flow<List<UpdatesWithRelations>> {
+        return repository.subscribeAll(
+            instant.toEpochMilli(),
+            limit = 500,
+            unseen = unseen,
+            started = started,
+            bookmarked = bookmarked,
+            fillermarked = fillermarked,
+            hideExcludedScanlators = hideExcludedScanlators,
+        )
     }
 
     fun subscribe(seen: Boolean, after: Long): Flow<List<UpdatesWithRelations>> {

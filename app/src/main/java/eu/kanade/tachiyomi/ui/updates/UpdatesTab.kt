@@ -15,6 +15,7 @@ import eu.kanade.presentation.anime.EpisodeOptionsDialogScreen
 import eu.kanade.presentation.components.NavigatorAdaptiveSheet
 import eu.kanade.presentation.updates.UpdateScreen
 import eu.kanade.presentation.updates.UpdatesDeleteConfirmationDialog
+import eu.kanade.presentation.updates.UpdatesFilterDialog
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
@@ -28,7 +29,11 @@ import uy.kohesive.injekt.injectLazy
 
 // AM (RECENTS_FILTER_CHIP) -->
 @Composable
-fun AnimeUpdatesHalfTab(screenModel: UpdatesScreenModel, contentPadding: PaddingValues) {
+fun AnimeUpdatesHalfTab(
+    screenModel: UpdatesScreenModel,
+    settingsScreenModel: UpdatesSettingsScreenModel,
+    contentPadding: PaddingValues,
+) {
     val context = LocalContext.current
     val navigator = LocalNavigator.currentOrThrow
     val scope = rememberCoroutineScope()
@@ -57,6 +62,12 @@ fun AnimeUpdatesHalfTab(screenModel: UpdatesScreenModel, contentPadding: Padding
             UpdatesDeleteConfirmationDialog(
                 onDismissRequest = onDismissDialog,
                 onConfirm = { screenModel.deleteEpisodes(dialog.toDelete) },
+            )
+        }
+        is UpdatesScreenModel.Dialog.FilterSheet -> {
+            UpdatesFilterDialog(
+                onDismissRequest = onDismissDialog,
+                screenModel = settingsScreenModel,
             )
         }
         is UpdatesScreenModel.Dialog.ShowQualities -> {
