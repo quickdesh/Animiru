@@ -1,10 +1,7 @@
 package eu.kanade.presentation.anime
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -29,9 +26,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -92,7 +91,6 @@ import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.FastScrollIrregularLazyVerticalGrid
 import tachiyomi.presentation.core.components.Scroller.EXACT_HEIGHT_KEY_PREFIX
 import tachiyomi.presentation.core.components.TwoPanelBox
-import tachiyomi.presentation.core.components.material.ExtendedFloatingActionButton
 import tachiyomi.presentation.core.components.material.PullRefresh
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
@@ -479,27 +477,25 @@ private fun AnimeScreenSmallImpl(
                 val isFABVisible = remember(episodes) {
                     episodes.fastAny { !it.episode.seen } && !isAnySelected
                 }
-                AnimatedVisibility(
-                    visible = isFABVisible,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                ) {
-                    ExtendedFloatingActionButton(
-                        text = {
-                            val isWatching = remember(state.episodes) {
-                                state.episodes.fastAny { it.episode.seen }
-                            }
-                            Text(
-                                text = stringResource(
-                                    if (isWatching) MR.strings.action_resume else MR.strings.action_start,
-                                ),
-                            )
-                        },
-                        icon = { Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null) },
-                        onClick = onContinueWatching,
-                        expanded = itemListState.shouldExpandFAB(),
-                    )
-                }
+                SmallExtendedFloatingActionButton(
+                    text = {
+                        val isWatching = remember(state.episodes) {
+                            state.episodes.fastAny { it.episode.seen }
+                        }
+                        Text(
+                            text = stringResource(
+                                if (isWatching) MR.strings.action_resume else MR.strings.action_start,
+                            ),
+                        )
+                    },
+                    icon = { Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null) },
+                    onClick = onContinueWatching,
+                    expanded = itemListState.shouldExpandFAB(),
+                    modifier = Modifier.animateFloatingActionButton(
+                        visible = isFABVisible,
+                        alignment = Alignment.BottomEnd,
+                    ),
+                )
             },
         ) { contentPadding ->
             val topPadding = contentPadding.calculateTopPadding()
@@ -864,27 +860,25 @@ fun AnimeScreenLargeImpl(
                 val isFABVisible = remember(episodes) {
                     episodes.fastAny { !it.episode.seen } && !isAnySelected
                 }
-                AnimatedVisibility(
-                    visible = isFABVisible,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                ) {
-                    ExtendedFloatingActionButton(
-                        text = {
-                            val isWatching = remember(state.episodes) {
-                                state.episodes.fastAny { it.episode.seen }
-                            }
-                            Text(
-                                text = stringResource(
-                                    if (isWatching) MR.strings.action_resume else MR.strings.action_start,
-                                ),
-                            )
-                        },
-                        icon = { Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null) },
-                        onClick = onContinueWatching,
-                        expanded = itemListState.shouldExpandFAB(),
-                    )
-                }
+                SmallExtendedFloatingActionButton(
+                    text = {
+                        val isWatching = remember(state.episodes) {
+                            state.episodes.fastAny { it.episode.seen }
+                        }
+                        Text(
+                            text = stringResource(
+                                if (isWatching) MR.strings.action_resume else MR.strings.action_start,
+                            ),
+                        )
+                    },
+                    icon = { Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null) },
+                    onClick = onContinueWatching,
+                    expanded = itemListState.shouldExpandFAB(),
+                    modifier = Modifier.animateFloatingActionButton(
+                        visible = isFABVisible,
+                        alignment = Alignment.BottomEnd,
+                    ),
+                )
             },
         ) { contentPadding ->
             PullRefresh(

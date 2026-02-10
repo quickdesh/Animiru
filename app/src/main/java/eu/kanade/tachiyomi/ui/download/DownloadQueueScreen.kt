@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -57,7 +58,6 @@ import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.Pill
-import tachiyomi.presentation.core.components.material.ExtendedFloatingActionButton
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
@@ -208,7 +208,7 @@ object DownloadQueueScreen : Screen() {
                     exit = fadeOut(),
                 ) {
                     val isRunning by screenModel.isDownloaderRunning.collectAsState()
-                    ExtendedFloatingActionButton(
+                    SmallExtendedFloatingActionButton(
                         text = {
                             // AY -->
                             val id = if (isRunning) {

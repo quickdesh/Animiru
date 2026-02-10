@@ -17,11 +17,11 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SwapCalls
 import androidx.compose.material.icons.outlined.TravelExplore
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -115,7 +115,7 @@ fun SourcesScreen(
                     floatingActionButton = {
                         val buttonText = if (updateCount != 0) MR.strings.ext_update else MR.strings.ext_install
                         val buttonIcon = if (updateCount != 0) Icons.Filled.Upload else Icons.Filled.Download
-                        ExtendedFloatingActionButton(
+                        SmallExtendedFloatingActionButton(
                             text = { Text(text = stringResource(buttonText)) },
                             icon = { Icon(imageVector = buttonIcon, contentDescription = null) },
                             onClick = { toExtensionsScreen() },
