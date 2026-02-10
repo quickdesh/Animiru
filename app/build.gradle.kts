@@ -286,6 +286,7 @@ dependencies {
     implementation(libs.compose.grid)
     implementation(libs.reorderable)
     implementation(libs.bundles.markdown)
+    implementation(libs.materialKolor)
 
     // Logging
     implementation(libs.logcat)
