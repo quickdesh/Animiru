@@ -85,7 +85,7 @@ class Jellyfin(id: Long) : BaseTracker(id, "Jellyfin"), EnhancedTracker {
     override suspend fun match(anime: Anime): TrackSearch? =
         try {
             api.getTrackSearch(anime.url)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
 
