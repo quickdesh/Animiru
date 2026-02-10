@@ -58,8 +58,6 @@ fun AudioTracksSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val aid by MPVLib.propInt["aid"].collectAsState()
-
     GenericTracksSheet(
         tracks = tracks,
         onDismissRequest = onDismissRequest,
@@ -87,7 +85,7 @@ fun AudioTracksSheet(
         track = {
             AudioTrackRow(
                 track = it,
-                isSelected = aid != null && aid == it.trackId,
+                isSelected = it.selection > -1,
                 onClick = { onSelect(it) },
             )
         },

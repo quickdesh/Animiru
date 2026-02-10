@@ -94,6 +94,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -239,7 +240,6 @@ class PlayerViewModel @JvmOverloads constructor(
     val paused by MPVLib.propBoolean["pause"].collectAsState(viewModelScope)
     val pos by MPVLib.propInt["time-pos"].collectAsState(viewModelScope)
     val duration by MPVLib.propInt["duration"].collectAsState(viewModelScope)
-    private val currentMPVVolume by MPVLib.propInt["volume"].collectAsState(viewModelScope)
 
     val currentVolume = MutableStateFlow(audioManager.getVolume())
     private val volumeBoostCap by MPVLib.propInt["volume-max"].collectAsState(viewModelScope)
@@ -303,8 +303,31 @@ class PlayerViewModel @JvmOverloads constructor(
     val remainingTime = _remainingTime.asStateFlow()
 
     init {
+        MPVLib.propLong["time-pos"]
+            .filterNotNull()
+            .onEach(::onSecondReached)
+            .launchIn(viewModelScope)
+
         MPVLib.propInt["chapter"]
-            .onEach { onChapterChanged(it) }
+            .onEach(::onChapterChanged)
+            .launchIn(viewModelScope)
+
+        MPVLib.propInt["sid"]
+            .onEach { onSubtitleTrackSelectChange() }
+            .launchIn(viewModelScope)
+
+        MPVLib.propInt["secondary-sid"]
+            .onEach { onSubtitleTrackSelectChange() }
+            .launchIn(viewModelScope)
+
+        MPVLib.propLong["user-data/current-anime/intro-length"]
+            .filterNotNull()
+            .onEach(::setAnimeSkipIntroLength)
+            .launchIn(viewModelScope)
+
+        MPVLib.propNode["track-list"]
+            .filterNotNull()
+            .onEach { onTrackListChanged(it) }
             .launchIn(viewModelScope)
     }
 
@@ -569,7 +592,11 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     private fun selectAudioById(id: Int) {
-        MPVLib.setPropertyInt("aid", id)
+        if (id == MPVLib.getPropertyInt("aid")) {
+            MPVLib.setPropertyBoolean("aid", false)
+        } else {
+            MPVLib.setPropertyInt("aid", id)
+        }
     }
 
     private fun updateSubtitleTrackAt(index: Int, transform: (VideoTrack.External) -> VideoTrack.External) {
@@ -1853,7 +1880,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 } else {
                     SetAsArt.AddToLibraryFirst
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 SetAsArt.Error
             }
             eventChannel.send(Event.SetArtResult(result, artType))

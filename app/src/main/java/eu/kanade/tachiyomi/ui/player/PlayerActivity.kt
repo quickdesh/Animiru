@@ -256,10 +256,10 @@ class PlayerActivity : BaseActivity() {
                         onSetAsArtResult(event.result, event.artType)
                     }
                     is PlayerViewModel.Event.ShowToast -> {
-                        toast(event.stringResource)
+                        showToast(stringResource(event.stringResource))
                     }
                     is PlayerViewModel.Event.ShowToastString -> {
-                        toast(event.string)
+                        showToast(event.string)
                     }
                     is PlayerViewModel.Event.ChangeEpisode -> {
                         changeEpisode(event.episodeId, event.autoPlay)
@@ -688,20 +688,14 @@ class PlayerActivity : BaseActivity() {
 
     // A bunch of observers
 
+    @Suppress("unused")
     internal fun onObserverEvent(property: String, value: Long) {
         if (player.isExiting) return
-        when (property) {
-            "user-data/current-anime/intro-length" -> viewModel.setAnimeSkipIntroLength(value)
-            "time-pos" -> viewModel.onSecondReached(value)
-        }
     }
 
+    @Suppress("unused")
     internal fun onObserverEvent(property: String) {
         if (player.isExiting) return
-        when (property) {
-            "sid" -> viewModel.onSubtitleTrackSelectChange()
-            "secondary-sid" -> viewModel.onSubtitleTrackSelectChange()
-        }
     }
 
     internal fun onObserverEvent(property: String, value: Boolean) {
@@ -720,7 +714,7 @@ class PlayerActivity : BaseActivity() {
         }
     }
 
-    @SuppressLint("NewApi")
+    @Suppress("unused")
     internal fun onObserverEvent(property: String, value: Double) {
         if (player.isExiting) return
         when (property) {
@@ -728,11 +722,9 @@ class PlayerActivity : BaseActivity() {
         }
     }
 
+    @Suppress("unused")
     internal fun onObserverEvent(property: String, value: MPVNode) {
         if (player.isExiting) return
-        when (property) {
-            "track-list" -> viewModel.onTrackListChanged(value)
-        }
     }
 
     internal fun event(eventId: Int) {
