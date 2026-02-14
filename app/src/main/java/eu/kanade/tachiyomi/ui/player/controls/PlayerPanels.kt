@@ -37,7 +37,7 @@ import eu.kanade.tachiyomi.ui.player.Panels
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.AudioDelayPanel
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.SubtitleDelayPanel
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.SubtitleSettingsPanel
-import eu.kanade.tachiyomi.ui.player.controls.components.panels.VideoFiltersPanel
+import eu.kanade.tachiyomi.ui.player.controls.components.panels.VideoSettingsPanel
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -72,7 +72,7 @@ fun PlayerPanels(
                 AudioDelayPanel(onDismissRequest)
             }
             Panels.VideoFilters -> {
-                VideoFiltersPanel(onDismissRequest)
+                VideoSettingsPanel(onDismissRequest)
             }
         }
     }

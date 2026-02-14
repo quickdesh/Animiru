@@ -21,6 +21,7 @@ import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.ui.player.settings.DecoderPreferences
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 
 /**
@@ -93,10 +94,10 @@ enum class Decoder(val title: String, val value: String) {
     }
 }
 
-enum class Debanding {
-    None,
-    CPU,
-    GPU,
+enum class Debanding(val stringRes: StringResource) {
+    None(AMMR.strings.player_sheets_deband_none),
+    CPU(AMMR.strings.player_sheets_deband_cpu),
+    GPU(AMMR.strings.player_sheets_deband_gpu),
 }
 
 enum class Sheets {
@@ -170,5 +171,42 @@ enum class VideoFilters(
         AYMR.strings.player_sheets_filters_hue,
         { it.hueFilter() },
         "hue",
+    ),
+}
+
+enum class DebandSettings(
+    val stringRes: StringResource,
+    val preference: (DecoderPreferences) -> Preference<Int>,
+    val mpvProperty: String,
+    val start: Int,
+    val end: Int,
+) {
+    Iterations(
+        AMMR.strings.player_sheets_deband_iterations,
+        { it.debandIterations() },
+        "deband-iterations",
+        0,
+        16,
+    ),
+    Threshold(
+        AMMR.strings.player_sheets_deband_threshold,
+        { it.debandThreshold() },
+        "deband-threshold",
+        0,
+        200,
+    ),
+    Range(
+        AMMR.strings.player_sheets_deband_range,
+        { it.debandRange() },
+        "deband-range",
+        1,
+        64,
+    ),
+    Grain(
+        AMMR.strings.player_sheets_deband_grain,
+        { it.debandGrain() },
+        "deband-grain",
+        0,
+        200,
     ),
 }

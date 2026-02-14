@@ -36,7 +36,6 @@ import `is`.xyz.mpv.MPVLib
 import logcat.LogPriority
 import logcat.logcat
 import uy.kohesive.injekt.injectLazy
-import kotlin.reflect.KProperty
 
 class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(context, attributes) {
 
@@ -64,11 +63,6 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
         MPVLib.setPropertyBoolean("pause", true)
         MPVLib.setOptionString("profile", "fast")
         MPVLib.setOptionString("hwdec", if (decoderPreferences.tryHWDecoding().get()) "auto" else "no")
-        when (decoderPreferences.videoDebanding().get()) {
-            Debanding.None -> {}
-            Debanding.CPU -> MPVLib.setOptionString("vf", "gradfun=radius=12")
-            Debanding.GPU -> MPVLib.setOptionString("deband", "yes")
-        }
 
         if (decoderPreferences.useYUV420P().get()) {
             MPVLib.setOptionString("vf", "format=yuv420p")
@@ -112,6 +106,12 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
     }
 
     override fun postInitOptions() {
+        when (decoderPreferences.debanding().get()) {
+            Debanding.None -> {}
+            Debanding.CPU -> MPVLib.command("vf", "add", "@deband:gradfun=radius=12")
+            Debanding.GPU -> MPVLib.setOptionString("deband", "yes")
+        }
+
         advancedPreferences.playerStatisticsPage().get().let {
             if (it != 0) {
                 MPVLib.command("script-binding", "stats/display-stats-toggle")
