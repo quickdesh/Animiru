@@ -1,12 +1,12 @@
 package eu.kanade.tachiyomi.ui.player
 
-import `is`.xyz.mpv.MPVLib
+import `is`.xyz.mpv.MPV
 import `is`.xyz.mpv.MPVNode
 import logcat.LogPriority
 
 class PlayerObserver(val activity: PlayerActivity) :
-    MPVLib.EventObserver,
-    MPVLib.LogObserver {
+    MPV.EventObserver,
+    MPV.LogObserver {
 
     override fun eventProperty(property: String) {
         activity.runOnUiThread { activity.onObserverEvent(property) }
@@ -32,8 +32,8 @@ class PlayerObserver(val activity: PlayerActivity) :
         activity.runOnUiThread { activity.onObserverEvent(property, value) }
     }
 
-    override fun event(eventId: Int) {
-        activity.runOnUiThread { activity.event(eventId) }
+    override fun event(eventId: Int, data: MPVNode) {
+        activity.runOnUiThread { activity.event(eventId, data) }
     }
 
     // TODO(mpv): Add to `event`
@@ -52,7 +52,7 @@ class PlayerObserver(val activity: PlayerActivity) :
     private var httpError: String? = null
 
     override fun logMessage(prefix: String, level: Int, text: String) {
-        if (level == MPVLib.mpvLogLevel.MPV_LOG_LEVEL_ERROR) {
+        if (level == MPV.mpvLogLevel.MPV_LOG_LEVEL_ERROR) {
             if (text.startsWith(TRACK_LOAD_FAILURE)) {
                 val url = text.removePrefix(TRACK_LOAD_FAILURE).substringBeforeLast(".")
                 activity.onTrackLoadedFailure(url)
@@ -60,9 +60,9 @@ class PlayerObserver(val activity: PlayerActivity) :
         }
 
         val logPriority = when (level) {
-            MPVLib.mpvLogLevel.MPV_LOG_LEVEL_FATAL, MPVLib.mpvLogLevel.MPV_LOG_LEVEL_ERROR -> LogPriority.ERROR
-            MPVLib.mpvLogLevel.MPV_LOG_LEVEL_WARN -> LogPriority.WARN
-            MPVLib.mpvLogLevel.MPV_LOG_LEVEL_INFO -> LogPriority.INFO
+            MPV.mpvLogLevel.MPV_LOG_LEVEL_FATAL, MPV.mpvLogLevel.MPV_LOG_LEVEL_ERROR -> LogPriority.ERROR
+            MPV.mpvLogLevel.MPV_LOG_LEVEL_WARN -> LogPriority.WARN
+            MPV.mpvLogLevel.MPV_LOG_LEVEL_INFO -> LogPriority.INFO
             else -> LogPriority.VERBOSE
         }
         if (text.contains("HTTP error")) httpError = text

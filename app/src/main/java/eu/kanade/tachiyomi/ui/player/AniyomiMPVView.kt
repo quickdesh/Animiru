@@ -32,12 +32,12 @@ import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
 import `is`.xyz.mpv.BaseMPVView
 import `is`.xyz.mpv.KeyMapping
-import `is`.xyz.mpv.MPVLib
+import `is`.xyz.mpv.MPV
 import logcat.LogPriority
 import logcat.logcat
 import uy.kohesive.injekt.injectLazy
 
-class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(context, attributes) {
+class AniyomiMPVView(context: Context, attributes: AttributeSet?) : BaseMPVView(context, attributes) {
 
     private val playerPreferences: PlayerPreferences by injectLazy()
     private val decoderPreferences: DecoderPreferences by injectLazy()
@@ -52,70 +52,73 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
      * Returns the video aspect ratio. Rotation is taken into account.
      */
     fun getVideoOutAspect(): Double? {
-        return MPVLib.getPropertyDouble("video-params/aspect")?.let {
+        return mpv?.getPropertyDouble("video-params/aspect")?.let {
             if (it < 0.001) return 0.0
-            if ((MPVLib.getPropertyInt("video-params/rotate") ?: 0) % 180 == 90) 1.0 / it else it
+            if ((mpv?.getPropertyInt("video-params/rotate") ?: 0) % 180 == 90) 1.0 / it else it
         }
     }
 
-    override fun initOptions() {
+    fun init(mpvInst: MPV) {
+        this.mpv = mpvInst
         setVo(if (decoderPreferences.gpuNext().get()) "gpu-next" else "gpu")
-        MPVLib.setPropertyBoolean("pause", true)
-        MPVLib.setOptionString("profile", "fast")
-        MPVLib.setOptionString("hwdec", if (decoderPreferences.tryHWDecoding().get()) "auto" else "no")
+        mpv?.setPropertyBoolean("pause", true)
+        mpv?.setOptionString("profile", "fast")
+        mpv?.setOptionString("hwdec", if (decoderPreferences.tryHWDecoding().get()) "auto" else "no")
 
         if (decoderPreferences.useYUV420P().get()) {
-            MPVLib.setOptionString("vf", "format=yuv420p")
+            mpv?.setOptionString("vf", "format=yuv420p")
         }
-        MPVLib.setOptionString("msg-level", "all=" + if (networkPreferences.verboseLogging().get()) "v" else "warn")
+        mpv?.setOptionString("msg-level", "all=" + if (networkPreferences.verboseLogging().get()) "v" else "warn")
 
-        MPVLib.setPropertyBoolean("keep-open", true)
-        MPVLib.setPropertyBoolean("input-default-bindings", true)
+        mpv?.setPropertyBoolean("keep-open", true)
+        mpv?.setPropertyBoolean("input-default-bindings", true)
 
-        MPVLib.setOptionString("ytdl", "no")
-        MPVLib.setOptionString("tls-verify", "yes")
-        MPVLib.setOptionString("tls-ca-file", "${context.filesDir.path}/${PlayerActivity.MPV_DIR}/cacert.pem")
+        mpv?.setOptionString("ytdl", "no")
+        mpv?.setOptionString("tls-verify", "yes")
+        mpv?.setOptionString("tls-ca-file", "${context.filesDir.path}/${PlayerActivity.MPV_DIR}/cacert.pem")
 
         // We handle selecting this in the viewmodel
-        MPVLib.setOptionString("sid", "no")
-        MPVLib.setOptionString("aid", "no")
+        mpv?.setOptionString("sid", "no")
+        mpv?.setOptionString("aid", "no")
 
         // Limit demuxer cache since the defaults are too high for mobile devices
         val cacheMegs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) 64 else 32
-        MPVLib.setOptionString("demuxer-max-bytes", "${cacheMegs * 1024 * 1024}")
-        MPVLib.setOptionString("demuxer-max-back-bytes", "${cacheMegs * 1024 * 1024}")
+        mpv?.setOptionString("demuxer-max-bytes", "${cacheMegs * 1024 * 1024}")
+        mpv?.setOptionString("demuxer-max-back-bytes", "${cacheMegs * 1024 * 1024}")
 
         val screenshotDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
         screenshotDir.mkdirs()
-        MPVLib.setOptionString("screenshot-directory", screenshotDir.path)
+        mpv?.setOptionString("screenshot-directory", screenshotDir.path)
 
         VideoFilters.entries.forEach {
-            MPVLib.setOptionString(it.mpvProperty, it.preference(decoderPreferences).get().toString())
+            mpv?.setOptionString(it.mpvProperty, it.preference(decoderPreferences).get().toString())
         }
 
-        MPVLib.setOptionString("speed", playerPreferences.playerSpeed().get().toString())
+        mpv?.setOptionString("speed", playerPreferences.playerSpeed().get().toString())
         // workaround for <https://github.com/mpv-player/mpv/issues/14651>
-        MPVLib.setOptionString("vd-lavc-film-grain", "cpu")
+        mpv?.setOptionString("vd-lavc-film-grain", "cpu")
 
+        postInitOptions()
         setupSubtitlesOptions()
         setupAudioOptions()
+        observeProperties()
     }
 
-    override fun observeProperties() {
-        for ((name, format) in observedProps) MPVLib.observeProperty(name, format)
+    fun observeProperties() {
+        for ((name, format) in observedProps) mpv?.observeProperty(name, format)
     }
 
-    override fun postInitOptions() {
+    fun postInitOptions() {
         when (decoderPreferences.debanding().get()) {
             Debanding.None -> {}
-            Debanding.CPU -> MPVLib.command("vf", "add", "@deband:gradfun=radius=12")
-            Debanding.GPU -> MPVLib.setOptionString("deband", "yes")
+            Debanding.CPU -> mpv?.setOptionString("vf", "gradfun=radius=12")
+            Debanding.GPU -> mpv?.setOptionString("deband", "yes")
         }
 
         advancedPreferences.playerStatisticsPage().get().let {
             if (it != 0) {
-                MPVLib.command("script-binding", "stats/display-stats-toggle")
-                MPVLib.command("script-binding", "stats/display-page-$it")
+                mpv?.command("script-binding", "stats/display-stats-toggle")
+                mpv?.command("script-binding", "stats/display-page-$it")
             }
         }
     }
@@ -154,66 +157,66 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet) : BaseMPVView(c
 
         val action = if (event.action == KeyEvent.ACTION_DOWN) "keydown" else "keyup"
         mod.add(mapped)
-        MPVLib.command(action, mod.joinToString("+"))
+        mpv?.command(action, mod.joinToString("+"))
 
         return true
     }
 
     private val observedProps = mapOf(
-        "pause" to MPVLib.mpvFormat.MPV_FORMAT_FLAG,
-        "video-params/aspect" to MPVLib.mpvFormat.MPV_FORMAT_DOUBLE,
-        "eof-reached" to MPVLib.mpvFormat.MPV_FORMAT_FLAG,
+        "pause" to MPV.mpvFormat.MPV_FORMAT_FLAG,
+        "video-params/aspect" to MPV.mpvFormat.MPV_FORMAT_DOUBLE,
+        "eof-reached" to MPV.mpvFormat.MPV_FORMAT_FLAG,
 
-        "user-data/aniyomi/show_text" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/toggle_ui" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/show_panel" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/software_keyboard" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/set_button_title" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/reset_button_title" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/toggle_button" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/switch_episode" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/pause" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/seek_by" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/seek_to" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/seek_by_with_text" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/seek_to_with_text" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
-        "user-data/aniyomi/launch_int_picker" to MPVLib.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/show_text" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/toggle_ui" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/show_panel" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/software_keyboard" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/set_button_title" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/reset_button_title" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/toggle_button" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/switch_episode" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/pause" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/seek_by" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/seek_to" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/seek_by_with_text" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/seek_to_with_text" to MPV.mpvFormat.MPV_FORMAT_STRING,
+        "user-data/aniyomi/launch_int_picker" to MPV.mpvFormat.MPV_FORMAT_STRING,
     )
 
     private fun setupAudioOptions() {
-        MPVLib.setOptionString("alang", audioPreferences.preferredAudioLanguages().get())
-        MPVLib.setOptionString("audio-delay", (audioPreferences.audioDelay().get() / 1000.0).toString())
-        MPVLib.setOptionString("audio-pitch-correction", audioPreferences.enablePitchCorrection().get().toString())
-        MPVLib.setOptionString("volume-max", (audioPreferences.volumeBoostCap().get() + 100).toString())
+        mpv?.setOptionString("alang", audioPreferences.preferredAudioLanguages().get())
+        mpv?.setOptionString("audio-delay", (audioPreferences.audioDelay().get() / 1000.0).toString())
+        mpv?.setOptionString("audio-pitch-correction", audioPreferences.enablePitchCorrection().get().toString())
+        mpv?.setOptionString("volume-max", (audioPreferences.volumeBoostCap().get() + 100).toString())
     }
 
     private fun setupSubtitlesOptions() {
-        MPVLib.setOptionString("sub-delay", (subtitlePreferences.subtitlesDelay().get() / 1000.0).toString())
-        MPVLib.setOptionString("sub-speed", subtitlePreferences.subtitlesSpeed().get().toString())
-        MPVLib.setOptionString(
+        mpv?.setOptionString("sub-delay", (subtitlePreferences.subtitlesDelay().get() / 1000.0).toString())
+        mpv?.setOptionString("sub-speed", subtitlePreferences.subtitlesSpeed().get().toString())
+        mpv?.setOptionString(
             "secondary-sub-delay",
             (subtitlePreferences.subtitlesSecondaryDelay().get() / 1000.0).toString(),
         )
 
-        MPVLib.setOptionString("sub-font", subtitlePreferences.subtitleFont().get())
+        mpv?.setOptionString("sub-font", subtitlePreferences.subtitleFont().get())
         if (subtitlePreferences.overrideSubsASS().get()) {
-            MPVLib.setOptionString("sub-ass-override", "force")
-            MPVLib.setOptionString("sub-ass-justify", "yes")
+            mpv?.setOptionString("sub-ass-override", "force")
+            mpv?.setOptionString("sub-ass-justify", "yes")
         }
-        MPVLib.setOptionString("sub-font-size", subtitlePreferences.subtitleFontSize().get().toString())
-        MPVLib.setOptionString("sub-bold", if (subtitlePreferences.boldSubtitles().get()) "yes" else "no")
-        MPVLib.setOptionString("sub-italic", if (subtitlePreferences.italicSubtitles().get()) "yes" else "no")
-        MPVLib.setOptionString("sub-justify", subtitlePreferences.subtitleJustification().get().value)
-        MPVLib.setOptionString("sub-color", subtitlePreferences.textColorSubtitles().get().toColorHexString())
-        MPVLib.setOptionString(
+        mpv?.setOptionString("sub-font-size", subtitlePreferences.subtitleFontSize().get().toString())
+        mpv?.setOptionString("sub-bold", if (subtitlePreferences.boldSubtitles().get()) "yes" else "no")
+        mpv?.setOptionString("sub-italic", if (subtitlePreferences.italicSubtitles().get()) "yes" else "no")
+        mpv?.setOptionString("sub-justify", subtitlePreferences.subtitleJustification().get().value)
+        mpv?.setOptionString("sub-color", subtitlePreferences.textColorSubtitles().get().toColorHexString())
+        mpv?.setOptionString(
             "sub-back-color",
             subtitlePreferences.backgroundColorSubtitles().get().toColorHexString(),
         )
-        MPVLib.setOptionString("sub-border-color", subtitlePreferences.borderColorSubtitles().get().toColorHexString())
-        MPVLib.setOptionString("sub-border-size", subtitlePreferences.subtitleBorderSize().get().toString())
-        MPVLib.setOptionString("sub-border-style", subtitlePreferences.borderStyleSubtitles().get().value)
-        MPVLib.setOptionString("sub-shadow-offset", subtitlePreferences.shadowOffsetSubtitles().get().toString())
-        MPVLib.setOptionString("sub-pos", subtitlePreferences.subtitlePos().get().toString())
-        MPVLib.setOptionString("sub-scale", subtitlePreferences.subtitleFontScale().get().toString())
+        mpv?.setOptionString("sub-border-color", subtitlePreferences.borderColorSubtitles().get().toColorHexString())
+        mpv?.setOptionString("sub-border-size", subtitlePreferences.subtitleBorderSize().get().toString())
+        mpv?.setOptionString("sub-border-style", subtitlePreferences.borderStyleSubtitles().get().value)
+        mpv?.setOptionString("sub-shadow-offset", subtitlePreferences.shadowOffsetSubtitles().get().toString())
+        mpv?.setOptionString("sub-pos", subtitlePreferences.subtitlePos().get().toString())
+        mpv?.setOptionString("sub-scale", subtitlePreferences.subtitleFontScale().get().toString())
     }
 }

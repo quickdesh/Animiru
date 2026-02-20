@@ -64,7 +64,6 @@ import eu.kanade.tachiyomi.ui.player.controls.components.DoubleTapSeekTriangles
 import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
 import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
-import `is`.xyz.mpv.MPVLib
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import tachiyomi.i18n.aniyomi.AYMR
@@ -85,10 +84,10 @@ fun GestureHandler(
 
     val panelShown by viewModel.panelShown.collectAsState()
     val allowGesturesInPanels by playerPreferences.allowGestures().collectAsState()
-    val paused by MPVLib.propBoolean["pause"].collectAsState()
-    val duration by MPVLib.propInt["duration"].collectAsState()
-    val position by MPVLib.propInt["time-pos"].collectAsState()
-    val playbackSpeed by MPVLib.propFloat["speed"].collectAsState()
+    val paused by viewModel.mpv.propFlow<Boolean>("pause").collectAsState()
+    val duration by viewModel.mpv.propFlow<Int>("duration").collectAsState()
+    val position by viewModel.mpv.propFlow<Int>("time-pos").collectAsState()
+    val playbackSpeed by viewModel.mpv.propFlow<Float>("speed").collectAsState()
     val controlsShown by viewModel.controlsShown.collectAsState()
     val areControlsLocked by viewModel.areControlsLocked.collectAsState()
     val seekAmount by viewModel.doubleTapSeekAmount.collectAsState()
@@ -111,7 +110,7 @@ fun GestureHandler(
     val showSeekbar by gesturePreferences.showSeekBar().collectAsState()
     var isLongPressing by remember { mutableStateOf(false) }
     val currentVolume by viewModel.currentVolume.collectAsState()
-    val currentMPVVolume by MPVLib.propInt["volume"].collectAsState()
+    val currentMPVVolume by viewModel.mpv.propFlow<Int>("volume").collectAsState()
     val currentBrightness by viewModel.currentBrightness.collectAsState()
     val volumeBoostingCap = audioPreferences.volumeBoostCap().get()
     val haptics = LocalHapticFeedback.current
@@ -121,7 +120,7 @@ fun GestureHandler(
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.safeGestures)
             .pointerInput(Unit) {
-                val originalSpeed = MPVLib.getPropertyFloat("speed") ?: 1f
+                val originalSpeed = viewModel.mpv.getPropertyFloat("speed") ?: 1f
                 detectTapGestures(
                     onTap = {
                         if (controlsShown) viewModel.hideControls() else viewModel.showControls()
@@ -164,7 +163,7 @@ fun GestureHandler(
                         tryAwaitRelease()
                         if (isLongPressing) {
                             isLongPressing = false
-                            MPVLib.setPropertyFloat("speed", originalSpeed)
+                            viewModel.mpv.setPropertyFloat("speed", originalSpeed)
                             viewModel.playerUpdate.update { PlayerUpdates.None }
                         }
                         interactionSource.emit(PressInteraction.Release(press))

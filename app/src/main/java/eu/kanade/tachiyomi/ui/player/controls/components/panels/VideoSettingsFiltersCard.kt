@@ -25,23 +25,19 @@ import eu.kanade.presentation.player.components.SliderItem
 import eu.kanade.tachiyomi.ui.player.VideoFilters
 import eu.kanade.tachiyomi.ui.player.controls.CARDS_MAX_WIDTH
 import eu.kanade.tachiyomi.ui.player.controls.panelCardsColors
-import eu.kanade.tachiyomi.ui.player.settings.DecoderPreferences
-import `is`.xyz.mpv.MPVLib
-import tachiyomi.core.common.preference.deleteAndGet
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
-import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 @Composable
 fun VideoSettingsFiltersCard(
+    isGpuNextEnabled: Boolean,
+    filterValue: (VideoFilters) -> Int,
+    onFilterValueChange: (VideoFilters, Int) -> Unit,
+    onReset: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val decoderPreferences = remember { Injekt.get<DecoderPreferences>() }
     var isExpanded by remember { mutableStateOf(true) }
 
     ExpandableCard(
@@ -59,32 +55,23 @@ fun VideoSettingsFiltersCard(
         modifier = modifier.widthIn(max = CARDS_MAX_WIDTH),
     ) {
         Column {
-            TextButton(
-                onClick = {
-                    VideoFilters.entries.forEach {
-                        MPVLib.setPropertyInt(it.mpvProperty, it.preference(decoderPreferences).deleteAndGet())
-                    }
-                },
-            ) {
+            TextButton(onClick = onReset) {
                 Text(text = stringResource(MR.strings.action_reset))
             }
 
             VideoFilters.entries.forEach { filter ->
-                val value by filter.preference(decoderPreferences).collectAsState()
+                val value = filterValue(filter)
                 SliderItem(
                     label = stringResource(filter.titleRes),
                     value = value,
                     valueText = value.toString(),
-                    onChange = {
-                        filter.preference(decoderPreferences).set(it)
-                        MPVLib.setPropertyInt(filter.mpvProperty, it)
-                    },
+                    onChange = { onFilterValueChange(filter, it) },
                     max = 100,
                     min = -100,
                 )
             }
 
-            if (!decoderPreferences.gpuNext().get()) {
+            if (!isGpuNextEnabled) {
                 Column(
                     modifier = Modifier
                         .padding(MaterialTheme.padding.medium)

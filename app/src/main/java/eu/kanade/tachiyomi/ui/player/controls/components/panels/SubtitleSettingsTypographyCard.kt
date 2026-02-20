@@ -17,7 +17,6 @@
 
 package eu.kanade.tachiyomi.ui.player.controls.components.panels
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -48,8 +47,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,7 +66,7 @@ import eu.kanade.tachiyomi.ui.player.controls.CARDS_MAX_WIDTH
 import eu.kanade.tachiyomi.ui.player.controls.panelCardsColors
 import eu.kanade.tachiyomi.ui.player.settings.SubtitleJustification
 import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
-import `is`.xyz.mpv.MPVLib
+import `is`.xyz.mpv.MPV
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -82,9 +79,25 @@ import tachiyomi.presentation.core.i18n.stringResource
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
-@SuppressLint("MutableCollectionMutableState")
 @Composable
 fun SubtitleSettingsTypographyCard(
+    isBold: Boolean,
+    isItalic: Boolean,
+    justify: SubtitleJustification,
+    font: String,
+    fontSize: Int,
+    borderStyle: SubtitlesBorderStyle,
+    borderSize: Int,
+    shadowOffset: Int,
+    onIsBoldChange: (Boolean) -> Unit,
+    onIsItalicChange: (Boolean) -> Unit,
+    onJustificationChange: (SubtitleJustification) -> Unit,
+    onFontChange: (String) -> Unit,
+    onFontSizeChange: (Int) -> Unit,
+    onBorderStyleChange: (SubtitlesBorderStyle) -> Unit,
+    onBorderSizeChange: (Int) -> Unit,
+    onShadowOffsetChange: (Int) -> Unit,
+    onReset: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val preferences = remember { Injekt.get<SubtitlePreferences>() }
@@ -133,20 +146,6 @@ fun SubtitleSettingsTypographyCard(
         colors = panelCardsColors(),
     ) {
         Column {
-            val isBold by MPVLib.propBoolean["sub-bold"].collectAsState()
-            val isItalic by MPVLib.propBoolean["sub-italic"].collectAsState()
-            val mpvJustify by MPVLib.propString["sub-justify"].collectAsState()
-            val justify by remember {
-                derivedStateOf { SubtitleJustification.entries.first { it.value == mpvJustify } }
-            }
-            val font by MPVLib.propString["sub-font"].collectAsState()
-            val fontSize by MPVLib.propInt["sub-font-size"].collectAsState()
-            val mpvBorderStyle by MPVLib.propString["sub-border-style"].collectAsState()
-            val borderStyle by remember {
-                derivedStateOf { SubtitlesBorderStyle.entries.first { it.value == mpvBorderStyle } }
-            }
-            val borderSize by MPVLib.propInt["sub-outline-size"].collectAsState()
-            val shadowOffset by MPVLib.propInt["sub-shadow-offset"].collectAsState()
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -155,11 +154,8 @@ fun SubtitleSettingsTypographyCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconToggleButton(
-                    checked = isBold == true,
-                    onCheckedChange = {
-                        preferences.boldSubtitles().set(it)
-                        MPVLib.setPropertyBoolean("sub-bold", it)
-                    },
+                    checked = isBold,
+                    onCheckedChange = onIsBoldChange,
                 ) {
                     Icon(
                         Icons.Default.FormatBold,
@@ -168,11 +164,8 @@ fun SubtitleSettingsTypographyCard(
                     )
                 }
                 IconToggleButton(
-                    checked = isItalic == true,
-                    onCheckedChange = {
-                        preferences.italicSubtitles().set(it)
-                        MPVLib.setPropertyBoolean("sub-italic", it)
-                    },
+                    checked = isItalic,
+                    onCheckedChange = onIsItalicChange,
                 ) {
                     Icon(
                         Icons.Default.FormatItalic,
@@ -183,22 +176,13 @@ fun SubtitleSettingsTypographyCard(
                 SubtitleJustification.entries.minus(SubtitleJustification.Auto).forEach { justification ->
                     IconToggleButton(
                         checked = justify == justification,
-                        onCheckedChange = {
-                            MPVLib.setPropertyBoolean("sub-ass-justify", it)
-                            if (it) {
-                                preferences.subtitleJustification().set(justification)
-                                MPVLib.setPropertyString("sub-justify", justification.value)
-                            } else {
-                                preferences.subtitleJustification().set(SubtitleJustification.Auto)
-                                MPVLib.setPropertyString("sub-justify", SubtitleJustification.Auto.value)
-                            }
-                        },
+                        onCheckedChange = { onJustificationChange(justification) },
                     ) {
                         Icon(justification.icon, null)
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                TextButton(onClick = { resetTypography(preferences) }) {
+                TextButton(onClick = onReset) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
                         verticalAlignment = Alignment.CenterVertically,
@@ -219,13 +203,10 @@ fun SubtitleSettingsTypographyCard(
                     modifier = Modifier.size(32.dp),
                 )
                 ExposedTextDropDownMenu(
-                    selectedValue = font ?: preferences.subtitleFont().get(),
+                    selectedValue = font,
                     options = fonts.toImmutableList(),
                     label = stringResource(AYMR.strings.player_sheets_sub_typography_font),
-                    onValueChangedEvent = {
-                        preferences.subtitleFont().set(it)
-                        MPVLib.setPropertyString("sub-font", it)
-                    },
+                    onValueChangedEvent = onFontChange,
                     leadingIcon = fontsLoadingIndicator,
                 )
             }
@@ -233,12 +214,9 @@ fun SubtitleSettingsTypographyCard(
                 label = stringResource(AYMR.strings.player_sheets_sub_typography_font_size),
                 max = 100,
                 min = 1,
-                value = fontSize ?: preferences.subtitleFontSize().get(),
+                value = fontSize,
                 valueText = fontSize.toString(),
-                onChange = {
-                    preferences.subtitleFontSize().set(it)
-                    MPVLib.setPropertyInt("sub-font-size", it)
-                },
+                onChange = onFontSizeChange,
             ) {
                 Icon(Icons.Default.FormatSize, null)
             }
@@ -276,11 +254,7 @@ fun SubtitleSettingsTypographyCard(
                     SubtitlesBorderStyle.entries.map {
                         DropdownMenuItem(
                             text = { Text(stringResource(it.titleRes)) },
-                            onClick = {
-                                preferences.borderStyleSubtitles().set(it)
-                                MPVLib.setPropertyString("sub-border-style", it.value)
-                                selectingBorderStyle = false
-                            },
+                            onClick = { onBorderStyleChange(it) },
                             trailingIcon = {
                                 if (borderStyle == it) {
                                     Icon(
@@ -295,23 +269,17 @@ fun SubtitleSettingsTypographyCard(
             }
             SliderItem(
                 stringResource(AYMR.strings.player_sheets_sub_typography_border_size),
-                value = borderSize ?: preferences.subtitleBorderSize().get(),
+                value = borderSize,
                 valueText = borderSize.toString(),
-                onChange = {
-                    preferences.subtitleBorderSize().set(it)
-                    MPVLib.setPropertyInt("sub-outline-size", it)
-                },
+                onChange = onBorderSizeChange,
                 max = 100,
                 icon = { Icon(Icons.Default.BorderColor, null) },
             )
             SliderItem(
                 stringResource(AYMR.strings.player_sheets_subtitles_shadow_offset),
-                value = shadowOffset ?: preferences.shadowOffsetSubtitles().get(),
+                value = shadowOffset,
                 valueText = shadowOffset.toString(),
-                onChange = {
-                    preferences.shadowOffsetSubtitles().set(it)
-                    MPVLib.setPropertyInt("sub-shadow-offset", it)
-                },
+                onChange = onShadowOffsetChange,
                 max = 100,
                 icon = { Icon(painterResource(R.drawable.sharp_shadow_24), null) },
             )
@@ -319,18 +287,21 @@ fun SubtitleSettingsTypographyCard(
     }
 }
 
-private val FONT_EXTENSION_REGEX = Regex(""".*\.[ot]tf${'$'}""")
+private val FONT_EXTENSION_REGEX = Regex($$""".*\.[ot]tf$""")
 
-fun resetTypography(preferences: SubtitlePreferences) {
-    MPVLib.setPropertyBoolean("sub-bold", preferences.boldSubtitles().deleteAndGet())
-    MPVLib.setPropertyBoolean("sub-italic", preferences.italicSubtitles().deleteAndGet())
-    MPVLib.setPropertyBoolean("sub-ass-justify", preferences.overrideSubsASS().deleteAndGet())
-    MPVLib.setPropertyString("sub-justify", preferences.subtitleJustification().deleteAndGet().value)
-    MPVLib.setPropertyString("sub-font", preferences.subtitleFont().deleteAndGet())
-    MPVLib.setPropertyInt("sub-font-size", preferences.subtitleFontSize().deleteAndGet())
-    MPVLib.setPropertyInt("sub-border-size", preferences.subtitleBorderSize().deleteAndGet())
-    MPVLib.setPropertyInt("sub-shadow-offset", preferences.shadowOffsetSubtitles().deleteAndGet())
-    MPVLib.setPropertyString("sub-border-style", preferences.borderStyleSubtitles().deleteAndGet().value)
+fun resetTypography(
+    mpv: MPV,
+    preferences: SubtitlePreferences,
+) {
+    mpv.setPropertyBoolean("sub-bold", preferences.boldSubtitles().deleteAndGet())
+    mpv.setPropertyBoolean("sub-italic", preferences.italicSubtitles().deleteAndGet())
+    mpv.setPropertyBoolean("sub-ass-justify", preferences.overrideSubsASS().deleteAndGet())
+    mpv.setPropertyString("sub-justify", preferences.subtitleJustification().deleteAndGet().value)
+    mpv.setPropertyString("sub-font", preferences.subtitleFont().deleteAndGet())
+    mpv.setPropertyInt("sub-font-size", preferences.subtitleFontSize().deleteAndGet())
+    mpv.setPropertyInt("sub-border-size", preferences.subtitleBorderSize().deleteAndGet())
+    mpv.setPropertyInt("sub-shadow-offset", preferences.shadowOffsetSubtitles().deleteAndGet())
+    mpv.setPropertyString("sub-border-style", preferences.borderStyleSubtitles().deleteAndGet().value)
 }
 
 enum class SubtitlesBorderStyle(
@@ -340,4 +311,16 @@ enum class SubtitlesBorderStyle(
     OutlineAndShadow("outline-and-shadow", AYMR.strings.player_sheets_subtitles_border_style_outline_and_shadow),
     OpaqueBox("opaque-box", AYMR.strings.player_sheets_subtitles_border_style_opaque_box),
     BackgroundBox("background-box", AYMR.strings.player_sheets_subtitles_border_style_background_box),
+    ;
+
+    companion object {
+        fun byValue(value: String): SubtitlesBorderStyle {
+            return when (value) {
+                "outline-and-shadow" -> OutlineAndShadow
+                "opaque-box" -> OpaqueBox
+                "background-box" -> BackgroundBox
+                else -> throw IllegalArgumentException("Unsupported border style: $value")
+            }
+        }
+    }
 }

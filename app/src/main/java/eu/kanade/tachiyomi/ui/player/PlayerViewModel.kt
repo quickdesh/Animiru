@@ -24,8 +24,8 @@ package eu.kanade.tachiyomi.ui.player
 
 import android.app.Application
 import android.net.Uri
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.anime.interactor.SetAnimeViewerFlags
@@ -55,14 +55,13 @@ import eu.kanade.tachiyomi.data.saver.Location
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
+import eu.kanade.tachiyomi.ui.player.PlayerActivity.Companion.MPV_DIR
 import eu.kanade.tachiyomi.ui.player.controls.components.IndexedSegment
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.getChangedAt
 import eu.kanade.tachiyomi.ui.player.domain.AudioManager
 import eu.kanade.tachiyomi.ui.player.domain.BrightnessManager
-import eu.kanade.tachiyomi.ui.player.domain.StringResourceManager
 import eu.kanade.tachiyomi.ui.player.domain.TrackSelect
-import eu.kanade.tachiyomi.ui.player.domain.UriManager
 import eu.kanade.tachiyomi.ui.player.loader.EpisodeLoader
 import eu.kanade.tachiyomi.ui.player.loader.HosterLoader
 import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
@@ -79,7 +78,7 @@ import eu.kanade.tachiyomi.util.lang.byteSize
 import eu.kanade.tachiyomi.util.lang.takeBytes
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.cacheImageDir
-import `is`.xyz.mpv.MPVLib
+import `is`.xyz.mpv.MPV
 import `is`.xyz.mpv.MPVNode
 import `is`.xyz.mpv.Utils
 import kotlinx.collections.immutable.ImmutableList
@@ -105,6 +104,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.lang.withIOContext
@@ -136,6 +136,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.cancellation.CancellationException
 
 class PlayerViewModel @JvmOverloads constructor(
+    private val context: Application,
     private val savedState: SavedStateHandle,
     private val json: Json = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
@@ -152,9 +153,9 @@ class PlayerViewModel @JvmOverloads constructor(
     private val upsertHistory: UpsertHistory = Injekt.get(),
     private val updateEpisode: UpdateEpisode = Injekt.get(),
     private val setAnimeViewerFlags: SetAnimeViewerFlags = Injekt.get(),
-    internal val playerPreferences: PlayerPreferences = Injekt.get(),
-    internal val audioPreferences: AudioPreferences = Injekt.get(),
-    internal val gesturePreferences: GesturePreferences = Injekt.get(),
+    private val playerPreferences: PlayerPreferences = Injekt.get(),
+    private val audioPreferences: AudioPreferences = Injekt.get(),
+    private val gesturePreferences: GesturePreferences = Injekt.get(),
     private val basePreferences: BasePreferences = Injekt.get(),
     private val getCustomButtons: GetCustomButtons = Injekt.get(),
     private val trackSelect: TrackSelect = Injekt.get(),
@@ -162,15 +163,18 @@ class PlayerViewModel @JvmOverloads constructor(
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
     private val audioManager: AudioManager = Injekt.get(),
     brightnessManager: BrightnessManager = Injekt.get(),
-    private val uriManager: UriManager = Injekt.get(),
-    private val stringResourceManager: StringResourceManager = Injekt.get(),
     // AM (SYNC) -->
     private val syncPreferences: SyncPreferences = Injekt.get(),
     // <-- AM (SYNC)
     uiPreferences: UiPreferences = Injekt.get(),
-) : ViewModel() {
+) : AndroidViewModel(context) {
 
-    val cachePath: String = uriManager.getCachePath()
+    val mpv = MPV(
+        context.applicationContext,
+        configDir = context.filesDir.resolve(MPV_DIR).toString(),
+        cacheDir = context.applicationContext.cacheDir.path,
+    )
+    val cachePath: String = context.applicationContext.cacheDir.path
 
     private val _currentPlaylist = MutableStateFlow<List<Episode>>(emptyList())
     val currentPlaylist = _currentPlaylist.asStateFlow()
@@ -237,14 +241,14 @@ class PlayerViewModel @JvmOverloads constructor(
     private val _primaryButton = MutableStateFlow<CustomButton?>(null)
     val primaryButton = _primaryButton.asStateFlow()
 
-    val paused by MPVLib.propBoolean["pause"].collectAsState(viewModelScope)
-    val pos by MPVLib.propInt["time-pos"].collectAsState(viewModelScope)
-    val duration by MPVLib.propInt["duration"].collectAsState(viewModelScope)
+    val paused by mpv.propFlow<Boolean>("pause").collectAsState(viewModelScope)
+    val pos by mpv.propFlow<Int>("time-pos").collectAsState(viewModelScope)
+    val duration by mpv.propFlow<Int>("duration").collectAsState(viewModelScope)
 
     val currentVolume = MutableStateFlow(audioManager.getVolume())
-    private val volumeBoostCap by MPVLib.propInt["volume-max"].collectAsState(viewModelScope)
+    private val volumeBoostCap by mpv.propFlow<Int>("volume-max").collectAsState(viewModelScope)
 
-    val subtitleTracks = MPVLib.propNode["track-list"]
+    val subtitleTracks = mpv.propFlow<MPVNode>("track-list")
         .map { node ->
             (
                 node?.toObject<List<TrackNode>>(json)
@@ -254,7 +258,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 ).toImmutableList()
         }
 
-    val audioTracks = MPVLib.propNode["track-list"]
+    val audioTracks = mpv.propFlow<MPVNode>("track-list")
         .map { node ->
             (
                 node?.toObject<List<TrackNode>>(json)
@@ -264,7 +268,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 ).toImmutableList()
         }
 
-    val chapters = MPVLib.propNode["chapter-list"]
+    val chapters = mpv.propFlow<MPVNode>("chapter-list")
         .map { (it?.toObject<List<ChapterNode>>(json) ?: persistentListOf()).map { it.toSegment() }.toImmutableList() }
 
     private val _skipIntroText = MutableStateFlow<String?>(null)
@@ -303,29 +307,29 @@ class PlayerViewModel @JvmOverloads constructor(
     val remainingTime = _remainingTime.asStateFlow()
 
     init {
-        MPVLib.propLong["time-pos"]
+        mpv.propFlow<Long>("time-pos")
             .filterNotNull()
             .onEach(::onSecondReached)
             .launchIn(viewModelScope)
 
-        MPVLib.propInt["chapter"]
+        mpv.propFlow<Int>("chapter")
             .onEach(::onChapterChanged)
             .launchIn(viewModelScope)
 
-        MPVLib.propInt["sid"]
+        mpv.propFlow<Int>("sid")
             .onEach { onSubtitleTrackSelectChange() }
             .launchIn(viewModelScope)
 
-        MPVLib.propInt["secondary-sid"]
+        mpv.propFlow<Int>("secondary-sid")
             .onEach { onSubtitleTrackSelectChange() }
             .launchIn(viewModelScope)
 
-        MPVLib.propLong["user-data/current-anime/intro-length"]
+        mpv.propFlow<Long>("user-data/current-anime/intro-length")
             .filterNotNull()
             .onEach(::setAnimeSkipIntroLength)
             .launchIn(viewModelScope)
 
-        MPVLib.propNode["track-list"]
+        mpv.propFlow<MPVNode>("track-list")
             .filterNotNull()
             .onEach { onTrackListChanged(it) }
             .launchIn(viewModelScope)
@@ -343,7 +347,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 _remainingTime.value = time
                 delay(1000)
             }
-            MPVLib.setPropertyBoolean("pause", true)
+            mpv.setPropertyBoolean("pause", true)
             eventChannel.send(Event.ShowToast(AYMR.strings.toast_sleep_timer_ended))
         }
     }
@@ -468,26 +472,26 @@ class PlayerViewModel @JvmOverloads constructor(
     fun addAudio(uri: Uri) {
         val url = uri.toString()
         val isContentUri = url.startsWith("content://")
-        val path = (if (isContentUri) uriManager.openContentFd(uri) else url)
+        val path = (if (isContentUri) uri.openContentFd(context.applicationContext) else url)
             ?: return
-        val name = if (isContentUri) uriManager.getFileName(uri) else null
+        val name = if (isContentUri) uri.getFileName(context.applicationContext) else null
         if (name == null) {
-            MPVLib.command("audio-add", path, "cached")
+            mpv.command("audio-add", path, "cached")
         } else {
-            MPVLib.command("audio-add", path, "cached", name)
+            mpv.command("audio-add", path, "cached", name)
         }
     }
 
     fun addSubtitle(uri: Uri) {
         val url = uri.toString()
         val isContentUri = url.startsWith("content://")
-        val path = (if (isContentUri) uriManager.openContentFd(uri) else url)
+        val path = (if (isContentUri) uri.openContentFd(context.applicationContext) else url)
             ?: return
-        val name = if (isContentUri) uriManager.getFileName(uri) else null
+        val name = if (isContentUri) uri.getFileName(context.applicationContext) else null
         if (name == null) {
-            MPVLib.command("sub-add", path, "cached")
+            mpv.command("sub-add", path, "cached")
         } else {
-            MPVLib.command("sub-add", path, "cached", name)
+            mpv.command("sub-add", path, "cached", name)
         }
     }
 
@@ -499,7 +503,7 @@ class PlayerViewModel @JvmOverloads constructor(
                         it.copy(state = TrackState.Loading)
                     }
                     viewModelScope.launchIO {
-                        MPVLib.command(
+                        mpv.command(
                             "sub-add",
                             track.data.url,
                             "auto",
@@ -524,7 +528,7 @@ class PlayerViewModel @JvmOverloads constructor(
                         it.copy(state = TrackState.Loading)
                     }
                     viewModelScope.launchIO {
-                        MPVLib.command(
+                        mpv.command(
                             "audio-add",
                             track.data.url,
                             "auto",
@@ -561,8 +565,8 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun onSubtitleTrackSelectChange() {
-        val id = MPVLib.getPropertyInt("sid")
-        val sid = MPVLib.getPropertyInt("secondary-sid")
+        val id = mpv.getPropertyInt("sid")
+        val sid = mpv.getPropertyInt("secondary-sid")
 
         _externalSubtitleTracks.update { subtitleTracks ->
             subtitleTracks.map {
@@ -579,23 +583,23 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     private fun selectSubById(id: Int) {
-        val selectedSubs = Pair(MPVLib.getPropertyInt("sid"), MPVLib.getPropertyInt("secondary-sid"))
+        val selectedSubs = Pair(mpv.getPropertyInt("sid"), mpv.getPropertyInt("secondary-sid"))
         when (id) {
             selectedSubs.first -> Pair(selectedSubs.second, null)
             selectedSubs.second -> Pair(selectedSubs.first, null)
             else -> if (selectedSubs.first != null) Pair(selectedSubs.first, id) else Pair(id, null)
         }.let {
-            it.second?.let { MPVLib.setPropertyInt("secondary-sid", it) }
-                ?: MPVLib.setPropertyBoolean("secondary-sid", false)
-            it.first?.let { MPVLib.setPropertyInt("sid", it) } ?: MPVLib.setPropertyBoolean("sid", false)
+            it.second?.let { mpv.setPropertyInt("secondary-sid", it) }
+                ?: mpv.setPropertyBoolean("secondary-sid", false)
+            it.first?.let { mpv.setPropertyInt("sid", it) } ?: mpv.setPropertyBoolean("sid", false)
         }
     }
 
     private fun selectAudioById(id: Int) {
-        if (id == MPVLib.getPropertyInt("aid")) {
-            MPVLib.setPropertyBoolean("aid", false)
+        if (id == mpv.getPropertyInt("aid")) {
+            mpv.setPropertyBoolean("aid", false)
         } else {
-            MPVLib.setPropertyInt("aid", id)
+            mpv.setPropertyInt("aid", id)
         }
     }
 
@@ -616,13 +620,13 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun getChapterCount(): Int {
-        return MPVLib.getPropertyInt("chapter-list/count") ?: 0
+        return mpv.getPropertyInt("chapter-list/count") ?: 0
     }
 
     fun addTimestamps(timestamps: List<TimeStamp>) {
         if (timestamps.isEmpty()) return
         val current = (
-            MPVLib.getPropertyNode("chapter-list")
+            mpv.getPropertyNode("chapter-list")
                 ?.toObject<List<ChapterNode>>(json) ?: emptyList()
             )
             .map { IndexedSegment(name = it.chapterTitle, start = it.time, index = 0) }
@@ -638,7 +642,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 )
             }.toTypedArray(),
         )
-        MPVLib.setPropertyNode("chapter-list", node)
+        mpv.setPropertyNode("chapter-list", node)
     }
 
     private fun updatePausedState() {
@@ -658,9 +662,9 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    fun pauseUnpause() = MPVLib.command("cycle", "pause")
-    fun pause() = MPVLib.setPropertyBoolean("pause", true)
-    fun unpause() = MPVLib.setPropertyBoolean("pause", false)
+    fun pauseUnpause() = mpv.command("cycle", "pause")
+    fun pause() = mpv.setPropertyBoolean("pause", true)
+    fun unpause() = mpv.setPropertyBoolean("pause", false)
 
     private val showStatusBar = playerPreferences.showSystemStatusBar().get()
     fun showControls() {
@@ -745,12 +749,12 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun seekBy(offset: Int, precise: Boolean = false) {
-        MPVLib.command("seek", offset.toString(), if (precise) "relative+exact" else "relative")
+        mpv.command("seek", offset.toString(), if (precise) "relative+exact" else "relative")
     }
 
     fun seekTo(position: Int, precise: Boolean = true) {
-        if (position !in 0..(MPVLib.getPropertyInt("duration") ?: 0)) return
-        MPVLib.command("seek", position.toString(), if (precise) "absolute" else "absolute+keyframes")
+        if (position !in 0..(mpv.getPropertyInt("duration") ?: 0)) return
+        mpv.command("seek", position.toString(), if (precise) "absolute" else "absolute+keyframes")
     }
 
     fun changeBrightnessTo(
@@ -768,7 +772,7 @@ class PlayerViewModel @JvmOverloads constructor(
 
     val maxVolume = audioManager.getMaxVolume()
     fun changeVolumeBy(change: Int) {
-        val mpvVolume = MPVLib.getPropertyInt("volume")
+        val mpvVolume = mpv.getPropertyInt("volume")
         if ((volumeBoostCap ?: audioPreferences.volumeBoostCap().get()) > 0 && currentVolume.value == maxVolume) {
             if (mpvVolume == 100 && change < 0) changeVolumeTo(currentVolume.value + change)
             val finalMPVVolume = (mpvVolume?.plus(change))?.coerceAtLeast(100) ?: 100
@@ -787,7 +791,7 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun changeMPVVolumeTo(volume: Int) {
-        MPVLib.setPropertyInt("volume", volume)
+        mpv.setPropertyInt("volume", volume)
     }
 
     fun displayVolumeSlider() {
@@ -812,8 +816,8 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun setAspect(aspect: VideoAspect, pan: Double, ratio: Double) {
-        MPVLib.setPropertyDouble("panscan", pan)
-        MPVLib.setPropertyDouble("video-aspect-override", ratio)
+        mpv.setPropertyDouble("panscan", pan)
+        mpv.setPropertyDouble("video-aspect-override", ratio)
         playerPreferences.aspectState().set(aspect)
         playerUpdate.update { PlayerUpdates.AspectRatio }
     }
@@ -870,7 +874,7 @@ class PlayerViewModel @JvmOverloads constructor(
             }
             "launch_int_picker" -> {
                 val (title, nameFormat, start, stop, step, pickerProperty) = data.split("|")
-                val defaultValue = MPVLib.getPropertyInt(pickerProperty)!!
+                val defaultValue = mpv.getPropertyInt(pickerProperty)!!
                 showDialog(
                     Dialogs.IntegerPicker(
                         defaultValue = defaultValue,
@@ -879,7 +883,7 @@ class PlayerViewModel @JvmOverloads constructor(
                         step = step.toInt(),
                         nameFormat = nameFormat,
                         title = title,
-                        onChange = { MPVLib.setPropertyInt(pickerProperty, it) },
+                        onChange = { mpv.setPropertyInt(pickerProperty, it) },
                         onDismissRequest = { showDialog(Dialogs.None) },
                     ),
                 )
@@ -927,7 +931,7 @@ class PlayerViewModel @JvmOverloads constructor(
             }
         }
 
-        MPVLib.setPropertyString(property, "")
+        mpv.setPropertyString(property, "")
     }
 
     private operator fun <T> List<T>.component6(): T = get(5)
@@ -1016,7 +1020,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 pauseUnpause()
             }
             SingleActionGesture.Custom -> {
-                MPVLib.command("keypress", CustomKeyCodes.DoubleTapLeft.keyCode)
+                mpv.command("keypress", CustomKeyCodes.DoubleTapLeft.keyCode)
             }
             SingleActionGesture.None -> {}
             SingleActionGesture.Switch -> changeEpisode(true)
@@ -1029,7 +1033,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 pauseUnpause()
             }
             SingleActionGesture.Custom -> {
-                MPVLib.command("keypress", CustomKeyCodes.DoubleTapCenter.keyCode)
+                mpv.command("keypress", CustomKeyCodes.DoubleTapCenter.keyCode)
             }
             SingleActionGesture.Seek -> {}
             SingleActionGesture.None -> {}
@@ -1046,7 +1050,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 pauseUnpause()
             }
             SingleActionGesture.Custom -> {
-                MPVLib.command("keypress", CustomKeyCodes.DoubleTapRight.keyCode)
+                mpv.command("keypress", CustomKeyCodes.DoubleTapRight.keyCode)
             }
             SingleActionGesture.None -> {}
             SingleActionGesture.Switch -> changeEpisode(false)
@@ -1247,9 +1251,9 @@ class PlayerViewModel @JvmOverloads constructor(
                 _hasNextEpisode.update { _ -> getCurrentEpisodeIndex() != currentPlaylist.value.size - 1 }
 
                 // Write to mpv table
-                MPVLib.setPropertyString("user-data/current-anime/anime-title", anime.title)
-                MPVLib.setPropertyInt("user-data/current-anime/intro-length", getAnimeSkipIntroLength())
-                MPVLib.setPropertyString(
+                mpv.setPropertyString("user-data/current-anime/anime-title", anime.title)
+                mpv.setPropertyInt("user-data/current-anime/intro-length", getAnimeSkipIntroLength())
+                mpv.setPropertyString(
                     "user-data/current-anime/category",
                     getCategories.await(anime.id).joinToString {
                         it.name
@@ -1295,7 +1299,7 @@ class PlayerViewModel @JvmOverloads constructor(
     private fun updateEpisode(episode: Episode) {
         mediaTitle.update { _ -> episode.name }
         _isEpisodeOnline.update { _ -> isEpisodeOnline() == true }
-        MPVLib.setPropertyDouble("user-data/current-anime/episode-number", episode.episode_number.toDouble())
+        mpv.setPropertyDouble("user-data/current-anime/episode-number", episode.episode_number.toDouble())
     }
 
     private fun initEpisodeList(anime: Anime): List<Episode> {
@@ -1782,7 +1786,7 @@ class PlayerViewModel @JvmOverloads constructor(
         val filename = cachePath + "/${System.currentTimeMillis()}_mpv_screenshot_tmp.png"
         val subtitleFlag = if (showSubtitles) "subtitles" else "video"
 
-        MPVLib.command("screenshot-to-file", filename, subtitleFlag)
+        mpv.command("screenshot-to-file", filename, subtitleFlag)
         val tempFile = File(filename).takeIf { it.exists() } ?: return null
         val newFile = File("$cachePath/mpv_screenshot.png")
 
@@ -1831,7 +1835,7 @@ class PlayerViewModel @JvmOverloads constructor(
      * Shares the screenshot and notifies the UI with the path of the file to share.
      * The image must be first copied to the internal partition because there are many possible
      * formats it can come from, like a zipped chapter, in which case it's not possible to directly
-     * get a path to the file and it has to be decompressed somewhere first. Only the last shared
+     * get a path to the file, and it has to be decompressed somewhere first. Only the last shared
      * image will be kept so it won't be taking lots of internal disk space.
      */
     fun shareImage(imageStream: () -> InputStream, timePos: Int?) {
@@ -1988,7 +1992,7 @@ class PlayerViewModel @JvmOverloads constructor(
             return null
         }
 
-        getTracks.await(animeId).map { track ->
+        getTracks.await(animeId).forEach { track ->
             val tracker = trackerManager.get(track.trackerId)
             malId = when (tracker) {
                 is MyAnimeList -> track.remoteId
@@ -2013,7 +2017,7 @@ class PlayerViewModel @JvmOverloads constructor(
         if (chapterIndex == null) return
         if (!introSkipEnabled) return
 
-        val chapterList = (MPVLib.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json) ?: emptyList())
+        val chapterList = (mpv.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json) ?: emptyList())
         val chapter = chapterList.getOrNull(chapterIndex) ?: return
         val chapterType = chapter.chapterType
 
@@ -2025,14 +2029,16 @@ class PlayerViewModel @JvmOverloads constructor(
                 // show a toast with the seconds before the skip
                 eventChannel.trySend(
                     Event.ShowToastString(
-                        "Skip Intro: ${stringResourceManager.get(
+                        "Skip Intro: ${context.applicationContext.stringResource(
                             AYMR.strings.player_aniskip_dontskip_toast,
                             chapter.chapterTitle,
                             defaultWaitingTime,
                         )}",
                     ),
                 )
-                _skipIntroText.update { _ -> stringResourceManager.get(AYMR.strings.player_aniskip_dontskip) }
+                _skipIntroText.update { _ ->
+                    context.applicationContext.stringResource(AYMR.strings.player_aniskip_dontskip)
+                }
                 netflixTimeout.update { _ -> defaultWaitingTime }
             } else if (autoSkip) {
                 skipIntro(chapter.chapterTitle)
@@ -2043,8 +2049,10 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     private fun skipIntro(chapterName: String) {
-        MPVLib.command("add", "chapter", "1")
-        _seekText.update { _ -> stringResourceManager.get(AYMR.strings.player_intro_skipped, chapterName) }
+        mpv.command("add", "chapter", "1")
+        _seekText.update { _ ->
+            context.applicationContext.stringResource(AYMR.strings.player_intro_skipped, chapterName)
+        }
         _isSeekingForwards.update { _ -> true }
         _doubleTapSeekAmount.update { _ -> 1 }
         if (showSeekBar) showSeekBar()
@@ -2055,17 +2063,17 @@ class PlayerViewModel @JvmOverloads constructor(
 
         _skipIntroText.update { _ ->
             skipButtonString?.let {
-                stringResourceManager.get(
+                context.applicationContext.stringResource(
                     AYMR.strings.player_skip_action,
-                    stringResourceManager.get(skipButtonString),
+                    context.applicationContext.stringResource(skipButtonString),
                 )
             }
         }
     }
 
     fun onSkipIntro() {
-        val chapterIndex = MPVLib.getPropertyInt("chapter") ?: return
-        val chapterList = (MPVLib.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json) ?: emptyList())
+        val chapterIndex = mpv.getPropertyInt("chapter") ?: return
+        val chapterList = (mpv.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json) ?: emptyList())
         val chapter = chapterList.getOrNull(chapterIndex) ?: return
 
         if ((netflixTimeout.value ?: 0) > 0 && netflixStyle) {
@@ -2099,12 +2107,12 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 }
 
-fun CustomButton.execute() {
-    MPVLib.command("script-message", "call_button_$id")
+fun CustomButton.execute(mpv: MPV) {
+    mpv.command("script-message", "call_button_$id")
 }
 
-fun CustomButton.executeLongPress() {
-    MPVLib.command("script-message", "call_button_${id}_long")
+fun CustomButton.executeLongPress(mpv: MPV) {
+    mpv.command("script-message", "call_button_${id}_long")
 }
 
 fun Float.normalize(inMin: Float, inMax: Float, outMin: Float, outMax: Float): Float {

@@ -45,11 +45,15 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -68,7 +72,6 @@ import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.databinding.PlayerLayoutBinding
 import eu.kanade.tachiyomi.ui.base.activity.BaseActivity
 import eu.kanade.tachiyomi.ui.player.controls.PlayerControls
 import eu.kanade.tachiyomi.ui.player.settings.AdvancedPlayerPreferences
@@ -79,10 +82,8 @@ import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils.Companion.getStringRes
 import eu.kanade.tachiyomi.util.system.powerManager
 import eu.kanade.tachiyomi.util.system.toShareIntent
 import eu.kanade.tachiyomi.util.system.toast
-import `is`.xyz.mpv.MPVLib
+import `is`.xyz.mpv.MPV
 import `is`.xyz.mpv.MPVNode
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -108,16 +109,16 @@ import kotlin.math.floor
 
 class PlayerActivity : BaseActivity() {
     private val viewModel by viewModels<PlayerViewModel>()
-    private val binding by lazy { PlayerLayoutBinding.inflate(layoutInflater) }
+    private val mpv by lazy { viewModel.mpv }
+    private val player by lazy { AniyomiMPVView(this, null) }
     private val playerObserver by lazy { PlayerObserver(this) }
-    private val player by lazy { binding.player }
     private val windowInsetsController by lazy { WindowCompat.getInsetsController(window, window.decorView) }
     private val audioManager by lazy { getSystemService(AUDIO_SERVICE) as AudioManager }
     private val inputMethodManager by lazy { getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager }
 
     private var mediaSession: MediaSession? = null
-    private val gesturePreferences: GesturePreferences by lazy { viewModel.gesturePreferences }
-    private val playerPreferences: PlayerPreferences by lazy { viewModel.playerPreferences }
+    private val gesturePreferences: GesturePreferences = Injekt.get()
+    private val playerPreferences: PlayerPreferences = Injekt.get()
     private val audioPreferences: AudioPreferences = Injekt.get()
     private val advancedPlayerPreferences: AdvancedPlayerPreferences = Injekt.get()
     private val storageManager: StorageManager = Injekt.get()
@@ -227,10 +228,10 @@ class PlayerActivity : BaseActivity() {
         enableEdgeToEdge()
         registerSecureActivity(this)
         super.onCreate(savedInstanceState)
-        setContentView(binding.root)
 
-        setupCustomButtons()
+        player.init(mpv)
         setupPlayerMPV()
+        setupCustomButtons()
         setupPlayerAudio()
         setupMediaSession()
         setupPlayerOrientation()
@@ -299,31 +300,36 @@ class PlayerActivity : BaseActivity() {
             }
             .launchIn(lifecycleScope)
 
-        binding.controls.setContent {
+        setContent {
             TachiyomiTheme {
-                PlayerControls(
-                    viewModel = viewModel,
-                    onBackPress = {
-                        if (isPipSupportedAndEnabled && viewModel.paused == false &&
-                            playerPreferences.pipOnExit().get()
-                        ) {
-                            enterPictureInPictureMode(createPipParams())
-                        } else {
-                            finish()
-                        }
-                    },
-                    modifier = Modifier.onGloballyPositioned {
-                        pipRect = run {
-                            val boundsInWindow = it.boundsInWindow()
-                            Rect(
-                                boundsInWindow.left.toInt(),
-                                boundsInWindow.top.toInt(),
-                                boundsInWindow.right.toInt(),
-                                boundsInWindow.bottom.toInt(),
-                            )
-                        }
-                    },
-                )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AndroidView(
+                        factory = { player },
+                        modifier = Modifier.onGloballyPositioned {
+                            pipRect = run {
+                                val boundsInWindow = it.boundsInWindow()
+                                Rect(
+                                    boundsInWindow.left.toInt(),
+                                    boundsInWindow.top.toInt(),
+                                    boundsInWindow.right.toInt(),
+                                    boundsInWindow.bottom.toInt(),
+                                )
+                            }
+                        },
+                    )
+                    PlayerControls(
+                        viewModel = viewModel,
+                        onBackPress = {
+                            if (isPipSupportedAndEnabled && viewModel.paused == false &&
+                                playerPreferences.pipOnExit().get()
+                            ) {
+                                enterPictureInPictureMode(createPipParams())
+                            } else {
+                                finish()
+                            }
+                        },
+                    )
+                }
             }
         }
 
@@ -348,9 +354,9 @@ class PlayerActivity : BaseActivity() {
             noisyReceiver.initialized = false
         }
 
-        MPVLib.removeLogObserver(playerObserver)
-        MPVLib.removeObserver(playerObserver)
-        player.destroy()
+        mpv.removeLogObserver(playerObserver)
+        mpv.removeObserver(playerObserver)
+        mpv.close()
 
         super.onDestroy()
     }
@@ -366,7 +372,7 @@ class PlayerActivity : BaseActivity() {
         player.isExiting = true
         if (isFinishing) {
             viewModel.deletePendingEpisodes()
-            MPVLib.command("stop")
+            mpv.command("stop")
         } else {
             viewModel.pause()
         }
@@ -418,7 +424,7 @@ class PlayerActivity : BaseActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
         )
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        binding.root.systemUiVisibility =
+        window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
@@ -460,14 +466,10 @@ class PlayerActivity : BaseActivity() {
         copyAssets(mpvDir)
         copyFontsDirectory(mpvDir)
 
-        player.initialize(
-            configDir = mpvDir.filePath!!,
-            cacheDir = applicationContext.cacheDir.path,
-        )
-        MPVLib.setOptionString("sub-ass-force-margins", "yes")
-        MPVLib.setOptionString("sub-use-margins", "yes")
-        MPVLib.addLogObserver(playerObserver)
-        MPVLib.addObserver(playerObserver)
+        mpv.setOptionString("sub-ass-force-margins", "yes")
+        mpv.setOptionString("sub-use-margins", "yes")
+        mpv.addLogObserver(playerObserver)
+        mpv.addObserver(playerObserver)
     }
 
     private fun copyUserFiles(mpvDir: UniFile) {
@@ -540,7 +542,7 @@ class PlayerActivity : BaseActivity() {
     private fun copyFontsDirectory(mpvDir: UniFile) {
         // TODO: I think this is a bad hack.
         //  We need to find a way to let MPV directly access our fonts directory.
-        CoroutineScope(Dispatchers.IO).launchIO {
+        lifecycleScope.launchIO {
             val fontsDirectory = mpvDir.createDirectory(MPV_FONTS_DIR)!!
 
             storageManager.getFontsDirectory()?.listFiles()?.forEach { font ->
@@ -550,13 +552,13 @@ class PlayerActivity : BaseActivity() {
                 }
             }
 
-            MPVLib.setPropertyString("sub-fonts-dir", fontsDirectory.filePath!!)
-            MPVLib.setPropertyString("osd-fonts-dir", fontsDirectory.filePath!!)
+            mpv.setPropertyString("sub-fonts-dir", fontsDirectory.filePath!!)
+            mpv.setPropertyString("osd-fonts-dir", fontsDirectory.filePath!!)
         }
     }
 
     fun setupCustomButtons() {
-        CoroutineScope(Dispatchers.IO).launchIO {
+        viewModel.viewModelScope.launchIO {
             val buttons = viewModel.getCustomButtons()
             viewModel.setCustomButtons(buttons)
 
@@ -602,14 +604,14 @@ class PlayerActivity : BaseActivity() {
             }
 
             file?.let {
-                MPVLib.command("load-script", it.filePath!!)
+                mpv.command("load-script", it.filePath!!)
             }
         }
     }
 
     private fun setupPlayerAudio() {
         with(audioPreferences) {
-            audioChannels().get().let { MPVLib.setPropertyString(it.property, it.value) }
+            audioChannels().get().let { mpv.setPropertyString(it.property, it.value) }
 
             val request = AudioFocusRequestCompat.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN).also {
                 it.setAudioAttributes(
@@ -640,9 +642,9 @@ class PlayerActivity : BaseActivity() {
             }
 
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                MPVLib.command("multiply", "volume", "0.5")
+                mpv.command("multiply", "volume", "0.5")
                 restoreAudioFocus = {
-                    MPVLib.command("multiply", "volume", "2")
+                    mpv.command("multiply", "volume", "2")
                 }
             }
 
@@ -727,13 +729,13 @@ class PlayerActivity : BaseActivity() {
         if (player.isExiting) return
     }
 
-    internal fun event(eventId: Int) {
+    internal fun event(eventId: Int, node: MPVNode) {
         if (player.isExiting) return
         when (eventId) {
-            MPVLib.mpvEventId.MPV_EVENT_FILE_LOADED -> {
+            MPV.mpvEvent.MPV_EVENT_FILE_LOADED -> {
                 viewModel.viewModelScope.launchIO { fileLoaded() }
             }
-            MPVLib.mpvEventId.MPV_EVENT_PLAYBACK_RESTART -> player.isExiting = false
+            MPV.mpvEvent.MPV_EVENT_PLAYBACK_RESTART -> player.isExiting = false
         }
     }
 
@@ -762,7 +764,7 @@ class PlayerActivity : BaseActivity() {
             ),
         )
         builder.setSourceRectHint(pipRect)
-        MPVLib.getPropertyInt("video-params/h")?.let {
+        mpv.getPropertyInt("video-params/h")?.let {
             val height = it
             val width = it * player.getVideoOutAspect()!!
             val rational = Rational(height, width.toInt()).toFloat()
@@ -877,7 +879,7 @@ class PlayerActivity : BaseActivity() {
                                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                             }
                             SingleActionGesture.Custom -> {
-                                MPVLib.command("keypress", CustomKeyCodes.MediaPlay.keyCode)
+                                mpv.command("keypress", CustomKeyCodes.MediaPlay.keyCode)
                             }
 
                             SingleActionGesture.Switch -> {}
@@ -894,7 +896,7 @@ class PlayerActivity : BaseActivity() {
                                 window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                             }
                             SingleActionGesture.Custom -> {
-                                MPVLib.command("keypress", CustomKeyCodes.MediaPlay.keyCode)
+                                mpv.command("keypress", CustomKeyCodes.MediaPlay.keyCode)
                             }
 
                             SingleActionGesture.Switch -> {}
@@ -911,7 +913,7 @@ class PlayerActivity : BaseActivity() {
                                 viewModel.pauseUnpause()
                             }
                             SingleActionGesture.Custom -> {
-                                MPVLib.command("keypress", CustomKeyCodes.MediaPrevious.keyCode)
+                                mpv.command("keypress", CustomKeyCodes.MediaPrevious.keyCode)
                             }
 
                             SingleActionGesture.Switch -> viewModel.changeEpisode(true)
@@ -928,7 +930,7 @@ class PlayerActivity : BaseActivity() {
                                 viewModel.pauseUnpause()
                             }
                             SingleActionGesture.Custom -> {
-                                MPVLib.command("keypress", CustomKeyCodes.MediaNext.keyCode)
+                                mpv.command("keypress", CustomKeyCodes.MediaNext.keyCode)
                             }
 
                             SingleActionGesture.Switch -> viewModel.changeEpisode(false)
@@ -1052,11 +1054,11 @@ class PlayerActivity : BaseActivity() {
                     } else {
                         episode.last_second_seen
                     }
-                MPVLib.command("set", "start", "${resumePosition / 1000F}")
+                mpv.command("set", "start", "${resumePosition / 1000F}")
             }
         } else {
             viewModel.pos?.let {
-                MPVLib.command("set", "start", "$it")
+                mpv.command("set", "start", "$it")
             }
         }
 
@@ -1064,7 +1066,7 @@ class PlayerActivity : BaseActivity() {
             "$option=\"$value\""
         }
 
-        MPVLib.command(
+        mpv.command(
             "loadfile",
             parseVideoUrl(video.videoUrl)!!,
             "replace",
@@ -1105,7 +1107,7 @@ class PlayerActivity : BaseActivity() {
             it.key + ": " + it.value.replace(",", "\\,")
         }.joinToString(",")
 
-        MPVLib.setOptionString("http-header-fields", httpHeaderString)
+        mpv.setOptionString("http-header-fields", httpHeaderString)
 
         // need to fix the cache
         // MPVLib.setOptionString("cache-on-disk", "yes")
@@ -1176,7 +1178,7 @@ class PlayerActivity : BaseActivity() {
 
             VideoAspect.Fit -> {
                 pan = 0.0
-                MPVLib.setPropertyDouble("panscan", 0.0)
+                mpv.setPropertyDouble("panscan", 0.0)
             }
 
             VideoAspect.Stretch -> {
@@ -1254,7 +1256,7 @@ class PlayerActivity : BaseActivity() {
         }
 
         try {
-            val metadata = MPVLib.getPropertyString("metadata")?.let {
+            val metadata = mpv.getPropertyString("metadata")?.let {
                 Json.decodeFromString<Map<String, String>>(it)
             } ?: return
 
@@ -1264,7 +1266,7 @@ class PlayerActivity : BaseActivity() {
                 ?: return
 
             opts.forEach { (option, value) ->
-                MPVLib.setPropertyString(option, value)
+                mpv.setPropertyString(option, value)
             }
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e) { "Failed to read video metadata" }
@@ -1295,7 +1297,7 @@ class PlayerActivity : BaseActivity() {
         val episode = viewModel.currentEpisode.value ?: return
 
         // Write to mpv table
-        MPVLib.setPropertyString("user-data/current-anime/episode-title", episode.name)
+        mpv.setPropertyString("user-data/current-anime/episode-title", episode.name)
 
         val epNumber = episode.episode_number.let { number ->
             if (ceil(number) == floor(number)) number.toInt() else number
@@ -1308,7 +1310,7 @@ class PlayerActivity : BaseActivity() {
             episode.name,
         )
 
-        MPVLib.setPropertyString("force-media-title", title)
+        mpv.setPropertyString("force-media-title", title)
     }
 
     private fun endFile(eofReached: Boolean) {

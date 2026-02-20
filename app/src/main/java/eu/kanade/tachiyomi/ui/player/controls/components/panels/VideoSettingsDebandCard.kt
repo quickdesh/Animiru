@@ -33,21 +33,20 @@ import eu.kanade.tachiyomi.ui.player.DebandSettings
 import eu.kanade.tachiyomi.ui.player.Debanding
 import eu.kanade.tachiyomi.ui.player.controls.CARDS_MAX_WIDTH
 import eu.kanade.tachiyomi.ui.player.controls.panelCardsColors
-import eu.kanade.tachiyomi.ui.player.settings.DecoderPreferences
-import `is`.xyz.mpv.MPVLib
-import tachiyomi.core.common.preference.deleteAndGet
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
-import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 @Composable
-fun VideoSettingsDebandCard(modifier: Modifier = Modifier) {
-    val decoderPreferences = remember { Injekt.get<DecoderPreferences>() }
-    val deband by decoderPreferences.debanding().collectAsState()
+fun VideoSettingsDebandCard(
+    deband: Debanding,
+    onDebandingChange: (Debanding) -> Unit,
+    debandSettingsValue: (DebandSettings) -> Int,
+    onDebandingSettingsChange: (DebandSettings, Int) -> Unit,
+    onReset: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var isExpanded by remember { mutableStateOf(true) }
 
     ExpandableCard(
@@ -73,23 +72,7 @@ fun VideoSettingsDebandCard(modifier: Modifier = Modifier) {
                 Debanding.entries.forEach {
                     IconToggleButton(
                         checked = deband == it,
-                        onCheckedChange = { _ ->
-                            decoderPreferences.debanding().set(it)
-                            when (it) {
-                                Debanding.None -> {
-                                    MPVLib.setOptionString("deband", "no")
-                                    MPVLib.command("vf", "remove", "@deband")
-                                }
-                                Debanding.CPU -> {
-                                    MPVLib.setOptionString("deband", "no")
-                                    MPVLib.command("vf", "add", "@deband:gradfun=radius=12")
-                                }
-                                Debanding.GPU -> {
-                                    MPVLib.setOptionString("deband", "yes")
-                                    MPVLib.command("vf", "remove", "@deband")
-                                }
-                            }
-                        },
+                        onCheckedChange = { _ -> onDebandingChange(it) },
                     ) {
                         when (it) {
                             Debanding.None -> Icon(Icons.Default.NotInterested, null)
@@ -102,16 +85,7 @@ fun VideoSettingsDebandCard(modifier: Modifier = Modifier) {
                 Text(stringResource(deband.stringRes))
 
                 Spacer(Modifier.weight(1f))
-                TextButton(
-                    onClick = {
-                        decoderPreferences.debanding().set(Debanding.None)
-                        MPVLib.setOptionString("deband", "no")
-                        MPVLib.command("vf", "remove", "@deband")
-                        DebandSettings.entries.forEach {
-                            MPVLib.setPropertyInt(it.mpvProperty, it.preference(decoderPreferences).deleteAndGet())
-                        }
-                    },
-                ) {
+                TextButton(onClick = onReset) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
                         verticalAlignment = Alignment.CenterVertically,
@@ -123,15 +97,11 @@ fun VideoSettingsDebandCard(modifier: Modifier = Modifier) {
             }
 
             DebandSettings.entries.forEach { debandSettings ->
-                val value by debandSettings.preference(decoderPreferences).collectAsState()
                 SliderItem(
                     label = stringResource(debandSettings.stringRes),
-                    value = value,
-                    valueText = value.toString(),
-                    onChange = {
-                        debandSettings.preference(decoderPreferences).set(it)
-                        MPVLib.setPropertyInt(debandSettings.mpvProperty, it)
-                    },
+                    value = debandSettingsValue(debandSettings),
+                    valueText = debandSettingsValue(debandSettings).toString(),
+                    onChange = { onDebandingSettingsChange(debandSettings, it) },
                     min = debandSettings.start,
                     max = debandSettings.end,
                 )

@@ -39,27 +39,21 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import eu.kanade.presentation.player.components.PlayerSheet
 import eu.kanade.presentation.player.components.SliderItem
 import eu.kanade.presentation.player.components.SwitchPreference
-import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
-import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
-import `is`.xyz.mpv.MPVLib
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
-import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
 @Composable
 fun PlaybackSpeedSheet(
+    pitchCorrection: Boolean,
+    onPitchCorrectionChange: (Boolean) -> Unit,
     speed: Float,
     speedPresets: List<Float>,
     onSpeedChange: (Float) -> Unit,
@@ -71,7 +65,6 @@ fun PlaybackSpeedSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val audioPreferences = remember { Injekt.get<AudioPreferences>() }
     PlayerSheet(onDismissRequest = onDismissRequest) {
         Column(
             modifier
@@ -122,13 +115,9 @@ fun PlaybackSpeedSheet(
                     Icon(Icons.Default.Add, null)
                 }
             }
-            val pitchCorrection by audioPreferences.enablePitchCorrection().collectAsState()
             SwitchPreference(
                 value = pitchCorrection,
-                onValueChange = {
-                    audioPreferences.enablePitchCorrection().set(it)
-                    MPVLib.setPropertyBoolean("audio-pitch-correction", it)
-                },
+                onValueChange = onPitchCorrectionChange,
                 content = {
                     Column(
                         modifier = Modifier.weight(1f),
