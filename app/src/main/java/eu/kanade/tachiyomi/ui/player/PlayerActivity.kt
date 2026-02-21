@@ -229,7 +229,6 @@ class PlayerActivity : BaseActivity() {
         registerSecureActivity(this)
         super.onCreate(savedInstanceState)
 
-        player.init(mpv)
         setupPlayerMPV()
         setupCustomButtons()
         setupPlayerAudio()
@@ -462,6 +461,7 @@ class PlayerActivity : BaseActivity() {
         val mpvInputFile = mpvDir.createFile("input.conf")!!
         advancedPlayerPreferences.mpvInput().get().let { mpvInputFile.writeText(it) }
 
+        player.init(mpv)
         copyUserFiles(mpvDir)
         copyAssets(mpvDir)
         copyFontsDirectory(mpvDir)

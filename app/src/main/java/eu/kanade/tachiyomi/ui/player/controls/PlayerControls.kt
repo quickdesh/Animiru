@@ -130,6 +130,7 @@ fun PlayerControls(
     val seekBarShown by viewModel.seekBarShown.collectAsState()
     val isLoadingEpisode by viewModel.isLoadingEpisode.collectAsState()
     val pausedForCache by viewModel.mpv.propFlow<Boolean>("paused-for-cache").collectAsState()
+    val coreIdle by viewModel.mpv.propFlow<Boolean>("core-idle").collectAsState()
     val paused by viewModel.mpv.propFlow<Boolean>("pause").collectAsState()
     val duration by viewModel.mpv.propFlow<Int>("duration").collectAsState()
     val position by viewModel.mpv.propFlow<Int>("time-pos").collectAsState()
@@ -354,7 +355,7 @@ fun PlayerControls(
                 AnimatedVisibility(
                     visible =
                     (controlsShown && !areControlsLocked || gestureSeekAmount != null) ||
-                        pausedForCache == true ||
+                        (pausedForCache == true || (coreIdle == true && paused == false)) ||
                         isLoadingEpisode,
                     enter = fadeIn(playerControlsEnterAnimationSpec()),
                     exit = fadeOut(playerControlsExitAnimationSpec()),
@@ -371,7 +372,7 @@ fun PlayerControls(
                         onSkipPrevious = { viewModel.changeEpisode(true) },
                         hasNext = hasNextEpisode,
                         onSkipNext = { viewModel.changeEpisode(false) },
-                        isLoading = pausedForCache == true,
+                        isLoading = pausedForCache == true || (coreIdle == true && paused == false),
                         isLoadingEpisode = isLoadingEpisode,
                         controlsShown = controlsShown,
                         areControlsLocked = areControlsLocked,
@@ -402,7 +403,7 @@ fun PlayerControls(
                     },
                 ) {
                     val invertDuration by playerPreferences.invertDuration().collectAsState()
-                    val readAhead by viewModel.mpv.propFlow<Float>("demuxer-cache-duration").collectAsState()
+                    val readAhead by viewModel.mpv.propFlow<Float>("demuxer-cache-time").collectAsState()
                     val remaining by viewModel.mpv.propFlow<Float>("playtime-remaining").collectAsState()
                     val preciseSeeking by gesturePreferences.playerSmoothSeek().collectAsState()
                     SeekbarWithTimers(

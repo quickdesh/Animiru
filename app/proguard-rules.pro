@@ -17,7 +17,7 @@
 -keep,allowoptimization class app.cash.quickjs.** { public protected *; }
 -keep,allowoptimization class uy.kohesive.injekt.** { public protected *; }
 # AY -->
--keep,allowoptimization class is.xyz.mpv.** { public protected *; }
+-keep,allowoptimization class is.xyz.mpv.** { *; }
 -keep,allowoptimization class com.arthenica.** { public protected *; }
 # <-- AY
 
