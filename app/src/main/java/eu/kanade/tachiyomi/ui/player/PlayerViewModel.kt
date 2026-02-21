@@ -169,12 +169,18 @@ class PlayerViewModel @JvmOverloads constructor(
     uiPreferences: UiPreferences = Injekt.get(),
 ) : AndroidViewModel(context) {
 
-    val mpv = MPV(
-        context.applicationContext,
-        configDir = context.filesDir.resolve(MPV_DIR).toString(),
-        cacheDir = context.applicationContext.cacheDir.path,
-    )
     val cachePath: String = context.applicationContext.cacheDir.path
+    val mpv = MPV(context.applicationContext) {
+        it.setOptionString("config", "yes")
+        it.setOptionString("config-dir", context.filesDir.resolve(MPV_DIR).toString())
+        it.setOptionString("gpu-shader-cache-dir", cachePath)
+        it.setOptionString("icc-cache-dir", cachePath)
+        it.setOptionString("keep-open", "yes")
+        it.setOptionString("idle", "yes")
+    }
+
+    private val _isStopped = MutableStateFlow(false)
+    val isStopped = _isStopped.asStateFlow()
 
     private val _currentPlaylist = MutableStateFlow<List<Episode>>(emptyList())
     val currentPlaylist = _currentPlaylist.asStateFlow()
@@ -1417,6 +1423,30 @@ class PlayerViewModel @JvmOverloads constructor(
 
                 throw e
             }
+        }
+    }
+
+    fun setIsStopped(value: Boolean) {
+        _isStopped.update { _ -> value }
+    }
+
+    fun setCurrentVideoError() {
+        val (hosterIdx, videoIdx) = selectedHosterVideoIndex.value
+        val currentHosterState = (hosterState.value[hosterIdx] as? HosterState.Ready) ?: return
+        val currentVideo = currentHosterState.videoList[videoIdx]
+
+        _hosterState.updateAt(
+            hosterIdx,
+            currentHosterState.getChangedAt(videoIdx, currentVideo, Video.State.ERROR),
+        )
+    }
+
+    fun loadBestVideo() {
+        val source = currentSource.value ?: return
+        val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(hosterState.value)
+        val newVideo = (hosterState.value[hosterIdx] as HosterState.Ready).videoList[videoIdx]
+        viewModelScope.launchIO {
+            loadVideo(source, newVideo, hosterIdx, videoIdx)
         }
     }
 

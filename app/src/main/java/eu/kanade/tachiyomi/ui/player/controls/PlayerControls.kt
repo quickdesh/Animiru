@@ -129,6 +129,7 @@ fun PlayerControls(
     val areControlsLocked by viewModel.areControlsLocked.collectAsState()
     val seekBarShown by viewModel.seekBarShown.collectAsState()
     val isLoadingEpisode by viewModel.isLoadingEpisode.collectAsState()
+    val isStopped by viewModel.isStopped.collectAsState()
     val pausedForCache by viewModel.mpv.propFlow<Boolean>("paused-for-cache").collectAsState()
     val coreIdle by viewModel.mpv.propFlow<Boolean>("core-idle").collectAsState()
     val paused by viewModel.mpv.propFlow<Boolean>("pause").collectAsState()
@@ -372,6 +373,7 @@ fun PlayerControls(
                         onSkipPrevious = { viewModel.changeEpisode(true) },
                         hasNext = hasNextEpisode,
                         onSkipNext = { viewModel.changeEpisode(false) },
+                        isStopped = isStopped,
                         isLoading = pausedForCache == true || (coreIdle == true && paused == false),
                         isLoadingEpisode = isLoadingEpisode,
                         controlsShown = controlsShown,

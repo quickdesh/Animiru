@@ -26,6 +26,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
@@ -62,6 +63,10 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
             Preference.PreferenceItem.SwitchPreference(
                 preference = playerPreferences.preserveWatchingPosition(),
                 title = stringResource(AYMR.strings.pref_preserve_watching_position),
+            ),
+            Preference.PreferenceItem.SwitchPreference(
+                preference = playerPreferences.switchOnFailure(),
+                title = stringResource(AMMR.strings.player_pref_switch_on_failure),
             ),
             Preference.PreferenceItem.ListPreference(
                 preference = playerPreferences.defaultPlayerOrientationType(),

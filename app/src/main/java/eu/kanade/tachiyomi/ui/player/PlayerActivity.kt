@@ -45,7 +45,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -685,8 +684,8 @@ class PlayerActivity : BaseActivity() {
         super.onConfigurationChanged(newConfig)
     }
 
-    fun showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
-        runOnUiThread { toast(message, duration) }
+    fun showToast(message: String) {
+        runOnUiThread { toast(message) }
     }
 
     // A bunch of observers
@@ -748,7 +747,15 @@ class PlayerActivity : BaseActivity() {
                 }
 
                 logcat(LogPriority.ERROR) { errorMessage }
-                showToast(errorMessage, Toast.LENGTH_LONG)
+                showToast(errorMessage)
+
+                viewModel.setCurrentVideoError()
+
+                if (playerPreferences.switchOnFailure().get()) {
+                    viewModel.loadBestVideo()
+                } else {
+                    viewModel.setIsStopped(true)
+                }
             }
         }
     }
@@ -1057,6 +1064,7 @@ class PlayerActivity : BaseActivity() {
         if (player.isExiting) return
         if (video == null) return
 
+        viewModel.setIsStopped(false)
         setHttpOptions(video)
 
         if (viewModel.isLoadingEpisode.value) {

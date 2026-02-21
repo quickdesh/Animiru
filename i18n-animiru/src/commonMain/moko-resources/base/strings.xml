@@ -201,6 +201,9 @@
     <string name="sync_on_app_resume">Sync on App Resume</string>
     <string name="sync_library">Sync library</string>
 
+    <!-- Player prefs - internal player -->
+    <string name="player_pref_switch_on_failure">Switch video on loading failure</string>
+
     <!-- Player - deband -->
     <string name="player_sheets_video_settings_title">Video settings</string>
     <string name="player_sheets_deband_title">Deband</string>

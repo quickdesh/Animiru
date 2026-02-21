@@ -70,7 +70,6 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet?) : BaseMPVView(
         }
         mpv?.setOptionString("msg-level", "all=" + if (networkPreferences.verboseLogging().get()) "v" else "warn")
 
-        mpv?.setPropertyBoolean("keep-open", true)
         mpv?.setPropertyBoolean("input-default-bindings", true)
 
         mpv?.setOptionString("ytdl", "no")
