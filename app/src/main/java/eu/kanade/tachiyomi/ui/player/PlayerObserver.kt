@@ -36,20 +36,7 @@ class PlayerObserver(val activity: PlayerActivity) :
         activity.runOnUiThread { activity.event(eventId, data) }
     }
 
-    // TODO(mpv): Add to `event`
-    // override fun efEvent(err: String?) {
-    //     var errorMessage = err ?: "Error: File ended"
-    //     if (!httpError.isNullOrEmpty()) {
-    //         errorMessage += ": $httpError"
-    //         httpError = null
-    //     }
-    //     logcat(LogPriority.ERROR) { errorMessage }
-    //     activity.runOnUiThread {
-    //         activity.toast(errorMessage, Toast.LENGTH_LONG)
-    //     }
-    // }
-
-    private var httpError: String? = null
+    var httpError: String? = null
 
     override fun logMessage(prefix: String, level: Int, text: String) {
         if (level == MPV.mpvLogLevel.MPV_LOG_LEVEL_ERROR) {
@@ -65,7 +52,7 @@ class PlayerObserver(val activity: PlayerActivity) :
             MPV.mpvLogLevel.MPV_LOG_LEVEL_INFO -> LogPriority.INFO
             else -> LogPriority.VERBOSE
         }
-        if (text.contains("HTTP error")) httpError = text
+        if (text.contains("HTTP error")) httpError = text.removePrefix("http: ")
         logcat.logcat("mpv/$prefix", logPriority) { text }
     }
 

@@ -45,6 +45,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -684,8 +685,8 @@ class PlayerActivity : BaseActivity() {
         super.onConfigurationChanged(newConfig)
     }
 
-    fun showToast(message: String) {
-        runOnUiThread { toast(message) }
+    fun showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
+        runOnUiThread { toast(message, duration) }
     }
 
     // A bunch of observers
@@ -736,6 +737,19 @@ class PlayerActivity : BaseActivity() {
                 viewModel.viewModelScope.launchIO { fileLoaded() }
             }
             MPV.mpvEvent.MPV_EVENT_PLAYBACK_RESTART -> player.isExiting = false
+            MPV.mpvEvent.MPV_EVENT_END_FILE -> {
+                val errorNode = node.asMap()?.get("file_error") ?: return
+                var errorMessage = errorNode.asString() ?: "Error: File ended"
+
+                val httpError = playerObserver.httpError
+                if (!httpError.isNullOrEmpty()) {
+                    errorMessage += ": $httpError"
+                    playerObserver.httpError = null
+                }
+
+                logcat(LogPriority.ERROR) { errorMessage }
+                showToast(errorMessage, Toast.LENGTH_LONG)
+            }
         }
     }
 
