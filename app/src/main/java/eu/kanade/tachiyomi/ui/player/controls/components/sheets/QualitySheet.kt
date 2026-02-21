@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.player.components.PlayerSheet
 import eu.kanade.tachiyomi.animesource.model.Hoster
 import eu.kanade.tachiyomi.animesource.model.Video
+import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.padding
@@ -76,8 +77,8 @@ fun HosterState.Ready.getChangedAt(index: Int, newVideo: Video, newState: Video.
 @Composable
 fun QualitySheet(
     isLoadingHosters: Boolean,
-    hosterState: List<HosterState>,
-    expandedState: List<Boolean>,
+    hosterState: ImmutableList<HosterState>,
+    expandedState: ImmutableList<Boolean>,
     selectedVideoIndex: Pair<Int, Int>,
     onClickHoster: (Int) -> Unit,
     onClickVideo: (Int, Int) -> Unit,

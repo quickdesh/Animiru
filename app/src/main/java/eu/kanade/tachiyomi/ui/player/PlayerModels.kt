@@ -1,6 +1,6 @@
 package eu.kanade.tachiyomi.ui.player
 
-import androidx.compose.runtime.Stable
+import androidx.compose.runtime.Immutable
 import dev.vivvvek.seeker.Segment
 import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.animesource.model.Track
@@ -97,7 +97,7 @@ enum class TrackState {
     Loaded,
 }
 
-@Stable
+@Immutable
 sealed interface VideoTrack {
     companion object {
         const val TRACK_TITLE_TAG = "aniyomi-track-index"

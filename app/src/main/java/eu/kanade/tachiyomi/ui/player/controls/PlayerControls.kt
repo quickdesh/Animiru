@@ -94,6 +94,7 @@ import eu.kanade.tachiyomi.ui.player.settings.SubtitleJustification
 import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import tachiyomi.core.common.preference.deleteAndGet
@@ -621,8 +622,8 @@ fun PlayerControls(
 
             isLoadingHosters = isLoadingHosters,
 
-            hosterState = hosterState,
-            expandedState = expandedState,
+            hosterState = hosterState.toPersistentList(),
+            expandedState = expandedState.toPersistentList(),
             selectedVideoIndex = selectedHosterVideoIndex,
             onClickHoster = viewModel::onHosterClicked,
             onClickVideo = viewModel::onVideoClicked,
@@ -639,7 +640,7 @@ fun PlayerControls(
             onUpdateDecoder = { viewModel.mpv.setPropertyString("hwdec", it.value) },
 
             speed = playbackSpeed ?: playerPreferences.playerSpeed().get(),
-            speedPresets = speedPresets.map { it.toFloat() }.sorted(),
+            speedPresets = speedPresets.map { it.toFloat() }.sorted().toPersistentList(),
             onSpeedChange = { viewModel.mpv.setPropertyFloat("speed", it.toFixed(2)) },
             onMakeDefaultSpeed = { playerPreferences.playerSpeed().set(it.toFixed(2)) },
             onAddSpeedPreset = { playerPreferences.speedPresets() += it.toFixed(2).toString() },
@@ -711,11 +712,11 @@ fun PlayerControls(
         val subFont by viewModel.mpv.propFlow<String>("sub-font").collectAsState()
         val subFontSize by viewModel.mpv.propFlow<Int>("sub-font-size").collectAsState()
         val subBorderStyle by viewModel.mpv.propFlow<String>("sub-border-style").collectAsState()
-        val subBorderSize by viewModel.mpv.propFlow<Int>("sub-border-size").collectAsState()
+        val subBorderSize by viewModel.mpv.propFlow<Int>("sub-outline-size").collectAsState()
         val subShadowOffset by viewModel.mpv.propFlow<Int>("sub-shadow-offset").collectAsState()
         val subColor by viewModel.mpv.propFlow<String>("sub-color").collectAsState()
-        val subBorderColor by viewModel.mpv.propFlow<String>("sub-border-color").collectAsState()
-        val subBackgroundColor by viewModel.mpv.propFlow<String>("sub-background-color").collectAsState()
+        val subBorderColor by viewModel.mpv.propFlow<String>("sub-outline-color").collectAsState()
+        val subBackgroundColor by viewModel.mpv.propFlow<String>("sub-back-color").collectAsState()
         val overrideAssSubs by viewModel.mpv.propFlow<Boolean>("sub-ass-override").collectAsState()
         val subScale by viewModel.mpv.propFlow<Float>("sub-scale").collectAsState()
         val subPos by viewModel.mpv.propFlow<Int>("sub-pos").collectAsState()
@@ -779,7 +780,7 @@ fun PlayerControls(
                 subtitlePreferences.borderStyleSubtitles().set(it)
             },
             onSubBorderSizeChange = {
-                viewModel.mpv.setPropertyInt("sub-border-size", it)
+                viewModel.mpv.setPropertyInt("sub-outline-size", it)
                 subtitlePreferences.subtitleBorderSize().set(it)
             },
             onSubShadowOffsetChange = {
@@ -794,12 +795,12 @@ fun PlayerControls(
                     }
 
                     SubColorType.Border -> {
-                        viewModel.mpv.setPropertyString("sub-border-color", it.toColorHexString())
+                        viewModel.mpv.setPropertyString("sub-outline-color", it.toColorHexString())
                         subtitlePreferences.borderColorSubtitles().set(it)
                     }
 
                     SubColorType.Background -> {
-                        viewModel.mpv.setPropertyString("sub-background-color", it.toColorHexString())
+                        viewModel.mpv.setPropertyString("sub-back-color", it.toColorHexString())
                         subtitlePreferences.backgroundColorSubtitles().set(it)
                     }
                 }

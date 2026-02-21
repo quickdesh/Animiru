@@ -5,6 +5,7 @@ import eu.kanade.tachiyomi.data.database.models.Episode
 import eu.kanade.tachiyomi.ui.player.Dialogs
 import eu.kanade.tachiyomi.ui.player.controls.components.dialogs.EpisodeListDialog
 import eu.kanade.tachiyomi.ui.player.controls.components.dialogs.IntegerPickerDialog
+import kotlinx.collections.immutable.ImmutableList
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -14,9 +15,9 @@ fun PlayerDialogs(
     // Episode list
     episodeDisplayMode: Long?,
     currentEpisodeIndex: Int,
-    episodeList: List<Episode>,
+    episodeList: ImmutableList<Episode>,
     dateRelativeTime: Boolean,
-    dateFormat: DateTimeFormatter,
+    dateFormat: String,
     onBookmarkClicked: (Long?, Boolean) -> Unit,
     onFillermarkClicked: (Long?, Boolean) -> Unit,
     onEpisodeClicked: (Long?) -> Unit,

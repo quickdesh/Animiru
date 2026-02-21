@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.animesource.model
 
 import android.net.Uri
+import androidx.compose.runtime.Stable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.Headers
@@ -25,6 +26,7 @@ data class TimeStamp(
     val type: ChapterType = ChapterType.Other,
 )
 
+@Stable // mutability only concerns the downloader
 data class Video(
     var videoUrl: String = "",
     val videoTitle: String = "",

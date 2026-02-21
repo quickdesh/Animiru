@@ -211,8 +211,8 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet?) : BaseMPVView(
             "sub-back-color",
             subtitlePreferences.backgroundColorSubtitles().get().toColorHexString(),
         )
-        mpv?.setOptionString("sub-border-color", subtitlePreferences.borderColorSubtitles().get().toColorHexString())
-        mpv?.setOptionString("sub-border-size", subtitlePreferences.subtitleBorderSize().get().toString())
+        mpv?.setOptionString("sub-outline-color", subtitlePreferences.borderColorSubtitles().get().toColorHexString())
+        mpv?.setOptionString("sub-outline-size", subtitlePreferences.subtitleBorderSize().get().toString())
         mpv?.setOptionString("sub-border-style", subtitlePreferences.borderStyleSubtitles().get().value)
         mpv?.setOptionString("sub-shadow-offset", subtitlePreferences.shadowOffsetSubtitles().get().toString())
         mpv?.setOptionString("sub-pos", subtitlePreferences.subtitlePos().get().toString())

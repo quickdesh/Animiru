@@ -299,7 +299,7 @@ fun resetTypography(
     mpv.setPropertyString("sub-justify", preferences.subtitleJustification().deleteAndGet().value)
     mpv.setPropertyString("sub-font", preferences.subtitleFont().deleteAndGet())
     mpv.setPropertyInt("sub-font-size", preferences.subtitleFontSize().deleteAndGet())
-    mpv.setPropertyInt("sub-border-size", preferences.subtitleBorderSize().deleteAndGet())
+    mpv.setPropertyInt("sub-outline-size", preferences.subtitleBorderSize().deleteAndGet())
     mpv.setPropertyInt("sub-shadow-offset", preferences.shadowOffsetSubtitles().deleteAndGet())
     mpv.setPropertyString("sub-border-style", preferences.borderStyleSubtitles().deleteAndGet().value)
 }

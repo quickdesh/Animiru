@@ -182,7 +182,7 @@ class PlayerViewModel @JvmOverloads constructor(
     private val _isStopped = MutableStateFlow(false)
     val isStopped = _isStopped.asStateFlow()
 
-    private val _currentPlaylist = MutableStateFlow<List<Episode>>(emptyList())
+    private val _currentPlaylist = MutableStateFlow<ImmutableList<Episode>>(persistentListOf())
     val currentPlaylist = _currentPlaylist.asStateFlow()
 
     private val _hasPreviousEpisode = MutableStateFlow(false)
@@ -388,7 +388,7 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     private fun updateEpisodeList(episodeList: List<Episode>) {
-        _currentPlaylist.update { _ -> filterEpisodeList(episodeList) }
+        _currentPlaylist.update { _ -> filterEpisodeList(episodeList).toPersistentList() }
     }
 
     /**
@@ -1081,7 +1081,7 @@ class PlayerViewModel @JvmOverloads constructor(
     private val downloadAheadAmount = downloadPreferences.autoDownloadWhileWatching().get()
 
     internal val relativeTime = uiPreferences.relativeTime().get()
-    internal val dateFormat = UiPreferences.dateFormat(uiPreferences.dateFormat().get())
+    internal val dateFormat = uiPreferences.dateFormat().get()
 
     /**
      * The position in the current video. Used to restore from process kill.

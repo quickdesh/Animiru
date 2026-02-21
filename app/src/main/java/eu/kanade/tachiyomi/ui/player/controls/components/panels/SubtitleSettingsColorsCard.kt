@@ -49,7 +49,6 @@ import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
-import androidx.core.graphics.toColorInt
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.player.components.ExpandableCard
 import eu.kanade.presentation.player.components.TintedSliderItem
@@ -156,7 +155,7 @@ enum class SubColorType(
     ),
     Border(
         AYMR.strings.player_sheets_subtitles_color_border,
-        "sub-border-color",
+        "sub-outline-color",
         preference = SubtitlePreferences::borderColorSubtitles,
     ),
     Background(
@@ -179,7 +178,7 @@ fun resetColors(
 
         SubColorType.Border -> {
             val borderColor = preferences.borderColorSubtitles().deleteAndGet().toColorHexString()
-            mpv?.setPropertyString("sub-border-color", borderColor)
+            mpv?.setPropertyString("sub-outline-color", borderColor)
         }
 
         SubColorType.Background -> {

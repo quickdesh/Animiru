@@ -57,8 +57,8 @@ fun PlayerSheets(
 
     // video sheet
     isLoadingHosters: Boolean,
-    hosterState: List<HosterState>,
-    expandedState: List<Boolean>,
+    hosterState: ImmutableList<HosterState>,
+    expandedState: ImmutableList<Boolean>,
     selectedVideoIndex: Pair<Int, Int>,
     onClickHoster: (Int) -> Unit,
     onClickVideo: (Int, Int) -> Unit,
@@ -77,7 +77,7 @@ fun PlayerSheets(
     pitchCorrection: Boolean,
     onPitchCorrectionChange: (Boolean) -> Unit,
     speed: Float,
-    speedPresets: List<Float>,
+    speedPresets: ImmutableList<Float>,
     onSpeedChange: (Float) -> Unit,
     onAddSpeedPreset: (Float) -> Unit,
     onRemoveSpeedPreset: (Float) -> Unit,
