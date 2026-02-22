@@ -46,6 +46,8 @@ class DownloadPreferences(
 
     fun downloadNewUnseenEpisodesOnly() = preferenceStore.getBoolean("download_new_unseen_episodes_only", false)
 
+    fun parallelSourceLimit() = preferenceStore.getInt("download_parallel_source_limit", 5)
+
     companion object {
         private const val REMOVE_EXCLUDE_CATEGORIES_PREF_KEY = "remove_exclude_categories"
         private const val DOWNLOAD_NEW_CATEGORIES_PREF_KEY = "download_new_categories"

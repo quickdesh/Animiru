@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-/**
+/*
  * Code is a mix between PlayerViewModel from mpvKt and the former
  * PlayerViewModel from Aniyomi.
  */
@@ -1117,38 +1117,48 @@ class PlayerViewModel @JvmOverloads constructor(
             ?: error("Requested episode of id $episodeId not found in episode list")
 
         val episodesForPlayer = episodes.filterNot {
-            anime.unseenFilterRaw == Anime.EPISODE_SHOW_SEEN &&
-                !it.seen ||
-                anime.unseenFilterRaw == Anime.EPISODE_SHOW_UNSEEN &&
-                it.seen ||
-                anime.downloadedFilterRaw == Anime.EPISODE_SHOW_DOWNLOADED &&
-                !downloadManager.isEpisodeDownloaded(
-                    it.name,
-                    it.scanlator,
-                    it.url,
-                    // AM (CUSTOM_INFORMATION) -->
-                    anime.ogTitle,
-                    // <-- AM (CUSTOM_INFORMATION)
-                    anime.source,
-                ) ||
-                anime.downloadedFilterRaw == Anime.EPISODE_SHOW_NOT_DOWNLOADED &&
-                downloadManager.isEpisodeDownloaded(
-                    it.name,
-                    it.scanlator,
-                    it.url,
-                    // AM (CUSTOM_INFORMATION) -->
-                    anime.ogTitle,
-                    // <-- AM (CUSTOM_INFORMATION)
-                    anime.source,
-                ) ||
-                anime.bookmarkedFilterRaw == Anime.EPISODE_SHOW_BOOKMARKED &&
-                !it.bookmark ||
-                anime.bookmarkedFilterRaw == Anime.EPISODE_SHOW_NOT_BOOKMARKED &&
-                it.bookmark ||
-                anime.fillermarkedFilterRaw == Anime.EPISODE_SHOW_FILLERMARKED &&
-                !it.fillermark ||
-                anime.fillermarkedFilterRaw == Anime.EPISODE_SHOW_NOT_FILLERMARKED &&
-                it.fillermark
+            (anime.unseenFilterRaw == Anime.EPISODE_SHOW_SEEN && !it.seen) ||
+                (anime.unseenFilterRaw == Anime.EPISODE_SHOW_UNSEEN && it.seen) ||
+                (
+                    anime.downloadedFilterRaw == Anime.EPISODE_SHOW_DOWNLOADED &&
+                        !downloadManager.isEpisodeDownloaded(
+                            it.name,
+                            it.scanlator,
+                            it.url,
+                            // AM (CUSTOM_INFORMATION) -->
+                            anime.ogTitle,
+                            // <-- AM (CUSTOM_INFORMATION)
+                            anime.source,
+                        )
+                    ) ||
+                (
+                    anime.downloadedFilterRaw == Anime.EPISODE_SHOW_NOT_DOWNLOADED &&
+                        downloadManager.isEpisodeDownloaded(
+                            it.name,
+                            it.scanlator,
+                            it.url,
+                            // AM (CUSTOM_INFORMATION) -->
+                            anime.ogTitle,
+                            // <-- AM (CUSTOM_INFORMATION)
+                            anime.source,
+                        )
+                    ) ||
+                (
+                    anime.bookmarkedFilterRaw == Anime.EPISODE_SHOW_BOOKMARKED &&
+                        !it.bookmark
+                    ) ||
+                (
+                    anime.bookmarkedFilterRaw == Anime.EPISODE_SHOW_NOT_BOOKMARKED &&
+                        it.bookmark
+                    ) ||
+                (
+                    anime.fillermarkedFilterRaw == Anime.EPISODE_SHOW_FILLERMARKED &&
+                        !it.fillermark
+                    ) ||
+                (
+                    anime.fillermarkedFilterRaw == Anime.EPISODE_SHOW_NOT_FILLERMARKED &&
+                        it.fillermark
+                    )
         }.toMutableList()
 
         if (episodesForPlayer.all { it.id != episodeId }) {

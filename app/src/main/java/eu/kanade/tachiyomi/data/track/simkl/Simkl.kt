@@ -1,7 +1,6 @@
 // AY -->
 package eu.kanade.tachiyomi.data.track.simkl
 
-import android.graphics.Color
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Track
@@ -94,9 +93,7 @@ class Simkl(id: Long) : BaseTracker(id, "Simkl"), Tracker {
         return track
     }
 
-    override fun getLogo() = R.drawable.ic_tracker_simkl
-
-    override fun getLogoColor() = Color.rgb(0, 0, 0)
+    override fun getLogo() = R.drawable.brand_simkl
 
     override fun getStatusList(): List<Long> {
         return listOf(WATCHING, COMPLETED, ON_HOLD, NOT_INTERESTING, PLAN_TO_WATCH)

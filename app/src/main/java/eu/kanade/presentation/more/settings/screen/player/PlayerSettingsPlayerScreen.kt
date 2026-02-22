@@ -191,11 +191,8 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
                     value = panelOpacity,
                     valueRange = 0..100,
                     title = stringResource(AYMR.strings.pref_panel_opacity),
-                    subtitle = numberFormat.format(panelOpacity / 100f),
-                    onValueChanged = {
-                        panelOpacityPref.set(it)
-                        true
-                    },
+                    valueString = numberFormat.format(panelOpacity / 100f),
+                    onValueChanged = { panelOpacityPref.set(it) },
                 ),
             ),
         )

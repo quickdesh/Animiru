@@ -19,8 +19,8 @@ android {
     defaultConfig {
         applicationId = "xyz.Quickdev.Animiru.mi"
 
-        versionCode = 131
-        versionName = "0.19.0.0"
+        versionCode = 132
+        versionName = "0.19.3.1"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
@@ -137,9 +137,9 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        aidl = true
 
         // Disable some unused things
-        aidl = false
         renderScript = false
         shaders = false
     }
@@ -276,7 +276,6 @@ dependencies {
     // implementation(libs.directionalviewpager) {
     //     exclude(group = "androidx.viewpager", module = "viewpager")
     // }
-    // implementation(libs.insetter)
     // <-- AM (REMOVE_LIBRARIES)
     implementation(libs.richeditor.compose)
     implementation(libs.aboutLibraries.compose)

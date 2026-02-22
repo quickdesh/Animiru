@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-/**
+/*
  * Code is a mix between PlayerActivity from mpvKt and the former
  * PlayerActivity from Aniyomi.
  */
@@ -860,8 +860,8 @@ class PlayerActivity : BaseActivity() {
                 viewModel.changeVolumeBy(-1)
                 viewModel.displayVolumeSlider()
             }
-            KeyEvent.KEYCODE_DPAD_RIGHT -> viewModel.handleLeftDoubleTap()
-            KeyEvent.KEYCODE_DPAD_LEFT -> viewModel.handleRightDoubleTap()
+            KeyEvent.KEYCODE_DPAD_LEFT -> viewModel.handleLeftDoubleTap()
+            KeyEvent.KEYCODE_DPAD_RIGHT -> viewModel.handleRightDoubleTap()
             KeyEvent.KEYCODE_SPACE -> viewModel.pauseUnpause()
             KeyEvent.KEYCODE_MEDIA_STOP -> finishAndRemoveTask()
 
@@ -1342,7 +1342,7 @@ class PlayerActivity : BaseActivity() {
     }
 
     // AM (DISCORD_RPC) -->
-    /**
+    /*
      private fun updateDiscordRPC(exitingPlayer: Boolean) {
      DiscordRPCService.discordScope.launchIO {
      if (connectionPreferences.enableDiscordRPC().get()) {

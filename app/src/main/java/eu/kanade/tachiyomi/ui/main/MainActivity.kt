@@ -60,6 +60,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.connection.service.ConnectionPreferences
 import eu.kanade.domain.source.interactor.GetIncognitoState
+import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.components.AppStateBanners
 import eu.kanade.presentation.components.DownloadedOnlyBannerBackgroundColor
 import eu.kanade.presentation.components.IncognitoModeBannerBackgroundColor
@@ -119,6 +120,10 @@ import uy.kohesive.injekt.injectLazy
 class MainActivity : BaseActivity() {
 
     private val preferences: BasePreferences by injectLazy()
+
+    // AM -->
+    private val uiPreferences: UiPreferences by injectLazy()
+    // <-- AM
 
     // AM (CONNECTION) -->
     private val connectionPreferences: ConnectionPreferences by injectLazy()
@@ -492,7 +497,9 @@ class MainActivity : BaseActivity() {
                 }
                 null
             }
-            else -> return false
+            // AM -->
+            else -> uiPreferences.startScreen().get().tab
+            // <-- AM
         }
 
         if (tabToOpen != null) {

@@ -89,7 +89,8 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
-import tachiyomi.presentation.core.components.FastScrollLazyVerticalGrid
+import tachiyomi.presentation.core.components.FastScrollIrregularLazyVerticalGrid
+import tachiyomi.presentation.core.components.Scroller.EXACT_HEIGHT_KEY_PREFIX
 import tachiyomi.presentation.core.components.TwoPanelBox
 import tachiyomi.presentation.core.components.material.ExtendedFloatingActionButton
 import tachiyomi.presentation.core.components.material.PullRefresh
@@ -511,7 +512,7 @@ private fun AnimeScreenSmallImpl(
             ) {
                 val layoutDirection = LocalLayoutDirection.current
                 // AY -->
-                FastScrollLazyVerticalGrid(
+                FastScrollIrregularLazyVerticalGrid(
                     modifier = Modifier.fillMaxHeight(),
                     state = itemListState,
                     columns = if (gridSize == 0) GridCells.Adaptive(128.dp) else GridCells.Fixed(gridSize),
@@ -520,10 +521,11 @@ private fun AnimeScreenSmallImpl(
                         end = GRID_PADDING + contentPadding.calculateEndPadding(layoutDirection),
                         bottom = contentPadding.calculateBottomPadding(),
                     ),
+                    topContentPadding = contentPadding.calculateTopPadding(),
                 ) {
                     // <-- AY
                     item(
-                        key = AnimeScreenItem.INFO_BOX,
+                        key = EXACT_HEIGHT_KEY_PREFIX + AnimeScreenItem.INFO_BOX,
                         contentType = AnimeScreenItem.INFO_BOX,
                         // AY -->
                         span = { GridItemSpan(maxLineSpan) },
@@ -544,7 +546,7 @@ private fun AnimeScreenSmallImpl(
                     }
 
                     item(
-                        key = AnimeScreenItem.ACTION_ROW,
+                        key = EXACT_HEIGHT_KEY_PREFIX + AnimeScreenItem.ACTION_ROW,
                         contentType = AnimeScreenItem.ACTION_ROW,
                         // AY -->
                         span = { GridItemSpan(maxLineSpan) },
@@ -568,7 +570,7 @@ private fun AnimeScreenSmallImpl(
                     }
 
                     item(
-                        key = AnimeScreenItem.DESCRIPTION_WITH_TAG,
+                        key = EXACT_HEIGHT_KEY_PREFIX + AnimeScreenItem.DESCRIPTION_WITH_TAG,
                         contentType = AnimeScreenItem.DESCRIPTION_WITH_TAG,
                         // AY -->
                         span = { GridItemSpan(maxLineSpan) },
@@ -589,7 +591,7 @@ private fun AnimeScreenSmallImpl(
                     }
 
                     item(
-                        key = AnimeScreenItem.EPISODE_HEADER,
+                        key = EXACT_HEIGHT_KEY_PREFIX + AnimeScreenItem.EPISODE_HEADER,
                         contentType = AnimeScreenItem.EPISODE_HEADER,
                         // AY -->
                         span = { GridItemSpan(maxLineSpan) },
@@ -636,7 +638,7 @@ private fun AnimeScreenSmallImpl(
                             // AY -->
                             if (state.airingTime > 0L) {
                                 item(
-                                    key = AnimeScreenItem.AIRING_TIME,
+                                    key = EXACT_HEIGHT_KEY_PREFIX + AnimeScreenItem.AIRING_TIME,
                                     contentType = AnimeScreenItem.AIRING_TIME,
                                     span = { GridItemSpan(maxLineSpan) },
                                 ) {
@@ -940,7 +942,7 @@ fun AnimeScreenLargeImpl(
                     },
                     endContent = {
                         // AY -->
-                        FastScrollLazyVerticalGrid(
+                        FastScrollIrregularLazyVerticalGrid(
                             modifier = Modifier.fillMaxHeight(),
                             state = itemListState,
                             columns = if (gridSize == 0) GridCells.Adaptive(128.dp) else GridCells.Fixed(gridSize),
@@ -950,10 +952,11 @@ fun AnimeScreenLargeImpl(
                                 top = contentPadding.calculateTopPadding(),
                                 bottom = contentPadding.calculateBottomPadding(),
                             ),
+                            topContentPadding = contentPadding.calculateTopPadding(),
                         ) {
                             // <-- AY
                             item(
-                                key = AnimeScreenItem.EPISODE_HEADER,
+                                key = EXACT_HEIGHT_KEY_PREFIX + AnimeScreenItem.EPISODE_HEADER,
                                 contentType = AnimeScreenItem.EPISODE_HEADER,
                                 // AY -->
                                 span = { GridItemSpan(maxLineSpan) },
@@ -1000,7 +1003,7 @@ fun AnimeScreenLargeImpl(
                                     // AY -->
                                     if (state.airingTime > 0L) {
                                         item(
-                                            key = AnimeScreenItem.AIRING_TIME,
+                                            key = EXACT_HEIGHT_KEY_PREFIX + AnimeScreenItem.AIRING_TIME,
                                             contentType = AnimeScreenItem.AIRING_TIME,
                                         ) {
                                             // Handles the second by second countdown

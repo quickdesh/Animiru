@@ -17,6 +17,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.allowRgb565
 import coil3.request.crossfade
@@ -179,6 +180,12 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                 add(AnimeCoverKeyer())
                 add(AnimeKeyer())
             }
+
+            memoryCache(
+                MemoryCache.Builder()
+                    .maxSizePercent(context)
+                    .build(),
+            )
 
             crossfade((300 * this@App.animatorDurationScale).toInt())
             allowRgb565(DeviceUtil.isLowRamDevice(this@App))

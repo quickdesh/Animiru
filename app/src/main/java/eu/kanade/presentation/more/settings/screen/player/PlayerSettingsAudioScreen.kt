@@ -91,11 +91,8 @@ object PlayerSettingsAudioScreen : SearchableSettings {
                 value = boostCap,
                 valueRange = 0..200,
                 title = stringResource(AYMR.strings.pref_player_audio_boost_cap),
-                subtitle = boostCap.toString(),
-                onValueChanged = {
-                    boostCapPref.set(it)
-                    true
-                },
+                valueString = boostCap.toString(),
+                onValueChanged = { boostCapPref.set(it) },
             ),
         )
     }

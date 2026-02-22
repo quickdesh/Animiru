@@ -356,7 +356,7 @@ fun PlayerControls(
                 }
                 AnimatedVisibility(
                     visible =
-                    (controlsShown && !areControlsLocked || gestureSeekAmount != null) ||
+                    (controlsShown && (!areControlsLocked || gestureSeekAmount != null)) ||
                         (pausedForCache == true || (coreIdle == true && paused == false)) ||
                         isLoadingEpisode,
                     enter = fadeIn(playerControlsEnterAnimationSpec()),
