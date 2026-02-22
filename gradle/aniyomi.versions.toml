@@ -1,5 +1,5 @@
 [versions]
-mpv-lib = "0.1.9"
+mpv-lib = "0.1.12"
 arthenica-smartexceptions = "0.2.1"
 constraint-layout = "1.1.0"
 ffmpeg-kit = "1.18"
@@ -10,7 +10,7 @@ google-api-drive = "v3-rev197-1.25.0"
 google-api-oauth = "1.34.1"
 
 [libraries]
-mpv-lib = { module = "io.github.abdallahmehiz:mpv-android-lib", version.ref = "mpv-lib" }
+mpv-lib = { module = "io.github.secozzi:mpv-android-lib", version.ref = "mpv-lib" }
 arthenica-smartexceptions = { module = "com.arthenica:smart-exception-java", version.ref = "arthenica-smartexceptions" }
 compose-constraintlayout = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraint-layout" }
 ffmpeg-kit = { module = "com.github.jmir1:ffmpeg-kit", version.ref = "ffmpeg-kit" }

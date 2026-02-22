@@ -176,7 +176,6 @@ class PlayerViewModel @JvmOverloads constructor(
         it.setOptionString("gpu-shader-cache-dir", cachePath)
         it.setOptionString("icc-cache-dir", cachePath)
         it.setOptionString("keep-open", "yes")
-        it.setOptionString("idle", "yes")
     }
 
     private val _isStopped = MutableStateFlow(false)

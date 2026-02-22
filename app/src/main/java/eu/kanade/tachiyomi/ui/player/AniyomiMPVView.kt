@@ -72,6 +72,7 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet?) : BaseMPVView(
 
         mpv?.setPropertyBoolean("input-default-bindings", true)
 
+        mpv?.setOptionString("idle", "yes")
         mpv?.setOptionString("ytdl", "no")
         mpv?.setOptionString("tls-verify", "yes")
         mpv?.setOptionString("tls-ca-file", "${context.filesDir.path}/${PlayerActivity.MPV_DIR}/cacert.pem")
