@@ -893,6 +893,10 @@ class PlayerViewModel @JvmOverloads constructor(
                     ),
                 )
             }
+            "show_seek_text" -> {
+                val (forward, text) = data.split("|", limit = 2)
+                showSeekText(forward == "true", text)
+            }
             "pause" -> {
                 when (data) {
                     "pause" -> pause()
@@ -945,6 +949,13 @@ class PlayerViewModel @JvmOverloads constructor(
     private val preciseSeek = gesturePreferences.playerSmoothSeek().get()
     private val showSeekBar = gesturePreferences.showSeekBar().get()
 
+    private fun showSeekText(isForward: Boolean, text: String) {
+        _seekText.update { _ -> text }
+        _isSeekingForwards.update { _ -> isForward }
+        _doubleTapSeekAmount.update { _ -> if (isForward) 1 else -1 }
+        if (showSeekBar) showSeekBar()
+    }
+
     private fun seekToWithText(seekValue: Int, text: String?) {
         _isSeekingForwards.value = seekValue > 0
         _doubleTapSeekAmount.value = seekValue - (pos ?: return)
@@ -955,7 +966,7 @@ class PlayerViewModel @JvmOverloads constructor(
 
     private fun seekByWithText(value: Int, text: String?) {
         _doubleTapSeekAmount.update {
-            if (value < 0 && it < 0 || (pos ?: return) + value > (duration ?: return)) 0 else it + value
+            if ((value < 0 && it < 0) || (pos ?: return) + value > (duration ?: return)) 0 else it + value
         }
         _seekText.update { text }
         _isSeekingForwards.value = value > 0
@@ -2089,12 +2100,7 @@ class PlayerViewModel @JvmOverloads constructor(
 
     private fun skipIntro(chapterName: String) {
         mpv.command("add", "chapter", "1")
-        _seekText.update { _ ->
-            context.applicationContext.stringResource(AYMR.strings.player_intro_skipped, chapterName)
-        }
-        _isSeekingForwards.update { _ -> true }
-        _doubleTapSeekAmount.update { _ -> 1 }
-        if (showSeekBar) showSeekBar()
+        showSeekText(true, context.applicationContext.stringResource(AYMR.strings.player_intro_skipped, chapterName))
     }
 
     private fun updateSkipIntroButton(chapterType: ChapterType) {
