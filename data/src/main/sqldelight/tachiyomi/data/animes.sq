@@ -43,6 +43,7 @@ CREATE TABLE animes(
 
 CREATE INDEX library_favorite_index ON animes(favorite) WHERE favorite = 1;
 CREATE INDEX animes_url_index ON animes(url);
+CREATE INDEX idx_animes_source ON animes(source);
 -- AY -->
 CREATE INDEX animes_parent_id ON animes(parent_id);
 CREATE INDEX animes_fetch_type ON animes(fetch_type);

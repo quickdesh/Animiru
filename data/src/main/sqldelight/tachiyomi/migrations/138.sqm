@@ -1,0 +1,9 @@
+-- Migration to add performance indexes
+
+CREATE INDEX idx_animes_source ON animes(source);
+CREATE INDEX idx_episodes_url ON episodes(url);
+CREATE INDEX idx_animes_categories_anime_id ON animes_categories(anime_id);
+CREATE INDEX idx_animes_categories_category_id ON animes_categories(category_id);
+CREATE INDEX idx_excluded_scanlators_scanlator ON excluded_scanlators(scanlator);
+CREATE INDEX idx_anime_sync_anime_id ON anime_sync(anime_id);
+CREATE INDEX idx_history_last_seen ON history(last_seen);

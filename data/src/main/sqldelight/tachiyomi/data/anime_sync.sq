@@ -20,6 +20,8 @@ CREATE TABLE anime_sync(
     ON DELETE CASCADE
 );
 
+CREATE INDEX idx_anime_sync_anime_id ON anime_sync(anime_id);
+
 delete:
 DELETE FROM anime_sync
 WHERE anime_id = :animeId AND sync_id = :syncId;

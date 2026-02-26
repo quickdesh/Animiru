@@ -9,6 +9,7 @@ CREATE TABLE history(
 );
 
 CREATE INDEX history_history_episode_id_index ON history(episode_id);
+CREATE INDEX idx_history_last_seen ON history(last_seen);
 
 getHistoryByAnimeId:
 SELECT

@@ -8,6 +8,9 @@ CREATE TABLE animes_categories(
     ON DELETE CASCADE
 );
 
+CREATE INDEX idx_animes_categories_anime_id ON animes_categories(anime_id);
+CREATE INDEX idx_animes_categories_category_id ON animes_categories(category_id);
+
 CREATE TRIGGER insert_anime_category_update_version AFTER INSERT ON animes_categories
 BEGIN
     UPDATE animes

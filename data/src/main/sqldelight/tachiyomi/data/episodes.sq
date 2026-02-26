@@ -32,6 +32,7 @@ CREATE TABLE episodes(
 
 CREATE INDEX episodes_anime_id_index ON episodes(anime_id);
 CREATE INDEX episodes_unseen_by_anime_index ON episodes(anime_id, seen) WHERE seen = 0;
+CREATE INDEX idx_episodes_url ON episodes(url);
 
 CREATE TRIGGER update_last_modified_at_episodes
 AFTER UPDATE ON episodes
