@@ -52,7 +52,7 @@ fun UpdateScreen(
     onClickCover: (UpdatesItem) -> Unit,
     onUpdateLibrary: () -> Boolean,
     onDownloadEpisode: (List<UpdatesItem>, EpisodeDownloadAction) -> Unit,
-    onUpdateSelected: (UpdatesItem, Boolean, Boolean, Boolean) -> Unit,
+    onUpdateSelected: (UpdatesItem, Boolean, Boolean) -> Unit,
     onOpenEpisode: (UpdatesItem, altPlayer: Boolean) -> Unit,
     contentPadding: PaddingValues,
 ) {

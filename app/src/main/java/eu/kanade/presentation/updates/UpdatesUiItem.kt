@@ -79,7 +79,7 @@ internal fun LazyListScope.updatesLastUpdatedItem(
 internal fun LazyListScope.updatesUiItems(
     uiModels: List<UpdatesUiModel>,
     selectionMode: Boolean,
-    onUpdateSelected: (UpdatesItem, Boolean, Boolean, Boolean) -> Unit,
+    onUpdateSelected: (UpdatesItem, Boolean, Boolean) -> Unit,
     onClickCover: (UpdatesItem) -> Unit,
     // AY -->
     onClickUpdate: (UpdatesItem, altPlayer: Boolean) -> Unit,
@@ -126,11 +126,11 @@ internal fun LazyListScope.updatesUiItems(
                             // <-- AY
                         },
                     onLongClick = {
-                        onUpdateSelected(updatesItem, !updatesItem.selected, true, true)
+                        onUpdateSelected(updatesItem, !updatesItem.selected, true)
                     },
                     onClick = {
                         when {
-                            selectionMode -> onUpdateSelected(updatesItem, !updatesItem.selected, true, false)
+                            selectionMode -> onUpdateSelected(updatesItem, !updatesItem.selected, false)
                             else -> onClickUpdate(updatesItem, /* AY --> */ false /* <-- AY */)
                         }
                     },

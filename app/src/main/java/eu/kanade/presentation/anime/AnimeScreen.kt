@@ -166,7 +166,7 @@ fun AnimeScreen(
     onEpisodeSwipe: (EpisodeList.Item, LibraryPreferences.EpisodeSwipeAction) -> Unit,
 
     // Episode selection
-    onEpisodeSelected: (EpisodeList.Item, Boolean, Boolean, Boolean) -> Unit,
+    onEpisodeSelected: (EpisodeList.Item, Boolean, Boolean) -> Unit,
     onAllEpisodeSelected: (Boolean) -> Unit,
     onInvertSelection: () -> Unit,
 
@@ -366,7 +366,7 @@ private fun AnimeScreenSmallImpl(
     onEpisodeSwipe: (EpisodeList.Item, LibraryPreferences.EpisodeSwipeAction) -> Unit,
 
     // Episode selection
-    onEpisodeSelected: (EpisodeList.Item, Boolean, Boolean, Boolean) -> Unit,
+    onEpisodeSelected: (EpisodeList.Item, Boolean, Boolean) -> Unit,
     onAllEpisodeSelected: (Boolean) -> Unit,
     onInvertSelection: () -> Unit,
 
@@ -757,7 +757,7 @@ fun AnimeScreenLargeImpl(
     onEpisodeSwipe: (EpisodeList.Item, LibraryPreferences.EpisodeSwipeAction) -> Unit,
 
     // Episode selection
-    onEpisodeSelected: (EpisodeList.Item, Boolean, Boolean, Boolean) -> Unit,
+    onEpisodeSelected: (EpisodeList.Item, Boolean, Boolean) -> Unit,
     onAllEpisodeSelected: (Boolean) -> Unit,
     onInvertSelection: () -> Unit,
 
@@ -1166,7 +1166,7 @@ private fun LazyGridScope.sharedEpisodeItems(
     onEpisodeClicked: (Episode, Boolean) -> Unit,
     // <-- AY
     onDownloadEpisode: ((List<EpisodeList.Item>, EpisodeDownloadAction) -> Unit)?,
-    onEpisodeSelected: (EpisodeList.Item, Boolean, Boolean, Boolean) -> Unit,
+    onEpisodeSelected: (EpisodeList.Item, Boolean, Boolean) -> Unit,
     onEpisodeSwipe: (EpisodeList.Item, LibraryPreferences.EpisodeSwipeAction) -> Unit,
     // AY -->
     itemModifier: Modifier = Modifier,
@@ -1258,14 +1258,14 @@ private fun LazyGridScope.sharedEpisodeItems(
                     episodeSwipeStartAction = episodeSwipeStartAction,
                     episodeSwipeEndAction = episodeSwipeEndAction,
                     onLongClick = {
-                        onEpisodeSelected(item, !item.selected, true, true)
+                        onEpisodeSelected(item, !item.selected, true)
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     },
                     onClick = {
                         onEpisodeItemClick(
                             episodeItem = item,
                             isAnyEpisodeSelected = isAnyEpisodeSelected,
-                            onToggleSelection = { onEpisodeSelected(item, !item.selected, true, false) },
+                            onToggleSelection = { onEpisodeSelected(item, !item.selected, false) },
                             onEpisodeClicked = onEpisodeClicked,
                         )
                     },
