@@ -535,6 +535,12 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         const val KEY_GROUP_EXTRA = "group_extra"
         // <-- AM (GROUPING)
 
+        // AM -->
+        fun cancelAllWorks(context: Context) {
+            context.workManager.cancelAllWorkByTag(TAG)
+        }
+        // <-- AM
+
         fun setupTask(
             context: Context,
             prefInterval: Int? = null,
