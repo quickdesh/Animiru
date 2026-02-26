@@ -1,6 +1,5 @@
 package eu.kanade.presentation.components
 
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -8,17 +7,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import eu.kanade.presentation.anime.DownloadAction
 import kotlinx.collections.immutable.persistentListOf
+import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun DownloadDropdownMenu(
+    modifier: Modifier = Modifier,
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     onDownloadClicked: (DownloadAction) -> Unit,
     offset: DpOffset? = null,
-    modifier: Modifier = Modifier,
 ) {
     if (offset != null) {
         DropdownMenu(
@@ -49,7 +49,7 @@ fun DownloadDropdownMenu(
 }
 
 @Composable
-private fun ColumnScope.DownloadDropdownMenuItems(
+private fun DownloadDropdownMenuItems(
     onDismissRequest: () -> Unit,
     onDownloadClicked: (DownloadAction) -> Unit,
 ) {
@@ -59,6 +59,7 @@ private fun ColumnScope.DownloadDropdownMenuItems(
         DownloadAction.NEXT_10_EPISODES to pluralStringResource(AYMR.plurals.download_amount_anime, 10, 10),
         DownloadAction.NEXT_25_EPISODES to pluralStringResource(AYMR.plurals.download_amount_anime, 25, 25),
         DownloadAction.UNSEEN_EPISODES to stringResource(AYMR.strings.download_unseen),
+        DownloadAction.BOOKMARKED_EPISODES to stringResource(MR.strings.download_bookmarked),
     )
 
     options.map { (downloadAction, string) ->

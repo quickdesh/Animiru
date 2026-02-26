@@ -56,6 +56,7 @@ import tachiyomi.domain.anime.model.applyFilter
 import tachiyomi.domain.category.interactor.GetVisibleCategories
 import tachiyomi.domain.category.interactor.SetAnimeCategories
 import tachiyomi.domain.category.model.Category
+import tachiyomi.domain.episode.interactor.GetBookmarkedEpisodesByAnimeId
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.history.interactor.GetNextEpisodes
@@ -85,6 +86,7 @@ class LibraryScreenModel(
     private val getTracksPerAnime: GetTracksPerAnime = Injekt.get(),
     private val getNextEpisodes: GetNextEpisodes = Injekt.get(),
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
+    private val getBookmarkedEpisodesByAnimeId: GetBookmarkedEpisodesByAnimeId = Injekt.get(),
     private val setSeenStatus: SetSeenStatus = Injekt.get(),
     private val updateAnime: UpdateAnime = Injekt.get(),
     private val setAnimeCategories: SetAnimeCategories = Injekt.get(),
@@ -556,16 +558,20 @@ class LibraryScreenModel(
      * Queues the amount specified of unseen episodes from the list of selected anime
      */
     fun performDownloadAction(action: DownloadAction) {
-        val animes = state.value.selectedAnime
-        val amount = when (action) {
-            DownloadAction.NEXT_1_EPISODE -> 1
-            DownloadAction.NEXT_5_EPISODES -> 5
-            DownloadAction.NEXT_10_EPISODES -> 10
-            DownloadAction.NEXT_25_EPISODES -> 25
-            DownloadAction.UNSEEN_EPISODES -> null
+        when (action) {
+            DownloadAction.NEXT_1_EPISODE -> downloadNextEpisodes(1)
+            DownloadAction.NEXT_5_EPISODES -> downloadNextEpisodes(5)
+            DownloadAction.NEXT_10_EPISODES -> downloadNextEpisodes(10)
+            DownloadAction.NEXT_25_EPISODES -> downloadNextEpisodes(25)
+            DownloadAction.UNSEEN_EPISODES -> downloadNextEpisodes(null)
+            DownloadAction.BOOKMARKED_EPISODES -> downloadBookmarkedEpisodes()
         }
 
         clearSelection()
+    }
+
+    private fun downloadNextEpisodes(amount: Int?) {
+        val animes = state.value.selectedAnime
         screenModelScope.launchNonCancellable {
             animes.forEach { anime ->
                 val episodes = getNextEpisodes.await(anime.id)
@@ -583,6 +589,28 @@ class LibraryScreenModel(
                     }
                     .let { if (amount != null) it.take(amount) else it }
 
+                downloadManager.downloadEpisodes(anime, episodes)
+            }
+        }
+    }
+
+    private fun downloadBookmarkedEpisodes() {
+        val animes = state.value.selectedAnime
+        screenModelScope.launchNonCancellable {
+            animes.forEach { anime ->
+                val episodes = getBookmarkedEpisodesByAnimeId.await(anime.id)
+                    .fastFilterNot { episode ->
+                        downloadManager.getQueuedDownloadOrNull(episode.id) != null ||
+                            downloadManager.isEpisodeDownloaded(
+                                episode.name,
+                                episode.scanlator,
+                                episode.url,
+                                // AM (CUSTOM_INFORMATION) -->
+                                anime.ogTitle,
+                                // <-- AM (CUSTOM_INFORMATION)
+                                anime.source,
+                            )
+                    }
                 downloadManager.downloadEpisodes(anime, episodes)
             }
         }

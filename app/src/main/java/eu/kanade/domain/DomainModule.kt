@@ -87,6 +87,7 @@ import tachiyomi.domain.custombutton.interactor.ReorderCustomButton
 import tachiyomi.domain.custombutton.interactor.ToggleFavoriteCustomButton
 import tachiyomi.domain.custombutton.interactor.UpdateCustomButton
 import tachiyomi.domain.custombutton.repository.CustomButtonRepository
+import tachiyomi.domain.episode.interactor.GetBookmarkedEpisodesByAnimeId
 import tachiyomi.domain.episode.interactor.GetEpisode
 import tachiyomi.domain.episode.interactor.GetEpisodeByUrlAndAnimeId
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
@@ -188,6 +189,7 @@ class DomainModule : InjektModule {
         addSingletonFactory<EpisodeRepository> { EpisodeRepositoryImpl(get()) }
         addFactory { GetEpisode(get()) }
         addFactory { GetEpisodesByAnimeId(get()) }
+        addFactory { GetBookmarkedEpisodesByAnimeId(get()) }
         addFactory { GetEpisodeByUrlAndAnimeId(get()) }
         addFactory { UpdateEpisode(get()) }
         addFactory { SetSeenStatus(get(), get(), get(), get()) }

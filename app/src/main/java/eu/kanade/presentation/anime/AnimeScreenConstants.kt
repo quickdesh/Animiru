@@ -6,6 +6,7 @@ enum class DownloadAction {
     NEXT_10_EPISODES,
     NEXT_25_EPISODES,
     UNSEEN_EPISODES,
+    BOOKMARKED_EPISODES,
 }
 
 enum class EditCoverAction {
