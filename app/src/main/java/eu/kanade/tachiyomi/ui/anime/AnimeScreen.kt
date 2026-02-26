@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.ui.anime
 
 import android.content.Context
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -74,7 +73,6 @@ import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.episode.model.Episode
-import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
@@ -510,12 +508,7 @@ class AnimeScreen(
         try {
             getAnimeUrl(anime_, source_)?.let { url ->
                 val intent = url.toUri().toShareIntent(context, type = "text/plain")
-                context.startActivity(
-                    Intent.createChooser(
-                        intent,
-                        context.stringResource(MR.strings.action_share),
-                    ),
-                )
+                context.startActivity(intent)
             }
         } catch (e: Exception) {
             context.toast(e.message)
