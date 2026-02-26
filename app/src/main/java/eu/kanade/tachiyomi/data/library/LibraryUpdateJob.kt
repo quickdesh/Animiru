@@ -535,10 +535,6 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         const val KEY_GROUP_EXTRA = "group_extra"
         // <-- AM (GROUPING)
 
-        fun cancelAllWorks(context: Context) {
-            context.workManager.cancelAllWorkByTag(TAG)
-        }
-
         fun setupTask(
             context: Context,
             prefInterval: Int? = null,
@@ -552,16 +548,19 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                 } else {
                     NetworkType.CONNECTED
                 }
-                val networkRequestBuilder = NetworkRequest.Builder()
-                if (DEVICE_ONLY_ON_WIFI in restrictions) {
-                    networkRequestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                val networkRequest = NetworkRequest.Builder().apply {
+                    removeCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+                    if (DEVICE_ONLY_ON_WIFI in restrictions) {
+                        addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                    }
+                    if (DEVICE_NETWORK_NOT_METERED in restrictions) {
+                        addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+                    }
                 }
-                if (DEVICE_NETWORK_NOT_METERED in restrictions) {
-                    networkRequestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
-                }
+                    .build()
                 val constraints = Constraints.Builder()
                     // 'networkRequest' only applies to Android 9+, otherwise 'networkType' is used
-                    .setRequiredNetworkRequest(networkRequestBuilder.build(), networkType)
+                    .setRequiredNetworkRequest(networkRequest, networkType)
                     .setRequiresCharging(DEVICE_CHARGING in restrictions)
                     .setRequiresBatteryNotLow(true)
                     .build()
