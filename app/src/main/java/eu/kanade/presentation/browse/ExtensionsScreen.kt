@@ -1,5 +1,6 @@
 package eu.kanade.presentation.browse
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -125,6 +126,10 @@ fun ExtensionScreen(
             )
         },
     ) { contentPadding ->
+        BackHandler(enabled = state.searchQuery != null) {
+            onChangeSearchQuery(null)
+        }
+
         // <-- AM (BROWSE)
         PullRefresh(
             refreshing = state.isRefreshing,
