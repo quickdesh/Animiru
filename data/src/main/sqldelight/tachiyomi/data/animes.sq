@@ -132,12 +132,23 @@ AND source = :sourceId;
 
 getDuplicateLibraryAnime:
 WITH
+track_dupes AS (
+    SELECT S2.anime_id
+    FROM anime_sync S1
+    INNER JOIN anime_sync S2
+    ON S1.sync_id = S2.sync_id
+    AND S1.remote_id = S2.remote_id
+    AND S1.anime_id != S2.anime_id
+    WHERE S1.anime_id = :id
+),
 duplicates AS (
-    SELECT *
-    FROM animes
+    SELECT A.*
+    FROM animes A
+    LEFT JOIN track_dupes D
+    ON D.anime_id = _id
     WHERE favorite = 1
     AND _id != :id
-    AND lower(title) LIKE '%' || lower(:title) || '%'
+    AND (lower(title) LIKE '%' || lower(:title) || '%' OR D.anime_id IS NOT NULL)
 ),
 episode_counts AS (
     SELECT
