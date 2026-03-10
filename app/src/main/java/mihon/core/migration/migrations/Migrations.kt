@@ -46,4 +46,5 @@ val migrations: List<Migration>
         RenameKeysMigration(),
         MoveCoverCacheMigration(),
         SubtitleAssEnumMigration(),
+        InstallationIdMigration(),
     )

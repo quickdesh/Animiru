@@ -35,4 +35,6 @@ class BasePreferences(
         SHIZUKU(MR.strings.ext_installer_shizuku, false),
         PRIVATE(MR.strings.ext_installer_private, false),
     }
+
+    fun installationId() = preferenceStore.getString(Preference.appStateKey("installation_id"), "")
 }

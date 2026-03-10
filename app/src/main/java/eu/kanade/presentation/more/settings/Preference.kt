@@ -41,6 +41,7 @@ sealed class Preference {
             override val icon: ImageVector? = null,
             // <-- AY
             override val enabled: Boolean = true,
+            val widget: @Composable (() -> Unit)? = null,
             val onClick: (() -> Unit)? = null,
         ) : PreferenceItem<String, Unit>() {
             override val onValueChanged: suspend (value: String) -> Unit = { }
