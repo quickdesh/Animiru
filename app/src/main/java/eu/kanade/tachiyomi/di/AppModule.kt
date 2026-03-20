@@ -1,14 +1,14 @@
 package eu.kanade.tachiyomi.di
 
 import android.app.Application
-import android.os.Build
 import androidx.core.content.ContextCompat
-import androidx.sqlite.db.SupportSQLiteDatabase
-import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import app.cash.sqldelight.db.SqlDriver
-import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import com.eygraber.sqldelight.androidx.driver.AndroidxSqliteConfiguration
+import com.eygraber.sqldelight.androidx.driver.AndroidxSqliteDatabaseType
+import com.eygraber.sqldelight.androidx.driver.AndroidxSqliteDriver
+import com.eygraber.sqldelight.androidx.driver.FileProvider
 import eu.kanade.domain.track.store.DelayedTrackingStore
-import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.data.cache.BackgroundCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.connection.ConnectionManager
@@ -25,7 +25,6 @@ import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.ui.player.ExternalIntents
 import eu.kanade.tachiyomi.ui.player.domain.AudioManager
 import eu.kanade.tachiyomi.ui.player.domain.BrightnessManager
-import io.requery.android.database.sqlite.RequerySQLiteOpenHelperFactory
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import nl.adaptivity.xmlutil.XmlDeclMode
@@ -61,29 +60,13 @@ class AppModule(val app: Application) : InjektModule {
         addSingleton(app)
 
         addSingletonFactory<SqlDriver> {
-            AndroidSqliteDriver(
+            AndroidxSqliteDriver(
+                driver = BundledSQLiteDriver(),
+                databaseType = AndroidxSqliteDatabaseType.FileProvider(app, "tachiyomi.animedb"),
                 schema = Database.Schema,
-                context = app,
-                name = "tachiyomi.animedb",
-                factory = if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    // Support database inspector in Android Studio
-                    FrameworkSQLiteOpenHelperFactory()
-                } else {
-                    RequerySQLiteOpenHelperFactory()
-                },
-                callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
-                    override fun onOpen(db: SupportSQLiteDatabase) {
-                        super.onOpen(db)
-                        setPragma(db, "foreign_keys = ON")
-                        setPragma(db, "journal_mode = WAL")
-                        setPragma(db, "synchronous = NORMAL")
-                    }
-                    private fun setPragma(db: SupportSQLiteDatabase, pragma: String) {
-                        val cursor = db.query("PRAGMA $pragma")
-                        cursor.moveToFirst()
-                        cursor.close()
-                    }
-                },
+                configuration = AndroidxSqliteConfiguration(
+                    isForeignKeyConstraintsEnabled = true,
+                ),
             )
         }
         addSingletonFactory {
