@@ -61,15 +61,15 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet?) : BaseMPVView(
 
     fun init(mpvInst: MPV) {
         this.mpv = mpvInst
-        setVo(if (decoderPreferences.gpuNext().get()) "gpu-next" else "gpu")
+        setVo(if (decoderPreferences.gpuNext.get()) "gpu-next" else "gpu")
         mpv?.setPropertyBoolean("pause", true)
         mpv?.setOptionString("profile", "fast")
-        mpv?.setOptionString("hwdec", if (decoderPreferences.tryHWDecoding().get()) "auto" else "no")
+        mpv?.setOptionString("hwdec", if (decoderPreferences.tryHWDecoding.get()) "auto" else "no")
 
-        if (decoderPreferences.useYUV420P().get()) {
+        if (decoderPreferences.useYUV420P.get()) {
             mpv?.setOptionString("vf", "format=yuv420p")
         }
-        mpv?.setOptionString("msg-level", "all=" + if (networkPreferences.verboseLogging().get()) "v" else "warn")
+        mpv?.setOptionString("msg-level", "all=" + if (networkPreferences.verboseLogging.get()) "v" else "warn")
 
         mpv?.setPropertyBoolean("input-default-bindings", true)
 
@@ -95,7 +95,7 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet?) : BaseMPVView(
             mpv?.setOptionString(it.mpvProperty, it.preference(decoderPreferences).get().toString())
         }
 
-        mpv?.setOptionString("speed", playerPreferences.playerSpeed().get().toString())
+        mpv?.setOptionString("speed", playerPreferences.playerSpeed.get().toString())
         // workaround for <https://github.com/mpv-player/mpv/issues/14651>
         mpv?.setOptionString("vd-lavc-film-grain", "cpu")
 
@@ -110,13 +110,13 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet?) : BaseMPVView(
     }
 
     fun postInitOptions() {
-        when (decoderPreferences.debanding().get()) {
+        when (decoderPreferences.debanding.get()) {
             Debanding.None -> {}
             Debanding.CPU -> mpv?.setOptionString("vf", "gradfun=radius=12")
             Debanding.GPU -> mpv?.setOptionString("deband", "yes")
         }
 
-        advancedPreferences.playerStatisticsPage().get().let {
+        advancedPreferences.playerStatisticsPage.get().let {
             if (it != 0) {
                 mpv?.command("script-binding", "stats/display-stats-toggle")
                 mpv?.command("script-binding", "stats/display-page-$it")
@@ -186,41 +186,41 @@ class AniyomiMPVView(context: Context, attributes: AttributeSet?) : BaseMPVView(
     )
 
     private fun setupAudioOptions() {
-        mpv?.setOptionString("alang", audioPreferences.preferredAudioLanguages().get())
-        mpv?.setOptionString("audio-delay", (audioPreferences.audioDelay().get() / 1000.0).toString())
-        mpv?.setOptionString("audio-pitch-correction", audioPreferences.enablePitchCorrection().get().toString())
-        mpv?.setOptionString("volume-max", (audioPreferences.volumeBoostCap().get() + 100).toString())
+        mpv?.setOptionString("alang", audioPreferences.preferredAudioLanguages.get())
+        mpv?.setOptionString("audio-delay", (audioPreferences.audioDelay.get() / 1000.0).toString())
+        mpv?.setOptionString("audio-pitch-correction", audioPreferences.enablePitchCorrection.get().toString())
+        mpv?.setOptionString("volume-max", (audioPreferences.volumeBoostCap.get() + 100).toString())
     }
 
     private fun setupSubtitlesOptions() {
-        mpv?.setOptionString("sub-delay", (subtitlePreferences.subtitlesDelay().get() / 1000.0).toString())
-        mpv?.setOptionString("sub-speed", subtitlePreferences.subtitlesSpeed().get().toString())
+        mpv?.setOptionString("sub-delay", (subtitlePreferences.subtitlesDelay.get() / 1000.0).toString())
+        mpv?.setOptionString("sub-speed", subtitlePreferences.subtitlesSpeed.get().toString())
         mpv?.setOptionString(
             "secondary-sub-delay",
-            (subtitlePreferences.subtitlesSecondaryDelay().get() / 1000.0).toString(),
+            (subtitlePreferences.subtitlesSecondaryDelay.get() / 1000.0).toString(),
         )
 
-        mpv?.setOptionString("sub-font", subtitlePreferences.subtitleFont().get())
-        subtitlePreferences.overrideSubsASS().get().let {
+        mpv?.setOptionString("sub-font", subtitlePreferences.subtitleFont.get())
+        subtitlePreferences.overrideSubsASS.get().let {
             mpv?.setOptionString("sub-ass-override", it.value)
             if (it != SubtitleAssOverride.No) {
                 mpv?.setOptionString("sub-ass-justify", "yes")
             }
         }
-        mpv?.setOptionString("sub-font-size", subtitlePreferences.subtitleFontSize().get().toString())
-        mpv?.setOptionString("sub-bold", if (subtitlePreferences.boldSubtitles().get()) "yes" else "no")
-        mpv?.setOptionString("sub-italic", if (subtitlePreferences.italicSubtitles().get()) "yes" else "no")
-        mpv?.setOptionString("sub-justify", subtitlePreferences.subtitleJustification().get().value)
-        mpv?.setOptionString("sub-color", subtitlePreferences.textColorSubtitles().get().toColorHexString())
+        mpv?.setOptionString("sub-font-size", subtitlePreferences.subtitleFontSize.get().toString())
+        mpv?.setOptionString("sub-bold", if (subtitlePreferences.boldSubtitles.get()) "yes" else "no")
+        mpv?.setOptionString("sub-italic", if (subtitlePreferences.italicSubtitles.get()) "yes" else "no")
+        mpv?.setOptionString("sub-justify", subtitlePreferences.subtitleJustification.get().value)
+        mpv?.setOptionString("sub-color", subtitlePreferences.textColorSubtitles.get().toColorHexString())
         mpv?.setOptionString(
             "sub-back-color",
-            subtitlePreferences.backgroundColorSubtitles().get().toColorHexString(),
+            subtitlePreferences.backgroundColorSubtitles.get().toColorHexString(),
         )
-        mpv?.setOptionString("sub-outline-color", subtitlePreferences.borderColorSubtitles().get().toColorHexString())
-        mpv?.setOptionString("sub-outline-size", subtitlePreferences.subtitleBorderSize().get().toString())
-        mpv?.setOptionString("sub-border-style", subtitlePreferences.borderStyleSubtitles().get().value)
-        mpv?.setOptionString("sub-shadow-offset", subtitlePreferences.shadowOffsetSubtitles().get().toString())
-        mpv?.setOptionString("sub-pos", subtitlePreferences.subtitlePos().get().toString())
-        mpv?.setOptionString("sub-scale", subtitlePreferences.subtitleFontScale().get().toString())
+        mpv?.setOptionString("sub-outline-color", subtitlePreferences.borderColorSubtitles.get().toColorHexString())
+        mpv?.setOptionString("sub-outline-size", subtitlePreferences.subtitleBorderSize.get().toString())
+        mpv?.setOptionString("sub-border-style", subtitlePreferences.borderStyleSubtitles.get().value)
+        mpv?.setOptionString("sub-shadow-offset", subtitlePreferences.shadowOffsetSubtitles.get().toString())
+        mpv?.setOptionString("sub-pos", subtitlePreferences.subtitlePos.get().toString())
+        mpv?.setOptionString("sub-scale", subtitlePreferences.subtitleFontScale.get().toString())
     }
 }

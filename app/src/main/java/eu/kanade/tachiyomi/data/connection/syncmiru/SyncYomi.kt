@@ -17,11 +17,11 @@ class SyncYomi(id: Long) : BaseConnection(id, "SyncYomi") {
 
     override fun logout() {
         super.logout()
-        syncPreferences.clientHost().set("")
-        syncPreferences.clientAPIKey().set("")
+        syncPreferences.clientHost.set("")
+        syncPreferences.clientAPIKey.set("")
     }
 
     override val isLoggedIn: Boolean
-        get() = syncPreferences.clientAPIKey().get().isNotBlank()
+        get() = syncPreferences.clientAPIKey.get().isNotBlank()
 }
 // <-- AM (SYNC_YOMI)

@@ -12,7 +12,7 @@ class DontRunJobsMigration : Migration {
     override suspend fun invoke(migrationContext: MigrationContext): Boolean {
         val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return false
 
-        val pref = libraryPreferences.autoUpdateDeviceRestrictions()
+        val pref = libraryPreferences.autoUpdateDeviceRestrictions
         if (pref.isSet() && "battery_not_low" in pref.get()) {
             pref.getAndSet { it - "battery_not_low" }
         }

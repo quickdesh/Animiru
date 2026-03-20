@@ -17,18 +17,18 @@ class SetAnimeDefaultEpisodeFlags(
             with(libraryPreferences) {
                 setAnimeEpisodeFlags.awaitSetAllFlags(
                     animeId = anime.id,
-                    unseenFilter = filterEpisodeBySeen().get(),
-                    downloadedFilter = filterEpisodeByDownloaded().get(),
-                    bookmarkedFilter = filterEpisodeByBookmarked().get(),
+                    unseenFilter = filterEpisodeBySeen.get(),
+                    downloadedFilter = filterEpisodeByDownloaded.get(),
+                    bookmarkedFilter = filterEpisodeByBookmarked.get(),
                     // AY -->
-                    fillermarkedFilter = filterEpisodeByFillermarked().get(),
+                    fillermarkedFilter = filterEpisodeByFillermarked.get(),
                     // <-- AY
-                    sortingMode = sortEpisodeBySourceOrNumber().get(),
-                    sortingDirection = sortEpisodeByAscendingOrDescending().get(),
-                    displayMode = displayEpisodeByNameOrNumber().get(),
+                    sortingMode = sortEpisodeBySourceOrNumber.get(),
+                    sortingDirection = sortEpisodeByAscendingOrDescending.get(),
+                    displayMode = displayEpisodeByNameOrNumber.get(),
                     // AY -->
-                    showPreviews = showEpisodeThumbnailPreviews().get(),
-                    showSummaries = showEpisodeSummaries().get(),
+                    showPreviews = showEpisodeThumbnailPreviews.get(),
+                    showSummaries = showEpisodeSummaries.get(),
                     // <-- AY
                 )
             }

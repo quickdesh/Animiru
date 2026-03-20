@@ -208,10 +208,10 @@ fun UpdatesBottomBar(
         }.takeIf { selected.fastAny { it.downloadStateProvider() == Download.State.DOWNLOADED } },
         onExternalClicked = {
             onOpenEpisode(selected[0], true)
-        }.takeIf { !playerPreferences.alwaysUseExternalPlayer().get() && selected.size == 1 },
+        }.takeIf { !playerPreferences.alwaysUseExternalPlayer.get() && selected.size == 1 },
         onInternalClicked = {
             onOpenEpisode(selected[0], true)
-        }.takeIf { playerPreferences.alwaysUseExternalPlayer().get() && selected.size == 1 },
+        }.takeIf { playerPreferences.alwaysUseExternalPlayer.get() && selected.size == 1 },
     )
 }
 

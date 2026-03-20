@@ -41,20 +41,20 @@ object SettingsDownloadScreen : SearchableSettings {
         val allCategories by getCategories.subscribe().collectAsState(initial = emptyList())
 
         val downloadPreferences = remember { Injekt.get<DownloadPreferences>() }
-        val parallelSourceLimit by downloadPreferences.parallelSourceLimit().collectAsState()
+        val parallelSourceLimit by downloadPreferences.parallelSourceLimit.collectAsState()
         // AY -->
         val basePreferences = remember { Injekt.get<BasePreferences>() }
         // <-- AY
         return listOf(
             Preference.PreferenceItem.SwitchPreference(
-                preference = downloadPreferences.downloadOnlyOverWifi(),
+                preference = downloadPreferences.downloadOnlyOverWifi,
                 title = stringResource(MR.strings.connected_to_wifi),
             ),
             Preference.PreferenceItem.SliderPreference(
                 value = parallelSourceLimit,
                 valueRange = 1..10,
                 title = stringResource(MR.strings.pref_download_concurrent_sources),
-                onValueChanged = { downloadPreferences.parallelSourceLimit().set(it) },
+                onValueChanged = { downloadPreferences.parallelSourceLimit.set(it) },
             ),
             getDeleteEpisodesGroup(
                 downloadPreferences = downloadPreferences,
@@ -83,11 +83,11 @@ object SettingsDownloadScreen : SearchableSettings {
             title = stringResource(AMMR.strings.am_pref_category_delete_episodes),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = downloadPreferences.removeAfterMarkedAsSeen(),
+                    preference = downloadPreferences.removeAfterMarkedAsSeen,
                     title = stringResource(AMMR.strings.am_pref_remove_after_marked_as_seen),
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    preference = downloadPreferences.removeAfterSeenSlots(),
+                    preference = downloadPreferences.removeAfterSeenSlots,
                     entries = persistentMapOf(
                         -1 to stringResource(MR.strings.disabled),
                         0 to stringResource(AMMR.strings.am_last_seen_episode),
@@ -99,12 +99,12 @@ object SettingsDownloadScreen : SearchableSettings {
                     title = stringResource(AMMR.strings.am_pref_remove_after_seen),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = downloadPreferences.removeBookmarkedEpisodes(),
+                    preference = downloadPreferences.removeBookmarkedEpisodes,
                     title = stringResource(AMMR.strings.am_pref_remove_bookmarked_episodes),
                 ),
                 // AY -->
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = downloadPreferences.downloadFillermarkedEpisodes(),
+                    preference = downloadPreferences.downloadFillermarkedEpisodes,
                     title = stringResource(AYMR.strings.pref_download_fillermarked_items),
                 ),
                 // <-- AY
@@ -122,7 +122,7 @@ object SettingsDownloadScreen : SearchableSettings {
         categories: () -> List<Category>,
     ): Preference.PreferenceItem.MultiSelectListPreference {
         return Preference.PreferenceItem.MultiSelectListPreference(
-            preference = downloadPreferences.removeExcludeCategories(),
+            preference = downloadPreferences.removeExcludeCategories,
             entries = categories()
                 .associate { it.id.toString() to it.visualName }
                 .toImmutableMap(),
@@ -135,10 +135,10 @@ object SettingsDownloadScreen : SearchableSettings {
         downloadPreferences: DownloadPreferences,
         allCategories: List<Category>,
     ): Preference.PreferenceGroup {
-        val downloadNewEpisodesPref = downloadPreferences.downloadNewEpisodes()
-        val downloadNewUnseenEpisodesOnlyPref = downloadPreferences.downloadNewUnseenEpisodesOnly()
-        val downloadNewEpisodeCategoriesPref = downloadPreferences.downloadNewEpisodeCategories()
-        val downloadNewEpisodeCategoriesExcludePref = downloadPreferences.downloadNewEpisodeCategoriesExclude()
+        val downloadNewEpisodesPref = downloadPreferences.downloadNewEpisodes
+        val downloadNewUnseenEpisodesOnlyPref = downloadPreferences.downloadNewUnseenEpisodesOnly
+        val downloadNewEpisodeCategoriesPref = downloadPreferences.downloadNewEpisodeCategories
+        val downloadNewEpisodeCategoriesExcludePref = downloadPreferences.downloadNewEpisodeCategoriesExclude
 
         val downloadNewEpisodes by downloadNewEpisodesPref.collectAsState()
 
@@ -196,7 +196,7 @@ object SettingsDownloadScreen : SearchableSettings {
             title = stringResource(MR.strings.download_ahead),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.ListPreference(
-                    preference = downloadPreferences.autoDownloadWhileWatching(),
+                    preference = downloadPreferences.autoDownloadWhileWatching,
                     entries = listOf(0, 2, 3, 5, 10)
                         .associateWith {
                             if (it == 0) {
@@ -219,8 +219,8 @@ object SettingsDownloadScreen : SearchableSettings {
         downloadPreferences: DownloadPreferences,
         basePreferences: BasePreferences,
     ): Preference.PreferenceGroup {
-        val useExternalDownloader = downloadPreferences.useExternalDownloader()
-        val externalDownloaderPreference = downloadPreferences.externalDownloaderSelection()
+        val useExternalDownloader = downloadPreferences.useExternalDownloader
+        val externalDownloaderPreference = downloadPreferences.externalDownloaderSelection
 
         val pm = basePreferences.context.packageManager
         val installedPackages = pm.getInstalledPackages(0)

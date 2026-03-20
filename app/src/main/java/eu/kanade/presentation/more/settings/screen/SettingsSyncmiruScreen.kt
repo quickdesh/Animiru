@@ -59,8 +59,8 @@ object SettingsSyncmiruScreen : SearchableSettings {
     @Composable
     override fun getPreferences(): List<Preference> {
         val syncPreferences = remember { Injekt.get<SyncPreferences>() }
-        val googleDriveRefreshToken by syncPreferences.googleDriveRefreshToken().collectAsState()
-        val syncyomiApiKey by syncPreferences.clientAPIKey().collectAsState()
+        val googleDriveRefreshToken by syncPreferences.googleDriveRefreshToken.collectAsState()
+        val syncyomiApiKey by syncPreferences.clientAPIKey.collectAsState()
 
         return listOfNotNull(
             getSyncPreferences(syncPreferences = syncPreferences),
@@ -82,7 +82,7 @@ object SettingsSyncmiruScreen : SearchableSettings {
         val context = LocalContext.current
         val connectionManager = remember { Injekt.get<ConnectionManager>() }
         val googleDriveSync = Injekt.get<GoogleDriveService>()
-        val googleDriveRefreshToken by syncPreferences.googleDriveRefreshToken().collectAsState()
+        val googleDriveRefreshToken by syncPreferences.googleDriveRefreshToken.collectAsState()
 
         var dialog by remember { mutableStateOf<Any?>(null) }
         dialog?.run {
@@ -228,8 +228,8 @@ object SettingsSyncmiruScreen : SearchableSettings {
     @Composable
     private fun getAutomaticSyncGroup(syncPreferences: SyncPreferences): Preference.PreferenceGroup {
         val context = LocalContext.current
-        val syncIntervalPref = syncPreferences.syncInterval()
-        val lastSync by syncPreferences.lastSyncTimestamp().collectAsState()
+        val syncIntervalPref = syncPreferences.syncInterval
+        val lastSync by syncPreferences.lastSyncTimestamp.collectAsState()
 
         return Preference.PreferenceGroup(
             title = stringResource(AMMR.strings.pref_sync_automatic_category),
@@ -322,9 +322,9 @@ private fun SyncYomiLoginDialog(
                         // Trim spaces at the beginning and end, then remove trailing slash if present
                         val trimmedValue = host.text.trim()
                         val modifiedValue = trimmedValue.trimEnd { it == '/' }
-                        syncPreferences.clientHost().set(modifiedValue)
+                        syncPreferences.clientHost.set(modifiedValue)
                     }
-                    syncPreferences.clientAPIKey().set(apiKey.text)
+                    syncPreferences.clientAPIKey.set(apiKey.text)
                     onDismissRequest()
                 },
             ) {

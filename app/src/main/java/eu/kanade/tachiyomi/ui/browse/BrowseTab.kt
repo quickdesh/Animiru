@@ -99,7 +99,7 @@ data object BrowseTab : Tab {
         val navigator = LocalNavigator.currentOrThrow
         val sourcesScreenModel = rememberScreenModel { SourcesScreenModel() }
         val sourcesState by sourcesScreenModel.state.collectAsState()
-        val updateCount by sourcesScreenModel.sourcePreferences.extensionUpdatesCount().collectAsState()
+        val updateCount by sourcesScreenModel.sourcePreferences.extensionUpdatesCount.collectAsState()
 
         val extensionScreenModel = rememberScreenModel { ExtensionsScreenModel() }
         val extensionsState by extensionScreenModel.state.collectAsState()

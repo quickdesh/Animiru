@@ -83,7 +83,7 @@ fun GestureHandler(
     val audioPreferences = remember { Injekt.get<AudioPreferences>() }
 
     val panelShown by viewModel.panelShown.collectAsState()
-    val allowGesturesInPanels by playerPreferences.allowGestures().collectAsState()
+    val allowGesturesInPanels by playerPreferences.allowGestures.collectAsState()
     val paused by viewModel.mpv.propFlow<Boolean>("pause").collectAsState()
     val duration by viewModel.mpv.propFlow<Int>("duration").collectAsState()
     val position by viewModel.mpv.propFlow<Int>("time-pos").collectAsState()
@@ -103,16 +103,16 @@ fun GestureHandler(
         viewModel.hideSeekBar()
     }
 
-    val gestureVolumeBrightness = gesturePreferences.gestureVolumeBrightness().get()
-    val swapVolumeBrightness by gesturePreferences.swapVolumeBrightness().collectAsState()
-    val seekGesture by gesturePreferences.gestureHorizontalSeek().collectAsState()
-    val preciseSeeking by gesturePreferences.playerSmoothSeek().collectAsState()
-    val showSeekbar by gesturePreferences.showSeekBar().collectAsState()
+    val gestureVolumeBrightness = gesturePreferences.gestureVolumeBrightness.get()
+    val swapVolumeBrightness by gesturePreferences.swapVolumeBrightness.collectAsState()
+    val seekGesture by gesturePreferences.gestureHorizontalSeek.collectAsState()
+    val preciseSeeking by gesturePreferences.playerSmoothSeek.collectAsState()
+    val showSeekbar by gesturePreferences.showSeekBar.collectAsState()
     var isLongPressing by remember { mutableStateOf(false) }
     val currentVolume by viewModel.currentVolume.collectAsState()
     val currentMPVVolume by viewModel.mpv.propFlow<Int>("volume").collectAsState()
     val currentBrightness by viewModel.currentBrightness.collectAsState()
-    val volumeBoostingCap = audioPreferences.volumeBoostCap().get()
+    val volumeBoostingCap = audioPreferences.volumeBoostCap.get()
     val haptics = LocalHapticFeedback.current
 
     Box(

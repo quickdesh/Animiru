@@ -1,15 +1,16 @@
 package eu.kanade.tachiyomi.ui.player.settings
 
+import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 
 class AdvancedPlayerPreferences(
-    private val preferenceStore: PreferenceStore,
+    preferenceStore: PreferenceStore,
 ) {
-    fun mpvUserFiles() = preferenceStore.getBoolean("mpv_scripts", false)
-    fun mpvConf() = preferenceStore.getString("pref_mpv_conf", "")
-    fun mpvInput() = preferenceStore.getString("pref_mpv_input", "")
+    val mpvUserFiles: Preference<Boolean> = preferenceStore.getBoolean("mpv_scripts", false)
+    val mpvConf: Preference<String> = preferenceStore.getString("pref_mpv_conf", "")
+    val mpvInput: Preference<String> = preferenceStore.getString("pref_mpv_input", "")
 
     // Non-preference
 
-    fun playerStatisticsPage() = preferenceStore.getInt("pref_player_statistics_page", 0)
+    val playerStatisticsPage: Preference<Int> = preferenceStore.getInt("pref_player_statistics_page", 0)
 }

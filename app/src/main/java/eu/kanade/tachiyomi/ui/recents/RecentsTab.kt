@@ -151,7 +151,7 @@ data object RecentsTab : Tab {
 
 internal suspend fun openEpisode(context: Context, episode: Episode?, snackbarHostState: SnackbarHostState) {
     val playerPreferences: PlayerPreferences by injectLazy()
-    val extPlayer = playerPreferences.alwaysUseExternalPlayer().get()
+    val extPlayer = playerPreferences.alwaysUseExternalPlayer.get()
     if (episode != null) {
         MainActivity.startPlayerActivity(context, episode.animeId, episode.id, extPlayer)
     } else {

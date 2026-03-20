@@ -56,28 +56,28 @@ fun UpdatesFilterDialog(
 private fun ColumnScope.FilterSheet(
     screenModel: UpdatesSettingsScreenModel,
 ) {
-    val filterDownloaded by screenModel.updatesPreferences.filterDownloaded().collectAsState()
+    val filterDownloaded by screenModel.updatesPreferences.filterDownloaded.collectAsState()
     TriStateItem(
         label = stringResource(MR.strings.label_downloaded),
         state = filterDownloaded,
         onClick = { screenModel.toggleFilter(UpdatesPreferences::filterDownloaded) },
     )
 
-    val filterUnseen by screenModel.updatesPreferences.filterUnseen().collectAsState()
+    val filterUnseen by screenModel.updatesPreferences.filterUnseen.collectAsState()
     TriStateItem(
         label = stringResource(AMMR.strings.am_action_filter_unseen),
         state = filterUnseen,
         onClick = { screenModel.toggleFilter(UpdatesPreferences::filterUnseen) },
     )
 
-    val filterStarted by screenModel.updatesPreferences.filterStarted().collectAsState()
+    val filterStarted by screenModel.updatesPreferences.filterStarted.collectAsState()
     TriStateItem(
         label = stringResource(MR.strings.label_started),
         state = filterStarted,
         onClick = { screenModel.toggleFilter(UpdatesPreferences::filterStarted) },
     )
 
-    val filterBookmarked by screenModel.updatesPreferences.filterBookmarked().collectAsState()
+    val filterBookmarked by screenModel.updatesPreferences.filterBookmarked.collectAsState()
     TriStateItem(
         label = stringResource(MR.strings.action_filter_bookmarked),
         state = filterBookmarked,
@@ -85,7 +85,7 @@ private fun ColumnScope.FilterSheet(
     )
 
     // AM -->
-    val filterFillermarked by screenModel.updatesPreferences.filterFillermarked().collectAsState()
+    val filterFillermarked by screenModel.updatesPreferences.filterFillermarked.collectAsState()
     TriStateItem(
         label = stringResource(AMMR.strings.action_filter_fillermarked),
         state = filterFillermarked,
@@ -95,9 +95,9 @@ private fun ColumnScope.FilterSheet(
 
     HorizontalDivider(modifier = Modifier.padding(MaterialTheme.padding.small))
 
-    val filterExcludedScanlators by screenModel.updatesPreferences.filterExcludedScanlators().collectAsState()
+    val filterExcludedScanlators by screenModel.updatesPreferences.filterExcludedScanlators.collectAsState()
 
-    fun toggleScanlatorFilter() = screenModel.updatesPreferences.filterExcludedScanlators().getAndSet { !it }
+    fun toggleScanlatorFilter() = screenModel.updatesPreferences.filterExcludedScanlators.getAndSet { !it }
 
     Row(
         modifier = Modifier

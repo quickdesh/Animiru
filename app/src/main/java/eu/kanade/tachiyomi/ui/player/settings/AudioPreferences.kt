@@ -1,21 +1,22 @@
 package eu.kanade.tachiyomi.ui.player.settings
 
 import dev.icerock.moko.resources.StringResource
+import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
 import tachiyomi.i18n.aniyomi.AYMR
 
 class AudioPreferences(
-    private val preferenceStore: PreferenceStore,
+    preferenceStore: PreferenceStore,
 ) {
-    fun preferredAudioLanguages() = preferenceStore.getString("pref_audio_lang", "")
-    fun enablePitchCorrection() = preferenceStore.getBoolean("pref_audio_pitch_correction", true)
-    fun audioChannels() = preferenceStore.getEnum("pref_audio_config", AudioChannels.AutoSafe)
-    fun volumeBoostCap() = preferenceStore.getInt("pref_audio_volume_boost_cap", 30)
+    val preferredAudioLanguages: Preference<String> = preferenceStore.getString("pref_audio_lang", "")
+    val enablePitchCorrection: Preference<Boolean> = preferenceStore.getBoolean("pref_audio_pitch_correction", true)
+    val audioChannels: Preference<AudioChannels> = preferenceStore.getEnum("pref_audio_config", AudioChannels.AutoSafe)
+    val volumeBoostCap: Preference<Int> = preferenceStore.getInt("pref_audio_volume_boost_cap", 30)
 
     // Non-preferences
 
-    fun audioDelay() = preferenceStore.getInt("pref_audio_delay", 0)
+    val audioDelay: Preference<Int> = preferenceStore.getInt("pref_audio_delay", 0)
 }
 
 enum class AudioChannels(val titleRes: StringResource, val property: String, val value: String) {

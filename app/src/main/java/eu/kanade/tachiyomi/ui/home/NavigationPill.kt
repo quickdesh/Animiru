@@ -303,8 +303,8 @@ private fun NavigationIconItem(tab: Tab) {
                     // <-- AM (RECENTS)
                     val count by produceState(initialValue = 0) {
                         val pref = Injekt.get<LibraryPreferences>()
-                        pref.newUpdatesCount().changes()
-                            .collectLatest { value = if (pref.newShowUpdatesCount().get()) it else 0 }
+                        pref.newUpdatesCount.changes()
+                            .collectLatest { value = if (pref.newShowUpdatesCount.get()) it else 0 }
                     }
                     if (count > 0) {
                         Badge {
@@ -323,7 +323,7 @@ private fun NavigationIconItem(tab: Tab) {
                 BrowseTab::class.isInstance(tab) -> {
                     val count by produceState(initialValue = 0) {
                         val pref = Injekt.get<SourcePreferences>()
-                        pref.extensionUpdatesCount().changes().collectLatest { value = it }
+                        pref.extensionUpdatesCount.changes().collectLatest { value = it }
                     }
                     if (count > 0) {
                         Badge {

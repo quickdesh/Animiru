@@ -29,9 +29,9 @@ class VideoPlayerPreferenceMigration : Migration {
         }
 
         prefs.edit {
-            putString(subtitlePreferences.preferredSubLanguages().key(), subtitleData.lang.joinToString(","))
-            putString(subtitlePreferences.subtitleWhitelist().key(), subtitleData.whitelist.joinToString(","))
-            putString(subtitlePreferences.subtitleBlacklist().key(), subtitleData.blacklist.joinToString(","))
+            putString(subtitlePreferences.preferredSubLanguages.key(), subtitleData.lang.joinToString(","))
+            putString(subtitlePreferences.subtitleWhitelist.key(), subtitleData.whitelist.joinToString(","))
+            putString(subtitlePreferences.subtitleBlacklist.key(), subtitleData.blacklist.joinToString(","))
         }
 
         return true

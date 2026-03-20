@@ -149,27 +149,27 @@ enum class VideoFilters(
 ) {
     BRIGHTNESS(
         AYMR.strings.player_sheets_filters_brightness,
-        { it.brightnessFilter() },
+        { it.brightnessFilter },
         "brightness",
     ),
     SATURATION(
         AYMR.strings.player_sheets_filters_Saturation,
-        { it.saturationFilter() },
+        { it.saturationFilter },
         "saturation",
     ),
     CONTRAST(
         AYMR.strings.player_sheets_filters_contrast,
-        { it.contrastFilter() },
+        { it.contrastFilter },
         "contrast",
     ),
     GAMMA(
         AYMR.strings.player_sheets_filters_gamma,
-        { it.gammaFilter() },
+        { it.gammaFilter },
         "gamma",
     ),
     HUE(
         AYMR.strings.player_sheets_filters_hue,
-        { it.hueFilter() },
+        { it.hueFilter },
         "hue",
     ),
 }
@@ -183,28 +183,28 @@ enum class DebandSettings(
 ) {
     Iterations(
         AMMR.strings.player_sheets_deband_iterations,
-        { it.debandIterations() },
+        { it.debandIterations },
         "deband-iterations",
         0,
         16,
     ),
     Threshold(
         AMMR.strings.player_sheets_deband_threshold,
-        { it.debandThreshold() },
+        { it.debandThreshold },
         "deband-threshold",
         0,
         200,
     ),
     Range(
         AMMR.strings.player_sheets_deband_range,
-        { it.debandRange() },
+        { it.debandRange },
         "deband-range",
         1,
         64,
     ),
     Grain(
         AMMR.strings.player_sheets_deband_grain,
-        { it.debandGrain() },
+        { it.debandGrain },
         "deband-grain",
         0,
         200,

@@ -53,7 +53,7 @@ class MigrateAnimeUseCase(
     suspend operator fun invoke(current: Anime, target: Anime, replace: Boolean) {
         val targetSource = sourceManager.get(target.source) ?: return
         val currentSource = sourceManager.get(current.source)
-        val flags = sourcePreferences.migrationFlags().get()
+        val flags = sourcePreferences.migrationFlags.get()
 
         try {
             when (target.fetchType) {

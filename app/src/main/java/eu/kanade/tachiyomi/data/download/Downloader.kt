@@ -195,7 +195,7 @@ class Downloader(
         downloaderJob = scope.launch {
             val activeDownloadsFlow = combine(
                 queueState,
-                downloadPreferences.parallelSourceLimit().changes(),
+                downloadPreferences.parallelSourceLimit.changes(),
             ) { a, b -> a to b }.transformLatest { (queue, parallelCount) ->
                 while (true) {
                     val activeDownloads = queue.asSequence()
@@ -448,7 +448,7 @@ class Downloader(
                     download.progress = 0
 
                     // If videoFile is not existing then download it
-                    if (downloadPreferences.useExternalDownloader().get() == download.changeDownloader) {
+                    if (downloadPreferences.useExternalDownloader.get() == download.changeDownloader) {
                         progressJob = scope.launch {
                             while (download.status == Download.State.DOWNLOADING) {
                                 delay(50)
@@ -680,7 +680,7 @@ class Downloader(
             // TODO: support other file formats!!
             // start download with intent
             val pm = context.packageManager
-            val pkgName = downloadPreferences.externalDownloaderSelection().get()
+            val pkgName = downloadPreferences.externalDownloaderSelection.get()
             val intent: Intent
             if (pkgName.isNotEmpty()) {
                 intent = pm.getLaunchIntentForPackage(pkgName) ?: throw Exception(

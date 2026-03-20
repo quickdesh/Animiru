@@ -46,7 +46,7 @@ class SetSeenStatus(
             return@withNonCancellableContext Result.InternalError(e)
         }
 
-        if (seen && downloadPreferences.removeAfterMarkedAsSeen().get()) {
+        if (seen && downloadPreferences.removeAfterMarkedAsSeen.get()) {
             episodesToUpdate
                 .groupBy { it.animeId }
                 .forEach { (animeId, episodes) ->

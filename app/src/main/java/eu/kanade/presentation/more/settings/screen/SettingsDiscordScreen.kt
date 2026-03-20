@@ -59,8 +59,8 @@ object SettingsDiscordScreen : SearchableSettings {
         val navigator = LocalNavigator.currentOrThrow
         val connectionPreferences = remember { Injekt.get<ConnectionPreferences>() }
         val connectionManager = remember { Injekt.get<ConnectionManager>() }
-        val enableDRPCPref = connectionPreferences.enableDiscordRPC()
-        val discordRPCStatus = connectionPreferences.discordRPCStatus()
+        val enableDRPCPref = connectionPreferences.enableDiscordRPC
+        val discordRPCStatus = connectionPreferences.discordRPCStatus
 
         val enableDRPC by enableDRPCPref.collectAsState()
 
@@ -127,8 +127,8 @@ object SettingsDiscordScreen : SearchableSettings {
             },
         )
 
-        val discordRPCIncognitoPref = connectionPreferences.discordRPCIncognito()
-        val discordRPCIncognitoCategoriesPref = connectionPreferences.discordRPCIncognitoCategories()
+        val discordRPCIncognitoPref = connectionPreferences.discordRPCIncognito
+        val discordRPCIncognitoCategoriesPref = connectionPreferences.discordRPCIncognitoCategories
 
         val includedAnime by discordRPCIncognitoCategoriesPref.collectAsState()
         var showAnimeDialog by rememberSaveable { mutableStateOf(false) }

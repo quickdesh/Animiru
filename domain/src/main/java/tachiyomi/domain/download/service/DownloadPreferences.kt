@@ -1,52 +1,67 @@
 package tachiyomi.domain.download.service
 
+import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 
 class DownloadPreferences(
-    private val preferenceStore: PreferenceStore,
+    preferenceStore: PreferenceStore,
 ) {
 
-    fun downloadOnlyOverWifi() = preferenceStore.getBoolean(
+    val downloadOnlyOverWifi: Preference<Boolean> = preferenceStore.getBoolean(
         "pref_download_only_over_wifi_key",
         true,
     )
 
     // AY -->
-    fun useExternalDownloader() = preferenceStore.getBoolean("use_external_downloader", false)
+    val useExternalDownloader: Preference<Boolean> = preferenceStore.getBoolean("use_external_downloader", false)
 
-    fun externalDownloaderSelection() = preferenceStore.getString(
+    val externalDownloaderSelection: Preference<String> = preferenceStore.getString(
         "external_downloader_selection",
         "",
     )
     // <-- AY
 
-    fun autoDownloadWhileWatching() = preferenceStore.getInt("auto_download_while_watching", 0)
+    val autoDownloadWhileWatching: Preference<Int> = preferenceStore.getInt("auto_download_while_watching", 0)
 
-    fun removeAfterSeenSlots() = preferenceStore.getInt("remove_after_seen_slots", -1)
+    val removeAfterSeenSlots: Preference<Int> = preferenceStore.getInt("remove_after_seen_slots", -1)
 
-    fun removeAfterMarkedAsSeen() = preferenceStore.getBoolean(
+    val removeAfterMarkedAsSeen: Preference<Boolean> = preferenceStore.getBoolean(
         "pref_remove_after_marked_as_seen_key",
         false,
     )
 
-    fun removeBookmarkedEpisodes() = preferenceStore.getBoolean("pref_remove_bookmarked", false)
+    val removeBookmarkedEpisodes: Preference<Boolean> = preferenceStore.getBoolean("pref_remove_bookmarked", false)
 
     // AY -->
-    fun downloadFillermarkedEpisodes() = preferenceStore.getBoolean("pref_no_download_fillermarked", false)
+    val downloadFillermarkedEpisodes: Preference<Boolean> = preferenceStore.getBoolean(
+        "pref_no_download_fillermarked",
+        false,
+    )
     // <-- AY
 
-    fun removeExcludeCategories() = preferenceStore.getStringSet(REMOVE_EXCLUDE_CATEGORIES_PREF_KEY, emptySet())
+    val removeExcludeCategories: Preference<Set<String>> = preferenceStore.getStringSet(
+        REMOVE_EXCLUDE_CATEGORIES_PREF_KEY,
+        emptySet(),
+    )
 
-    fun downloadNewEpisodes() = preferenceStore.getBoolean("download_new_episode", false)
+    val downloadNewEpisodes: Preference<Boolean> = preferenceStore.getBoolean("download_new_episode", false)
 
-    fun downloadNewEpisodeCategories() = preferenceStore.getStringSet(DOWNLOAD_NEW_CATEGORIES_PREF_KEY, emptySet())
+    val downloadNewEpisodeCategories: Preference<Set<String>> = preferenceStore.getStringSet(
+        DOWNLOAD_NEW_CATEGORIES_PREF_KEY,
+        emptySet(),
+    )
 
-    fun downloadNewEpisodeCategoriesExclude() =
-        preferenceStore.getStringSet(DOWNLOAD_NEW_CATEGORIES_EXCLUDE_PREF_KEY, emptySet())
+    val downloadNewEpisodeCategoriesExclude: Preference<Set<String>> = preferenceStore.getStringSet(
+        DOWNLOAD_NEW_CATEGORIES_EXCLUDE_PREF_KEY,
+        emptySet(),
+    )
 
-    fun downloadNewUnseenEpisodesOnly() = preferenceStore.getBoolean("download_new_unseen_episodes_only", false)
+    val downloadNewUnseenEpisodesOnly: Preference<Boolean> = preferenceStore.getBoolean(
+        "download_new_unseen_episodes_only",
+        false,
+    )
 
-    fun parallelSourceLimit() = preferenceStore.getInt("download_parallel_source_limit", 5)
+    val parallelSourceLimit: Preference<Int> = preferenceStore.getInt("download_parallel_source_limit", 5)
 
     companion object {
         private const val REMOVE_EXCLUDE_CATEGORIES_PREF_KEY = "remove_exclude_categories"

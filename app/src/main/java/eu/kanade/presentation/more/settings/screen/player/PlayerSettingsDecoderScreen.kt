@@ -23,10 +23,10 @@ object PlayerSettingsDecoderScreen : SearchableSettings {
     override fun getPreferences(): List<Preference> {
         val decoderPreferences = remember { Injekt.get<DecoderPreferences>() }
 
-        val tryHw = decoderPreferences.tryHWDecoding()
-        val useGpuNext = decoderPreferences.gpuNext()
-        val debanding = decoderPreferences.debanding()
-        val yuv420p = decoderPreferences.useYUV420P()
+        val tryHw = decoderPreferences.tryHWDecoding
+        val useGpuNext = decoderPreferences.gpuNext
+        val debanding = decoderPreferences.debanding
+        val yuv420p = decoderPreferences.useYUV420P
 
         return listOf(
             Preference.PreferenceItem.SwitchPreference(

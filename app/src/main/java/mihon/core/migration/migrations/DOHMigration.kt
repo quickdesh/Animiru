@@ -20,7 +20,7 @@ class DOHMigration : Migration {
         val wasDohEnabled = prefs.getBoolean("enable_doh", false)
         if (wasDohEnabled) {
             prefs.edit {
-                putInt(networkPreferences.dohProvider().key(), PREF_DOH_CLOUDFLARE)
+                putInt(networkPreferences.dohProvider.key(), PREF_DOH_CLOUDFLARE)
                 remove("enable_doh")
             }
         }

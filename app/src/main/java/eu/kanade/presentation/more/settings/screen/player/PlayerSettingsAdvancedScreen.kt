@@ -25,9 +25,9 @@ object PlayerSettingsAdvancedScreen : SearchableSettings {
         val scope = rememberCoroutineScope()
         val context = LocalContext.current
 
-        val enableUserFiles = advancedPlayerPreferences.mpvUserFiles()
-        val mpvConf = advancedPlayerPreferences.mpvConf()
-        val mpvInput = advancedPlayerPreferences.mpvInput()
+        val enableUserFiles = advancedPlayerPreferences.mpvUserFiles
+        val mpvConf = advancedPlayerPreferences.mpvConf
+        val mpvInput = advancedPlayerPreferences.mpvInput
 
         return listOf(
             Preference.PreferenceItem.SwitchPreference(

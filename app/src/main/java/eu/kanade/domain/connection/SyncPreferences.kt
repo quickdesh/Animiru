@@ -11,28 +11,31 @@ class SyncPreferences(
     private val preferenceStore: PreferenceStore,
 ) {
     // AM (SYNC_YOMI) -->
-    fun clientHost() = preferenceStore.getString("connection_sync_client_host", "https://sync.animiru.net")
-    fun clientAPIKey() = preferenceStore.getString("connection_sync_client_api_key", "")
+    val clientHost: Preference<String> = preferenceStore.getString(
+        "connection_sync_client_host",
+        "https://sync.animiru.net",
+    )
+    val clientAPIKey: Preference<String> = preferenceStore.getString("connection_sync_client_api_key", "")
     // <-- AM (SYNC_YOMI)
 
-    fun lastSyncTimestamp() = preferenceStore.getLong(Preference.appStateKey("last_sync_timestamp"), 0L)
+    val lastSyncTimestamp: Preference<Long> = preferenceStore.getLong(Preference.appStateKey("last_sync_timestamp"), 0L)
 
-    fun lastSyncEtag() = preferenceStore.getString("sync_etag", "")
+    val lastSyncEtag: Preference<String> = preferenceStore.getString("sync_etag", "")
 
-    fun syncInterval() = preferenceStore.getInt("sync_interval", 0)
+    val syncInterval: Preference<Int> = preferenceStore.getInt("sync_interval", 0)
 
     // AM (SYNC_DRIVE) -->
-    fun googleDriveAccessToken() = preferenceStore.getString(
+    val googleDriveAccessToken: Preference<String> = preferenceStore.getString(
         Preference.appStateKey("connection_google_drive_access_token"),
         "",
     )
-    fun googleDriveRefreshToken() = preferenceStore.getString(
+    val googleDriveRefreshToken: Preference<String> = preferenceStore.getString(
         Preference.appStateKey("connection_google_drive_refresh_token"),
         "",
     )
     // <-- AM (SYNC_DRIVE)
 
-    fun isSyncEnabled() = googleDriveRefreshToken().get().isNotBlank() || clientAPIKey().get().isNotBlank()
+    fun isSyncEnabled() = googleDriveRefreshToken.get().isNotBlank() || clientAPIKey.get().isNotBlank()
 
     fun uniqueDeviceID(): String {
         val uniqueIDPreference = preferenceStore.getString("unique_device_id", "")

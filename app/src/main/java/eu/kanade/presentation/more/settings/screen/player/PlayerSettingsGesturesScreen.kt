@@ -51,8 +51,8 @@ object PlayerSettingsGesturesScreen : SearchableSettings {
 
     @Composable
     private fun getSlidersGroup(gesturePreferences: GesturePreferences): Preference.PreferenceGroup {
-        val enableVolumeBrightnessGestures = gesturePreferences.gestureVolumeBrightness()
-        val swapVol = gesturePreferences.swapVolumeBrightness()
+        val enableVolumeBrightnessGestures = gesturePreferences.gestureVolumeBrightness
+        val swapVol = gesturePreferences.swapVolumeBrightness
 
         return Preference.PreferenceGroup(
             title = stringResource(AYMR.strings.pref_category_player_sliders),
@@ -72,11 +72,11 @@ object PlayerSettingsGesturesScreen : SearchableSettings {
     @Composable
     private fun getSeekingGroup(gesturePreferences: GesturePreferences): Preference.PreferenceGroup {
         val scope = rememberCoroutineScope()
-        val enableHorizontalSeekGesture = gesturePreferences.gestureHorizontalSeek()
-        val showSeekbar = gesturePreferences.showSeekBar()
-        val defaultSkipIntroLength by gesturePreferences.defaultIntroLength().stateIn(scope).collectAsState()
-        val skipLengthPreference = gesturePreferences.skipLengthPreference()
-        val playerSmoothSeek = gesturePreferences.playerSmoothSeek()
+        val enableHorizontalSeekGesture = gesturePreferences.gestureHorizontalSeek
+        val showSeekbar = gesturePreferences.showSeekBar
+        val defaultSkipIntroLength by gesturePreferences.defaultIntroLength.stateIn(scope).collectAsState()
+        val skipLengthPreference = gesturePreferences.skipLengthPreference
+        val playerSmoothSeek = gesturePreferences.playerSmoothSeek
 
         var showDialog by rememberSaveable { mutableStateOf(false) }
         if (showDialog) {
@@ -84,7 +84,7 @@ object PlayerSettingsGesturesScreen : SearchableSettings {
                 initialSkipIntroLength = defaultSkipIntroLength,
                 onDismissRequest = { showDialog = false },
                 onValueChanged = { skipIntroLength ->
-                    gesturePreferences.defaultIntroLength().set(skipIntroLength)
+                    gesturePreferences.defaultIntroLength.set(skipIntroLength)
                     showDialog = false
                 },
             )
@@ -130,9 +130,9 @@ object PlayerSettingsGesturesScreen : SearchableSettings {
 
     @Composable
     private fun getDoubleTapGroup(gesturePreferences: GesturePreferences): Preference.PreferenceGroup {
-        val leftDoubleTap = gesturePreferences.leftDoubleTapGesture()
-        val centerDoubleTap = gesturePreferences.centerDoubleTapGesture()
-        val rightDoubleTap = gesturePreferences.rightDoubleTapGesture()
+        val leftDoubleTap = gesturePreferences.leftDoubleTapGesture
+        val centerDoubleTap = gesturePreferences.centerDoubleTapGesture
+        val rightDoubleTap = gesturePreferences.rightDoubleTapGesture
 
         return Preference.PreferenceGroup(
             title = stringResource(AYMR.strings.pref_category_double_tap),
@@ -177,9 +177,9 @@ object PlayerSettingsGesturesScreen : SearchableSettings {
 
     @Composable
     private fun getMediaControlsGroup(gesturePreferences: GesturePreferences): Preference.PreferenceGroup {
-        val mediaPrevious = gesturePreferences.mediaPreviousGesture()
-        val mediaPlayPause = gesturePreferences.mediaPlayPauseGesture()
-        val mediaNext = gesturePreferences.mediaNextGesture()
+        val mediaPrevious = gesturePreferences.mediaPreviousGesture
+        val mediaPlayPause = gesturePreferences.mediaPlayPauseGesture
+        val mediaNext = gesturePreferences.mediaNextGesture
 
         return Preference.PreferenceGroup(
             title = stringResource(AYMR.strings.pref_category_media_controls),

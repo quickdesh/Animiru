@@ -449,7 +449,7 @@ class DownloadManager(
 
     private suspend fun getEpisodesToDelete(episodes: List<Episode>, anime: Anime): List<Episode> {
         // Retrieve the categories that are set to exclude from being deleted on read
-        val categoriesToExclude = downloadPreferences.removeExcludeCategories().get().map(String::toLong)
+        val categoriesToExclude = downloadPreferences.removeExcludeCategories.get().map(String::toLong)
 
         val categoriesForAnime = getCategories.await(anime.id)
             .map { it.id }
@@ -460,7 +460,7 @@ class DownloadManager(
             episodes
         }
 
-        return if (!downloadPreferences.removeBookmarkedEpisodes().get()) {
+        return if (!downloadPreferences.removeBookmarkedEpisodes.get()) {
             filteredCategoryAnime.filterNot { it.bookmark }
         } else {
             filteredCategoryAnime
@@ -469,7 +469,7 @@ class DownloadManager(
 
     // AY -->
     private fun getEpisodesToDownload(episodes: List<Episode>): List<Episode> {
-        return if (!downloadPreferences.downloadFillermarkedEpisodes().get()) {
+        return if (!downloadPreferences.downloadFillermarkedEpisodes.get()) {
             episodes.filterNot { it.fillermark }
         } else {
             episodes

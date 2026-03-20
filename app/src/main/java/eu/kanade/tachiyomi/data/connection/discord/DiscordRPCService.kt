@@ -42,7 +42,7 @@ class DiscordRPCService : Service() {
     override fun onCreate() {
         super.onCreate()
         val token = connectionPreferences.connectionToken(connectionManager.discord).get()
-        val status = when (connectionPreferences.discordRPCStatus().get()) {
+        val status = when (connectionPreferences.discordRPCStatus.get()) {
             -1 -> "dnd"
             0 -> "idle"
             else -> "online"
@@ -54,7 +54,7 @@ class DiscordRPCService : Service() {
             }
             notification(this)
         } else {
-            connectionPreferences.enableDiscordRPC().set(false)
+            connectionPreferences.enableDiscordRPC.set(false)
         }
     }
 
@@ -103,7 +103,7 @@ class DiscordRPCService : Service() {
 
         fun start(context: Context) {
             handler.removeCallbacksAndMessages(null)
-            if (rpc == null && connectionPreferences.enableDiscordRPC().get()) {
+            if (rpc == null && connectionPreferences.enableDiscordRPC.get()) {
                 since = System.currentTimeMillis()
                 context.startService(Intent(context, DiscordRPCService::class.java))
             }
@@ -168,8 +168,8 @@ class DiscordRPCService : Service() {
                 .map { it.id.toString() }
                 .run { ifEmpty { plus(UNCATEGORIZED_ID.toString()) } }
 
-            val discordIncognitoMode = connectionPreferences.discordRPCIncognito().get()
-            val incognitoCategories = connectionPreferences.discordRPCIncognitoCategories().get()
+            val discordIncognitoMode = connectionPreferences.discordRPCIncognito.get()
+            val incognitoCategories = connectionPreferences.discordRPCIncognitoCategories.get()
 
             val incognitoCategory = animeCategoryIds.fastAny {
                 it in incognitoCategories

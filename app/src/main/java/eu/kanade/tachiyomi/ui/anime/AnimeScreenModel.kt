@@ -197,29 +197,29 @@ class AnimeScreenModel(
     private val filteredEpisodes: List<EpisodeList.Item>?
         get() = successState?.processedEpisodes
 
-    val episodeSwipeStartAction = libraryPreferences.swipeToEndAction().get()
-    val episodeSwipeEndAction = libraryPreferences.swipeToStartAction().get()
-    var autoTrackState = trackPreferences.autoUpdateTrackOnMarkSeen().get()
+    val episodeSwipeStartAction = libraryPreferences.swipeToEndAction.get()
+    val episodeSwipeEndAction = libraryPreferences.swipeToStartAction.get()
+    var autoTrackState = trackPreferences.autoUpdateTrackOnMarkSeen.get()
 
     val isUpdateIntervalEnabled =
-        LibraryPreferences.ANIME_OUTSIDE_RELEASE_PERIOD in libraryPreferences.autoUpdateAnimeRestrictions().get()
+        LibraryPreferences.ANIME_OUTSIDE_RELEASE_PERIOD in libraryPreferences.autoUpdateAnimeRestrictions.get()
 
     private val selectedPositions: Array<Int> = arrayOf(-1, -1) // first and last selected index in list
     private val selectedEpisodeIds: HashSet<Long> = HashSet()
 
     // AY -->
-    val showNextEpisodeAirTime = trackPreferences.showNextEpisodeAiringTime().get()
-    val alwaysUseExternalPlayer = playerPreferences.alwaysUseExternalPlayer().get()
-    val useExternalDownloader = downloadPreferences.useExternalDownloader().get()
+    val showNextEpisodeAirTime = trackPreferences.showNextEpisodeAiringTime.get()
+    val alwaysUseExternalPlayer = playerPreferences.alwaysUseExternalPlayer.get()
+    val useExternalDownloader = downloadPreferences.useExternalDownloader.get()
 
     internal var isFromChangeCategory: Boolean = false
 
     internal val autoOpenTrack: Boolean
-        get() = successState?.hasLoggedInTrackers == true && trackPreferences.trackOnAddingToLibrary().get()
+        get() = successState?.hasLoggedInTrackers == true && trackPreferences.trackOnAddingToLibrary.get()
     // <-- AY
 
     // AM (FILE_SIZE) -->
-    val showFileSize = storagePreferences.showEpisodeFileSize().get()
+    val showFileSize = storagePreferences.showEpisodeFileSize.get()
     // <-- AM (FILE_SIZE)
 
     /**
@@ -326,7 +326,7 @@ class AnimeScreenModel(
                     isRefreshingData = needRefreshInfo || needRefreshEpisode || needRefreshSeason,
                     // <-- AY
                     dialog = null,
-                    hideMissingEpisodes = libraryPreferences.hideMissingEpisodes().get(),
+                    hideMissingEpisodes = libraryPreferences.hideMissingEpisodes.get(),
                 )
             }
 
@@ -374,13 +374,13 @@ class AnimeScreenModel(
 
     // AM -->
     private suspend fun syncTrackers() {
-        if (!trackPreferences.syncEnhancedTrackers().get()) return
+        if (!trackPreferences.syncEnhancedTrackers.get()) return
         val state = successState ?: return
         updateSuccessState { it.copy(isSyncingTrackers = true) }
 
         when (state.anime.fetchType) {
             FetchType.Seasons -> {
-                if (trackPreferences.smartTrackerSync().get()) {
+                if (trackPreferences.smartTrackerSync.get()) {
                     seasons@ for (s in state.seasons) {
                         refreshTrackers(animeId = s.seasonAnime.id, enhancedOnly = true, skipCompleted = true)
                             .filterIsInstance<RefreshResult.Success>()
@@ -549,7 +549,7 @@ class AnimeScreenModel(
 
                 // Now check if user previously set categories, when available
                 val categories = getCategories()
-                val defaultCategoryId = libraryPreferences.defaultCategory().get().toLong()
+                val defaultCategoryId = libraryPreferences.defaultCategory.get().toLong()
                 val defaultCategory = categories.find { it.id == defaultCategoryId }
                 when {
                     // Default category set
@@ -842,7 +842,7 @@ class AnimeScreenModel(
                     state.source,
                 )
 
-                if (libraryPreferences.updateSeasonOnRefresh().get()) {
+                if (libraryPreferences.updateSeasonOnRefresh.get()) {
                     fetchEpisodesFromSeasons(newSeasons, manualFetch)
                 }
             }

@@ -16,10 +16,10 @@ class SplitPreferencesMigration : Migration {
         val uiPreferences = migrationContext.get<UiPreferences>() ?: return false
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
-        if (uiPreferences.themeMode().isSet()) {
+        if (uiPreferences.themeMode.isSet()) {
             prefs.edit {
-                val themeMode = prefs.getString(uiPreferences.themeMode().key(), null) ?: return@edit
-                putString(uiPreferences.themeMode().key(), themeMode.uppercase())
+                val themeMode = prefs.getString(uiPreferences.themeMode.key(), null) ?: return@edit
+                putString(uiPreferences.themeMode.key(), themeMode.uppercase())
             }
         }
 

@@ -203,9 +203,9 @@ val panelCardsColors: @Composable () -> CardColors = {
 
     val colors = CardDefaults.cardColors()
     colors.copy(
-        containerColor = MaterialTheme.colorScheme.surface.copy(playerPreferences.panelOpacity().get() / 100f),
+        containerColor = MaterialTheme.colorScheme.surface.copy(playerPreferences.panelOpacity.get() / 100f),
         disabledContainerColor = MaterialTheme.colorScheme.surfaceDim.copy(
-            playerPreferences.panelOpacity().get() / 100f,
+            playerPreferences.panelOpacity.get() / 100f,
         ),
     )
 }

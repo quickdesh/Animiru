@@ -21,8 +21,8 @@ class MovePlayerPreferencesMigration : Migration {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
         listOf(
-            playerPreferences.defaultPlayerOrientationType(),
-            gesturePreferences.skipLengthPreference(),
+            playerPreferences.defaultPlayerOrientationType,
+            gesturePreferences.skipLengthPreference,
         ).forEach { pref ->
             if (pref.isSet()) {
                 prefs.edit {

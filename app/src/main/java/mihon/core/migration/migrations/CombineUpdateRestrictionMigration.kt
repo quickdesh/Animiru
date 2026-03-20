@@ -22,7 +22,7 @@ class CombineUpdateRestrictionMigration : Migration {
             true,
         )
         if (!oldUpdateOngoingOnly) {
-            libraryPreferences.autoUpdateAnimeRestrictions() -= ANIME_NON_COMPLETED
+            libraryPreferences.autoUpdateAnimeRestrictions -= ANIME_NON_COMPLETED
         }
 
         return true

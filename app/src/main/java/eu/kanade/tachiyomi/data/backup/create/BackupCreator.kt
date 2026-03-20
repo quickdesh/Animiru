@@ -122,7 +122,7 @@ class BackupCreator(
             BackupFileValidator(context).validate(fileUri)
 
             if (isAutoBackup) {
-                backupPreferences.lastAutoBackupTimestamp().set(Instant.now().toEpochMilli())
+                backupPreferences.lastAutoBackupTimestamp.set(Instant.now().toEpochMilli())
             }
 
             return fileUri.toString()

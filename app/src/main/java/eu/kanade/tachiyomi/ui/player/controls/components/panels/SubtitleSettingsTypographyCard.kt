@@ -105,7 +105,7 @@ fun SubtitleSettingsTypographyCard(
     var isExpanded by remember { mutableStateOf(true) }
 
     val fontsDir = storageManager.getFontsDirectory()
-    val fonts by remember { mutableStateOf(mutableListOf(preferences.subtitleFont().defaultValue())) }
+    val fonts by remember { mutableStateOf(mutableListOf(preferences.subtitleFont.defaultValue())) }
     var fontsLoadingIndicator: (@Composable () -> Unit)? by remember {
         val indicator: (@Composable () -> Unit) = {
             CircularProgressIndicator(Modifier.size(32.dp))
@@ -293,14 +293,14 @@ fun resetTypography(
     mpv: MPV,
     preferences: SubtitlePreferences,
 ) {
-    mpv.setPropertyBoolean("sub-bold", preferences.boldSubtitles().deleteAndGet())
-    mpv.setPropertyBoolean("sub-italic", preferences.italicSubtitles().deleteAndGet())
-    mpv.setPropertyString("sub-justify", preferences.subtitleJustification().deleteAndGet().value)
-    mpv.setPropertyString("sub-font", preferences.subtitleFont().deleteAndGet())
-    mpv.setPropertyInt("sub-font-size", preferences.subtitleFontSize().deleteAndGet())
-    mpv.setPropertyInt("sub-outline-size", preferences.subtitleBorderSize().deleteAndGet())
-    mpv.setPropertyInt("sub-shadow-offset", preferences.shadowOffsetSubtitles().deleteAndGet())
-    mpv.setPropertyString("sub-border-style", preferences.borderStyleSubtitles().deleteAndGet().value)
+    mpv.setPropertyBoolean("sub-bold", preferences.boldSubtitles.deleteAndGet())
+    mpv.setPropertyBoolean("sub-italic", preferences.italicSubtitles.deleteAndGet())
+    mpv.setPropertyString("sub-justify", preferences.subtitleJustification.deleteAndGet().value)
+    mpv.setPropertyString("sub-font", preferences.subtitleFont.deleteAndGet())
+    mpv.setPropertyInt("sub-font-size", preferences.subtitleFontSize.deleteAndGet())
+    mpv.setPropertyInt("sub-outline-size", preferences.subtitleBorderSize.deleteAndGet())
+    mpv.setPropertyInt("sub-shadow-offset", preferences.shadowOffsetSubtitles.deleteAndGet())
+    mpv.setPropertyString("sub-border-style", preferences.borderStyleSubtitles.deleteAndGet().value)
 }
 
 enum class SubtitlesBorderStyle(

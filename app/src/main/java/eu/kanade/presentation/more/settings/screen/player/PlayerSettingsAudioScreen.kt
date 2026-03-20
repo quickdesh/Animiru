@@ -27,10 +27,10 @@ object PlayerSettingsAudioScreen : SearchableSettings {
     override fun getPreferences(): List<Preference> {
         val audioPreferences = remember { Injekt.get<AudioPreferences>() }
 
-        val prefLangs = audioPreferences.preferredAudioLanguages()
-        val pitchCorrection = audioPreferences.enablePitchCorrection()
-        val audioChannels = audioPreferences.audioChannels()
-        val boostCapPref = audioPreferences.volumeBoostCap()
+        val prefLangs = audioPreferences.preferredAudioLanguages
+        val pitchCorrection = audioPreferences.enablePitchCorrection
+        val audioChannels = audioPreferences.audioChannels
+        val boostCapPref = audioPreferences.volumeBoostCap
         val boostCap by boostCapPref.collectAsState()
 
         return listOf(

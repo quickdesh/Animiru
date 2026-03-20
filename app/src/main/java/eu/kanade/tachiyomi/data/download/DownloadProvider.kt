@@ -145,7 +145,7 @@ class DownloadProvider(
     fun getSourceDirName(source: AnimeSource): String {
         return DiskUtil.buildValidFilename(
             source.toString(),
-            disallowNonAscii = libraryPreferences.disallowNonAsciiFilenames().get(),
+            disallowNonAscii = libraryPreferences.disallowNonAsciiFilenames.get(),
         )
     }
 
@@ -157,7 +157,7 @@ class DownloadProvider(
     fun getAnimeDirName(animeTitle: String): String {
         return DiskUtil.buildValidFilename(
             animeTitle,
-            disallowNonAscii = libraryPreferences.disallowNonAsciiFilenames().get(),
+            disallowNonAscii = libraryPreferences.disallowNonAsciiFilenames.get(),
         )
     }
 
@@ -172,7 +172,7 @@ class DownloadProvider(
         episodeName: String,
         episodeScanlator: String?,
         episodeUrl: String,
-        disallowNonAsciiFilenames: Boolean = libraryPreferences.disallowNonAsciiFilenames().get(),
+        disallowNonAsciiFilenames: Boolean = libraryPreferences.disallowNonAsciiFilenames.get(),
     ): String {
         var dirName = sanitizeEpisodeName(episodeName)
         if (!episodeScanlator.isNullOrBlank()) {
@@ -224,7 +224,7 @@ class DownloadProvider(
                 episodeName,
                 episodeScanlator,
                 episodeUrl,
-                !libraryPreferences.disallowNonAsciiFilenames().get(),
+                !libraryPreferences.disallowNonAsciiFilenames.get(),
             )
 
         return buildList(3) {

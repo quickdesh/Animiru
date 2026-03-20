@@ -104,7 +104,7 @@ data class TrackInfoDialogHomeScreen(
         val context = LocalContext.current
         val screenModel = rememberScreenModel { Model(animeId, sourceId, isSeason) }
 
-        val dateFormat = remember { UiPreferences.dateFormat(Injekt.get<UiPreferences>().dateFormat().get()) }
+        val dateFormat = remember { UiPreferences.dateFormat(Injekt.get<UiPreferences>().dateFormat.get()) }
         val state by screenModel.state.collectAsState()
 
         TrackInfoDialogHome(

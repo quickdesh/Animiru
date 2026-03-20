@@ -76,10 +76,10 @@ class UpdatesScreenModel(
     private val _events: Channel<Event> = Channel(Int.MAX_VALUE)
     val events: Flow<Event> = _events.receiveAsFlow()
 
-    val lastUpdated by libraryPreferences.lastUpdatedTimestamp().asState(screenModelScope)
+    val lastUpdated by libraryPreferences.lastUpdatedTimestamp.asState(screenModelScope)
 
     // AY -->
-    val useExternalDownloader = downloadPreferences.useExternalDownloader().get()
+    val useExternalDownloader = downloadPreferences.useExternalDownloader.get()
     // <-- AY
 
     // First and last selected index in list
@@ -466,17 +466,17 @@ class UpdatesScreenModel(
     }
 
     fun resetNewUpdatesCount() {
-        libraryPreferences.newUpdatesCount().set(0)
+        libraryPreferences.newUpdatesCount.set(0)
     }
 
     private fun getUpdatesItemPreferenceFlow(): Flow<ItemPreferences> {
         return eu.kanade.core.util.combine(
-            updatesPreferences.filterDownloaded().changes(),
-            updatesPreferences.filterUnseen().changes(),
-            updatesPreferences.filterStarted().changes(),
-            updatesPreferences.filterBookmarked().changes(),
-            updatesPreferences.filterFillermarked().changes(),
-            updatesPreferences.filterExcludedScanlators().changes(),
+            updatesPreferences.filterDownloaded.changes(),
+            updatesPreferences.filterUnseen.changes(),
+            updatesPreferences.filterStarted.changes(),
+            updatesPreferences.filterBookmarked.changes(),
+            updatesPreferences.filterFillermarked.changes(),
+            updatesPreferences.filterExcludedScanlators.changes(),
         ) { downloaded, unseen, started, bookmarked, fillermarked, excludedScanlators ->
             ItemPreferences(
                 filterDownloaded = downloaded,

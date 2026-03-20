@@ -17,15 +17,15 @@ class PlayerPreferenceMigration : Migration {
         val playerPreferences = migrationContext.get<PlayerPreferences>() ?: return false
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
-        if (playerPreferences.progressPreference().isSet()) {
+        if (playerPreferences.progressPreference.isSet()) {
             prefs.edit {
                 val progressString = try {
-                    prefs.getString(playerPreferences.progressPreference().key(), null)
+                    prefs.getString(playerPreferences.progressPreference.key(), null)
                 } catch (e: ClassCastException) {
                     null
                 } ?: return@edit
                 val newProgress = progressString.toFloatOrNull() ?: return@edit
-                putFloat(playerPreferences.progressPreference().key(), newProgress)
+                putFloat(playerPreferences.progressPreference.key(), newProgress)
             }
         }
 

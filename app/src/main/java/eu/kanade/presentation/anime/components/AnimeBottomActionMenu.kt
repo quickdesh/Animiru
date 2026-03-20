@@ -219,7 +219,7 @@ fun AnimeBottomActionMenu(
                 }
 
                 // AY -->
-                if (onExternalClicked != null && !playerPreferences.alwaysUseExternalPlayer().get()) {
+                if (onExternalClicked != null && !playerPreferences.alwaysUseExternalPlayer.get()) {
                     Button(
                         title = stringResource(AYMR.strings.action_play_externally),
                         icon = Icons.AutoMirrored.Outlined.OpenInNew,
@@ -228,7 +228,7 @@ fun AnimeBottomActionMenu(
                         onClick = onExternalClicked,
                     )
                 }
-                if (onInternalClicked != null && playerPreferences.alwaysUseExternalPlayer().get()) {
+                if (onInternalClicked != null && playerPreferences.alwaysUseExternalPlayer.get()) {
                     Button(
                         title = stringResource(AYMR.strings.action_play_internally),
                         icon = Icons.AutoMirrored.Outlined.Input,

@@ -12,8 +12,8 @@ class AddAllLangMigration : Migration {
     override suspend fun invoke(migrationContext: MigrationContext): Boolean {
         val sourcePreferences = migrationContext.get<SourcePreferences>() ?: return false
 
-        if (sourcePreferences.enabledLanguages().isSet()) {
-            sourcePreferences.enabledLanguages() += "all"
+        if (sourcePreferences.enabledLanguages.isSet()) {
+            sourcePreferences.enabledLanguages += "all"
         }
 
         return true

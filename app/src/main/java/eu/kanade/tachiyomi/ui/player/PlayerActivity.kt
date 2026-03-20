@@ -135,7 +135,7 @@ class PlayerActivity : BaseActivity() {
     private var pipRect: Rect? = null
     val isPipSupportedAndEnabled by lazy {
         packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) &&
-            playerPreferences.enablePip().get()
+            playerPreferences.enablePip.get()
     }
 
     private var pipReceiver: BroadcastReceiver? = null
@@ -322,7 +322,7 @@ class PlayerActivity : BaseActivity() {
                         viewModel = viewModel,
                         onBackPress = {
                             if (isPipSupportedAndEnabled && viewModel.paused == false &&
-                                playerPreferences.pipOnExit().get()
+                                playerPreferences.pipOnExit.get()
                             ) {
                                 enterPictureInPictureMode(createPipParams())
                             } else {
@@ -383,8 +383,8 @@ class PlayerActivity : BaseActivity() {
 
     override fun onStop() {
         window.attributes.screenBrightness.let {
-            if (playerPreferences.rememberPlayerBrightness().get() && it != -1f) {
-                playerPreferences.playerBrightnessValue().set(it)
+            if (playerPreferences.rememberPlayerBrightness.get() && it != -1f) {
+                playerPreferences.playerBrightnessValue.set(it)
             }
         }
 
@@ -396,7 +396,7 @@ class PlayerActivity : BaseActivity() {
     }
 
     override fun onUserLeaveHint() {
-        if (isPipSupportedAndEnabled && viewModel.paused == false && playerPreferences.pipOnExit().get()) {
+        if (isPipSupportedAndEnabled && viewModel.paused == false && playerPreferences.pipOnExit.get()) {
             enterPictureInPictureMode()
         }
         super.onUserLeaveHint()
@@ -404,7 +404,7 @@ class PlayerActivity : BaseActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (isPipSupportedAndEnabled && viewModel.paused == false && playerPreferences.pipOnExit().get()) {
+        if (isPipSupportedAndEnabled && viewModel.paused == false && playerPreferences.pipOnExit.get()) {
             if (viewModel.sheetShown.value == Sheets.None &&
                 viewModel.panelShown.value == Panels.None &&
                 viewModel.dialogShown.value == Dialogs.None
@@ -435,15 +435,15 @@ class PlayerActivity : BaseActivity() {
         windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.attributes.layoutInDisplayCutoutMode = if (playerPreferences.playerFullscreen().get()) {
+            window.attributes.layoutInDisplayCutoutMode = if (playerPreferences.playerFullscreen.get()) {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             } else {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
             }
         }
 
-        if (playerPreferences.rememberPlayerBrightness().get()) {
-            playerPreferences.playerBrightnessValue().get().let {
+        if (playerPreferences.rememberPlayerBrightness.get()) {
+            playerPreferences.playerBrightnessValue.get().let {
                 if (it != -1f) viewModel.changeBrightnessTo(it)
             }
         }
@@ -459,16 +459,16 @@ class PlayerActivity : BaseActivity() {
         val mpvDir = UniFile.fromFile(applicationContext.filesDir)!!.createDirectory(MPV_DIR)!!
 
         val mpvConfFile = mpvDir.createFile("mpv.conf")!!
-        advancedPlayerPreferences.mpvConf().get().let { mpvConfFile.writeText(it) }
+        advancedPlayerPreferences.mpvConf.get().let { mpvConfFile.writeText(it) }
         val mpvInputFile = mpvDir.createFile("input.conf")!!
-        advancedPlayerPreferences.mpvInput().get().let { mpvInputFile.writeText(it) }
+        advancedPlayerPreferences.mpvInput.get().let { mpvInputFile.writeText(it) }
 
         player.init(mpv)
         copyUserFiles(mpvDir)
         copyAssets(mpvDir)
         copyFontsDirectory(mpvDir)
 
-        val showBlackBars = if (subtitlePreferences.subtitleBlackBars().get()) "yes" else "no"
+        val showBlackBars = if (subtitlePreferences.subtitleBlackBars.get()) "yes" else "no"
         mpv.setOptionString("sub-ass-force-margins", showBlackBars)
         mpv.setOptionString("sub-use-margins", showBlackBars)
         mpv.addLogObserver(playerObserver)
@@ -486,7 +486,7 @@ class PlayerActivity : BaseActivity() {
         shadersDir()?.delete()
 
         // Then, copy the user files from the Aniyomi directory
-        if (advancedPlayerPreferences.mpvUserFiles().get()) {
+        if (advancedPlayerPreferences.mpvUserFiles.get()) {
             storageManager.getScriptsDirectory()?.listFiles()?.forEach { file ->
                 val outFile = scriptsDir()?.createFile(file.name)
                 outFile?.let {
@@ -614,7 +614,7 @@ class PlayerActivity : BaseActivity() {
 
     private fun setupPlayerAudio() {
         with(audioPreferences) {
-            audioChannels().get().let { mpv.setPropertyString(it.property, it.value) }
+            audioChannels.get().let { mpv.setPropertyString(it.property, it.value) }
 
             val request = AudioFocusRequestCompat.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN).also {
                 it.setAudioAttributes(
@@ -680,7 +680,7 @@ class PlayerActivity : BaseActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         if (!isInPictureInPictureMode) {
-            viewModel.changeVideoAspect(playerPreferences.aspectState().get())
+            viewModel.changeVideoAspect(playerPreferences.aspectState.get())
         } else {
             viewModel.hideControls()
         }
@@ -754,7 +754,7 @@ class PlayerActivity : BaseActivity() {
 
                 viewModel.setCurrentVideoError()
 
-                if (playerPreferences.switchOnFailure().get()) {
+                if (playerPreferences.switchOnFailure.get()) {
                     viewModel.loadBestVideo()
                 } else {
                     viewModel.setIsStopped(true)
@@ -774,7 +774,7 @@ class PlayerActivity : BaseActivity() {
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val autoEnter = playerPreferences.pipOnExit().get()
+            val autoEnter = playerPreferences.pipOnExit.get()
             builder.setAutoEnterEnabled(viewModel.paused == false && autoEnter)
             builder.setSeamlessResizeEnabled(viewModel.paused == false && autoEnter)
         }
@@ -782,7 +782,7 @@ class PlayerActivity : BaseActivity() {
             createPipActions(
                 context = this,
                 isPaused = viewModel.paused ?: true,
-                replaceWithPrevious = playerPreferences.pipReplaceWithPrevious().get(),
+                replaceWithPrevious = playerPreferences.pipReplaceWithPrevious.get(),
                 playlistCount = viewModel.currentPlaylist.value.size,
                 playlistPosition = viewModel.getCurrentEpisodeIndex(),
             ),
@@ -836,7 +836,7 @@ class PlayerActivity : BaseActivity() {
 
     private fun setupPlayerOrientation() {
         if (player.isExiting) return
-        requestedOrientation = when (playerPreferences.defaultPlayerOrientationType().get()) {
+        requestedOrientation = when (playerPreferences.defaultPlayerOrientationType.get()) {
             PlayerOrientation.Free -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
             PlayerOrientation.Video -> if ((player.getVideoOutAspect() ?: 0.0) > 1.0) {
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
@@ -886,9 +886,9 @@ class PlayerActivity : BaseActivity() {
     }
 
     private fun setupMediaSession() {
-        val previousAction = gesturePreferences.mediaPreviousGesture().get()
-        val playAction = gesturePreferences.mediaPlayPauseGesture().get()
-        val nextAction = gesturePreferences.mediaNextGesture().get()
+        val previousAction = gesturePreferences.mediaPreviousGesture.get()
+        val playAction = gesturePreferences.mediaPlayPauseGesture.get()
+        val nextAction = gesturePreferences.mediaNextGesture.get()
 
         mediaSession = MediaSession(this, "PlayerActivity").apply {
             setCallback(
@@ -1013,7 +1013,7 @@ class PlayerActivity : BaseActivity() {
             viewModel.updateIsLoadingHosters(true)
             viewModel.cancelHosterVideoLinksJob()
 
-            val pipEpisodeToasts = playerPreferences.pipEpisodeToasts().get()
+            val pipEpisodeToasts = playerPreferences.pipEpisodeToasts.get()
             val switchMethod = viewModel.loadEpisode(episodeId)
 
             viewModel.updateIsLoadingHosters(false)
@@ -1072,7 +1072,7 @@ class PlayerActivity : BaseActivity() {
 
         if (viewModel.isLoadingEpisode.value) {
             viewModel.currentEpisode.value?.let { episode ->
-                val preservePos = playerPreferences.preserveWatchingPosition().get()
+                val preservePos = playerPreferences.preserveWatchingPosition.get()
                 val resumePosition = position
                     ?: if (episode.seen && !preservePos) {
                         0L
@@ -1222,12 +1222,12 @@ class PlayerActivity : BaseActivity() {
             ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
             ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
             -> {
-                playerPreferences.defaultPlayerOrientationType().set(PlayerOrientation.SensorPortrait)
+                playerPreferences.defaultPlayerOrientationType.set(PlayerOrientation.SensorPortrait)
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             }
 
             else -> {
-                playerPreferences.defaultPlayerOrientationType().set(PlayerOrientation.SensorLandscape)
+                playerPreferences.defaultPlayerOrientationType.set(PlayerOrientation.SensorLandscape)
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             }
         }
@@ -1261,8 +1261,8 @@ class PlayerActivity : BaseActivity() {
 
         // aniSkip stuff
         viewModel.viewModelScope.launchIO {
-            if (viewModel.introSkipEnabled && playerPreferences.aniSkipEnabled().get() &&
-                !(playerPreferences.disableAniSkipOnChapters().get() && viewModel.getChapterCount() > 0)
+            if (viewModel.introSkipEnabled && playerPreferences.aniSkipEnabled.get() &&
+                !(playerPreferences.disableAniSkipOnChapters.get() && viewModel.getChapterCount() > 0)
             ) {
                 viewModel.aniSkipResponse(viewModel.duration)?.let {
                     viewModel.addTimestamps(it)
@@ -1339,7 +1339,7 @@ class PlayerActivity : BaseActivity() {
     }
 
     private fun endFile(eofReached: Boolean) {
-        if (eofReached && playerPreferences.autoplayEnabled().get()) {
+        if (eofReached && playerPreferences.autoplayEnabled.get()) {
             viewModel.changeEpisode(previous = false, autoPlay = true)
         }
     }
@@ -1348,7 +1348,7 @@ class PlayerActivity : BaseActivity() {
     /*
      private fun updateDiscordRPC(exitingPlayer: Boolean) {
      DiscordRPCService.discordScope.launchIO {
-     if (connectionPreferences.enableDiscordRPC().get()) {
+     if (connectionPreferences.enableDiscordRPC.get()) {
      if (!exitingPlayer) {
      DiscordRPCService.setPlayerActivity(
      context = applicationContext,

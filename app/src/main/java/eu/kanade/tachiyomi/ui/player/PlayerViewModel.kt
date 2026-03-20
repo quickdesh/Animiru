@@ -671,7 +671,7 @@ class PlayerViewModel @JvmOverloads constructor(
     fun pause() = mpv.setPropertyBoolean("pause", true)
     fun unpause() = mpv.setPropertyBoolean("pause", false)
 
-    private val showStatusBar = playerPreferences.showSystemStatusBar().get()
+    private val showStatusBar = playerPreferences.showSystemStatusBar.get()
     fun showControls() {
         if (sheetShown.value != Sheets.None ||
             panelShown.value != Panels.None ||
@@ -778,10 +778,10 @@ class PlayerViewModel @JvmOverloads constructor(
     val maxVolume = audioManager.getMaxVolume()
     fun changeVolumeBy(change: Int) {
         val mpvVolume = mpv.getPropertyInt("volume")
-        if ((volumeBoostCap ?: audioPreferences.volumeBoostCap().get()) > 0 && currentVolume.value == maxVolume) {
+        if ((volumeBoostCap ?: audioPreferences.volumeBoostCap.get()) > 0 && currentVolume.value == maxVolume) {
             if (mpvVolume == 100 && change < 0) changeVolumeTo(currentVolume.value + change)
             val finalMPVVolume = (mpvVolume?.plus(change))?.coerceAtLeast(100) ?: 100
-            if (finalMPVVolume in 100..(volumeBoostCap ?: audioPreferences.volumeBoostCap().get()) + 100) {
+            if (finalMPVVolume in 100..(volumeBoostCap ?: audioPreferences.volumeBoostCap.get()) + 100) {
                 changeMPVVolumeTo(finalMPVVolume)
                 return
             }
@@ -810,7 +810,7 @@ class PlayerViewModel @JvmOverloads constructor(
             AYMR.strings.disable_auto_play
         }
         playerUpdate.update { PlayerUpdates.ShowTextResource(textRes) }
-        playerPreferences.autoplayEnabled().set(value)
+        playerPreferences.autoplayEnabled.set(value)
     }
 
     @Suppress("DEPRECATION")
@@ -823,7 +823,7 @@ class PlayerViewModel @JvmOverloads constructor(
     fun setAspect(aspect: VideoAspect, pan: Double, ratio: Double) {
         mpv.setPropertyDouble("panscan", pan)
         mpv.setPropertyDouble("video-aspect-override", ratio)
-        playerPreferences.aspectState().set(aspect)
+        playerPreferences.aspectState.set(aspect)
         playerUpdate.update { PlayerUpdates.AspectRatio }
     }
 
@@ -945,9 +945,9 @@ class PlayerViewModel @JvmOverloads constructor(
 
     private operator fun <T> List<T>.component6(): T = get(5)
 
-    private val doubleTapToSeekDuration = gesturePreferences.skipLengthPreference().get()
-    private val preciseSeek = gesturePreferences.playerSmoothSeek().get()
-    private val showSeekBar = gesturePreferences.showSeekBar().get()
+    private val doubleTapToSeekDuration = gesturePreferences.skipLengthPreference.get()
+    private val preciseSeek = gesturePreferences.playerSmoothSeek.get()
+    private val showSeekBar = gesturePreferences.showSeekBar.get()
 
     private fun showSeekText(isForward: Boolean, text: String) {
         _seekText.update { _ -> text }
@@ -1028,7 +1028,7 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun handleLeftDoubleTap() {
-        when (gesturePreferences.leftDoubleTapGesture().get()) {
+        when (gesturePreferences.leftDoubleTapGesture.get()) {
             SingleActionGesture.Seek -> {
                 leftSeek()
             }
@@ -1044,7 +1044,7 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun handleCenterDoubleTap() {
-        when (gesturePreferences.centerDoubleTapGesture().get()) {
+        when (gesturePreferences.centerDoubleTapGesture.get()) {
             SingleActionGesture.PlayPause -> {
                 pauseUnpause()
             }
@@ -1058,7 +1058,7 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun handleRightDoubleTap() {
-        when (gesturePreferences.rightDoubleTapGesture().get()) {
+        when (gesturePreferences.rightDoubleTapGesture.get()) {
             SingleActionGesture.Seek -> {
                 rightSeek()
             }
@@ -1088,10 +1088,10 @@ class PlayerViewModel @JvmOverloads constructor(
     val eventFlow = eventChannel.receiveAsFlow()
 
     private val incognitoMode: Boolean by lazy { getIncognitoState.await(currentAnime.value?.source) }
-    private val downloadAheadAmount = downloadPreferences.autoDownloadWhileWatching().get()
+    private val downloadAheadAmount = downloadPreferences.autoDownloadWhileWatching.get()
 
-    internal val relativeTime = uiPreferences.relativeTime().get()
-    internal val dateFormat = uiPreferences.dateFormat().get()
+    internal val relativeTime = uiPreferences.relativeTime.get()
+    internal val dateFormat = uiPreferences.dateFormat.get()
 
     /**
      * The position in the current video. Used to restore from process kill.
@@ -1334,7 +1334,7 @@ class PlayerViewModel @JvmOverloads constructor(
         return episodes
             .sortedWith(getEpisodeSort(anime, sortDescending = false))
             .run {
-                if (basePreferences.downloadedOnly().get()) {
+                if (basePreferences.downloadedOnly.get()) {
                     filterDownloaded(anime)
                 } else {
                     this
@@ -1656,7 +1656,7 @@ class PlayerViewModel @JvmOverloads constructor(
 
         episodePosition = seconds
 
-        val progress = playerPreferences.progressPreference().get()
+        val progress = playerPreferences.progressPreference.get()
         val shouldTrack = !incognitoMode || hasTrackers
         if (seconds >= totalSeconds * progress && shouldTrack) {
             viewModelScope.launchNonCancellable {
@@ -1677,7 +1677,7 @@ class PlayerViewModel @JvmOverloads constructor(
         updateTrackEpisodeSeen(currentEp)
         deleteEpisodeIfNeeded(currentEp)
 
-        val markDuplicateAsSeen = libraryPreferences.markDuplicateSeenEpisodeAsSeen().get()
+        val markDuplicateAsSeen = libraryPreferences.markDuplicateSeenEpisodeAsSeen.get()
             .contains(LibraryPreferences.MARK_DUPLICATE_EPISODE_SEEN_EXISTING)
         if (!markDuplicateAsSeen) return
 
@@ -1735,7 +1735,7 @@ class PlayerViewModel @JvmOverloads constructor(
     private fun deleteEpisodeIfNeeded(chosenEpisode: Episode) {
         // Determine which episode should be deleted and enqueue
         val currentEpisodePosition = currentPlaylist.value.indexOf(chosenEpisode)
-        val removeAfterSeenSlots = downloadPreferences.removeAfterSeenSlots().get()
+        val removeAfterSeenSlots = downloadPreferences.removeAfterSeenSlots.get()
         val episodeToDelete = currentPlaylist.value.getOrNull(
             currentEpisodePosition - removeAfterSeenSlots,
         )
@@ -1950,8 +1950,8 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     private fun updateTrackEpisodeSeen(episode: Episode) {
-        if (basePreferences.incognitoMode().get() || !hasTrackers) return
-        if (!trackPreferences.autoUpdateTrack().get()) return
+        if (basePreferences.incognitoMode.get() || !hasTrackers) return
+        if (!trackPreferences.autoUpdateTrack.get()) return
 
         val anime = currentAnime.value ?: return
         val context = Injekt.get<Application>()
@@ -1987,7 +1987,7 @@ class PlayerViewModel @JvmOverloads constructor(
      * Returns the skipIntroLength used by this anime or the default one.
      */
     fun getAnimeSkipIntroLength(): Int {
-        val default = gesturePreferences.defaultIntroLength().get()
+        val default = gesturePreferences.defaultIntroLength.get()
         val anime = currentAnime.value ?: return default
         val skipIntroLength = anime.skipIntroLength
         val skipIntroDisable = anime.skipIntroDisable
@@ -2057,11 +2057,11 @@ class PlayerViewModel @JvmOverloads constructor(
         return null
     }
 
-    val introSkipEnabled = playerPreferences.enableSkipIntro().get()
-    private val autoSkip = playerPreferences.autoSkipIntro().get()
-    private val netflixStyle = playerPreferences.enableNetflixStyleIntroSkip().get()
+    val introSkipEnabled = playerPreferences.enableSkipIntro.get()
+    private val autoSkip = playerPreferences.autoSkipIntro.get()
+    private val netflixStyle = playerPreferences.enableNetflixStyleIntroSkip.get()
 
-    private val defaultWaitingTime = playerPreferences.waitingTimeIntroSkip().get()
+    private val defaultWaitingTime = playerPreferences.waitingTimeIntroSkip.get()
 
     fun onChapterChanged(chapterIndex: Int?) {
         if (chapterIndex == null) return

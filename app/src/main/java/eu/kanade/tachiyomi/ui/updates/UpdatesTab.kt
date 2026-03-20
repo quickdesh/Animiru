@@ -125,6 +125,6 @@ fun AnimeUpdatesHalfTab(
 suspend fun openEpisode(context: Context, updateItem: UpdatesItem, altPlayer: Boolean = false) {
     val playerPreferences: PlayerPreferences by injectLazy()
     val update = updateItem.update
-    val extPlayer = playerPreferences.alwaysUseExternalPlayer().get() != altPlayer
+    val extPlayer = playerPreferences.alwaysUseExternalPlayer.get() != altPlayer
     MainActivity.startPlayerActivity(context, update.animeId, update.episodeId, extPlayer)
 }

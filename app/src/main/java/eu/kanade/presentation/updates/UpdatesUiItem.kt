@@ -265,7 +265,7 @@ private fun UpdatesUiItem(
         // AM (FILE_SIZE) -->
         var fileSizeAsync: Long? by remember { mutableStateOf(updatesItem.fileSize) }
         if (downloadStateProvider() == Download.State.DOWNLOADED &&
-            storagePreferences.showEpisodeFileSize().get() &&
+            storagePreferences.showEpisodeFileSize.get() &&
             fileSizeAsync == null
         ) {
             LaunchedEffect(update, Unit) {

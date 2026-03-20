@@ -43,7 +43,7 @@ class CategoryScreenModel(
     init {
         screenModelScope.launch {
             // AY -->
-            val allCategories = if (libraryPreferences.hideHiddenCategoriesSettings().get()) {
+            val allCategories = if (libraryPreferences.hideHiddenCategoriesSettings.get()) {
                 getVisibleCategories.subscribe()
             } else {
                 getCategories.subscribe()

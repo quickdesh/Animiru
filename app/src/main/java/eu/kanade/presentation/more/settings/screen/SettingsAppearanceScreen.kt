@@ -53,13 +53,13 @@ object SettingsAppearanceScreen : SearchableSettings {
     ): Preference.PreferenceGroup {
         val context = LocalContext.current
 
-        val themeModePref = uiPreferences.themeMode()
+        val themeModePref = uiPreferences.themeMode
         val themeMode by themeModePref.collectAsState()
 
-        val appThemePref = uiPreferences.appTheme()
+        val appThemePref = uiPreferences.appTheme
         val appTheme by appThemePref.collectAsState()
 
-        val amoledPref = uiPreferences.themeDarkAmoled()
+        val amoledPref = uiPreferences.themeDarkAmoled
         val amoled by amoledPref.collectAsState()
 
         return Preference.PreferenceGroup(
@@ -106,7 +106,7 @@ object SettingsAppearanceScreen : SearchableSettings {
 
         val now = remember { LocalDate.now() }
 
-        val dateFormat by uiPreferences.dateFormat().collectAsState()
+        val dateFormat by uiPreferences.dateFormat.collectAsState()
         val formattedNow = remember(dateFormat) {
             UiPreferences.dateFormat(dateFormat).format(now)
         }
@@ -119,7 +119,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                     onClick = { navigator.push(AppLanguageScreen()) },
                 ),
                 Preference.PreferenceItem.ListPreference(
-                    preference = uiPreferences.tabletUiMode(),
+                    preference = uiPreferences.tabletUiMode,
                     entries = TabletUiMode.entries
                         .associateWith { stringResource(it.titleRes) }
                         .toImmutableMap(),
@@ -131,7 +131,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                 ),
                 // AY -->
                 Preference.PreferenceItem.ListPreference(
-                    preference = uiPreferences.startScreen(),
+                    preference = uiPreferences.startScreen,
                     entries = StartScreen.entries
                         .associateWith { stringResource(it.titleRes) }
                         .toImmutableMap(),
@@ -143,7 +143,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                 ),
                 // <-- AY
                 Preference.PreferenceItem.ListPreference(
-                    preference = uiPreferences.dateFormat(),
+                    preference = uiPreferences.dateFormat,
                     entries = DateFormats
                         .associateWith {
                             val formattedDate = UiPreferences.dateFormat(it).format(now)
@@ -153,7 +153,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                     title = stringResource(MR.strings.pref_date_format),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = uiPreferences.relativeTime(),
+                    preference = uiPreferences.relativeTime,
                     title = stringResource(MR.strings.pref_relative_format),
                     subtitle = stringResource(
                         MR.strings.pref_relative_format_summary,
@@ -162,7 +162,7 @@ object SettingsAppearanceScreen : SearchableSettings {
                     ),
                 ),
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = uiPreferences.imagesInDescription(),
+                    preference = uiPreferences.imagesInDescription,
                     title = stringResource(AMMR.strings.am_pref_display_images_description),
                 ),
             ),

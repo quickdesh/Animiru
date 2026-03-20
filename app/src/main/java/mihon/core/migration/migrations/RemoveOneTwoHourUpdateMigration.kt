@@ -14,9 +14,9 @@ class RemoveOneTwoHourUpdateMigration : Migration {
         val context = migrationContext.get<Application>() ?: return false
         val libraryPreferences = migrationContext.get<LibraryPreferences>() ?: return false
 
-        val updateInterval = libraryPreferences.autoUpdateInterval().get()
+        val updateInterval = libraryPreferences.autoUpdateInterval.get()
         if (updateInterval == 1 || updateInterval == 2) {
-            libraryPreferences.autoUpdateInterval().set(3)
+            libraryPreferences.autoUpdateInterval.set(3)
             LibraryUpdateJob.setupTask(context, 3)
         }
 

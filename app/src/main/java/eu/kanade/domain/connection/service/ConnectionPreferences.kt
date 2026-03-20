@@ -2,6 +2,7 @@
 package eu.kanade.domain.connection.service
 
 import eu.kanade.tachiyomi.data.connection.Connection
+import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 
 class ConnectionPreferences(
@@ -25,13 +26,16 @@ class ConnectionPreferences(
     fun connectionToken(connection: Connection) = preferenceStore.getString(connectionToken(connection.id), "")
 
     // AM (DISCORD_RPC) -->
-    fun enableDiscordRPC() = preferenceStore.getBoolean("pref_enable_discord_rpc", false)
+    val enableDiscordRPC: Preference<Boolean> = preferenceStore.getBoolean("pref_enable_discord_rpc", false)
 
-    fun discordRPCStatus() = preferenceStore.getInt("pref_discord_rpc_status", 1)
+    val discordRPCStatus: Preference<Int> = preferenceStore.getInt("pref_discord_rpc_status", 1)
 
-    fun discordRPCIncognito() = preferenceStore.getBoolean("pref_discord_rpc_incognito", false)
+    val discordRPCIncognito: Preference<Boolean> = preferenceStore.getBoolean("pref_discord_rpc_incognito", false)
 
-    fun discordRPCIncognitoCategories() = preferenceStore.getStringSet("discord_rpc_incognito_categories", emptySet())
+    val discordRPCIncognitoCategories: Preference<Set<String>> = preferenceStore.getStringSet(
+        "discord_rpc_incognito_categories",
+        emptySet(),
+    )
     // <-- AM (DISCORD_RPC)
 
     companion object {

@@ -17,11 +17,11 @@ class GoogleDrive(id: Long) : BaseConnection(id, "Google Drive") {
 
     override fun logout() {
         super.logout()
-        syncPreferences.googleDriveRefreshToken().set("")
-        syncPreferences.googleDriveAccessToken().set("")
+        syncPreferences.googleDriveRefreshToken.set("")
+        syncPreferences.googleDriveAccessToken.set("")
     }
 
     override val isLoggedIn: Boolean
-        get() = syncPreferences.googleDriveRefreshToken().get().isNotBlank()
+        get() = syncPreferences.googleDriveRefreshToken.get().isNotBlank()
 }
 // <-- AM (SYNC_DRIVE)

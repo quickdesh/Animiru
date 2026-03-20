@@ -61,7 +61,7 @@ class StorageScreenModel(
 
     init {
         screenModelScope.launchIO {
-            val hideHiddenCategories = libraryPreferences.hideHiddenCategoriesSettings().get()
+            val hideHiddenCategories = libraryPreferences.hideHiddenCategoriesSettings.get()
 
             val downloadCacheFlow = downloadCache.changes
                 .debounce(500L)

@@ -19,19 +19,19 @@ class MigrateToTriStateMigration : Migration {
 
         prefs.edit {
             putInt(
-                libraryPreferences.filterDownloaded().key(),
+                libraryPreferences.filterDownloaded.key(),
                 convertBooleanPrefToTriState(prefs, "pref_filter_downloaded_key"),
             )
             remove("pref_filter_downloaded_key")
 
             putInt(
-                libraryPreferences.filterUnseen().key(),
+                libraryPreferences.filterUnseen.key(),
                 convertBooleanPrefToTriState(prefs, "pref_filter_unread_key"),
             )
             remove("pref_filter_unread_key")
 
             putInt(
-                libraryPreferences.filterDownloaded().key(),
+                libraryPreferences.filterDownloaded.key(),
                 convertBooleanPrefToTriState(prefs, "pref_filter_completed_key"),
             )
             remove("pref_filter_completed_key")

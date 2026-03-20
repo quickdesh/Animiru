@@ -20,14 +20,14 @@ class MigrateSecureScreenMigration : Migration {
 
         val oldSecureScreen = prefs.getBoolean("secure_screen", false)
         if (oldSecureScreen) {
-            securityPreferences.secureScreen().set(
+            securityPreferences.secureScreen.set(
                 SecurityPreferences.SecureScreenMode.ALWAYS,
             )
         }
         if (DeviceUtil.isMiui &&
-            basePreferences.extensionInstaller().get() == BasePreferences.ExtensionInstaller.PACKAGEINSTALLER
+            basePreferences.extensionInstaller.get() == BasePreferences.ExtensionInstaller.PACKAGEINSTALLER
         ) {
-            basePreferences.extensionInstaller().set(
+            basePreferences.extensionInstaller.set(
                 BasePreferences.ExtensionInstaller.LEGACY,
             )
         }

@@ -17,18 +17,18 @@ class SetSortModeForCategory(
     suspend fun await(categoryId: Long?, type: LibrarySort.Type, direction: LibrarySort.Direction) {
         // AM (GROUPING) -->
         if (type == LibrarySort.Type.Random) {
-            preferences.randomSortSeed().set(Random.nextInt())
+            preferences.randomSortSeed.set(Random.nextInt())
         }
 
-        if (preferences.groupLibraryBy().get() != LibraryGroup.BY_DEFAULT) {
-            preferences.sortingMode().set(LibrarySort(type, direction))
+        if (preferences.groupLibraryBy.get() != LibraryGroup.BY_DEFAULT) {
+            preferences.sortingMode.set(LibrarySort(type, direction))
             return
         }
         // <-- AM (GROUPING)
 
         val category = categoryId?.let { categoryRepository.get(it) }
         val flags = (category?.flags ?: 0) + type + direction
-        if (category != null && preferences.categorizedDisplaySettings().get()) {
+        if (category != null && preferences.categorizedDisplaySettings.get()) {
             categoryRepository.updatePartial(
                 CategoryUpdate(
                     id = category.id,
@@ -36,7 +36,7 @@ class SetSortModeForCategory(
                 ),
             )
         } else {
-            preferences.sortingMode().set(LibrarySort(type, direction))
+            preferences.sortingMode.set(LibrarySort(type, direction))
             categoryRepository.updateAllFlags(flags)
         }
     }

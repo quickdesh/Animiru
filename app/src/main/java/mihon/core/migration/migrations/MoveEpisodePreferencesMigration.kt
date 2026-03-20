@@ -17,12 +17,12 @@ class MoveEpisodePreferencesMigration : Migration {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
         val preferences = listOf(
-            libraryPreferences.filterEpisodeBySeen(),
-            libraryPreferences.filterEpisodeByDownloaded(),
-            libraryPreferences.filterEpisodeByBookmarked(),
-            libraryPreferences.sortEpisodeBySourceOrNumber(),
-            libraryPreferences.displayEpisodeByNameOrNumber(),
-            libraryPreferences.sortEpisodeByAscendingOrDescending(),
+            libraryPreferences.filterEpisodeBySeen,
+            libraryPreferences.filterEpisodeByDownloaded,
+            libraryPreferences.filterEpisodeByBookmarked,
+            libraryPreferences.sortEpisodeBySourceOrNumber,
+            libraryPreferences.displayEpisodeByNameOrNumber,
+            libraryPreferences.sortEpisodeByAscendingOrDescending,
         )
 
         prefs.edit {

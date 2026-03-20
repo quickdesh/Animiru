@@ -22,12 +22,12 @@ class VideoOrientationMigration : Migration {
 
         val oldPref = try {
             prefs.getInt(
-                playerPreferences.defaultPlayerOrientationType().key(),
+                playerPreferences.defaultPlayerOrientationType.key(),
                 10,
             )
         } catch (_: ClassCastException) {
             prefs.edit(commit = true) {
-                remove(playerPreferences.defaultPlayerOrientationType().key())
+                remove(playerPreferences.defaultPlayerOrientationType.key())
             }
             return true
         }
@@ -44,12 +44,12 @@ class VideoOrientationMigration : Migration {
         }
 
         prefs.edit(commit = true) {
-            remove(playerPreferences.defaultPlayerOrientationType().key())
+            remove(playerPreferences.defaultPlayerOrientationType.key())
         }
 
         prefs.edit {
             preferenceStore.getEnum(
-                playerPreferences.defaultPlayerOrientationType().key(),
+                playerPreferences.defaultPlayerOrientationType.key(),
                 PlayerOrientation.SensorLandscape,
             ).set(newPref)
         }

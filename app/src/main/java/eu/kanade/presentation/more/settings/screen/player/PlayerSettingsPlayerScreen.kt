@@ -48,7 +48,7 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
         return listOfNotNull(
             Preference.PreferenceItem.ListPreference(
-                preference = playerPreferences.progressPreference(),
+                preference = playerPreferences.progressPreference,
                 entries = persistentMapOf(
                     1.00F to stringResource(AYMR.strings.pref_progress_100),
                     0.95F to stringResource(AYMR.strings.pref_progress_95),
@@ -61,15 +61,15 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
                 title = stringResource(AYMR.strings.pref_progress_mark_as_seen),
             ),
             Preference.PreferenceItem.SwitchPreference(
-                preference = playerPreferences.preserveWatchingPosition(),
+                preference = playerPreferences.preserveWatchingPosition,
                 title = stringResource(AYMR.strings.pref_preserve_watching_position),
             ),
             Preference.PreferenceItem.SwitchPreference(
-                preference = playerPreferences.switchOnFailure(),
+                preference = playerPreferences.switchOnFailure,
                 title = stringResource(AMMR.strings.player_pref_switch_on_failure),
             ),
             Preference.PreferenceItem.ListPreference(
-                preference = playerPreferences.defaultPlayerOrientationType(),
+                preference = playerPreferences.defaultPlayerOrientationType,
                 entries = PlayerOrientation.entries.associateWith {
                     stringResource(it.titleRes)
                 }.toPersistentMap(),
@@ -89,11 +89,11 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
     @Composable
     private fun getControlsGroup(playerPreferences: PlayerPreferences): Preference.PreferenceGroup {
-        val allowGestures = playerPreferences.allowGestures()
-        val showLoading = playerPreferences.showLoadingCircle()
-        val showChapter = playerPreferences.showCurrentChapter()
-        val rememberPlayerBrightness = playerPreferences.rememberPlayerBrightness()
-        val rememberPlayerVolume = playerPreferences.rememberPlayerVolume()
+        val allowGestures = playerPreferences.allowGestures
+        val showLoading = playerPreferences.showLoadingCircle
+        val showChapter = playerPreferences.showCurrentChapter
+        val rememberPlayerBrightness = playerPreferences.rememberPlayerBrightness
+        val rememberPlayerVolume = playerPreferences.rememberPlayerVolume
 
         return Preference.PreferenceGroup(
             title = stringResource(AYMR.strings.pref_category_controls),
@@ -125,8 +125,8 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
     @Composable
     private fun getHosterGroup(playerPreferences: PlayerPreferences): Preference.PreferenceGroup {
-        val showFailure = playerPreferences.showFailedHosters()
-        val showEmpty = playerPreferences.showEmptyHosters()
+        val showFailure = playerPreferences.showFailedHosters
+        val showEmpty = playerPreferences.showEmptyHosters
 
         return Preference.PreferenceGroup(
             title = stringResource(AYMR.strings.pref_hosters),
@@ -145,14 +145,14 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
     @Composable
     private fun getDisplayGroup(playerPreferences: PlayerPreferences): Preference.PreferenceGroup {
-        val fullScreen = playerPreferences.playerFullscreen()
-        val hideControls = playerPreferences.hideControls()
-        val displayVol = playerPreferences.displayVolPer()
-        val showSystemBar = playerPreferences.showSystemStatusBar()
-        val reduceMotion = playerPreferences.reduceMotion()
-        val hideTime = playerPreferences.playerTimeToDisappear()
+        val fullScreen = playerPreferences.playerFullscreen
+        val hideControls = playerPreferences.hideControls
+        val displayVol = playerPreferences.displayVolPer
+        val showSystemBar = playerPreferences.showSystemStatusBar
+        val reduceMotion = playerPreferences.reduceMotion
+        val hideTime = playerPreferences.playerTimeToDisappear
 
-        val panelOpacityPref = playerPreferences.panelOpacity()
+        val panelOpacityPref = playerPreferences.panelOpacity
         val panelOpacity by panelOpacityPref.collectAsState()
         val numberFormat = remember { NumberFormat.getPercentInstance() }
 
@@ -200,16 +200,16 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
     @Composable
     private fun getIntroSkipGroup(playerPreferences: PlayerPreferences): Preference.PreferenceGroup {
-        val enableSkipIntro = playerPreferences.enableSkipIntro()
+        val enableSkipIntro = playerPreferences.enableSkipIntro
         val isIntroSkipEnabled by enableSkipIntro.collectAsState()
 
-        val enableAutoAniSkip = playerPreferences.autoSkipIntro()
-        val enableNetflixAniSkip = playerPreferences.enableNetflixStyleIntroSkip()
-        val waitingTimeAniSkip = playerPreferences.waitingTimeIntroSkip()
+        val enableAutoAniSkip = playerPreferences.autoSkipIntro
+        val enableNetflixAniSkip = playerPreferences.enableNetflixStyleIntroSkip
+        val waitingTimeAniSkip = playerPreferences.waitingTimeIntroSkip
 
         // AniSkip
-        val enableAniSkip = playerPreferences.aniSkipEnabled()
-        val disableAniSkipChapters = playerPreferences.disableAniSkipOnChapters()
+        val enableAniSkip = playerPreferences.aniSkipEnabled
+        val disableAniSkipChapters = playerPreferences.disableAniSkipOnChapters
         val isAniSkipEnabled by enableAniSkip.collectAsState()
 
         return Preference.PreferenceGroup(
@@ -262,10 +262,10 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
     @Composable
     private fun getPipGroup(playerPreferences: PlayerPreferences): Preference.PreferenceGroup {
-        val enablePip = playerPreferences.enablePip()
-        val pipEpisodeToasts = playerPreferences.pipEpisodeToasts()
-        val pipOnExit = playerPreferences.pipOnExit()
-        val pipReplaceWithPrevious = playerPreferences.pipReplaceWithPrevious()
+        val enablePip = playerPreferences.enablePip
+        val pipEpisodeToasts = playerPreferences.pipEpisodeToasts
+        val pipOnExit = playerPreferences.pipOnExit
+        val pipReplaceWithPrevious = playerPreferences.pipReplaceWithPrevious
 
         val isPipEnabled by enablePip.collectAsState()
 
@@ -300,8 +300,8 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
         playerPreferences: PlayerPreferences,
         basePreferences: BasePreferences,
     ): Preference.PreferenceGroup {
-        val alwaysUseExternalPlayer = playerPreferences.alwaysUseExternalPlayer()
-        val externalPlayerPreference = playerPreferences.externalPlayerPreference()
+        val alwaysUseExternalPlayer = playerPreferences.alwaysUseExternalPlayer
+        val externalPlayerPreference = playerPreferences.externalPlayerPreference
 
         val pm = basePreferences.context.packageManager
         val installedPackages = pm.getInstalledPackages(0)

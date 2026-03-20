@@ -65,8 +65,8 @@ class MigrationListScreenModel(
     val items
         inline get() = state.value.items
 
-    private val hideUnmatched = preferences.migrationHideUnmatched().get()
-    private val hideWithoutUpdates = preferences.migrationHideWithoutUpdates().get()
+    private val hideUnmatched = preferences.migrationHideUnmatched.get()
+    private val hideWithoutUpdates = preferences.migrationHideWithoutUpdates.get()
 
     private val navigateBackChannel = Channel<Unit>()
     val navigateBackEvent = navigateBackChannel.receiveAsFlow()
@@ -127,10 +127,10 @@ class MigrationListScreenModel(
     }
 
     private suspend fun runMigrations(animes: List<MigratingAnime>) {
-        val prioritizeByEpisodes = preferences.migrationPrioritizeByEpisodes().get()
-        val deepSearchMode = preferences.migrationDeepSearchMode().get()
+        val prioritizeByEpisodes = preferences.migrationPrioritizeByEpisodes.get()
+        val deepSearchMode = preferences.migrationDeepSearchMode.get()
 
-        val sources = preferences.migrationSources().get()
+        val sources = preferences.migrationSources.get()
             .mapNotNull { sourceManager.get(it) as? AnimeCatalogueSource }
 
         for (anime in animes) {

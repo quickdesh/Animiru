@@ -34,26 +34,26 @@ class TrackPreferences(
 
     fun trackToken(tracker: Tracker) = preferenceStore.getString(Preference.privateKey("track_token_${tracker.id}"), "")
 
-    fun anilistScoreType() = preferenceStore.getString("anilist_score_type", Anilist.POINT_10)
+    val anilistScoreType: Preference<String> = preferenceStore.getString("anilist_score_type", Anilist.POINT_10)
 
-    fun autoUpdateTrack() = preferenceStore.getBoolean("pref_auto_update_anime_sync_key", true)
+    val autoUpdateTrack: Preference<Boolean> = preferenceStore.getBoolean("pref_auto_update_anime_sync_key", true)
 
     // AY -->
-    fun trackOnAddingToLibrary() = preferenceStore.getBoolean("track_on_adding_to_library", true)
+    val trackOnAddingToLibrary: Preference<Boolean> = preferenceStore.getBoolean("track_on_adding_to_library", true)
 
-    fun showNextEpisodeAiringTime() = preferenceStore.getBoolean(
+    val showNextEpisodeAiringTime: Preference<Boolean> = preferenceStore.getBoolean(
         "show_next_episode_airing_time",
         true,
     )
     // <-- AY
 
     // AM -->
-    fun syncEnhancedTrackers() = preferenceStore.getBoolean("sync_enhanced_trackers", true)
+    val syncEnhancedTrackers: Preference<Boolean> = preferenceStore.getBoolean("sync_enhanced_trackers", true)
 
-    fun smartTrackerSync() = preferenceStore.getBoolean("smart_sync_trackers", true)
+    val smartTrackerSync: Preference<Boolean> = preferenceStore.getBoolean("smart_sync_trackers", true)
     // <-- AM
 
-    fun autoUpdateTrackOnMarkSeen() = preferenceStore.getEnum(
+    val autoUpdateTrackOnMarkSeen: Preference<AutoTrackState> = preferenceStore.getEnum(
         "pref_auto_update_anime_on_mark_seen",
         AutoTrackState.ALWAYS,
     )

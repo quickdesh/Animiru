@@ -9,17 +9,17 @@ import tachiyomi.i18n.MR
 
 class BasePreferences(
     val context: Context,
-    private val preferenceStore: PreferenceStore,
+    preferenceStore: PreferenceStore,
 ) {
 
-    fun downloadedOnly() = preferenceStore.getBoolean(
+    val downloadedOnly: Preference<Boolean> = preferenceStore.getBoolean(
         Preference.appStateKey("pref_downloaded_only"),
         false,
     )
 
-    fun incognitoMode() = preferenceStore.getBoolean(Preference.appStateKey("incognito_mode"), false)
+    val incognitoMode: Preference<Boolean> = preferenceStore.getBoolean(Preference.appStateKey("incognito_mode"), false)
 
-    fun extensionInstaller() = ExtensionInstallerPreference(context, preferenceStore)
+    val extensionInstaller: ExtensionInstallerPreference = ExtensionInstallerPreference(context, preferenceStore)
 
     // AY -->
     fun deviceHasPip() = context.packageManager.hasSystemFeature(
@@ -27,7 +27,10 @@ class BasePreferences(
     )
     // <-- AY
 
-    fun shownOnboardingFlow() = preferenceStore.getBoolean(Preference.appStateKey("onboarding_complete"), false)
+    val shownOnboardingFlow: Preference<Boolean> = preferenceStore.getBoolean(
+        Preference.appStateKey("onboarding_complete"),
+        false,
+    )
 
     enum class ExtensionInstaller(val titleRes: StringResource, val requiresSystemPermission: Boolean) {
         LEGACY(MR.strings.ext_installer_legacy, true),
@@ -36,5 +39,5 @@ class BasePreferences(
         PRIVATE(MR.strings.ext_installer_private, false),
     }
 
-    fun installationId() = preferenceStore.getString(Preference.appStateKey("installation_id"), "")
+    val installationId: Preference<String> = preferenceStore.getString(Preference.appStateKey("installation_id"), "")
 }

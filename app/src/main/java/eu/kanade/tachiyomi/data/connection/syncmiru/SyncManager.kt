@@ -101,14 +101,14 @@ class SyncManager(
         )
 
         // AM (SYNC_DRIVE) -->
-        if (syncPreferences.googleDriveRefreshToken().get().isNotBlank()) {
+        if (syncPreferences.googleDriveRefreshToken.get().isNotBlank()) {
             val syncService = GoogleDriveSyncService(context, json, syncPreferences)
             syncWithBackup(databaseAnime, backup, syncData, syncService.doSync(syncData))
         }
         // <-- AM (SYNC_DRIVE)
 
         // AM (SYNC_YOMI) -->
-        if (syncPreferences.clientAPIKey().get().isNotBlank()) {
+        if (syncPreferences.clientAPIKey.get().isNotBlank()) {
             val syncService = SyncYomiSyncService(context, json, syncPreferences, notifier)
             syncWithBackup(databaseAnime, backup, syncData, syncService.doSync(syncData))
         }
@@ -129,7 +129,7 @@ class SyncManager(
 
         if (remoteBackup === syncData.backup) {
             // nothing changed
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
             notifier.showSyncSuccess("Sync completed successfully")
             return
         }
@@ -141,9 +141,9 @@ class SyncManager(
         }
 
         // Check if it's first sync based on lastSyncTimestamp
-        if (syncPreferences.lastSyncTimestamp().get() == 0L && databaseAnime.isNotEmpty()) {
+        if (syncPreferences.lastSyncTimestamp.get() == 0L && databaseAnime.isNotEmpty()) {
             // It's first sync no need to restore data. (just update remote data)
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
             notifier.showSyncSuccess("Updated remote data successfully")
             return
         }
@@ -162,7 +162,7 @@ class SyncManager(
         // It's local sync no need to restore data. (just update remote data)
         if (animeFilteredFavorites.isEmpty()) {
             // update the sync timestamp
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
             notifier.showSyncSuccess("Sync completed successfully")
             return
         }
@@ -183,7 +183,7 @@ class SyncManager(
             )
 
             // update the sync timestamp
-            syncPreferences.lastSyncTimestamp().set(Date().time)
+            syncPreferences.lastSyncTimestamp.set(Date().time)
         } else {
             log(LogPriority.ERROR) { "Failed to write sync data to file" }
         }

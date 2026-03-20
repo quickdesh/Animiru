@@ -14,8 +14,8 @@ class EnableAutoBackupMigration : Migration {
         val context = migrationContext.get<Application>() ?: return false
         val backupPreferences = migrationContext.get<BackupPreferences>() ?: return false
 
-        if (backupPreferences.backupInterval().get() == 0) {
-            backupPreferences.backupInterval().set(12)
+        if (backupPreferences.backupInterval.get() == 0) {
+            backupPreferences.backupInterval.set(12)
             BackupCreateJob.setupTask(context)
         }
 

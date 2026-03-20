@@ -20,8 +20,8 @@ class PrefLangMigration : Migration {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
         listOf(
-            audioPreferences.preferredAudioLanguages(),
-            subtitlePreferences.preferredSubLanguages(),
+            audioPreferences.preferredAudioLanguages,
+            subtitlePreferences.preferredSubLanguages,
         ).forEach { pref ->
             if (pref.isSet()) {
                 prefs.edit {

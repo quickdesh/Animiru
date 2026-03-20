@@ -91,7 +91,7 @@ class ExternalIntents {
 
         val videoUrl = getVideoUrl(source, context, video) ?: return null
 
-        val pkgName = playerPreferences.externalPlayerPreference().get()
+        val pkgName = playerPreferences.externalPlayerPreference.get()
 
         // AM (DISCORD_RPC) -->
         with(DiscordRPCService) {
@@ -99,7 +99,7 @@ class ExternalIntents {
                 setPlayerActivity(
                     context = context,
                     playerData = PlayerData(
-                        incognitoMode = source.isNsfw() || basePreferences.incognitoMode().get(),
+                        incognitoMode = source.isNsfw() || basePreferences.incognitoMode.get(),
                         animeId = anime.id,
                         // AM (CUSTOM_INFORMATION) -->
                         animeTitle = anime.ogTitle,
@@ -180,7 +180,7 @@ class ExternalIntents {
      * Returns the second to start the external player at.
      */
     private fun getLastSecondSeen(): Long {
-        val preserveWatchPos = playerPreferences.preserveWatchingPosition().get()
+        val preserveWatchPos = playerPreferences.preserveWatchingPosition.get()
         val isEpisodeWatched = episode.lastSecondSeen == episode.totalSeconds
 
         return if (episode.seen && (!preserveWatchPos || (preserveWatchPos && isEpisodeWatched))) {
@@ -456,7 +456,7 @@ class ExternalIntents {
      * @param currentEpisode the episode to update.
      */
     private suspend fun saveEpisodeHistory(currentEpisode: Episode) {
-        if (basePreferences.incognitoMode().get()) return
+        if (basePreferences.incognitoMode.get()) return
         upsertHistory.await(
             HistoryUpdate(currentEpisode.id, Date()),
         )
@@ -477,11 +477,11 @@ class ExternalIntents {
         lastSecondSeen: Long,
         totalSeconds: Long,
     ) {
-        if (basePreferences.incognitoMode().get()) return
+        if (basePreferences.incognitoMode.get()) return
         val currEp = currentEpisode ?: return
 
         if (totalSeconds > 0L) {
-            val progress = playerPreferences.progressPreference().get()
+            val progress = playerPreferences.progressPreference.get()
             val seen = if (!currEp.seen) lastSecondSeen >= totalSeconds * progress else true
             updateEpisode.await(
                 EpisodeUpdate(
@@ -495,7 +495,7 @@ class ExternalIntents {
                     totalSeconds = totalSeconds,
                 ),
             )
-            if (trackPreferences.autoUpdateTrack().get() && currEp.seen) {
+            if (trackPreferences.autoUpdateTrack.get() && currEp.seen) {
                 updateTrackEpisodeSeen(currEp.episodeNumber, anime)
             }
             if (seen) {
@@ -524,7 +524,7 @@ class ExternalIntents {
             .sortedWith { e1, e2 -> sortFunction(e1, e2) }
 
         val currentEpisodePosition = episodes.indexOf(episode)
-        val removeAfterSeenSlots = downloadPreferences.removeAfterSeenSlots().get()
+        val removeAfterSeenSlots = downloadPreferences.removeAfterSeenSlots.get()
         val episodeToDelete = episodes.getOrNull(currentEpisodePosition - removeAfterSeenSlots)
 
         // Check if deleting option is enabled and episode exists
@@ -541,7 +541,7 @@ class ExternalIntents {
      * @param anime the anime of the episode.
      */
     private suspend fun updateTrackEpisodeSeen(episodeNumber: Double, anime: Anime) {
-        if (!trackPreferences.autoUpdateTrack().get()) return
+        if (!trackPreferences.autoUpdateTrack.get()) return
 
         val trackerManager = Injekt.get<TrackerManager>()
         val context = Injekt.get<Application>()

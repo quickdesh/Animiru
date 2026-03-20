@@ -93,7 +93,7 @@ object SettingsTrackingScreen : SearchableSettings {
         val trackPreferences = remember { Injekt.get<TrackPreferences>() }
         val trackerManager = remember { Injekt.get<TrackerManager>() }
         val sourceManager = remember { Injekt.get<SourceManager>() }
-        val autoTrackStatePref = trackPreferences.autoUpdateTrackOnMarkSeen()
+        val autoTrackStatePref = trackPreferences.autoUpdateTrackOnMarkSeen
 
         var dialog by remember { mutableStateOf<Any?>(null) }
         dialog?.run {
@@ -131,32 +131,32 @@ object SettingsTrackingScreen : SearchableSettings {
 
         return listOf(
             Preference.PreferenceItem.SwitchPreference(
-                preference = trackPreferences.autoUpdateTrack(),
+                preference = trackPreferences.autoUpdateTrack,
                 title = stringResource(AMMR.strings.am_pref_auto_update_anime_sync),
             ),
             // AY -->
             Preference.PreferenceItem.SwitchPreference(
-                preference = trackPreferences.trackOnAddingToLibrary(),
+                preference = trackPreferences.trackOnAddingToLibrary,
                 title = stringResource(AYMR.strings.pref_track_on_add_library),
             ),
             Preference.PreferenceItem.SwitchPreference(
-                preference = trackPreferences.showNextEpisodeAiringTime(),
+                preference = trackPreferences.showNextEpisodeAiringTime,
                 title = stringResource(AYMR.strings.pref_show_next_episode_airing_time),
             ),
             // <-- AY
             // AM -->
             Preference.PreferenceItem.SwitchPreference(
-                preference = trackPreferences.syncEnhancedTrackers(),
+                preference = trackPreferences.syncEnhancedTrackers,
                 title = stringResource(AMMR.strings.pref_tracking_sync_enhanced),
             ),
             Preference.PreferenceItem.SwitchPreference(
-                preference = trackPreferences.smartTrackerSync(),
+                preference = trackPreferences.smartTrackerSync,
                 title = stringResource(AMMR.strings.pref_smart_sync_tracker),
                 subtitle = stringResource(AMMR.strings.pref_smart_sync_tracker_summary),
             ),
             // <-- AM
             Preference.PreferenceItem.ListPreference(
-                preference = trackPreferences.autoUpdateTrackOnMarkSeen(),
+                preference = trackPreferences.autoUpdateTrackOnMarkSeen,
                 entries = AutoTrackState.entries
                     .associateWith { stringResource(it.titleRes) }
                     .toPersistentMap(),

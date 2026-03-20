@@ -147,7 +147,7 @@ fun PlayerControls(
     val chapters by viewModel.chapters.collectAsState(persistentListOf())
     val currentBrightness by viewModel.currentBrightness.collectAsState()
 
-    val playerTimeToDisappear by playerPreferences.playerTimeToDisappear().collectAsState()
+    val playerTimeToDisappear by playerPreferences.playerTimeToDisappear.collectAsState()
     var isSeeking by remember { mutableStateOf(false) }
     var resetControls by remember { mutableStateOf(true) }
 
@@ -213,8 +213,8 @@ fun PlayerControls(
                 val brightness by viewModel.currentBrightness.collectAsState()
                 val volume by viewModel.currentVolume.collectAsState()
                 val mpvVolume by viewModel.mpv.propFlow<Int>("volume").collectAsState()
-                val swapVolumeAndBrightness by gesturePreferences.swapVolumeBrightness().collectAsState()
-                val reduceMotion by playerPreferences.reduceMotion().collectAsState()
+                val swapVolumeAndBrightness by gesturePreferences.swapVolumeBrightness.collectAsState()
+                val reduceMotion by playerPreferences.reduceMotion.collectAsState()
 
                 LaunchedEffect(volume, mpvVolume, isVolumeSliderShown) {
                     delay(2000)
@@ -299,19 +299,19 @@ fun PlayerControls(
                         bottom.linkTo(parent.bottom)
                     },
                 ) {
-                    val boostCap by audioPreferences.volumeBoostCap().collectAsState()
-                    val displayVolumeAsPercentage by playerPreferences.displayVolPer().collectAsState()
+                    val boostCap by audioPreferences.volumeBoostCap.collectAsState()
+                    val displayVolumeAsPercentage by playerPreferences.displayVolPer.collectAsState()
                     VolumeSlider(
                         volume = volume,
                         mpvVolume = mpvVolume ?: 100,
                         range = 0..viewModel.maxVolume,
-                        boostRange = if (boostCap > 0) 0..audioPreferences.volumeBoostCap().get() else null,
+                        boostRange = if (boostCap > 0) 0..audioPreferences.volumeBoostCap.get() else null,
                         displayAsPercentage = displayVolumeAsPercentage,
                     )
                 }
 
                 val currentPlayerUpdate by viewModel.playerUpdate.collectAsState()
-                val aspectRatio by playerPreferences.aspectState().collectAsState()
+                val aspectRatio by playerPreferences.aspectState.collectAsState()
                 LaunchedEffect(currentPlayerUpdate, aspectRatio) {
                     if (currentPlayerUpdate is PlayerUpdates.DoubleSpeed || currentPlayerUpdate is PlayerUpdates.None) {
                         return@LaunchedEffect
@@ -369,7 +369,7 @@ fun PlayerControls(
                         bottom.linkTo(parent.bottom)
                     },
                 ) {
-                    val showLoadingCircle by playerPreferences.showLoadingCircle().collectAsState()
+                    val showLoadingCircle by playerPreferences.showLoadingCircle.collectAsState()
                     MiddlePlayerControls(
                         hasPrevious = hasPreviousEpisode,
                         onSkipPrevious = { viewModel.changeEpisode(true) },
@@ -406,10 +406,10 @@ fun PlayerControls(
                         bottom.linkTo(parent.bottom, spacing.medium)
                     },
                 ) {
-                    val invertDuration by playerPreferences.invertDuration().collectAsState()
+                    val invertDuration by playerPreferences.invertDuration.collectAsState()
                     val readAhead by viewModel.mpv.propFlow<Float>("demuxer-cache-time").collectAsState()
                     val remaining by viewModel.mpv.propFlow<Float>("playtime-remaining").collectAsState()
-                    val preciseSeeking by gesturePreferences.playerSmoothSeek().collectAsState()
+                    val preciseSeeking by gesturePreferences.playerSmoothSeek.collectAsState()
                     SeekbarWithTimers(
                         position = position?.toFloat() ?: 0f,
                         duration = duration?.toFloat() ?: 0f,
@@ -421,7 +421,7 @@ fun PlayerControls(
                         },
                         onValueChangeFinished = { isSeeking = false },
                         timersInverted = Pair(false, invertDuration),
-                        durationTimerOnCLick = { playerPreferences.invertDuration().set(!invertDuration) },
+                        durationTimerOnCLick = { playerPreferences.invertDuration.set(!invertDuration) },
                         positionTimerOnClick = {},
                         chapters = chapters,
                     )
@@ -457,7 +457,7 @@ fun PlayerControls(
                     )
                 }
                 // Top right controls
-                val autoPlayEnabled by playerPreferences.autoplayEnabled().collectAsState()
+                val autoPlayEnabled by playerPreferences.autoplayEnabled.collectAsState()
                 val isEpisodeOnline by viewModel.isEpisodeOnline.collectAsState()
                 AnimatedVisibility(
                     controlsShown && !areControlsLocked,
@@ -564,16 +564,16 @@ fun PlayerControls(
                         end.linkTo(bottomRightControls.start)
                     },
                 ) {
-                    val showChapterIndicator by playerPreferences.showCurrentChapter().collectAsState()
+                    val showChapterIndicator by playerPreferences.showCurrentChapter.collectAsState()
                     BottomLeftPlayerControls(
-                        playbackSpeed = playbackSpeed ?: playerPreferences.playerSpeed().get(),
+                        playbackSpeed = playbackSpeed ?: playerPreferences.playerSpeed.get(),
                         showChapterIndicator = showChapterIndicator,
                         currentChapter = chapters.getOrNull(currentChapter ?: 0),
                         onLockControls = viewModel::lockControls,
                         onCycleRotation = viewModel::cycleScreenRotations,
                         onPlaybackSpeedChange = {
                             viewModel.mpv.setPropertyFloat("speed", it)
-                            playerPreferences.playerSpeed().set(it)
+                            playerPreferences.playerSpeed.set(it)
                         },
                         onOpenSheet = viewModel::showSheet,
                     )
@@ -588,12 +588,12 @@ fun PlayerControls(
         val expandedState by viewModel.hosterExpandedList.collectAsState()
         val selectedHosterVideoIndex by viewModel.selectedHosterVideoIndex.collectAsState()
         val sleepTimerTimeRemaining by viewModel.remainingTime.collectAsState()
-        val speedPresets by playerPreferences.speedPresets().collectAsState()
+        val speedPresets by playerPreferences.speedPresets.collectAsState()
 
-        val showSubtitles by subtitlePreferences.screenshotSubtitles().collectAsState()
+        val showSubtitles by subtitlePreferences.screenshotSubtitles.collectAsState()
         val currentSource by viewModel.currentSource.collectAsState()
-        val showFailedHosters by playerPreferences.showFailedHosters().collectAsState()
-        val emptyHosters by playerPreferences.showEmptyHosters().collectAsState()
+        val showFailedHosters by playerPreferences.showFailedHosters.collectAsState()
+        val emptyHosters by playerPreferences.showEmptyHosters.collectAsState()
 
         val internalSubtitles by viewModel.subtitleTracks.collectAsState(persistentListOf())
         val externalSubtitles by viewModel.externalSubtitleTracks.collectAsState()
@@ -601,8 +601,8 @@ fun PlayerControls(
             internalSubtitles.map { VideoTrack.Internal(it) } + externalSubtitles
         }
 
-        val audioChannels by audioPreferences.audioChannels().collectAsState()
-        val pitchCorrection by audioPreferences.enablePitchCorrection().collectAsState()
+        val audioChannels by audioPreferences.audioChannels.collectAsState()
+        val pitchCorrection by audioPreferences.enablePitchCorrection.collectAsState()
         val mpvAudioPitchCorrection by viewModel.mpv.propFlow<Boolean>("audio-pitch-correction").collectAsState()
         val internalAudioTracks by viewModel.audioTracks.collectAsState(persistentListOf())
         val externalAudioTracks by viewModel.externalAudioTracks.collectAsState()
@@ -610,7 +610,7 @@ fun PlayerControls(
             internalAudioTracks.map { VideoTrack.Internal(it) } + externalAudioTracks
         }
 
-        val statisticsPage by advancedPreferences.playerStatisticsPage().collectAsState()
+        val statisticsPage by advancedPreferences.playerStatisticsPage.collectAsState()
 
         PlayerSheets(
             sheetShown = sheetShown,
@@ -640,15 +640,15 @@ fun PlayerControls(
             decoder = decoder,
             onUpdateDecoder = { viewModel.mpv.setPropertyString("hwdec", it.value) },
 
-            speed = playbackSpeed ?: playerPreferences.playerSpeed().get(),
+            speed = playbackSpeed ?: playerPreferences.playerSpeed.get(),
             speedPresets = speedPresets.map { it.toFloat() }.sorted().toPersistentList(),
             onSpeedChange = { viewModel.mpv.setPropertyFloat("speed", it.toFixed(2)) },
-            onMakeDefaultSpeed = { playerPreferences.playerSpeed().set(it.toFixed(2)) },
-            onAddSpeedPreset = { playerPreferences.speedPresets() += it.toFixed(2).toString() },
-            onRemoveSpeedPreset = { playerPreferences.speedPresets() -= it.toFixed(2).toString() },
-            onResetSpeedPresets = playerPreferences.speedPresets()::delete,
+            onMakeDefaultSpeed = { playerPreferences.playerSpeed.set(it.toFixed(2)) },
+            onAddSpeedPreset = { playerPreferences.speedPresets += it.toFixed(2).toString() },
+            onRemoveSpeedPreset = { playerPreferences.speedPresets -= it.toFixed(2).toString() },
+            onResetSpeedPresets = playerPreferences.speedPresets::delete,
             onResetDefaultSpeed = {
-                viewModel.mpv.setPropertyFloat("speed", playerPreferences.playerSpeed().deleteAndGet().toFixed(2))
+                viewModel.mpv.setPropertyFloat("speed", playerPreferences.playerSpeed.deleteAndGet().toFixed(2))
             },
 
             // More sheet state
@@ -663,10 +663,10 @@ fun PlayerControls(
                     viewModel.mpv.command("script-binding", "stats/display-stats-toggle")
                 }
                 if (page != 0) viewModel.mpv.command("script-binding", "stats/display-page-$page")
-                advancedPreferences.playerStatisticsPage().set(page)
+                advancedPreferences.playerStatisticsPage.set(page)
             },
             onAudioChannelsChange = {
-                audioPreferences.audioChannels().set(it)
+                audioPreferences.audioChannels.set(it)
                 if (it == AudioChannels.ReverseStereo) {
                     viewModel.mpv.setPropertyString(AudioChannels.AutoSafe.property, AudioChannels.AutoSafe.value)
                 } else {
@@ -678,14 +678,14 @@ fun PlayerControls(
             onCustomButtonLongClick = { it.executeLongPress(viewModel.mpv) },
             buttons = customButtons,
             onPitchCorrectionChange = {
-                audioPreferences.enablePitchCorrection().set(it)
+                audioPreferences.enablePitchCorrection.set(it)
                 viewModel.mpv.setPropertyBoolean("audio-pitch-correction", it)
             },
             pitchCorrection = pitchCorrection || mpvAudioPitchCorrection == true,
 
             isLocalSource = currentSource?.isLocal() == true,
             showSubtitles = showSubtitles,
-            onToggleShowSubtitles = { subtitlePreferences.screenshotSubtitles().set(it) },
+            onToggleShowSubtitles = { subtitlePreferences.screenshotSubtitles.set(it) },
             cachePath = viewModel.cachePath,
             onSetAsArt = viewModel::setAsArt,
             onShare = { viewModel.shareImage(it, viewModel.pos) },
@@ -701,10 +701,10 @@ fun PlayerControls(
         )
 
         val panel by viewModel.panelShown.collectAsState()
-        val subDelayPref by subtitlePreferences.subtitlesDelay().collectAsState()
+        val subDelayPref by subtitlePreferences.subtitlesDelay.collectAsState()
         val subDelay by viewModel.mpv.propFlow<Double>("sub-delay").collectAsState()
         val subDelaySecondary by viewModel.mpv.propFlow<Double>("secondary-sub-delay").collectAsState()
-        val subDelaySecondaryPref by subtitlePreferences.subtitlesSecondaryDelay().collectAsState()
+        val subDelaySecondaryPref by subtitlePreferences.subtitlesSecondaryDelay.collectAsState()
         val subSpeed by viewModel.mpv.propFlow<Double>("sub-speed").collectAsState()
         val audioDelay by viewModel.mpv.propFlow<Double>("audio-delay").collectAsState()
         val isBold by viewModel.mpv.propFlow<Boolean>("sub-bold").collectAsState()
@@ -721,7 +721,7 @@ fun PlayerControls(
         val overrideAssSubs by viewModel.mpv.propFlow<String>("sub-ass-override").collectAsState()
         val subScale by viewModel.mpv.propFlow<Float>("sub-scale").collectAsState()
         val subPos by viewModel.mpv.propFlow<Int>("sub-pos").collectAsState()
-        val deband by decoderPreferences.debanding().collectAsState()
+        val deband by decoderPreferences.debanding.collectAsState()
         val mpvGpuNext by viewModel.mpv.propFlow<String>("vo").collectAsState()
         val debandSettingsMap = DebandSettings.entries.associateWith { setting ->
             viewModel.mpv.propFlow<Int>(setting.mpvProperty).collectAsState().value ?: 0
@@ -735,89 +735,89 @@ fun PlayerControls(
             panelShown = panel,
             onDismissRequest = { viewModel.showPanel(Panels.None) },
             // Subtitle settings panel state
-            isBold = isBold ?: subtitlePreferences.boldSubtitles().get(),
-            isItalic = isItalic ?: subtitlePreferences.italicSubtitles().get(),
+            isBold = isBold ?: subtitlePreferences.boldSubtitles.get(),
+            isItalic = isItalic ?: subtitlePreferences.italicSubtitles.get(),
             subJustify =
             subJustify?.let { SubtitleJustification.byValue(it) }
-                ?: subtitlePreferences.subtitleJustification().get(),
-            subFont = subFont ?: subtitlePreferences.subtitleFont().get(),
-            subFontSize = subFontSize ?: subtitlePreferences.subtitleFontSize().get(),
+                ?: subtitlePreferences.subtitleJustification.get(),
+            subFont = subFont ?: subtitlePreferences.subtitleFont.get(),
+            subFontSize = subFontSize ?: subtitlePreferences.subtitleFontSize.get(),
             subBorderStyle = subBorderStyle?.let { SubtitlesBorderStyle.byValue(it) }
-                ?: subtitlePreferences.borderStyleSubtitles().get(),
-            subBorderSize = subBorderSize ?: subtitlePreferences.subtitleBorderSize().get(),
-            subShadowOffset = subShadowOffset ?: subtitlePreferences.shadowOffsetSubtitles().get(),
+                ?: subtitlePreferences.borderStyleSubtitles.get(),
+            subBorderSize = subBorderSize ?: subtitlePreferences.subtitleBorderSize.get(),
+            subShadowOffset = subShadowOffset ?: subtitlePreferences.shadowOffsetSubtitles.get(),
             subColor = subtitleColorType,
             currentSubtitleColor = when (subtitleColorType) {
-                SubColorType.Text -> subColor?.toColorInt() ?: subtitlePreferences.textColorSubtitles().get()
-                SubColorType.Border -> subBorderColor?.toColorInt() ?: subtitlePreferences.borderColorSubtitles().get()
+                SubColorType.Text -> subColor?.toColorInt() ?: subtitlePreferences.textColorSubtitles.get()
+                SubColorType.Border -> subBorderColor?.toColorInt() ?: subtitlePreferences.borderColorSubtitles.get()
                 SubColorType.Background -> subBackgroundColor?.toColorInt()
-                    ?: subtitlePreferences.backgroundColorSubtitles().get()
+                    ?: subtitlePreferences.backgroundColorSubtitles.get()
             },
             overrideAssSubs = overrideAssSubs?.let { SubtitleAssOverride.byValue(it) }
-                ?: subtitlePreferences.overrideSubsASS().get(),
-            subScale = subScale ?: subtitlePreferences.subtitleFontScale().get(),
-            subPos = subPos ?: subtitlePreferences.subtitlePos().get(),
+                ?: subtitlePreferences.overrideSubsASS.get(),
+            subScale = subScale ?: subtitlePreferences.subtitleFontScale.get(),
+            subPos = subPos ?: subtitlePreferences.subtitlePos.get(),
             onSubBoldChange = {
                 viewModel.mpv.setPropertyBoolean("sub-bold", it)
-                subtitlePreferences.boldSubtitles().set(it)
+                subtitlePreferences.boldSubtitles.set(it)
             },
             onSubItalicChange = {
                 viewModel.mpv.setPropertyBoolean("sub-italic", it)
-                subtitlePreferences.italicSubtitles().set(it)
+                subtitlePreferences.italicSubtitles.set(it)
             },
             onSubJustifyChange = {
                 viewModel.mpv.setPropertyString("sub-justify", it.value)
-                subtitlePreferences.subtitleJustification().set(it)
+                subtitlePreferences.subtitleJustification.set(it)
             },
             onSubFontChange = {
                 viewModel.mpv.setPropertyString("sub-font", it)
-                subtitlePreferences.subtitleFont().set(it)
+                subtitlePreferences.subtitleFont.set(it)
             },
             onSubFontSizeChange = {
                 viewModel.mpv.setPropertyInt("sub-font-size", it)
-                subtitlePreferences.subtitleFontSize().set(it)
+                subtitlePreferences.subtitleFontSize.set(it)
             },
             onSubBorderStyleChange = {
                 viewModel.mpv.setPropertyString("sub-border-style", it.value)
-                subtitlePreferences.borderStyleSubtitles().set(it)
+                subtitlePreferences.borderStyleSubtitles.set(it)
             },
             onSubBorderSizeChange = {
                 viewModel.mpv.setPropertyInt("sub-outline-size", it)
-                subtitlePreferences.subtitleBorderSize().set(it)
+                subtitlePreferences.subtitleBorderSize.set(it)
             },
             onSubShadowOffsetChange = {
                 viewModel.mpv.setPropertyInt("sub-shadow-offset", it)
-                subtitlePreferences.shadowOffsetSubtitles().set(it)
+                subtitlePreferences.shadowOffsetSubtitles.set(it)
             },
             onSubColorChange = {
                 when (subtitleColorType) {
                     SubColorType.Text -> {
                         viewModel.mpv.setPropertyString("sub-color", it.toColorHexString())
-                        subtitlePreferences.textColorSubtitles().set(it)
+                        subtitlePreferences.textColorSubtitles.set(it)
                     }
 
                     SubColorType.Border -> {
                         viewModel.mpv.setPropertyString("sub-outline-color", it.toColorHexString())
-                        subtitlePreferences.borderColorSubtitles().set(it)
+                        subtitlePreferences.borderColorSubtitles.set(it)
                     }
 
                     SubColorType.Background -> {
                         viewModel.mpv.setPropertyString("sub-back-color", it.toColorHexString())
-                        subtitlePreferences.backgroundColorSubtitles().set(it)
+                        subtitlePreferences.backgroundColorSubtitles.set(it)
                     }
                 }
             },
             onOverrideAssSubsChange = {
                 viewModel.mpv.setPropertyString("sub-ass-override", it.value)
-                subtitlePreferences.overrideSubsASS().set(it)
+                subtitlePreferences.overrideSubsASS.set(it)
             },
             onSubScaleChange = {
                 viewModel.mpv.setPropertyFloat("sub-scale", it)
-                subtitlePreferences.subtitleFontScale().set(it)
+                subtitlePreferences.subtitleFontScale.set(it)
             },
             onSubPosChange = {
                 viewModel.mpv.setPropertyInt("sub-pos", it)
-                subtitlePreferences.subtitlePos().set(it)
+                subtitlePreferences.subtitlePos.set(it)
             },
             onSubColorTypeChange = { subtitleColorType = it },
             onSubColorReset = {
@@ -827,19 +827,19 @@ fun PlayerControls(
                 resetTypography(viewModel.mpv, subtitlePreferences)
             },
             onSubtitleMiscReset = {
-                subtitlePreferences.subtitlePos().deleteAndGet().let {
+                subtitlePreferences.subtitlePos.deleteAndGet().let {
                     viewModel.mpv.setPropertyInt("sub-pos", it)
                 }
-                subtitlePreferences.subtitleFontScale().deleteAndGet().let {
+                subtitlePreferences.subtitleFontScale.deleteAndGet().let {
                     viewModel.mpv.setPropertyFloat("sub-scale", it)
                 }
-                subtitlePreferences.overrideSubsASS().deleteAndGet().let {
+                subtitlePreferences.overrideSubsASS.deleteAndGet().let {
                     viewModel.mpv.setPropertyString("sub-ass-override", it.value)
                 }
             },
             subDelayMsPrimary = subDelay?.times(1000)?.roundToInt() ?: subDelayPref,
             subDelayMsSecondary = subDelaySecondary?.times(1000)?.roundToInt() ?: subDelaySecondaryPref,
-            subSpeed = subSpeed ?: subtitlePreferences.subtitlesSpeed().get().toDouble(),
+            subSpeed = subSpeed ?: subtitlePreferences.subtitlesSpeed.get().toDouble(),
             onSubDelayPrimaryChange = {
                 viewModel.mpv.setPropertyDouble("sub-delay", it / 1000.0)
             },
@@ -850,27 +850,27 @@ fun PlayerControls(
                 viewModel.mpv.setPropertyDouble("sub-speed", it)
             },
             onSubDelayApply = {
-                subtitlePreferences.subtitlesDelay().set((subDelay?.times(1000)?.roundToInt()) ?: 0)
-                subtitlePreferences.subtitlesSecondaryDelay().set((subDelaySecondary?.times(1000)?.roundToInt()) ?: 0)
+                subtitlePreferences.subtitlesDelay.set((subDelay?.times(1000)?.roundToInt()) ?: 0)
+                subtitlePreferences.subtitlesSecondaryDelay.set((subDelaySecondary?.times(1000)?.roundToInt()) ?: 0)
             },
             onSubDelayReset = {
-                viewModel.mpv.setPropertyDouble("sub-delay", subtitlePreferences.subtitlesDelay().get() / 1000.0)
+                viewModel.mpv.setPropertyDouble("sub-delay", subtitlePreferences.subtitlesDelay.get() / 1000.0)
                 viewModel.mpv.setPropertyDouble(
                     "secondary-sub-delay",
-                    subtitlePreferences.subtitlesSecondaryDelay().get() / 1000.0,
+                    subtitlePreferences.subtitlesSecondaryDelay.get() / 1000.0,
                 )
-                viewModel.mpv.setPropertyDouble("sub-speed", subtitlePreferences.subtitlesSpeed().get().toDouble())
+                viewModel.mpv.setPropertyDouble("sub-speed", subtitlePreferences.subtitlesSpeed.get().toDouble())
             },
-            audioDelayMs = (audioDelay?.times(1000))?.roundToInt() ?: audioPreferences.audioDelay().get(),
+            audioDelayMs = (audioDelay?.times(1000))?.roundToInt() ?: audioPreferences.audioDelay.get(),
             onAudioDelayChange = { viewModel.mpv.setPropertyDouble("audio-delay", it / 1000.0) },
             onAudioDelayApply = {
-                audioPreferences.audioDelay().set((audioDelay?.times(1000)?.roundToInt()) ?: 0)
+                audioPreferences.audioDelay.set((audioDelay?.times(1000)?.roundToInt()) ?: 0)
             },
             onAudioDelayReset = {
-                viewModel.mpv.setPropertyDouble("audio-delay", audioPreferences.audioDelay().get() / 1000.0)
+                viewModel.mpv.setPropertyDouble("audio-delay", audioPreferences.audioDelay.get() / 1000.0)
             },
             onDebandChange = {
-                decoderPreferences.debanding().set(it)
+                decoderPreferences.debanding.set(it)
                 when (it) {
                     Debanding.None -> {
                         viewModel.mpv.setPropertyString("deband", "no")

@@ -24,10 +24,10 @@ object PlayerSettingsSubtitleScreen : SearchableSettings {
     override fun getPreferences(): List<Preference> {
         val subtitlePreferences = remember { Injekt.get<SubtitlePreferences>() }
 
-        val langPref = subtitlePreferences.preferredSubLanguages()
-        val whitelist = subtitlePreferences.subtitleWhitelist()
-        val blacklist = subtitlePreferences.subtitleBlacklist()
-        val blackBars = subtitlePreferences.subtitleBlackBars()
+        val langPref = subtitlePreferences.preferredSubLanguages
+        val whitelist = subtitlePreferences.subtitleWhitelist
+        val blacklist = subtitlePreferences.subtitleBlacklist
+        val blackBars = subtitlePreferences.subtitleBlackBars
 
         return listOf(
             Preference.PreferenceItem.EditTextInfoPreference(

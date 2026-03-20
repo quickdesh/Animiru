@@ -14,19 +14,19 @@ class TrackSelect(
 ) {
     fun getPreferredTrackIndex(tracks: List<VideoTrack>, subtitle: Boolean = true): VideoTrack? {
         val prefLangs = if (subtitle) {
-            subtitlePreferences.preferredSubLanguages().get()
+            subtitlePreferences.preferredSubLanguages.get()
         } else {
-            audioPreferences.preferredAudioLanguages().get()
+            audioPreferences.preferredAudioLanguages.get()
         }.split(",").filter(String::isNotEmpty).map(String::trim)
 
         val whitelist = if (subtitle) {
-            subtitlePreferences.subtitleWhitelist().get()
+            subtitlePreferences.subtitleWhitelist.get()
         } else {
             ""
         }.split(",").filter(String::isNotEmpty).map(String::trim)
 
         val blacklist = if (subtitle) {
-            subtitlePreferences.subtitleBlacklist().get()
+            subtitlePreferences.subtitleBlacklist.get()
         } else {
             ""
         }.split(",").filter(String::isNotEmpty).map(String::trim)

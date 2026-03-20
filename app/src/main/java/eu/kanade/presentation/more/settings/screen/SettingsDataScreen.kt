@@ -169,11 +169,11 @@ object SettingsDataScreen : SearchableSettings {
         storagePreferences: StoragePreferences,
     ): Preference.PreferenceItem.TextPreference {
         val context = LocalContext.current
-        val pickStorageLocation = storageLocationPicker(storagePreferences.baseStorageDirectory())
+        val pickStorageLocation = storageLocationPicker(storagePreferences.baseStorageDirectory)
 
         return Preference.PreferenceItem.TextPreference(
             title = stringResource(MR.strings.pref_storage_location),
-            subtitle = storageLocationText(storagePreferences.baseStorageDirectory()),
+            subtitle = storageLocationText(storagePreferences.baseStorageDirectory),
             onClick = {
                 try {
                     pickStorageLocation.launch(null)
@@ -189,7 +189,7 @@ object SettingsDataScreen : SearchableSettings {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
 
-        val lastAutoBackup by backupPreferences.lastAutoBackupTimestamp().collectAsState()
+        val lastAutoBackup by backupPreferences.lastAutoBackupTimestamp.collectAsState()
 
         val chooseBackup = rememberLauncherForActivityResult(
             object : ActivityResultContracts.GetContent() {
@@ -256,7 +256,7 @@ object SettingsDataScreen : SearchableSettings {
 
                 // Automatic backups
                 Preference.PreferenceItem.ListPreference(
-                    preference = backupPreferences.backupInterval(),
+                    preference = backupPreferences.backupInterval,
                     entries = persistentMapOf(
                         0 to stringResource(MR.strings.off),
                         6 to stringResource(MR.strings.update_6hour),
@@ -287,7 +287,7 @@ object SettingsDataScreen : SearchableSettings {
 
         // AM (FILE_SIZE) -->
         LaunchedEffect(Unit) {
-            storagePreferences.showEpisodeFileSize().changes()
+            storagePreferences.showEpisodeFileSize.changes()
                 .drop(1)
                 .collectLatest { value ->
                     if (value) {
@@ -319,7 +319,7 @@ object SettingsDataScreen : SearchableSettings {
                 // <-- AM (STORAGE_SCREEN)
                 // AM (FILE_SIZE) -->
                 Preference.PreferenceItem.SwitchPreference(
-                    preference = storagePreferences.showEpisodeFileSize(),
+                    preference = storagePreferences.showEpisodeFileSize,
                     title = stringResource(AMMR.strings.pref_show_downloaded_episode_file_size),
                 ),
                 // <-- AM (FILE_SIZE)

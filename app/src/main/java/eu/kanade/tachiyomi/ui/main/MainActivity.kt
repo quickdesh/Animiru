@@ -162,7 +162,7 @@ class MainActivity : BaseActivity() {
             val context = LocalContext.current
 
             var incognito by remember { mutableStateOf(getIncognitoState.await(null)) }
-            val downloadOnly by preferences.downloadedOnly().collectAsState()
+            val downloadOnly by preferences.downloadedOnly.collectAsState()
             val indexing by downloadCache.isInitializing.collectAsState()
 
             val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -194,7 +194,7 @@ class MainActivity : BaseActivity() {
                         handleIntentAction(intent, navigator)
 
                         // Reset Incognito Mode on relaunch
-                        preferences.incognitoMode().set(false)
+                        preferences.incognitoMode.set(false)
                     }
                 }
                 LaunchedEffect(navigator.lastItem) {
@@ -241,7 +241,7 @@ class MainActivity : BaseActivity() {
 
                 // Pop source-related screens when incognito mode is turned off
                 LaunchedEffect(Unit) {
-                    preferences.incognitoMode().changes()
+                    preferences.incognitoMode.changes()
                         .drop(1)
                         .filter { !it }
                         .onEach {
@@ -256,7 +256,7 @@ class MainActivity : BaseActivity() {
 
                     // AM (DISCORD_RPC) -->
                     val appContext = this@MainActivity.applicationContext
-                    connectionPreferences.enableDiscordRPC().changes()
+                    connectionPreferences.enableDiscordRPC.changes()
                         .drop(1)
                         .onEach {
                             if (it) {
@@ -384,7 +384,7 @@ class MainActivity : BaseActivity() {
         val navigator = LocalNavigator.currentOrThrow
 
         LaunchedEffect(Unit) {
-            if (!preferences.shownOnboardingFlow().get() && navigator.lastItem !is OnboardingScreen) {
+            if (!preferences.shownOnboardingFlow.get() && navigator.lastItem !is OnboardingScreen) {
                 navigator.push(OnboardingScreen())
             }
         }
@@ -498,7 +498,7 @@ class MainActivity : BaseActivity() {
                 null
             }
             // AM -->
-            else -> uiPreferences.startScreen().get().tab
+            else -> uiPreferences.startScreen.get().tab
             // <-- AM
         }
 
