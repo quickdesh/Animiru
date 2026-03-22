@@ -24,10 +24,8 @@ internal fun Project.plugins(block: PluginManager.() -> Unit) {
     pluginManager.apply(block)
 }
 
-internal fun Project.android(block: CommonExtension<*, *, *, *, *, *>.() -> Unit) {
-    extensions.configure<BaseExtension> {
-        if (this is CommonExtension<*, *, *, *, *, *>) apply(block)
-    }
+internal fun Project.android(block: CommonExtension.() -> Unit) {
+    extensions.configure(block)
 }
 
 fun Project.configureTest() {
