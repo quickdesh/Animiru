@@ -30,7 +30,6 @@ dependencies {
 
     api(libs.sqldelight.androidxPaging)
 
-    compileOnly(platform(libs.androidx.compose.bom))
     compileOnly(libs.androidx.compose.runtimeAnnotation)
 
     testImplementation(libs.bundles.test)
