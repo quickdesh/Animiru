@@ -1,28 +1,47 @@
-| Stable                                                                                                                                                     | Discord Server                                                                                                                                          | Translate Aniyomi                                                                                                                                 |
-|------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| [![stable release](https://img.shields.io/github/release/Quickdesh/Animiru.svg?maxAge=3600&label=download)](https://github.com/Quickdesh/Animiru/releases) | [![Discord](https://img.shields.io/discord/1009125884491468861?label=discord&labelColor=7289da&color=2c2f33&style=flat)](https://discord.gg/yDuHDMwxhv) | [![Translation status](https://hosted.weblate.org/widgets/aniyomi/-/svg-badge.svg)](https://hosted.weblate.org/engage/aniyomi/?utm_source=widget) |
+AM (README_HEADER_REFACTOR) -->
 
 <div align="center">
 
-# ![app icon](.github/readme-images/app-icon.png)Animiru
-Animiru is a fork of [Aniyomi](https://github.com/jmir1/aniyomi)
+<img src="./.github/assets/logo.png" alt="Animiru logo" width="80"/>
+
+# Animiru
+
+### Full-featured streaming app
+
+Animiru is a fork of [Aniyomi](https://github.com/jmir1/aniyomi) focused on providing a better streaming experience.
+
+[![Discord server](https://img.shields.io/discord/1009125884491468861.svg?label=&labelColor=6A7EC2&color=455282&logo=discord&logoColor=FFFFFF)](https://discord.gg/yDuHDMwxhv)
+[![GitHub downloads](https://img.shields.io/github/downloads/quickdesh/Animiru/total?label=downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&style=flat)](https://github.com/Quickdesh/Animiru/releases)
+[![License: Apache-2.0](https://img.shields.io/github/license/quickdesh/Animiru?labelColor=27303D&color=0877d2)](./LICENSE)
+
+[![CI](https://img.shields.io/github/actions/workflow/status/quickdesh/Animiru/build.yml?labelColor=27303D)](https://github.com/quickdesh/Animiru/actions/workflows/build_push.yml)
+[![Translation status](https://img.shields.io/weblate/progress/aniyomi?labelColor=27303D&color=946300)](https://hosted.weblate.org/engage/aniyomi/?utm_source=widget)
+
+## Download
+
+[![Animiru Stable](https://img.shields.io/github/release/quickdesh/Animiru.svg?maxAge=3600&label=Stable&labelColor=06599d&color=043b69)](https://github.com/Quickdesh/Animiru/releases)
+
+_Requires Android 8.0 or higher._
 
 </div>
-<div align="left">
+
+<-- AM (README_HEADER_REFACTOR)
 
 ## Features
 
 Features include:
-* Watch videos
-* Local watching of downloaded content
-* A configurable player built on mpv-android with multiple options and settings
-* Tracker support: [MyAnimeList](https://myanimelist.net/), [AniList](https://anilist.co/), [Kitsu](https://kitsu.io/), [MangaUpdates](https://mangaupdates.com), [Shikimori](https://shikimori.one), and [Bangumi](https://bgm.tv/)
-* Categories to organize your library
-* Light and dark themes
-* Create backups locally to read/watch offline or to your desired cloud service
+
+- Watch videos
+- Local watching of downloaded content
+- A configurable player built on mpv-android with multiple options and settings
+- Tracker support: [MyAnimeList](https://myanimelist.net/), [AniList](https://anilist.co/), [Kitsu](https://kitsu.io/), [MangaUpdates](https://mangaupdates.com), [Shikimori](https://shikimori.one), and [Bangumi](https://bgm.tv/)
+- Categories to organize your library
+- Light and dark themes
+- Create backups locally to read/watch offline or to your desired cloud service
 
 ## Download
-Get the app from the [releases page](https://github.com/Quickdesh/Animiru/releases).
+
+Get the app from the [releases page](https://github.com/quickdesh/Animiru/releases).
 
 ## Issues, Feature Requests and Contributing
 
