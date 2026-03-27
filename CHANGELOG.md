@@ -11,6 +11,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Added
+- Added two-way sync for enhanced trackers ([@Secozzi](https://github.com/Secozzi)) ([#137](https://github.com/quickdesh/Animiru/pull/137))
 
 ## [v0.19.4.1] - 2026-03-15
 ### Improved

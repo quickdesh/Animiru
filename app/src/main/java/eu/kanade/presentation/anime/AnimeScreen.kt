@@ -553,6 +553,9 @@ private fun AnimeScreenSmallImpl(
                             trackingCount = state.trackingCount,
                             nextUpdate = nextUpdate,
                             isUserIntervalMode = state.anime.fetchInterval < 0,
+                            // AM -->
+                            isSyncingTrackers = state.isSyncingTrackers,
+                            // <-- AM
                             onAddToLibraryClicked = onAddToLibraryClicked,
                             onWebViewClicked = onWebViewClicked,
                             onWebViewLongClicked = onWebViewLongClicked,
@@ -916,6 +919,9 @@ fun AnimeScreenLargeImpl(
                                 trackingCount = state.trackingCount,
                                 nextUpdate = nextUpdate,
                                 isUserIntervalMode = state.anime.fetchInterval < 0,
+                                // AM -->
+                                isSyncingTrackers = state.isSyncingTrackers,
+                                // <-- AM
                                 onAddToLibraryClicked = onAddToLibraryClicked,
                                 onWebViewClicked = onWebViewClicked,
                                 onWebViewLongClicked = onWebViewLongClicked,

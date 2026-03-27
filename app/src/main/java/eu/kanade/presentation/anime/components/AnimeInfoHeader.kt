@@ -41,6 +41,7 @@ import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -180,6 +181,9 @@ fun AnimeActionRow(
     trackingCount: Int,
     nextUpdate: Instant?,
     isUserIntervalMode: Boolean,
+    // AM -->
+    isSyncingTrackers: Boolean,
+    // <-- AM
     onAddToLibraryClicked: () -> Unit,
     onWebViewClicked: (() -> Unit)?,
     onWebViewLongClicked: (() -> Unit)?,
@@ -231,16 +235,31 @@ fun AnimeActionRow(
         // AY -->
         if (onTrackingClicked != null) {
             // <-- AY
-            AnimeActionButton(
-                title = if (trackingCount == 0) {
-                    stringResource(MR.strings.manga_tracking_tab)
-                } else {
-                    pluralStringResource(MR.plurals.num_trackers, count = trackingCount, trackingCount)
-                },
-                icon = if (trackingCount == 0) Icons.Outlined.Sync else Icons.Outlined.Done,
-                color = if (trackingCount == 0) defaultActionButtonColor else MaterialTheme.colorScheme.primary,
-                onClick = onTrackingClicked,
-            )
+            if (isSyncingTrackers) {
+                // AM -->
+                AnimeActionButton(
+                    title = stringResource(MR.strings.loading),
+                    color = MaterialTheme.colorScheme.primary,
+                    onClick = onTrackingClicked,
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 3.dp,
+                    )
+                }
+                // <-- AM
+            } else {
+                AnimeActionButton(
+                    title = if (trackingCount == 0) {
+                        stringResource(MR.strings.manga_tracking_tab)
+                    } else {
+                        pluralStringResource(MR.plurals.num_trackers, count = trackingCount, trackingCount)
+                    },
+                    icon = if (trackingCount == 0) Icons.Outlined.Sync else Icons.Outlined.Done,
+                    color = if (trackingCount == 0) defaultActionButtonColor else MaterialTheme.colorScheme.primary,
+                    onClick = onTrackingClicked,
+                )
+            }
         }
         if (onWebViewClicked != null) {
             AnimeActionButton(
@@ -726,6 +745,7 @@ private fun TagsChip(
     }
 }
 
+// AM -->
 @Composable
 private fun RowScope.AnimeActionButton(
     title: String,
@@ -734,18 +754,37 @@ private fun RowScope.AnimeActionButton(
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
 ) {
+    AnimeActionButton(
+        title = title,
+        color = color,
+        onClick = onClick,
+        onLongClick = onLongClick,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(20.dp),
+        )
+    }
+}
+// <-- AM
+
+@Composable
+private fun RowScope.AnimeActionButton(
+    title: String,
+    color: Color,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     TextButton(
         onClick = onClick,
         modifier = Modifier.weight(1f),
         onLongClick = onLongClick,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(20.dp),
-            )
+            content()
             Spacer(Modifier.height(4.dp))
             Text(
                 text = title,

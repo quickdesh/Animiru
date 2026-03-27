@@ -144,6 +144,12 @@ object SettingsTrackingScreen : SearchableSettings {
                 title = stringResource(AYMR.strings.pref_show_next_episode_airing_time),
             ),
             // <-- AY
+            // AM -->
+            Preference.PreferenceItem.SwitchPreference(
+                preference = trackPreferences.syncEnhancedTrackers(),
+                title = stringResource(AMMR.strings.pref_tracking_sync_enhanced),
+            ),
+            // <-- AM
             Preference.PreferenceItem.ListPreference(
                 preference = trackPreferences.autoUpdateTrackOnMarkSeen(),
                 entries = AutoTrackState.entries

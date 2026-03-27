@@ -2,6 +2,7 @@ package eu.kanade.domain.track.interactor
 
 import eu.kanade.domain.track.model.toDbTrack
 import eu.kanade.domain.track.model.toDomainTrack
+import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.Tracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import kotlinx.coroutines.async
@@ -22,11 +23,19 @@ class RefreshTracks(
      *
      * @return Failed updates.
      */
-    suspend fun await(animeId: Long): List<Pair<Tracker?, Throwable>> {
+    suspend fun await(
+        animeId: Long,
+        // AM -->
+        enhancedOnly: Boolean = false,
+        // <-- AM
+    ): List<Pair<Tracker?, Throwable>> {
         return supervisorScope {
             return@supervisorScope getTracks.await(animeId)
                 .map { it to trackerManager.get(it.trackerId) }
                 .filter { (_, service) -> service?.isLoggedIn == true }
+                // AM -->
+                .filter { (_, service) -> !enhancedOnly || service is EnhancedTracker }
+                // <-- AM
                 .map { (track, service) ->
                     async {
                         return@async try {

@@ -47,6 +47,10 @@ class TrackPreferences(
     )
     // <-- AY
 
+    // AM -->
+    fun syncEnhancedTrackers() = preferenceStore.getBoolean("sync_enhanced_trackers", true)
+    // <-- AM
+
     fun autoUpdateTrackOnMarkSeen() = preferenceStore.getEnum(
         "pref_auto_update_anime_on_mark_seen",
         AutoTrackState.ALWAYS,

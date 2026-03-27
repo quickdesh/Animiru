@@ -334,6 +334,9 @@ class AnimeScreenModel(
             // Fetch info-episodes when needed
             if (screenModelScope.isActive) {
                 val fetchFromSourceTasks = listOf(
+                    // AM -->
+                    async { syncTrackers() },
+                    // <-- AM
                     async { if (needRefreshInfo) fetchAnimeFromSource() },
                     async {
                         // AY -->
@@ -353,6 +356,9 @@ class AnimeScreenModel(
         screenModelScope.launch {
             updateSuccessState { it.copy(isRefreshingData = true) }
             val fetchFromSourceTasks = listOf(
+                // AM -->
+                async { syncTrackers() },
+                // <-- AM
                 async { fetchAnimeFromSource(manualFetch) },
                 async { fetchEpisodesAndSeasonsFromSource(manualFetch) },
             )
@@ -363,6 +369,15 @@ class AnimeScreenModel(
             // <-- AY
         }
     }
+
+    // AM -->
+    private suspend fun syncTrackers() {
+        if (!trackPreferences.syncEnhancedTrackers().get()) return
+        updateSuccessState { it.copy(isSyncingTrackers = true) }
+        refreshTrackers(enhancedOnly = true)
+        updateSuccessState { it.copy(isSyncingTrackers = false) }
+    }
+    // <-- AM
 
     // Anime info - start
 
@@ -1086,8 +1101,11 @@ class AnimeScreenModel(
 
     private suspend fun refreshTrackers(
         refreshTracks: RefreshTracks = Injekt.get(),
+        // AM -->
+        enhancedOnly: Boolean = false,
+        // <-- AM
     ) {
-        refreshTracks.await(animeId)
+        refreshTracks.await(animeId, enhancedOnly)
             .filter { it.first != null }
             .forEach { (track, e) ->
                 logcat(LogPriority.ERROR, e) {
@@ -1811,6 +1829,9 @@ class AnimeScreenModel(
             val excludedScanlators: Set<String>,
             val trackingCount: Int = 0,
             val hasLoggedInTrackers: Boolean = false,
+            // AM -->
+            val isSyncingTrackers: Boolean = false,
+            // <-- AM
             val isRefreshingData: Boolean = false,
             val dialog: Dialog? = null,
             val hasPromptedToAddBefore: Boolean = false,
