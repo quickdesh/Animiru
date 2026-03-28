@@ -1,4 +1,4 @@
-AM (README_HEADER_REFACTOR) -->
+<!-- AM (README_HEADER_REFACTOR) -->
 
 <div align="center">
 
@@ -25,7 +25,7 @@ _Requires Android 8.0 or higher._
 
 </div>
 
-<-- AM (README_HEADER_REFACTOR)
+<!-- AM (README_HEADER_REFACTOR) -->
 
 ## Features
 
