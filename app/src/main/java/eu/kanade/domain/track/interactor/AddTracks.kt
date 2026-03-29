@@ -104,7 +104,14 @@ class AddTracks(
                     .filter { it.accept(source) }
                     .forEach { service ->
                         try {
-                            service.match(anime)?.let { track ->
+                            // AM -->
+                            val match = when (anime.fetchType) {
+                                FetchType.Seasons -> service.matchSeason(anime)
+                                FetchType.Episodes -> service.match(anime)
+                            }
+                            // <-- AM
+
+                            match?.let { track ->
                                 track.anime_id = anime.id
                                 (service as Tracker).bind(track)
                                 insertTrack.await(track.toDomainTrack(idRequired = false)!!)

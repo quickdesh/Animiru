@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.text.split
 
 class JellyfinApi(
     private val trackId: Long,
@@ -34,38 +35,23 @@ class JellyfinApi(
                 val httpUrl = url.toHttpUrl()
                 val fragment = httpUrl.fragment!!
 
-                val track = with(json) {
-                    client.newCall(GET(url))
-                        .awaitSuccess()
-                        .parseAs<JFItem>()
-                        .toTrack()
-                }.apply { tracking_url = url }
-
                 when {
                     fragment.startsWith("season") -> {
-                        getTrackFromSeries(track, httpUrl)
+                        getTrackFromSeries(httpUrl)
                     }
-                    else -> track
+                    fragment.startsWith("movie") -> {
+                        getTrackFromMovie(httpUrl)
+                    }
+                    else -> {
+                        logcat(LogPriority.WARN) { "Could not recognize item: $url" }
+                        throw IllegalArgumentException("Unexpected type: $fragment")
+                    }
                 }
             } catch (e: Exception) {
                 logcat(LogPriority.WARN, e) { "Could not get item: $url" }
                 throw e
             }
         }
-
-    private fun JFItem.toTrack(): TrackSearch = TrackSearch.create(
-        trackId,
-    ).also {
-        it.title = name
-        it.total_episodes = 1
-        if (userData.played) {
-            it.last_episode_seen = 1.0
-            it.status = Jellyfin.COMPLETED
-        } else {
-            it.last_episode_seen = 0.0
-            it.status = Jellyfin.UNSEEN
-        }
-    }
 
     private fun getEpisodesUrl(url: HttpUrl): HttpUrl {
         val fragment = url.fragment!!
@@ -84,14 +70,54 @@ class JellyfinApi(
         }.build()
     }
 
-    private suspend fun getTrackFromSeries(track: TrackSearch, url: HttpUrl): TrackSearch {
-        val episodesUrl = getEpisodesUrl(url)
+    private suspend fun getTrackFromMovie(url: HttpUrl): TrackSearch {
+        val movie = with(json) {
+            client.newCall(GET(url))
+                .awaitSuccess()
+                .parseAs<JFItem>()
+        }
 
+        return TrackSearch.create(trackId).apply {
+            this.tracking_url = url.toString()
+            this.title = movie.name
+            this.total_episodes = 1
+            this.last_episode_seen = if (movie.userData.played) 1.0 else 0.0
+            this.status = if (movie.userData.played) Jellyfin.COMPLETED else Jellyfin.UNSEEN
+        }
+    }
+
+    private suspend fun getTrackFromSeries(url: HttpUrl): TrackSearch {
+        val seriesId = url.fragment!!.split(",")[1]
+        val seriesUrl = url.newBuilder().apply {
+            removePathSegment(3)
+            addPathSegment(seriesId)
+        }.build()
+
+        val seriesItem = with(json) {
+            client.newCall(GET(seriesUrl))
+                .awaitSuccess()
+                .parseAs<JFItem>()
+        }
+
+        val track = TrackSearch.create(trackId).apply {
+            this.tracking_url = url.toString()
+            this.title = seriesItem.name
+        }
+
+        val episodesUrl = getEpisodesUrl(url)
         val episodes = with(json) {
             client.newCall(GET(episodesUrl))
                 .awaitSuccess()
                 .parseAs<JFItemList>()
         }.items
+
+        if (episodes.isEmpty()) {
+            return track.apply {
+                this.total_episodes = 0
+                this.last_episode_seen = 0.0
+                this.status = Jellyfin.UNSEEN
+            }
+        }
 
         val totalEpisodes = episodes.last().indexNumber!!
         val firstUnwatched = episodes.indexOfFirst { !it.userData.played }

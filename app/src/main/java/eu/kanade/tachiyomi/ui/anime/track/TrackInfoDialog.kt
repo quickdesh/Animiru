@@ -101,7 +101,7 @@ data class TrackInfoDialogHomeScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
-        val screenModel = rememberScreenModel { Model(animeId, sourceId) }
+        val screenModel = rememberScreenModel { Model(animeId, sourceId, isSeason) }
 
         val dateFormat = remember { UiPreferences.dateFormat(Injekt.get<UiPreferences>().dateFormat().get()) }
         val state by screenModel.state.collectAsState()
@@ -203,12 +203,17 @@ data class TrackInfoDialogHomeScreen(
     private class Model(
         private val animeId: Long,
         private val sourceId: Long,
+        // AM -->
+        private val isSeason: Boolean,
+        // <-- AM
         private val getTracks: GetTracks = Injekt.get(),
     ) : StateScreenModel<Model.State>(State()) {
 
         init {
             screenModelScope.launch {
-                refreshTrackers()
+                if (!isSeason) {
+                    refreshTrackers()
+                }
             }
 
             screenModelScope.launch {
