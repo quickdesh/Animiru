@@ -38,6 +38,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import dev.icerock.moko.resources.StringResource
+import eu.kanade.domain.track.interactor.RefreshResult
 import eu.kanade.domain.track.interactor.RefreshTracks
 import eu.kanade.domain.track.model.toDbTrack
 import eu.kanade.domain.ui.UiPreferences
@@ -248,16 +249,16 @@ data class TrackInfoDialogHomeScreen(
             val context = Injekt.get<Application>()
 
             refreshTracks.await(animeId)
-                .filter { it.first != null }
+                .filterIsInstance<RefreshResult.Failure>()
                 .forEach { (track, e) ->
                     logcat(LogPriority.ERROR, e) {
-                        "Failed to refresh track data animeId=$animeId for service ${track!!.id}"
+                        "Failed to refresh track data animeId=$animeId for service ${track.id}"
                     }
                     withUIContext {
                         context.toast(
                             context.stringResource(
                                 MR.strings.track_error,
-                                track!!.name,
+                                track.name,
                                 e.message ?: "",
                             ),
                         )

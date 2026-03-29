@@ -222,4 +222,6 @@
 
     <!-- Tracking -->
     <string name="pref_tracking_sync_enhanced">Sync progress from enhanced trackers</string>
+    <string name="pref_smart_sync_tracker">Smart sync seasons</string>
+    <string name="pref_smart_sync_tracker_summary">Skip completed items and stop at entry in progress</string>
 </resources>

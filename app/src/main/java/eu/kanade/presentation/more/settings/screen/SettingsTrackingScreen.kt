@@ -149,6 +149,11 @@ object SettingsTrackingScreen : SearchableSettings {
                 preference = trackPreferences.syncEnhancedTrackers(),
                 title = stringResource(AMMR.strings.pref_tracking_sync_enhanced),
             ),
+            Preference.PreferenceItem.SwitchPreference(
+                preference = trackPreferences.smartTrackerSync(),
+                title = stringResource(AMMR.strings.pref_smart_sync_tracker),
+                subtitle = stringResource(AMMR.strings.pref_smart_sync_tracker_summary),
+            ),
             // <-- AM
             Preference.PreferenceItem.ListPreference(
                 preference = trackPreferences.autoUpdateTrackOnMarkSeen(),

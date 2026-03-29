@@ -10,6 +10,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.supervisorScope
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
+import tachiyomi.domain.track.model.Track
 
 class RefreshTracks(
     private val getTracks: GetTracks,
@@ -27,8 +28,9 @@ class RefreshTracks(
         animeId: Long,
         // AM -->
         enhancedOnly: Boolean = false,
+        skipCompleted: Boolean = false,
         // <-- AM
-    ): List<Pair<Tracker?, Throwable>> {
+    ): List<RefreshResult> {
         return supervisorScope {
             return@supervisorScope getTracks.await(animeId)
                 .map { it to trackerManager.get(it.trackerId) }
@@ -39,17 +41,28 @@ class RefreshTracks(
                 .map { (track, service) ->
                     async {
                         return@async try {
-                            val updatedTrack = service!!.refresh(track.toDbTrack()).toDomainTrack()!!
-                            insertTrack.await(updatedTrack)
-                            syncEpisodeProgressWithTrack.await(animeId, updatedTrack, service)
-                            null
+                            // AM -->
+                            if (!(skipCompleted && track.totalEpisodes == track.lastEpisodeSeen.toLong())) {
+                                // <-- AM
+                                val updatedTrack = service!!.refresh(track.toDbTrack()).toDomainTrack()!!
+                                insertTrack.await(updatedTrack)
+                                syncEpisodeProgressWithTrack.await(animeId, updatedTrack, service)
+                            }
+
+                            RefreshResult.Success(track)
                         } catch (e: Throwable) {
-                            service to e
+                            RefreshResult.Failure(service!!, e)
                         }
                     }
                 }
                 .awaitAll()
-                .filterNotNull()
         }
     }
 }
+
+// AM -->
+sealed interface RefreshResult {
+    data class Failure(val tracker: Tracker, val error: Throwable) : RefreshResult
+    data class Success(val track: Track) : RefreshResult
+}
+// <-- AM

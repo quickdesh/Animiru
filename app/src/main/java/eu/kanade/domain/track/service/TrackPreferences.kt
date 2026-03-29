@@ -49,6 +49,8 @@ class TrackPreferences(
 
     // AM -->
     fun syncEnhancedTrackers() = preferenceStore.getBoolean("sync_enhanced_trackers", true)
+
+    fun smartTrackerSync() = preferenceStore.getBoolean("smart_sync_trackers", true)
     // <-- AM
 
     fun autoUpdateTrackOnMarkSeen() = preferenceStore.getEnum(

@@ -28,6 +28,7 @@ import eu.kanade.domain.episode.interactor.GetAvailableScanlators
 import eu.kanade.domain.episode.interactor.SetSeenStatus
 import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.track.interactor.AddTracks
+import eu.kanade.domain.track.interactor.RefreshResult
 import eu.kanade.domain.track.interactor.RefreshTracks
 import eu.kanade.domain.track.interactor.TrackEpisode
 import eu.kanade.domain.track.model.AutoTrackState
@@ -379,11 +380,23 @@ class AnimeScreenModel(
 
         when (state.anime.fetchType) {
             FetchType.Seasons -> {
-                state.seasons.chunked(5).forEach { s ->
-                    supervisorScope {
-                        s.map { season ->
-                            async { refreshTrackers(animeId = season.seasonAnime.id, enhancedOnly = true) }
-                        }.awaitAll()
+                if (trackPreferences.smartTrackerSync().get()) {
+                    seasons@ for (s in state.seasons) {
+                        refreshTrackers(animeId = s.seasonAnime.id, enhancedOnly = true, skipCompleted = true)
+                            .filterIsInstance<RefreshResult.Success>()
+                            .onEach {
+                                if (it.track.lastEpisodeSeen.toLong() != it.track.totalEpisodes) {
+                                    break@seasons
+                                }
+                            }
+                    }
+                } else {
+                    state.seasons.chunked(5).forEach { s ->
+                        supervisorScope {
+                            s.map { season ->
+                                async { refreshTrackers(animeId = season.seasonAnime.id, enhancedOnly = true) }
+                            }.awaitAll()
+                        }
                     }
                 }
             }
@@ -1119,9 +1132,14 @@ class AnimeScreenModel(
     private suspend fun refreshTrackers(
         // AM -->
         enhancedOnly: Boolean = false,
+        skipCompleted: Boolean = false,
         // <-- AM
-    ) {
-        refreshTrackers(animeId = animeId, enhancedOnly = enhancedOnly)
+    ): List<RefreshResult> {
+        return refreshTrackers(
+            animeId = animeId,
+            enhancedOnly = enhancedOnly,
+            skipCompleted = skipCompleted,
+        )
     }
 
     // AM -->
@@ -1129,18 +1147,19 @@ class AnimeScreenModel(
         refreshTracks: RefreshTracks = Injekt.get(),
         animeId: Long,
         enhancedOnly: Boolean = false,
-    ) {
-        refreshTracks.await(animeId, enhancedOnly)
-            .filter { it.first != null }
-            .forEach { (track, e) ->
+        skipCompleted: Boolean = false,
+    ): List<RefreshResult> {
+        return refreshTracks.await(animeId, enhancedOnly, skipCompleted)
+            .onEach {
+                val (track, e) = it as? RefreshResult.Failure ?: return@onEach
                 logcat(LogPriority.ERROR, e) {
-                    "Failed to refresh track data animeId=$animeId for service ${track!!.id}"
+                    "Failed to refresh track data animeId=$animeId for service ${track.id}"
                 }
                 withUIContext {
                     context.toast(
                         context.stringResource(
                             MR.strings.track_error,
-                            track!!.name,
+                            track.name,
                             e.message ?: "",
                         ),
                     )
