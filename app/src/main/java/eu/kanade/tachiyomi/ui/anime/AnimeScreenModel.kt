@@ -70,6 +70,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
 import mihon.domain.episode.interactor.FilterEpisodesForDownload
 import tachiyomi.core.common.i18n.stringResource
@@ -373,8 +374,24 @@ class AnimeScreenModel(
     // AM -->
     private suspend fun syncTrackers() {
         if (!trackPreferences.syncEnhancedTrackers().get()) return
+        val state = successState ?: return
         updateSuccessState { it.copy(isSyncingTrackers = true) }
-        refreshTrackers(enhancedOnly = true)
+
+        when (state.anime.fetchType) {
+            FetchType.Seasons -> {
+                state.seasons.chunked(5).forEach { s ->
+                    supervisorScope {
+                        s.map { season ->
+                            async { refreshTrackers(animeId = season.seasonAnime.id, enhancedOnly = true) }
+                        }.awaitAll()
+                    }
+                }
+            }
+            FetchType.Episodes -> {
+                refreshTrackers(enhancedOnly = true)
+            }
+        }
+
         updateSuccessState { it.copy(isSyncingTrackers = false) }
     }
     // <-- AM
@@ -1100,10 +1117,18 @@ class AnimeScreenModel(
     }
 
     private suspend fun refreshTrackers(
-        refreshTracks: RefreshTracks = Injekt.get(),
         // AM -->
         enhancedOnly: Boolean = false,
         // <-- AM
+    ) {
+        refreshTrackers(animeId = animeId, enhancedOnly = enhancedOnly)
+    }
+
+    // AM -->
+    private suspend fun refreshTrackers(
+        refreshTracks: RefreshTracks = Injekt.get(),
+        animeId: Long,
+        enhancedOnly: Boolean = false,
     ) {
         refreshTracks.await(animeId, enhancedOnly)
             .filter { it.first != null }
@@ -1122,6 +1147,7 @@ class AnimeScreenModel(
                 }
             }
     }
+    // <-- AM
 
     /**
      * Downloads the given list of episodes with the manager.
@@ -1682,6 +1708,11 @@ class AnimeScreenModel(
             ) { animeTracks, loggedInTrackers ->
                 // Show only if the service supports this anime's source
                 val supportedTrackers = loggedInTrackers.filter { (it as? EnhancedTracker)?.accept(source!!) ?: true }
+                    // AM -->
+                    // For now, only enhanced trackers supports season tracking to sync the seasons.
+                    // This could probably be fleshed out later.
+                    .filter { anime.fetchType == FetchType.Episodes || it is EnhancedTracker }
+                // <-- AM
                 val supportedTrackerIds = supportedTrackers.map { it.id }.toHashSet()
                 val supportedTrackerTracks = animeTracks.filter { it.trackerId in supportedTrackerIds }
                 supportedTrackerTracks.size to supportedTrackers.isNotEmpty()

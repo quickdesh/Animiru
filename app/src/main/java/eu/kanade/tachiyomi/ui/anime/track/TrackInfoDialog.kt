@@ -48,6 +48,7 @@ import eu.kanade.presentation.track.TrackScoreSelector
 import eu.kanade.presentation.track.TrackStatusSelector
 import eu.kanade.presentation.track.TrackerSearch
 import eu.kanade.presentation.util.Screen
+import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.data.track.DeletableTracker
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.Tracker
@@ -90,6 +91,9 @@ import java.time.ZoneOffset
 data class TrackInfoDialogHomeScreen(
     private val animeId: Long,
     private val animeTitle: String,
+    // AM -->
+    private val isSeason: Boolean,
+    // <-- AM
     private val sourceId: Long,
 ) : Screen() {
 
@@ -105,6 +109,9 @@ data class TrackInfoDialogHomeScreen(
         TrackInfoDialogHome(
             trackItems = state.trackItems,
             dateFormat = dateFormat,
+            // AM -->
+            isSeason = isSeason,
+            // <-- AM
             onStatusClick = {
                 navigator.push(
                     TrackStatusSelectorScreen(
@@ -218,8 +225,13 @@ data class TrackInfoDialogHomeScreen(
             screenModelScope.launchNonCancellable {
                 val anime = Injekt.get<GetAnime>().await(animeId) ?: return@launchNonCancellable
                 try {
-                    val matchResult = item.tracker.match(anime) ?: throw Exception()
-                    item.tracker.register(matchResult, animeId)
+                    // AM -->
+                    val matchResult = when (anime.fetchType) {
+                        FetchType.Episodes -> item.tracker.match(anime) ?: throw Exception()
+                        FetchType.Seasons -> item.tracker.matchSeason(anime) ?: throw Exception()
+                    }
+                    // <-- AM
+                    item.tracker.register(matchResult, anime)
                 } catch (_: Exception) {
                     withUIContext { Injekt.get<Application>().toast(MR.strings.error_no_match) }
                 }
@@ -720,7 +732,12 @@ data class TrackerSearchScreen(
         }
 
         fun registerTracking(item: TrackSearch) {
-            screenModelScope.launchNonCancellable { tracker.register(item, animeId) }
+            screenModelScope.launchNonCancellable {
+                // AM -->
+                val anime = Injekt.get<GetAnime>().await(animeId) ?: return@launchNonCancellable
+                // <-- AM
+                tracker.register(item, anime)
+            }
         }
 
         fun updateSelection(selected: TrackSearch) {

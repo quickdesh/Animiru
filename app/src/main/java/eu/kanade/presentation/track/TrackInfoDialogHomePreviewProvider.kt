@@ -57,6 +57,7 @@ internal class TrackInfoDialogHomePreviewProvider :
                 trackItemWithTrack,
             ),
             dateFormat = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM),
+            isSeason = false,
             onStatusClick = {},
             onEpisodeClick = {},
             onScoreClick = {},
@@ -74,6 +75,7 @@ internal class TrackInfoDialogHomePreviewProvider :
         TrackInfoDialogHome(
             trackItems = listOf(),
             dateFormat = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM),
+            isSeason = false,
             onStatusClick = {},
             onEpisodeClick = {},
             onScoreClick = {},
@@ -91,6 +93,7 @@ internal class TrackInfoDialogHomePreviewProvider :
         TrackInfoDialogHome(
             trackItems = listOf(trackItemWithPrivateTrack),
             dateFormat = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM),
+            isSeason = false,
             onStatusClick = {},
             onEpisodeClick = {},
             onScoreClick = {},

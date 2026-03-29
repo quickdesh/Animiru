@@ -8,6 +8,7 @@ import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.Flow
 import okhttp3.OkHttpClient
+import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 interface Tracker {
@@ -69,7 +70,9 @@ interface Tracker {
     fun saveCredentials(username: String, password: String)
 
     // TODO: move this to an interactor, and update all trackers based on common data
-    suspend fun register(item: Track, animeId: Long)
+    // AM -->
+    suspend fun register(item: Track, anime: Anime)
+    // <-- AM
 
     suspend fun setRemoteStatus(track: Track, status: Long)
 
