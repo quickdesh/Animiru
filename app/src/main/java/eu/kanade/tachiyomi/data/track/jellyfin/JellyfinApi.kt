@@ -87,21 +87,21 @@ class JellyfinApi(
     }
 
     private suspend fun getTrackFromSeries(url: HttpUrl): TrackSearch {
-        val seriesId = url.fragment!!.split(",")[1]
-        val seriesUrl = url.newBuilder().apply {
+        val seasonId = url.pathSegments.last()
+        val seasonUrl = url.newBuilder().apply {
             removePathSegment(3)
-            addPathSegment(seriesId)
+            addPathSegment(seasonId)
         }.build()
 
-        val seriesItem = with(json) {
-            client.newCall(GET(seriesUrl))
+        val seasonItem = with(json) {
+            client.newCall(GET(seasonUrl))
                 .awaitSuccess()
                 .parseAs<JFItem>()
         }
 
         val track = TrackSearch.create(trackId).apply {
             this.tracking_url = url.toString()
-            this.title = seriesItem.name
+            this.title = seasonItem.name
         }
 
         val episodesUrl = getEpisodesUrl(url)
@@ -152,7 +152,7 @@ class JellyfinApi(
         val fragment = httpUrl.fragment!!
 
         val itemId = if (fragment.startsWith("movie")) {
-            httpUrl.pathSegments.last()
+            httpUrl.pathSegments.last().takeIf { track.last_episode_seen > 0.0 }
         } else {
             val episodesUrl = getEpisodesUrl(httpUrl)
             val episodes = with(json) {
