@@ -11,6 +11,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Fixed
+- Fix "Override ASS/SSA subtitles" option ([@Secozzi](https://github.com/Secozzi)) ([#141](https://github.com/quickdesh/Animiru/pull/141))
 
 ## [v0.19.4.2] - 2026-03-30
 ### Added

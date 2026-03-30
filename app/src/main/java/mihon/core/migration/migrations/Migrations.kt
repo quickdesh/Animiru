@@ -45,4 +45,5 @@ val migrations: List<Migration>
         PrefLangMigration(),
         RenameKeysMigration(),
         MoveCoverCacheMigration(),
+        SubtitleAssEnumMigration(),
     )
