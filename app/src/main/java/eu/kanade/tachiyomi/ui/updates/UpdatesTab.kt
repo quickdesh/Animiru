@@ -16,15 +16,12 @@ import eu.kanade.presentation.components.NavigatorAdaptiveSheet
 import eu.kanade.presentation.updates.UpdateScreen
 import eu.kanade.presentation.updates.UpdatesDeleteConfirmationDialog
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
-import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
-import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import eu.kanade.tachiyomi.ui.updates.UpdatesScreenModel.Event
 import kotlinx.coroutines.flow.collectLatest
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.injectLazy
 
 // AM (RECENTS_FILTER_CHIP) -->
 @Composable
@@ -91,10 +88,6 @@ fun AnimeUpdatesHalfTab(screenModel: UpdatesScreenModel, contentPadding: Padding
                 }
             }
         }
-    }
-
-    LaunchedEffect(state.selectionMode) {
-        HomeScreen.showBottomNav(!state.selectionMode)
     }
 
     LaunchedEffect(state.isLoading) {

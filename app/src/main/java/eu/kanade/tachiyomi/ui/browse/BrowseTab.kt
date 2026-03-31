@@ -41,12 +41,10 @@ import eu.kanade.tachiyomi.ui.browse.migration.sources.MigrateSourceScreen
 import eu.kanade.tachiyomi.ui.browse.source.SourcesScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
-import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.webview.WebViewScreen
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
@@ -206,10 +204,6 @@ data object BrowseTab : Tab {
 
         LaunchedEffect(Unit) {
             (context as? MainActivity)?.ready = true
-        }
-
-        LaunchedEffect(inExtensionsScreen) {
-            HomeScreen.showBottomNav(!inExtensionsScreen)
         }
         // <-- AM (BROWSE)
     }

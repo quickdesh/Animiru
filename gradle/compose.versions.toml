@@ -1,5 +1,6 @@
 [versions]
 compose-bom = "2025.09.00"
+material3-version = "1.4.0"
 
 [libraries]
 activity = "androidx.activity:activity-compose:1.11.0"
@@ -13,9 +14,9 @@ ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 ui-util = { module = "androidx.compose.ui:ui-util" }
 
-material3-core = { module = "androidx.compose.material3:material3" }
+material3-core = { group = "androidx.compose.material3", name = "material3", version.ref = "material3-version" }
 material-icons = { module = "androidx.compose.material:material-icons-extended" }
 
 glance = "androidx.glance:glance-appwidget:1.1.1"
 
-tv-material = { module = "androidx.tv:tv-material", version = "1.0.0" }
+tv-material = { module = "androidx.tv:tv-material", version = "1.0.1" }
