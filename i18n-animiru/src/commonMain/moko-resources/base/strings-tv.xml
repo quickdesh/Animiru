@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_paste_from_clipboard">Paste from clipboard</string>
+    <string name="clipboard_paste_error">Failed to paste from clipboard</string>
+    <string name="action_grant">Grant</string>
+    <string name="ext_permission_install_apps_warning_title">Grant permissions</string>
+    <string name="ext_permission_install_apps_warning_content">Permissions are needed to install extensions. Tap below to grant them.</string>
+</resources>

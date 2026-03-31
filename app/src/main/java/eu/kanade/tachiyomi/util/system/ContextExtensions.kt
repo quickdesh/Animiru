@@ -18,6 +18,7 @@ import rikka.sui.Sui
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import java.io.File
 
 /**
@@ -41,6 +42,24 @@ fun Context.copyToClipboard(label: String, content: String) {
     } catch (e: Throwable) {
         logcat(LogPriority.ERROR, e)
         toast(MR.strings.clipboard_copy_error)
+    }
+}
+
+fun Context.pasteFromClipboard(): String? {
+    return try {
+        val clipboard = getSystemService<ClipboardManager>() ?: return null
+
+        if (!clipboard.hasPrimaryClip()) return null
+
+        val clipData = clipboard.primaryClip ?: return null
+        if (clipData.itemCount == 0) return null
+
+        val item = clipData.getItemAt(0)
+        item.coerceToText(this)?.toString()
+    } catch (e: Throwable) {
+        logcat(LogPriority.ERROR, e)
+        toast(AMMR.strings.clipboard_paste_error)
+        null
     }
 }
 

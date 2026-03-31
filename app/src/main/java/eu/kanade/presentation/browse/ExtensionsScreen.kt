@@ -126,49 +126,40 @@ fun ExtensionScreen(
         },
     ) { contentPadding ->
         // <-- AM (BROWSE)
-        PullRefresh(
-            refreshing = state.isRefreshing,
-            onRefresh = onRefresh,
-            // AM (BROWSE) -->
-            indicatorPadding = contentPadding,
-            // <-- AM (BROWSE)
-            enabled = !state.isLoading,
-        ) {
-            when {
-                state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
-                state.isEmpty -> {
-                    val msg = if (!searchQuery.isNullOrEmpty()) {
-                        MR.strings.no_results_found
-                    } else {
-                        MR.strings.empty_screen
-                    }
-                    EmptyScreen(
-                        stringRes = msg,
-                        modifier = Modifier.padding(contentPadding),
-                        actions = persistentListOf(
-                            EmptyScreenAction(
-                                stringRes = MR.strings.label_extension_repos,
-                                icon = Icons.Outlined.Settings,
-                                onClick = { navigator.push(ExtensionReposScreen()) },
-                            ),
+        when {
+            state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
+            state.isEmpty -> {
+                val msg = if (!searchQuery.isNullOrEmpty()) {
+                    MR.strings.no_results_found
+                } else {
+                    MR.strings.empty_screen
+                }
+                EmptyScreen(
+                    stringRes = msg,
+                    modifier = Modifier.padding(contentPadding),
+                    actions = persistentListOf(
+                        EmptyScreenAction(
+                            stringRes = MR.strings.label_extension_repos,
+                            icon = Icons.Outlined.Settings,
+                            onClick = { navigator.push(ExtensionReposScreen()) },
                         ),
-                    )
-                }
-                else -> {
-                    ExtensionContent(
-                        state = state,
-                        contentPadding = contentPadding,
-                        onLongClickItem = onLongClickItem,
-                        onClickItemCancel = onClickItemCancel,
-                        onOpenWebView = onOpenWebView,
-                        onInstallExtension = onInstallExtension,
-                        onUninstallExtension = onUninstallExtension,
-                        onUpdateExtension = onUpdateExtension,
-                        onTrustExtension = onTrustExtension,
-                        onOpenExtension = onOpenExtension,
-                        onClickUpdateAll = onClickUpdateAll,
-                    )
-                }
+                    ),
+                )
+            }
+            else -> {
+                ExtensionContent(
+                    state = state,
+                    contentPadding = contentPadding,
+                    onLongClickItem = onLongClickItem,
+                    onClickItemCancel = onClickItemCancel,
+                    onOpenWebView = onOpenWebView,
+                    onInstallExtension = onInstallExtension,
+                    onUninstallExtension = onUninstallExtension,
+                    onUpdateExtension = onUpdateExtension,
+                    onTrustExtension = onTrustExtension,
+                    onOpenExtension = onOpenExtension,
+                    onClickUpdateAll = onClickUpdateAll,
+                )
             }
         }
     }
