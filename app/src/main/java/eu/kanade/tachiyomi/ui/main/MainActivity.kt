@@ -53,6 +53,7 @@ import androidx.core.util.Consumer
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import androidx.lifecycle.lifecycleScope
+import animiru.feature.mpvfiles.MpvConfig
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.NavigatorDisposeBehavior
@@ -122,6 +123,7 @@ class MainActivity : BaseActivity() {
     private val preferences: BasePreferences by injectLazy()
 
     // AM -->
+    private val mpvConfig: MpvConfig by injectLazy()
     private val uiPreferences: UiPreferences by injectLazy()
     // <-- AM
 
@@ -522,6 +524,13 @@ class MainActivity : BaseActivity() {
         }
     }
     // <-- AY
+
+    // AM -->
+    override fun onResume() {
+        super.onResume()
+        mpvConfig.copyFiles()
+    }
+    // <-- AM
 
     companion object {
         const val INTENT_SEARCH = "eu.kanade.tachiyomi.SEARCH"
