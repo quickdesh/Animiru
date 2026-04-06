@@ -357,11 +357,7 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    suspend fun getCustomButtons(): List<CustomButton> {
-        return getCustomButtons.getAll()
-    }
-
-    fun setCustomButtons(buttons: List<CustomButton>) {
+    private fun setCustomButtons(buttons: List<CustomButton>) {
         _customButtons.update { _ -> buttons.toPersistentList() }
         buttons.firstOrNull { it.isFavorite }?.let {
             _primaryButton.update { _ -> it }
@@ -1260,6 +1256,9 @@ class PlayerViewModel @JvmOverloads constructor(
                 animeTitle.update { _ -> anime.title }
                 sourceManager.isInitialized.first { it }
                 episodeId = initialEpisodeId
+
+                val buttons = getCustomButtons.getAll()
+                setCustomButtons(buttons)
 
                 checkTrackers(anime)
 

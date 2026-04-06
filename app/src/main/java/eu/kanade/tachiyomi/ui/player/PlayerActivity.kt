@@ -226,7 +226,6 @@ class PlayerActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
 
         setupPlayerMPV()
-        setupCustomButtons()
         setupPlayerAudio()
         setupMediaSession()
         setupPlayerOrientation()
@@ -467,58 +466,6 @@ class PlayerActivity : BaseActivity() {
         mpv.setOptionString("sub-use-margins", showBlackBars)
         mpv.addLogObserver(playerObserver)
         mpv.addObserver(playerObserver)
-    }
-
-    fun setupCustomButtons() {
-        viewModel.viewModelScope.launchIO {
-            val buttons = viewModel.getCustomButtons()
-            viewModel.setCustomButtons(buttons)
-
-            val scriptsDir = {
-                UniFile.fromFile(applicationContext.filesDir)
-                    ?.createDirectory(MPV_DIR)
-                    ?.createDirectory(MPV_SCRIPTS_DIR)
-            }
-
-            val primaryButtonId = viewModel.primaryButton.value?.id ?: 0L
-
-            val customButtonsContent = buildString {
-                appendLine(
-                    """
-                        local lua_modules = mp.find_config_file('scripts')
-                        if lua_modules then
-                            package.path = package.path .. ';' .. lua_modules .. '/?.lua;' .. lua_modules .. '/?/init.lua;' .. '${scriptsDir()!!.filePath}' .. '/?.lua'
-                        end
-                        local aniyomi = require 'aniyomi'
-                    """.trimIndent(),
-                )
-
-                buttons.forEach { button ->
-                    appendLine(
-                        """
-                            ${button.getButtonOnStartup(primaryButtonId)}
-                            function button${button.id}()
-                                ${button.getButtonContent(primaryButtonId)}
-                            end
-                            mp.register_script_message('call_button_${button.id}', button${button.id})
-                            function button${button.id}long()
-                                ${button.getButtonLongPressContent(primaryButtonId)}
-                            end
-                            mp.register_script_message('call_button_${button.id}_long', button${button.id}long)
-                        """.trimIndent(),
-                    )
-                }
-            }
-
-            val file = scriptsDir()?.createFile("custombuttons.lua")
-            file?.openOutputStream()?.bufferedWriter()?.use {
-                it.write(customButtonsContent)
-            }
-
-            file?.let {
-                mpv.command("load-script", it.filePath!!)
-            }
-        }
     }
 
     private fun setupPlayerAudio() {

@@ -13,6 +13,8 @@ import kotlinx.coroutines.isActive
 import logcat.LogPriority
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.system.logcat
+import tachiyomi.domain.custombutton.interactor.GetCustomButtons
+import tachiyomi.domain.custombutton.model.CustomButton
 import tachiyomi.domain.storage.service.StorageManager
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -24,6 +26,7 @@ class MpvConfig(
     private val context: Context,
     private val storageManager: StorageManager = Injekt.get(),
     private val advancedPlayerPreferences: AdvancedPlayerPreferences = Injekt.get(),
+    private val getCustomButtons: GetCustomButtons = Injekt.get(),
 ) {
     private val scope = CoroutineScope(Dispatchers.IO)
     private var copyJob: Job? = null
@@ -32,11 +35,15 @@ class MpvConfig(
         if (copyJob?.isActive == true) return
 
         copyJob = scope.launchIO {
-            val mpvDir = UniFile.fromFile(context.filesDir)!!.createDirectory(MPV_DIR)!!
+            val mpvDir = getMpvDir()
             copyUserFiles(mpvDir)
             copyFontsDirectory(mpvDir)
             copyAssets(mpvDir)
         }
+    }
+
+    private fun getMpvDir(): UniFile {
+        return UniFile.fromFile(context.filesDir)!!.createDirectory(MPV_DIR)!!
     }
 
     private suspend fun copyUserFiles(mpvDir: UniFile) {
@@ -74,11 +81,52 @@ class MpvConfig(
             }
         }
 
+        val buttons = getCustomButtons.getAll()
+        setupCustomButtons(buttons)
+
         // Copy over the bridge file
         val luaFile = scriptsDir()?.createFile("aniyomi.lua")
         val luaBridge = context.assets.open("aniyomi.lua")
         luaFile?.openOutputStream()?.bufferedWriter()?.use { scriptLua ->
             luaBridge.bufferedReader().use { scriptLua.write(it.readText()) }
+        }
+    }
+
+    fun setupCustomButtons(buttons: List<CustomButton>) {
+        val scriptsDir = getMpvDir().createDirectory(MPV_SCRIPTS_DIR)!!
+        val primaryButtonId = buttons.firstOrNull { it.isFavorite }?.id ?: 0L
+
+        val customButtonsContent = buildString {
+            appendLine(
+                """
+                    local lua_modules = mp.find_config_file('scripts')
+                    if lua_modules then
+                        package.path = package.path .. ';' .. lua_modules .. '/?.lua;' .. lua_modules .. '/?/init.lua;' .. '${scriptsDir.filePath}' .. '/?.lua'
+                    end
+                    local aniyomi = require 'aniyomi'
+                """.trimIndent(),
+            )
+
+            buttons.forEach { button ->
+                appendLine(
+                    """
+                        ${button.getButtonOnStartup(primaryButtonId)}
+                        function button${button.id}()
+                            ${button.getButtonContent(primaryButtonId)}
+                        end
+                        mp.register_script_message('call_button_${button.id}', button${button.id})
+                        function button${button.id}long()
+                            ${button.getButtonLongPressContent(primaryButtonId)}
+                        end
+                        mp.register_script_message('call_button_${button.id}_long', button${button.id}long)
+                    """.trimIndent(),
+                )
+            }
+        }
+
+        val file = scriptsDir.createFile("custombuttons.lua")
+        file?.openOutputStream()?.bufferedWriter()?.use {
+            it.write(customButtonsContent)
         }
     }
 
