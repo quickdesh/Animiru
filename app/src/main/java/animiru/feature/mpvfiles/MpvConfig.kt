@@ -48,47 +48,26 @@ class MpvConfig(
 
     private suspend fun copyUserFiles(mpvDir: UniFile) {
         // First, delete all present scripts
-        val scriptsDir = { mpvDir.createDirectory(MPV_SCRIPTS_DIR) }
-        val scriptOptsDir = { mpvDir.createDirectory(MPV_SCRIPTS_OPTS_DIR) }
-        val shadersDir = { mpvDir.createDirectory(MPV_SHADERS_DIR) }
-
-        scriptsDir()?.delete()
-        scriptOptsDir()?.delete()
-        shadersDir()?.delete()
+        val scriptsDir = deleteAndGet(mpvDir, MPV_SCRIPTS_DIR)
+        val scriptOptsDir = deleteAndGet(mpvDir, MPV_SCRIPTS_OPTS_DIR)
+        val shadersDir = deleteAndGet(mpvDir, MPV_SHADERS_DIR)
 
         // Then, copy the user files from the Aniyomi directory
         if (advancedPlayerPreferences.mpvUserFiles.get()) {
-            storageManager.getScriptsDirectory()?.listFiles()?.forEach { file ->
-                ensureActive()
-                val outFile = scriptsDir()?.createFile(file.name)
-                outFile?.let {
-                    file.openInputStream().copyTo(it.openOutputStream())
-                }
-            }
-            storageManager.getScriptOptsDirectory()?.listFiles()?.forEach { file ->
-                ensureActive()
-                val outFile = scriptOptsDir()?.createFile(file.name)
-                outFile?.let {
-                    file.openInputStream().copyTo(it.openOutputStream())
-                }
-            }
-            storageManager.getShadersDirectory()?.listFiles()?.forEach { file ->
-                ensureActive()
-                val outFile = shadersDir()?.createFile(file.name)
-                outFile?.let {
-                    file.openInputStream().copyTo(it.openOutputStream())
-                }
-            }
+            copyDirectoryContents(storageManager.getScriptsDirectory(), scriptsDir)
+            copyDirectoryContents(storageManager.getScriptOptsDirectory(), scriptOptsDir)
+            copyDirectoryContents(storageManager.getShadersDirectory(), shadersDir)
         }
 
         val buttons = getCustomButtons.getAll()
         setupCustomButtons(buttons)
 
         // Copy over the bridge file
-        val luaFile = scriptsDir()?.createFile("aniyomi.lua")
-        val luaBridge = context.assets.open("aniyomi.lua")
-        luaFile?.openOutputStream()?.bufferedWriter()?.use { scriptLua ->
-            luaBridge.bufferedReader().use { scriptLua.write(it.readText()) }
+        val luaFile = scriptsDir.createFile("aniyomi.lua") ?: return
+        context.assets.open("aniyomi.lua").use { inputStream ->
+            luaFile.openOutputStream().use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
         }
     }
 
@@ -133,15 +112,8 @@ class MpvConfig(
     private suspend fun copyFontsDirectory(mpvDir: UniFile) {
         // TODO: I think this is a bad hack.
         //  We need to find a way to let MPV directly access our fonts directory.
-        val fontsDirectory = mpvDir.createDirectory(MPV_FONTS_DIR)!!
-
-        storageManager.getFontsDirectory()?.listFiles()?.forEach { font ->
-            ensureActive()
-            val outFile = fontsDirectory.createFile(font.name)
-            outFile?.let {
-                font.openInputStream().copyTo(it.openOutputStream())
-            }
-        }
+        val fontsDirectory = deleteAndGet(mpvDir, MPV_FONTS_DIR)
+        copyDirectoryContents(storageManager.getFontsDirectory(), fontsDirectory)
     }
 
     private fun copyAssets(mpvDir: UniFile) {
@@ -171,9 +143,23 @@ class MpvConfig(
         }
     }
 
-    private suspend inline fun ensureActive() {
-        if (!currentCoroutineContext().isActive) {
-            throw CancellationException()
+    private fun deleteAndGet(parent: UniFile, name: String): UniFile {
+        parent.createDirectory(name)?.delete()
+        return parent.createDirectory(name)!!
+    }
+
+    private suspend fun copyDirectoryContents(sourceDir: UniFile?, destDir: UniFile) {
+        sourceDir?.listFiles()?.forEach { file ->
+            if (!currentCoroutineContext().isActive) {
+                throw CancellationException()
+            }
+
+            val outFile = destDir.createFile(file.name) ?: return@forEach
+            file.openInputStream().use { input ->
+                outFile.openOutputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
         }
     }
 
