@@ -12,6 +12,10 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 
 ## [Unreleased]
 
+## [v0.19.7.2] - 2026-04-13
+### Fixed
+- Fixed app crash ([@Secozzi](https://github.com/Secozzi)) ([#148](https://github.com/quickdesh/Animiru/pull/148))
+
 ## [v0.19.7.1] - 2026-04-13
 ### Improved
 - Copy over mpv files on app resume ([@Secozzi](https://github.com/Secozzi)) ([#143](https://github.com/quickdesh/Animiru/pull/143))
@@ -108,7 +112,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 ### Fixed
 - Fix crash when opening a new extension's settings ([@Quickdev](https://github.com/quickdesh)) ([`d90f059`](https://github.com/quickdesh/Animiru/commit/d90f059))
 
-[unreleased]: https://github.com/quickdesh/Animiru/compare/v0.19.7.1...animiru-new-main
+[unreleased]: https://github.com/quickdesh/Animiru/compare/v0.19.7.2...animiru-new-main
+[v0.19.7.1]: https://github.com/quickdesh/Animiru/compare/v0.19.7.1...v0.19.7.2
 [v0.19.7.1]: https://github.com/quickdesh/Animiru/compare/v0.19.7.0...v0.19.7.1
 [v0.19.7.0]: https://github.com/quickdesh/Animiru/compare/v0.19.4.2...v0.19.7.0
 [v0.19.4.2]: https://github.com/quickdesh/Animiru/compare/v0.19.4.1...v0.19.4.2

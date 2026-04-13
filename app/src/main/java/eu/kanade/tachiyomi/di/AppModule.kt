@@ -161,7 +161,7 @@ class AppModule(val app: Application) : InjektModule {
         // <-- AM (SYNC_DRIVE)
 
         // AM -->
-        addSingletonFactory { MpvConfig(app) }
+        addSingletonFactory { MpvConfig(app, get(), get(), get()) }
         addSingletonFactory { AudioManager(app) }
         addSingletonFactory { BrightnessManager(app) }
         // <-- AM

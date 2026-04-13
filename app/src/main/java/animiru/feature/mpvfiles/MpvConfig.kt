@@ -16,17 +16,15 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.custombutton.interactor.GetCustomButtons
 import tachiyomi.domain.custombutton.model.CustomButton
 import tachiyomi.domain.storage.service.StorageManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
 class MpvConfig(
     private val context: Context,
-    private val storageManager: StorageManager = Injekt.get(),
-    private val advancedPlayerPreferences: AdvancedPlayerPreferences = Injekt.get(),
-    private val getCustomButtons: GetCustomButtons = Injekt.get(),
+    private val storageManager: StorageManager,
+    private val advancedPlayerPreferences: AdvancedPlayerPreferences,
+    private val getCustomButtons: GetCustomButtons,
 ) {
     private val scope = CoroutineScope(Dispatchers.IO)
     private var copyJob: Job? = null
