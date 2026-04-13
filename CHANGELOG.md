@@ -13,6 +13,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 ## [Unreleased]
 ### Fixed
 - Bump mpv ([@Secozzi](https://github.com/Secozzi)) ([#144](https://github.com/quickdesh/Animiru/pull/144))
+- Fix being able to add unsupported trackers to seasons ([@Secozzi](https://github.com/Secozzi)) ([#147](https://github.com/quickdesh/Animiru/pull/147))
 
 ## [v0.19.7.0] - 2026-03-30
 ### Added

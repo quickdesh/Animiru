@@ -280,6 +280,10 @@ data class TrackInfoDialogHomeScreen(
                 .map { service -> TrackItem(find { it.trackerId == service.id }, service) }
                 // Show only if the service supports this anime's source
                 .filter { (it.tracker as? EnhancedTracker)?.accept(source) ?: true }
+                // AM -->
+                // Only show enhanced trackers for seasons for now
+                .filter { !isSeason || it.tracker is EnhancedTracker }
+            // <-- AM
         }
 
         @Immutable
