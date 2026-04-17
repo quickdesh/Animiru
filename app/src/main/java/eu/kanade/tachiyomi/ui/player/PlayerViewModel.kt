@@ -1462,13 +1462,15 @@ class PlayerViewModel @JvmOverloads constructor(
         )
     }
 
-    fun loadBestVideo() {
-        val source = currentSource.value ?: return
+    fun loadBestVideo(): Boolean {
+        val source = currentSource.value ?: return false
         val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(hosterState.value)
+        if (hosterIdx == -1) return false
         val newVideo = (hosterState.value[hosterIdx] as HosterState.Ready).videoList[videoIdx]
         viewModelScope.launchIO {
             loadVideo(source, newVideo, hosterIdx, videoIdx)
         }
+        return true
     }
 
     private suspend fun loadVideo(source: AnimeSource?, video: Video, hosterIndex: Int, videoIndex: Int): Boolean {
