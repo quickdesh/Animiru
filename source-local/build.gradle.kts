@@ -1,22 +1,26 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-    id("mihon.library")
-    kotlin("multiplatform")
+    alias(mihonx.plugins.kotlin.multiplatform)
+    alias(mihonx.plugins.spotless)
 }
 
 kotlin {
-    androidTarget()
-    sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(projects.sourceApi)
-                api(projects.i18n)
+    android {
+        namespace = "tachiyomi.source.local"
+    }
 
-                implementation(libs.unifile)
-            }
-        }
-        val androidMain by getting {
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    @Suppress("UnstableApiUsage")
+    dependencies {
+        implementation(projects.sourceApi)
+        api(projects.i18n)
+
+        implementation(libs.unifile)
+    }
+
+    sourceSets {
+        androidMain {
             dependencies {
                 implementation(projects.core.archive)
                 implementation(projects.core.common)
@@ -26,6 +30,11 @@ kotlin {
                 implementation(projects.domain)
 
                 implementation(libs.bundles.serialization)
+
+                // AM -->
+                // FFmpeg-kit
+                implementation(aniyomilibs.ffmpeg.kit)
+                // <-- AM
             }
         }
     }
@@ -37,20 +46,4 @@ kotlin {
             "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
         )
     }
-}
-
-android {
-    namespace = "tachiyomi.source.local"
-
-    defaultConfig {
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    // AY -->
-    dependencies {
-        // FFmpeg-kit
-        implementation(aniyomilibs.ffmpeg.kit)
-    }
-    // <-- AY
 }
