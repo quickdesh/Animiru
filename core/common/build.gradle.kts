@@ -22,12 +22,12 @@ dependencies {
 
     api(libs.logcat)
 
-    api(libs.rxjava)
+    api(libs.rxJava)
 
     api(libs.okhttp.core)
     api(libs.okhttp.logging)
     api(libs.okhttp.brotli)
-    api(libs.okhttp.dnsoverhttps)
+    api(libs.okhttp.dnsOverHttps)
     api(libs.okio)
 
     // AM (REMOVE_LIBRARIES) -->
@@ -35,13 +35,13 @@ dependencies {
     // <-- AM (REMOVE_LIBRARIES)
 
     implementation(libs.unifile)
-    implementation(libs.libarchive)
+    implementation(libs.archive)
 
-    api(kotlinx.coroutines.core)
-    api(kotlinx.serialization.json)
-    api(kotlinx.serialization.json.okio)
+    api(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.serialization.json)
+    api(libs.kotlinx.serialization.jsonOkio)
 
-    api(libs.preferencektx)
+    api(libs.androidx.preference)
 
     implementation(libs.jsoup)
 
@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.natural.comparator)
 
     // JavaScript engine
-    implementation(libs.bundles.js.engine)
+    implementation(libs.quickJs)
 
     // AY -->
     // FFmpeg-kit

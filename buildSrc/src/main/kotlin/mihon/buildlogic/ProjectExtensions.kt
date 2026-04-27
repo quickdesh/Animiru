@@ -1,9 +1,6 @@
 package mihon.buildlogic
 
 import com.android.build.api.dsl.CommonExtension
-import org.gradle.accessors.dm.LibrariesForAndroidx
-import org.gradle.accessors.dm.LibrariesForCompose
-import org.gradle.accessors.dm.LibrariesForKotlinx
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
@@ -17,9 +14,6 @@ import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginE
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 
-val Project.androidx get() = the<LibrariesForAndroidx>()
-val Project.compose get() = the<LibrariesForCompose>()
-val Project.kotlinx get() = the<LibrariesForKotlinx>()
 val Project.libs get() = the<LibrariesForLibs>()
 
 internal fun Project.configureAndroid(commonExtension: CommonExtension<*, *, *, *, *, *>) {
@@ -57,12 +51,12 @@ internal fun Project.configureAndroid(commonExtension: CommonExtension<*, *, *, 
     }
 
     dependencies {
-        "coreLibraryDesugaring"(libs.desugar)
+        "coreLibraryDesugaring"(libs.android.desugar)
     }
 }
 
 internal fun Project.configureCompose(commonExtension: CommonExtension<*, *, *, *, *, *>) {
-    pluginManager.apply(kotlinx.plugins.compose.compiler.get().pluginId)
+    pluginManager.apply(libs.plugins.kotlin.compose.compiler.get().pluginId)
 
     commonExtension.apply {
         buildFeatures {
@@ -70,7 +64,7 @@ internal fun Project.configureCompose(commonExtension: CommonExtension<*, *, *, 
         }
 
         dependencies {
-            "implementation"(platform(compose.bom))
+            "implementation"(platform(libs.androidx.compose.bom))
         }
     }
 
