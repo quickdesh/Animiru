@@ -1,23 +1,27 @@
 package tachiyomi.data.episode
 
+import app.cash.sqldelight.async.coroutines.awaitAsList
+import app.cash.sqldelight.async.coroutines.awaitAsOne
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import kotlinx.coroutines.flow.Flow
 import logcat.LogPriority
 import tachiyomi.core.common.util.lang.toLong
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.Database
+import tachiyomi.data.subscribeToList
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.episode.model.EpisodeUpdate
 import tachiyomi.domain.episode.repository.EpisodeRepository
 
 class EpisodeRepositoryImpl(
-    private val handler: DatabaseHandler,
+    private val database: Database,
 ) : EpisodeRepository {
 
     override suspend fun addAll(episodes: List<Episode>): List<Episode> {
         return try {
-            handler.await(inTransaction = true) {
+            database.transactionWithResult {
                 episodes.map { episode ->
-                    episodesQueries.insert(
+                    val lastInsertId = database.episodesQueries.insert(
                         episode.animeId,
                         episode.url,
                         episode.name,
@@ -40,8 +44,7 @@ class EpisodeRepositoryImpl(
                         episode.summary,
                         episode.previewUrl,
                         // <-- AY
-                    )
-                    val lastInsertId = episodesQueries.selectLastInsertedRowId().executeAsOne()
+                    ).awaitAsOne()
                     episode.copy(id = lastInsertId)
                 }
             }
@@ -60,9 +63,9 @@ class EpisodeRepositoryImpl(
     }
 
     private suspend fun partialUpdate(vararg episodeUpdates: EpisodeUpdate) {
-        handler.await(inTransaction = true) {
+        database.transaction {
             episodeUpdates.forEach { episodeUpdate ->
-                episodesQueries.update(
+                database.episodesQueries.update(
                     animeId = episodeUpdate.animeId,
                     url = episodeUpdate.url,
                     name = episodeUpdate.name,
@@ -94,59 +97,56 @@ class EpisodeRepositoryImpl(
 
     override suspend fun removeEpisodesWithIds(episodeIds: List<Long>) {
         try {
-            handler.await { episodesQueries.removeEpisodesWithIds(episodeIds) }
+            database.episodesQueries.removeEpisodesWithIds(episodeIds)
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)
         }
     }
 
     override suspend fun getEpisodeByAnimeId(animeId: Long, applyScanlatorFilter: Boolean): List<Episode> {
-        return handler.awaitList {
-            episodesQueries.getEpisodesByAnimeId(animeId, applyScanlatorFilter.toLong(), ::mapEpisode)
-        }
+        return database.episodesQueries.getEpisodesByAnimeId(
+            animeId,
+            applyScanlatorFilter.toLong(),
+            ::mapEpisode,
+        ).awaitAsList()
     }
 
     override suspend fun getScanlatorsByAnimeId(animeId: Long): List<String> {
-        return handler.awaitList {
-            episodesQueries.getScanlatorsByAnimeId(animeId) { it.orEmpty() }
-        }
+        return database.episodesQueries.getScanlatorsByAnimeId(animeId) { it.orEmpty() }.awaitAsList()
     }
 
     override fun getScanlatorsByAnimeIdAsFlow(animeId: Long): Flow<List<String>> {
-        return handler.subscribeToList {
-            episodesQueries.getScanlatorsByAnimeId(animeId) { it.orEmpty() }
-        }
+        return database.episodesQueries.getScanlatorsByAnimeId(animeId) { it.orEmpty() }.subscribeToList()
     }
 
     override suspend fun getBookmarkedEpisodesByAnimeId(animeId: Long): List<Episode> {
-        return handler.awaitList {
-            episodesQueries.getBookmarkedEpisodesByAnimeId(
-                animeId,
-                ::mapEpisode,
-            )
-        }
+        return database.episodesQueries.getBookmarkedEpisodesByAnimeId(
+            animeId,
+            ::mapEpisode,
+        ).awaitAsList()
     }
 
     override suspend fun getEpisodeById(id: Long): Episode? {
-        return handler.awaitOneOrNull { episodesQueries.getEpisodeById(id, ::mapEpisode) }
+        return database.episodesQueries.getEpisodeById(id, ::mapEpisode).awaitAsOneOrNull()
     }
 
     override suspend fun getEpisodeByAnimeIdAsFlow(animeId: Long, applyScanlatorFilter: Boolean): Flow<List<Episode>> {
-        return handler.subscribeToList {
-            episodesQueries.getEpisodesByAnimeId(animeId, applyScanlatorFilter.toLong(), ::mapEpisode)
-        }
+        return database.episodesQueries.getEpisodesByAnimeId(
+            animeId,
+            applyScanlatorFilter.toLong(),
+            ::mapEpisode,
+        ).subscribeToList()
     }
 
     override suspend fun getEpisodeByUrlAndAnimeId(url: String, animeId: Long): Episode? {
-        return handler.awaitOneOrNull {
-            episodesQueries.getEpisodeByUrlAndAnimeId(
-                url,
-                animeId,
-                ::mapEpisode,
-            )
-        }
+        return database.episodesQueries.getEpisodeByUrlAndAnimeId(
+            url,
+            animeId,
+            ::mapEpisode,
+        ).awaitAsOneOrNull()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun mapEpisode(
         id: Long,
         animeId: Long,
@@ -168,7 +168,6 @@ class EpisodeRepositoryImpl(
         dateUpload: Long,
         lastModifiedAt: Long,
         version: Long,
-        @Suppress("UNUSED_PARAMETER")
         isSyncing: Long,
         // AY -->
         summary: String?,

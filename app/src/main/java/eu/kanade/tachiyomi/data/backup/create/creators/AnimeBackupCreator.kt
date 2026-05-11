@@ -1,12 +1,14 @@
 package eu.kanade.tachiyomi.data.backup.create.creators
 
+import app.cash.sqldelight.async.coroutines.awaitAsList
+import app.cash.sqldelight.async.coroutines.awaitAsOne
 import eu.kanade.tachiyomi.data.backup.create.BackupOptions
 import eu.kanade.tachiyomi.data.backup.models.BackupAnime
 import eu.kanade.tachiyomi.data.backup.models.BackupEpisode
 import eu.kanade.tachiyomi.data.backup.models.BackupHistory
 import eu.kanade.tachiyomi.data.backup.models.backupEpisodeMapper
 import eu.kanade.tachiyomi.data.backup.models.backupTrackMapper
-import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.Database
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.CustomAnimeInfo
@@ -16,7 +18,7 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class AnimeBackupCreator(
-    private val handler: DatabaseHandler = Injekt.get(),
+    private val database: Database = Injekt.get(),
     private val getCategories: GetCategories = Injekt.get(),
     private val getHistory: GetHistory = Injekt.get(),
     // AM (CUSTOM_INFORMATION) -->
@@ -38,19 +40,17 @@ class AnimeBackupCreator(
             // <-- AM (CUSTOM_INFORMATION)
         )
 
-        animeObject.excludedScanlators = handler.awaitList {
-            excluded_scanlatorsQueries.getExcludedScanlatorsByAnimeId(anime.id)
-        }
+        animeObject.excludedScanlators = database.excluded_scanlatorsQueries.getExcludedScanlatorsByAnimeId(anime.id)
+            .awaitAsList()
 
         if (options.episodes) {
             // Backup all the episodes
-            handler.awaitList {
-                episodesQueries.getEpisodesByAnimeId(
-                    animeId = anime.id,
-                    applyScanlatorFilter = 0, // false
-                    mapper = backupEpisodeMapper,
-                )
-            }
+            database.episodesQueries.getEpisodesByAnimeId(
+                animeId = anime.id,
+                applyScanlatorFilter = 0, // false
+                mapper = backupEpisodeMapper,
+            )
+                .awaitAsList()
                 .takeUnless(List<BackupEpisode>::isEmpty)
                 ?.let { animeObject.episodes = it }
         }
@@ -64,7 +64,7 @@ class AnimeBackupCreator(
         }
 
         if (options.tracking) {
-            val tracks = handler.awaitList { anime_syncQueries.getTracksByAnimeId(anime.id, backupTrackMapper) }
+            val tracks = database.anime_syncQueries.getTracksByAnimeId(anime.id, backupTrackMapper).awaitAsList()
             if (tracks.isNotEmpty()) {
                 animeObject.tracking = tracks
             }
@@ -74,7 +74,7 @@ class AnimeBackupCreator(
             val historyByAnimeId = getHistory.await(anime.id)
             if (historyByAnimeId.isNotEmpty()) {
                 val history = historyByAnimeId.map { history ->
-                    val episode = handler.awaitOne { episodesQueries.getEpisodeById(history.episodeId) }
+                    val episode = database.episodesQueries.getEpisodeById(history.episodeId).awaitAsOne()
                     BackupHistory(episode.url, history.seenAt?.time ?: 0L)
                 }
                 if (history.isNotEmpty()) {

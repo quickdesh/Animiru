@@ -7,7 +7,8 @@ import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.Database
+import tachiyomi.data.subscribeToList
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.domain.source.repository.SourcePagingSource
 import tachiyomi.domain.source.repository.SourceRepository
@@ -16,7 +17,7 @@ import tachiyomi.domain.source.model.Source as DomainSource
 
 class SourceRepositoryImpl(
     private val sourceManager: SourceManager,
-    private val handler: DatabaseHandler,
+    private val database: Database,
 ) : SourceRepository {
 
     override fun getSources(): Flow<List<DomainSource>> {
@@ -38,10 +39,13 @@ class SourceRepositoryImpl(
     }
 
     override fun getSourcesWithFavoriteCount(): Flow<List<Pair<DomainSource, Long>>> {
-        return combine(
-            handler.subscribeToList { animesQueries.getSourceIdWithFavoriteCount() },
-            sourceManager.catalogueSources,
-        ) { sourceIdWithFavoriteCount, _ -> sourceIdWithFavoriteCount }
+        val sourceIdWithFavoriteCountFlow = database.animesQueries
+            .getSourceIdWithFavoriteCount()
+            .subscribeToList()
+
+        return combine(sourceIdWithFavoriteCountFlow, sourceManager.catalogueSources) { sourceIdWithFavoriteCount, _ ->
+            sourceIdWithFavoriteCount
+        }
             .map {
                 it.map { (sourceId, count) ->
                     val source = sourceManager.getOrStub(sourceId)

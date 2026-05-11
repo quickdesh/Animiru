@@ -1,14 +1,15 @@
 // AY -->
 package eu.kanade.tachiyomi.data.backup.restore.restorers
 
+import app.cash.sqldelight.async.coroutines.awaitAsOne
 import eu.kanade.tachiyomi.data.backup.models.BackupCustomButtons
-import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.Database
 import tachiyomi.domain.custombutton.interactor.GetCustomButtons
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class CustomButtonRestorer(
-    private val handler: DatabaseHandler = Injekt.get(),
+    private val database: Database = Injekt.get(),
     private val getCustomButtons: GetCustomButtons = Injekt.get(),
 ) {
     suspend operator fun invoke(
@@ -26,18 +27,16 @@ class CustomButtonRestorer(
                     val dbCustomButton = dbCustomButtonsByName[it.name]
                     if (dbCustomButton != null) return@map dbCustomButton
                     val sortIndex = nextSortIndex++
-                    handler.awaitOneExecutable {
-                        val isFavorite = it.isFavorite && !dbHasFavorite
-                        custom_buttonsQueries.insert(
-                            it.name,
-                            isFavorite,
-                            sortIndex,
-                            it.content,
-                            it.longPressContent,
-                            it.onStartup,
-                        )
-                        custom_buttonsQueries.selectLastInsertedRowId()
-                    }
+                    val isFavorite = it.isFavorite && !dbHasFavorite
+                    database.custom_buttonsQueries.insert(
+                        it.name,
+                        isFavorite,
+                        sortIndex,
+                        it.content,
+                        it.longPressContent,
+                        it.onStartup,
+                    )
+                        .awaitAsOne()
                 }
         }
     }

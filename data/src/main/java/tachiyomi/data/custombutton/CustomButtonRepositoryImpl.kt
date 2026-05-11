@@ -2,23 +2,24 @@
 package tachiyomi.data.custombutton
 
 import android.database.sqlite.SQLiteException
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import kotlinx.coroutines.flow.Flow
 import tachiyomi.data.Database
-import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.subscribeToList
 import tachiyomi.domain.custombutton.exception.SaveCustomButtonException
 import tachiyomi.domain.custombutton.model.CustomButton
 import tachiyomi.domain.custombutton.model.CustomButtonUpdate
 import tachiyomi.domain.custombutton.repository.CustomButtonRepository
 
 class CustomButtonRepositoryImpl(
-    private val handler: DatabaseHandler,
+    private val database: Database,
 ) : CustomButtonRepository {
     override fun subscribeAll(): Flow<List<CustomButton>> {
-        return handler.subscribeToList { custom_buttonsQueries.findAll(::mapCustomButton) }
+        return database.custom_buttonsQueries.findAll(::mapCustomButton).subscribeToList()
     }
 
     override suspend fun getAll(): List<CustomButton> {
-        return handler.awaitList { custom_buttonsQueries.findAll(::mapCustomButton) }
+        return database.custom_buttonsQueries.findAll(::mapCustomButton).awaitAsList()
     }
 
     override suspend fun insertCustomButton(
@@ -29,32 +30,14 @@ class CustomButtonRepositoryImpl(
         onStartup: String,
     ) {
         try {
-            handler.await { custom_buttonsQueries.insert(name, false, sortIndex, content, longPressContent, onStartup) }
+            database.custom_buttonsQueries.insert(name, false, sortIndex, content, longPressContent, onStartup)
         } catch (ex: SQLiteException) {
             throw SaveCustomButtonException(ex)
         }
     }
 
     override suspend fun updatePartialCustomButton(update: CustomButtonUpdate) {
-        handler.await {
-            updatePartialBlocking(update)
-        }
-    }
-
-    override suspend fun updatePartialCustomButtons(updates: List<CustomButtonUpdate>) {
-        handler.await(inTransaction = true) {
-            for (update in updates) {
-                updatePartialBlocking(update)
-            }
-        }
-    }
-
-    override suspend fun deleteCustomButton(customButtonId: Long) {
-        return handler.await { custom_buttonsQueries.delete(customButtonId) }
-    }
-
-    private fun Database.updatePartialBlocking(update: CustomButtonUpdate) {
-        custom_buttonsQueries.update(
+        database.custom_buttonsQueries.update(
             name = update.name,
             isFavorite = update.isFavorite,
             sortIndex = update.sortIndex,
@@ -63,6 +46,16 @@ class CustomButtonRepositoryImpl(
             customButtonId = update.id,
             onStartup = update.onStartup,
         )
+    }
+
+    override suspend fun updatePartialCustomButtons(updates: List<CustomButtonUpdate>) {
+        database.transaction {
+            updates.forEach { updatePartialCustomButton(it) }
+        }
+    }
+
+    override suspend fun deleteCustomButton(customButtonId: Long) {
+        database.custom_buttonsQueries.delete(customButtonId)
     }
 
     private fun mapCustomButton(

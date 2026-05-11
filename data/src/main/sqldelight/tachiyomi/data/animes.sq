@@ -213,9 +213,12 @@ AND (
     )
 );
 
-insert:
-INSERT INTO animes(source, url, artist, author, description, genre, title, status, thumbnail_url, favorite, last_update, next_update, initialized, viewer, episode_flags, cover_last_modified, date_added, update_strategy, calculate_interval, last_modified_at, version, notes, fetch_type, parent_id, season_flags, season_number, season_source_order, background_url, background_last_modified)
-VALUES (:source, :url, :artist, :author, :description, :genre, :title, :status, :thumbnailUrl, :favorite, :lastUpdate, :nextUpdate, :initialized, :viewerFlags, :episodeFlags, :coverLastModified, :dateAdded, :updateStrategy, :calculateInterval, 0, :version, :notes, :fetchType, :parentId, :seasonFlags, :seasonNumber, :seasonSourceOrder, :backgroundUrl, :backgroundLastModified);
+insert {
+    INSERT INTO animes(source, url, artist, author, description, genre, title, status, thumbnail_url, favorite, last_update, next_update, initialized, viewer, episode_flags, cover_last_modified, date_added, update_strategy, calculate_interval, last_modified_at, version, notes, fetch_type, parent_id, season_flags, season_number, season_source_order, background_url, background_last_modified)
+    VALUES (:source, :url, :artist, :author, :description, :genre, :title, :status, :thumbnailUrl, :favorite, :lastUpdate, :nextUpdate, :initialized, :viewerFlags, :episodeFlags, :coverLastModified, :dateAdded, :updateStrategy, :calculateInterval, 0, :version, :notes, :fetchType, :parentId, :seasonFlags, :seasonNumber, :seasonSourceOrder, :backgroundUrl, :backgroundLastModified);
+
+    SELECT last_insert_rowid();
+}
 
 update:
 UPDATE animes SET
@@ -251,9 +254,6 @@ UPDATE animes SET
     background_last_modified = coalesce(:backgroundLastModified, background_last_modified)
     -- <-- AY
 WHERE _id = :animeId;
-
-selectLastInsertedRowId:
-SELECT last_insert_rowid();
 
 insertNetworkAnime {
     -- Insert the anime if it doesn't exist already

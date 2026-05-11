@@ -1,24 +1,24 @@
 package eu.kanade.domain.anime.interactor
 
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.Database
+import tachiyomi.data.subscribeToList
 
 class GetExcludedScanlators(
-    private val handler: DatabaseHandler,
+    private val database: Database,
 ) {
 
     suspend fun await(animeId: Long): Set<String> {
-        return handler.awaitList {
-            excluded_scanlatorsQueries.getExcludedScanlatorsByAnimeId(animeId)
-        }
+        return database.excluded_scanlatorsQueries.getExcludedScanlatorsByAnimeId(animeId)
+            .awaitAsList()
             .toSet()
     }
 
     fun subscribe(animeId: Long): Flow<Set<String>> {
-        return handler.subscribeToList {
-            excluded_scanlatorsQueries.getExcludedScanlatorsByAnimeId(animeId)
-        }
+        return database.excluded_scanlatorsQueries.getExcludedScanlatorsByAnimeId(animeId)
+            .subscribeToList()
             .map { it.toSet() }
     }
 }

@@ -1,13 +1,19 @@
 package tachiyomi.data.anime
 
 import aniyomi.domain.anime.SeasonAnime
+import app.cash.sqldelight.async.coroutines.awaitAsList
+import app.cash.sqldelight.async.coroutines.awaitAsOne
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import kotlinx.coroutines.flow.Flow
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.Database
 import tachiyomi.data.FetchTypeColumnAdapter
 import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
+import tachiyomi.data.subscribeToList
+import tachiyomi.data.subscribeToOne
+import tachiyomi.data.subscribeToOneOrNull
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
@@ -18,73 +24,70 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 class AnimeRepositoryImpl(
-    private val handler: DatabaseHandler,
+    private val database: Database,
 ) : AnimeRepository {
 
     override suspend fun getAnimeById(id: Long): Anime {
-        return handler.awaitOne { animesQueries.getAnimeById(id, AnimeMapper::mapAnime) }
+        return database.animesQueries.getAnimeById(id, AnimeMapper::mapAnime).awaitAsOne()
     }
 
     override suspend fun getAnimeByIdAsFlow(id: Long): Flow<Anime> {
-        return handler.subscribeToOne { animesQueries.getAnimeById(id, AnimeMapper::mapAnime) }
+        return database.animesQueries.getAnimeById(id, AnimeMapper::mapAnime).subscribeToOne()
     }
 
     override suspend fun getAnimeByUrlAndSourceId(url: String, sourceId: Long): Anime? {
-        return handler.awaitOneOrNull {
-            animesQueries.getAnimeByUrlAndSource(
-                url,
-                sourceId,
-                AnimeMapper::mapAnime,
-            )
-        }
+        return database.animesQueries.getAnimeByUrlAndSource(
+            url,
+            sourceId,
+            AnimeMapper::mapAnime,
+        ).awaitAsOneOrNull()
     }
 
     override fun getAnimeByUrlAndSourceIdAsFlow(url: String, sourceId: Long): Flow<Anime?> {
-        return handler.subscribeToOneOrNull {
-            animesQueries.getAnimeByUrlAndSource(
-                url,
-                sourceId,
-                AnimeMapper::mapAnime,
-            )
-        }
+        return database.animesQueries.getAnimeByUrlAndSource(
+            url,
+            sourceId,
+            AnimeMapper::mapAnime,
+        ).subscribeToOneOrNull()
     }
 
     override suspend fun getFavorites(): List<Anime> {
-        return handler.awaitList { animesQueries.getFavorites(AnimeMapper::mapAnime) }
+        return database.animesQueries.getFavorites(AnimeMapper::mapAnime).awaitAsList()
     }
 
     override suspend fun getSeenAnimeNotInLibrary(): List<Anime> {
-        return handler.awaitList { animesQueries.getSeenAnimeNotInLibrary(AnimeMapper::mapAnime) }
+        return database.animesQueries.getSeenAnimeNotInLibrary(AnimeMapper::mapAnime).awaitAsList()
     }
 
     override suspend fun getLibraryAnime(): List<LibraryAnime> {
-        return handler.awaitList { libraryViewQueries.library(AnimeMapper::mapLibraryAnime) }
+        return database.libraryViewQueries.library(AnimeMapper::mapLibraryAnime).awaitAsList()
     }
 
     override fun getLibraryAnimeAsFlow(): Flow<List<LibraryAnime>> {
-        return handler.subscribeToList { libraryViewQueries.library(AnimeMapper::mapLibraryAnime) }
+        return database.libraryViewQueries.library(AnimeMapper::mapLibraryAnime).subscribeToList()
     }
 
     override fun getFavoritesBySourceId(sourceId: Long): Flow<List<Anime>> {
-        return handler.subscribeToList { animesQueries.getFavoriteBySourceId(sourceId, AnimeMapper::mapAnime) }
+        return database.animesQueries.getFavoriteBySourceId(sourceId, AnimeMapper::mapAnime).subscribeToList()
     }
 
     override suspend fun getDuplicateLibraryAnime(id: Long, title: String): List<AnimeWithEpisodeCount> {
-        return handler.awaitList {
-            animesQueries.getDuplicateLibraryAnime(id, title, AnimeMapper::mapAnimeWithEpisodeCount)
-        }
+        return database.animesQueries.getDuplicateLibraryAnime(
+            id,
+            title,
+            AnimeMapper::mapAnimeWithEpisodeCount,
+        ).awaitAsList()
     }
 
     override suspend fun getUpcomingAnime(statuses: Set<Long>): Flow<List<Anime>> {
         val epochMillis = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
-        return handler.subscribeToList {
-            animesQueries.getUpcomingAnime(epochMillis, statuses, AnimeMapper::mapAnime)
-        }
+        return database.animesQueries.getUpcomingAnime(epochMillis, statuses, AnimeMapper::mapAnime)
+            .subscribeToList()
     }
 
     override suspend fun resetViewerFlags(): Boolean {
         return try {
-            handler.await { animesQueries.resetViewerFlags() }
+            database.animesQueries.resetViewerFlags()
             true
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)
@@ -93,10 +96,10 @@ class AnimeRepositoryImpl(
     }
 
     override suspend fun setAnimeCategories(animeId: Long, categoryIds: List<Long>) {
-        handler.await(inTransaction = true) {
-            animes_categoriesQueries.deleteAnimeCategoryByAnimeId(animeId)
-            categoryIds.map { categoryId ->
-                animes_categoriesQueries.insert(animeId, categoryId)
+        database.transaction {
+            database.animes_categoriesQueries.deleteAnimeCategoryByAnimeId(animeId)
+            categoryIds.forEach { categoryId ->
+                database.animes_categoriesQueries.insert(animeId, categoryId)
             }
         }
     }
@@ -122,9 +125,9 @@ class AnimeRepositoryImpl(
     }
 
     override suspend fun insertNetworkAnime(anime: List<Anime>): List<Anime> {
-        return handler.await(inTransaction = true) {
+        return database.transactionWithResult {
             anime.map {
-                animesQueries.insertNetworkAnime(
+                database.animesQueries.insertNetworkAnime(
                     source = it.source,
                     url = it.url,
                     artist = it.artist,
@@ -163,45 +166,45 @@ class AnimeRepositoryImpl(
                     updateDetails = it.initialized,
                     mapper = AnimeMapper::mapAnime,
                 )
-                    .executeAsOne()
+                    .awaitAsOne()
             }
         }
     }
 
     // AY -->
     override suspend fun getAnimeSeasonsById(parentId: Long): List<SeasonAnime> {
-        return handler.awaitList { animeseasonsViewQueries.getAnimeSeasonsById(parentId, AnimeMapper::mapSeasonAnime) }
+        return database.animeseasonsViewQueries.getAnimeSeasonsById(parentId, AnimeMapper::mapSeasonAnime).awaitAsList()
     }
 
     override fun getAnimeSeasonsByIdAsFlow(parentId: Long): Flow<List<SeasonAnime>> {
-        return handler.subscribeToList {
-            animeseasonsViewQueries.getAnimeSeasonsById(parentId, AnimeMapper::mapSeasonAnime)
-        }
+        return database.animeseasonsViewQueries.getAnimeSeasonsById(
+            parentId,
+            AnimeMapper::mapSeasonAnime,
+        ).subscribeToList()
     }
 
     override suspend fun removeParentIdByIds(animeIds: List<Long>) {
         try {
-            handler.await { animesQueries.removeParentIdByIds(animeIds) }
+            database.animesQueries.removeParentIdByIds(animeIds)
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)
         }
     }
 
     override fun getDeletableParentAnime(): Flow<List<DeletableAnime>> {
-        return handler.subscribeToList {
-            animedeletableViewQueries.getDeletableParentAnime(AnimeMapper::mapDeletableAnime)
-        }
+        return database.animedeletableViewQueries.getDeletableParentAnime(AnimeMapper::mapDeletableAnime)
+            .subscribeToList()
     }
 
     override suspend fun getChildrenByParentId(parentId: Long): List<Anime> {
-        return handler.awaitList { animesQueries.getChildrenByParentId(parentId, AnimeMapper::mapAnime) }
+        return database.animesQueries.getChildrenByParentId(parentId, AnimeMapper::mapAnime).awaitAsList()
     }
     // <-- AY
 
     private suspend fun partialUpdate(vararg animeUpdates: AnimeUpdate) {
-        handler.await(inTransaction = true) {
+        database.transaction {
             animeUpdates.forEach { value ->
-                animesQueries.update(
+                database.animesQueries.update(
                     source = value.source,
                     url = value.url,
                     artist = value.artist,

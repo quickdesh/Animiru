@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.data.connection.syncmiru
 
 import android.content.Context
 import android.net.Uri
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import eu.kanade.domain.connection.SyncPreferences
 import eu.kanade.tachiyomi.data.backup.create.BackupCreator
 import eu.kanade.tachiyomi.data.backup.create.BackupOptions
@@ -19,7 +20,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.data.DatabaseHandler
+import tachiyomi.data.Database
 import tachiyomi.data.Episodes
 import tachiyomi.data.anime.AnimeMapper.mapAnime
 import tachiyomi.domain.anime.model.Anime
@@ -40,7 +41,7 @@ import logcat.logcat as log
  */
 class SyncManager(
     private val context: Context,
-    private val handler: DatabaseHandler = Injekt.get(),
+    private val database: Database = Injekt.get(),
     private val syncPreferences: SyncPreferences = Injekt.get(),
     private var json: Json = Json {
         encodeDefaults = true
@@ -61,9 +62,9 @@ class SyncManager(
     suspend fun syncData() {
         // Reset isSyncing in case it was left over or failed syncing during restore.
 
-        handler.await(inTransaction = true) {
-            animesQueries.resetIsSyncing()
-            episodesQueries.resetIsSyncing()
+        database.transaction {
+            database.animesQueries.resetIsSyncing()
+            database.episodesQueries.resetIsSyncing()
         }
 
         val syncOptions = syncPreferences.getSyncSettings()
@@ -208,15 +209,15 @@ class SyncManager(
      * @return a list of all anime stored in the database
      */
     private suspend fun getAllAnimeFromDB(): List<Anime> {
-        return handler.awaitList { animesQueries.getAllAnime(::mapAnime) }
+        return database.animesQueries.getAllAnime(::mapAnime).awaitAsList()
     }
 
     private suspend fun getAllAnimeThatNeedsSync(): List<Anime> {
-        return handler.awaitList { animesQueries.getAnimesWithFavoriteTimestamp(::mapAnime) }
+        return database.animesQueries.getAnimesWithFavoriteTimestamp(::mapAnime).awaitAsList()
     }
 
     private suspend fun isAnimeDifferent(localAnime: Anime, remoteAnime: BackupAnime): Boolean {
-        val localEpisodes = handler.await { episodesQueries.getEpisodesByAnimeId(localAnime.id, 0).executeAsList() }
+        val localEpisodes = database.episodesQueries.getEpisodesByAnimeId(localAnime.id, 0).awaitAsList()
         val localCategories = getCategories.await(localAnime.id).map { it.order }
 
         if (areEpisodesDifferent(localEpisodes, remoteAnime.episodes)) {

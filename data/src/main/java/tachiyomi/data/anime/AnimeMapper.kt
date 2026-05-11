@@ -9,6 +9,7 @@ import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.source.model.DeletableAnime
 
 object AnimeMapper {
+    @Suppress("UNUSED_PARAMETER")
     fun mapAnime(
         id: Long,
         source: Long,
@@ -33,7 +34,6 @@ object AnimeMapper {
         lastModifiedAt: Long,
         favoriteModifiedAt: Long?,
         version: Long,
-        @Suppress("UNUSED_PARAMETER")
         isSyncing: Long,
         notes: String,
         // AY -->
