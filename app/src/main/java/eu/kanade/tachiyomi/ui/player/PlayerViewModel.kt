@@ -27,6 +27,7 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.yubyf.truetypeparser.TTFFile
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.domain.anime.interactor.SetAnimeViewerFlags
 import eu.kanade.domain.base.BasePreferences
@@ -67,6 +68,7 @@ import eu.kanade.tachiyomi.ui.player.loader.HosterLoader
 import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
 import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
+import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
 import eu.kanade.tachiyomi.ui.player.utils.AniSkipApi
 import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils
 import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils.Companion.getStringRes
@@ -93,6 +95,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -124,6 +127,7 @@ import tachiyomi.domain.history.interactor.UpsertHistory
 import tachiyomi.domain.history.model.HistoryUpdate
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.source.local.isLocal
@@ -133,6 +137,7 @@ import java.io.File
 import java.io.InputStream
 import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.collections.first
 import kotlin.coroutines.cancellation.CancellationException
 
 class PlayerViewModel @JvmOverloads constructor(
@@ -141,6 +146,7 @@ class PlayerViewModel @JvmOverloads constructor(
     private val json: Json = Injekt.get(),
     private val sourceManager: SourceManager = Injekt.get(),
     private val downloadManager: DownloadManager = Injekt.get(),
+    private val storageManager: StorageManager = Injekt.get(),
     private val imageSaver: ImageSaver = Injekt.get(),
     private val downloadPreferences: DownloadPreferences = Injekt.get(),
     private val trackPreferences: TrackPreferences = Injekt.get(),
@@ -155,6 +161,7 @@ class PlayerViewModel @JvmOverloads constructor(
     private val setAnimeViewerFlags: SetAnimeViewerFlags = Injekt.get(),
     private val playerPreferences: PlayerPreferences = Injekt.get(),
     private val audioPreferences: AudioPreferences = Injekt.get(),
+    private val subtitlePreferences: SubtitlePreferences = Injekt.get(),
     private val gesturePreferences: GesturePreferences = Injekt.get(),
     private val basePreferences: BasePreferences = Injekt.get(),
     private val getCustomButtons: GetCustomButtons = Injekt.get(),
@@ -311,7 +318,16 @@ class PlayerViewModel @JvmOverloads constructor(
     private val _remainingTime = MutableStateFlow(0)
     val remainingTime = _remainingTime.asStateFlow()
 
+    private val _fontList = MutableStateFlow<ImmutableList<String>>(persistentListOf())
+    val fontList = _fontList.asStateFlow()
+
     init {
+        viewModelScope.launchIO {
+            subtitlePreferences.subtitleSystemFonts.changes().collectLatest {
+                _fontList.update { _ -> fetchFonts(it).toPersistentList() }
+            }
+        }
+
         mpv.propFlow<Long>("time-pos")
             .filterNotNull()
             .onEach(::onSecondReached)
@@ -355,6 +371,49 @@ class PlayerViewModel @JvmOverloads constructor(
             mpv.setPropertyBoolean("pause", true)
             eventChannel.send(Event.ShowToast(AYMR.strings.toast_sleep_timer_ended))
         }
+    }
+
+    fun fetchFonts(includeSystemFonts: Boolean): List<String> {
+        val fontFiles = mutableListOf<String>()
+
+        storageManager.getFontsDirectory()?.listFiles()?.filter { file ->
+            file.name?.lowercase()?.matches(FONT_EXTENSION_REGEX) == true
+        }?.mapNotNull {
+            try {
+                TTFFile.open(it.openInputStream()).families.values.first()
+            } catch (_: Exception) {
+                null
+            }
+        }?.let {
+            fontFiles.addAll(it)
+        }
+
+        if (!includeSystemFonts) {
+            return fontFiles.distinct()
+        }
+
+        val fontDirectories = listOf(
+            "/system/fonts/",
+            "/product/fonts/",
+        )
+
+        for (directory in fontDirectories) {
+            val dir = File(directory)
+            if (dir.exists() && dir.isDirectory) {
+                val files = dir.listFiles()
+                files?.filter { file ->
+                    file.isFile && file.name.lowercase().matches(FONT_EXTENSION_REGEX)
+                }?.forEach { file ->
+                    try {
+                        fontFiles.add(
+                            TTFFile.open(file.inputStream()).families.values.first(),
+                        )
+                    } catch (_: Exception) { }
+                }
+            }
+        }
+
+        return fontFiles.distinct()
     }
 
     private fun setCustomButtons(buttons: List<CustomButton>) {
@@ -2154,6 +2213,8 @@ class PlayerViewModel @JvmOverloads constructor(
         data class SetKeyboard(val show: Boolean) : Event()
     }
 }
+
+private val FONT_EXTENSION_REGEX = Regex($$""".*\.[ot]tf$""")
 
 fun CustomButton.execute(mpv: MPV) {
     mpv.command("script-message", "call_button_$id")

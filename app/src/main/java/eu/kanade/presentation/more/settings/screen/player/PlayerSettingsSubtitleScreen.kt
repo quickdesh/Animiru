@@ -28,6 +28,7 @@ object PlayerSettingsSubtitleScreen : SearchableSettings {
         val whitelist = subtitlePreferences.subtitleWhitelist
         val blacklist = subtitlePreferences.subtitleBlacklist
         val blackBars = subtitlePreferences.subtitleBlackBars
+        val systemFonts = subtitlePreferences.subtitleSystemFonts
 
         return listOf(
             Preference.PreferenceItem.EditTextInfoPreference(
@@ -85,6 +86,10 @@ object PlayerSettingsSubtitleScreen : SearchableSettings {
                 preference = blackBars,
                 title = stringResource(AMMR.strings.player_pref_subtitle_black_bars),
                 subtitle = stringResource(AMMR.strings.player_pref_subtitle_black_bars_summary),
+            ),
+            Preference.PreferenceItem.SwitchPreference(
+                preference = systemFonts,
+                title = stringResource(AMMR.strings.player_pref_subtitle_system_fonts),
             ),
         )
     }

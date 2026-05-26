@@ -450,7 +450,6 @@ class PlayerActivity : BaseActivity() {
 
     private fun setupPlayerMPV() {
         val mpvDir = UniFile.fromFile(applicationContext.filesDir)!!.createDirectory(MPV_DIR)!!
-        val fontsDirectory = mpvDir.createDirectory(MPV_FONTS_DIR)!!
 
         val mpvConfFile = mpvDir.createFile("mpv.conf")!!
         advancedPlayerPreferences.mpvConf.get().let { mpvConfFile.writeText(it) }
@@ -459,8 +458,6 @@ class PlayerActivity : BaseActivity() {
 
         player.init(mpv)
 
-        mpv.setPropertyString("sub-fonts-dir", fontsDirectory.filePath!!)
-        mpv.setPropertyString("osd-fonts-dir", fontsDirectory.filePath!!)
         val showBlackBars = if (subtitlePreferences.subtitleBlackBars.get()) "yes" else "no"
         mpv.setOptionString("sub-ass-force-margins", showBlackBars)
         mpv.setOptionString("sub-use-margins", showBlackBars)
