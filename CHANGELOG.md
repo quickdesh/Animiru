@@ -14,8 +14,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 ### Added
 - Added system font fallback ([@Secozzi](https://github.com/Secozzi)) ([#156](https://github.com/quickdesh/Animiru/pull/156))
 
-### Fixed
-- Fix app crashing when trying to add extension repo with existing signature ([@AntsyLich](https://github.com/AntsyLich))
+### Other
+- Merge from Mihon ([@Secozzi](https://github.com/Secozzi)) ([#155](https://github.com/quickdesh/Animiru/pull/155))
 
 ## [v0.19.7.3] - 2026-04-17
 ### Improved
