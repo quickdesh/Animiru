@@ -21,7 +21,7 @@ class EpisodeRepositoryImpl(
         return try {
             database.transactionWithResult {
                 episodes.map { episode ->
-                    val lastInsertId = database.episodesQueries.insert(
+                    val episodeId = database.episodesQueries.insertReturningId(
                         episode.animeId,
                         episode.url,
                         episode.name,
@@ -44,8 +44,9 @@ class EpisodeRepositoryImpl(
                         episode.summary,
                         episode.previewUrl,
                         // <-- AY
-                    ).awaitAsOne()
-                    episode.copy(id = lastInsertId)
+                    )
+                        .awaitAsOne()
+                    episode.copy(id = episodeId)
                 }
             }
         } catch (e: Exception) {

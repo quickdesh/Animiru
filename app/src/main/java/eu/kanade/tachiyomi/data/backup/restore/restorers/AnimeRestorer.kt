@@ -311,7 +311,7 @@ class AnimeRestorer(
      * @return id of [Anime], null if not found
      */
     private suspend fun insertAnime(anime: Anime): Long {
-        return database.animesQueries.insert(
+        return database.animesQueries.insertReturningId(
             source = anime.source,
             url = anime.url,
             artist = anime.artist,
