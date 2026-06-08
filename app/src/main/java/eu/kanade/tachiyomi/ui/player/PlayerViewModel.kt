@@ -337,11 +337,11 @@ class PlayerViewModel @JvmOverloads constructor(
             .onEach(::onChapterChanged)
             .launchIn(viewModelScope)
 
-        mpv.propFlow<Int>("sid")
+        mpv.propFlow<MPVNode>("sid")
             .onEach { onSubtitleTrackSelectChange() }
             .launchIn(viewModelScope)
 
-        mpv.propFlow<Int>("secondary-sid")
+        mpv.propFlow<MPVNode>("secondary-sid")
             .onEach { onSubtitleTrackSelectChange() }
             .launchIn(viewModelScope)
 
