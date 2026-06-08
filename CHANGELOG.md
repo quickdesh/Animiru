@@ -11,6 +11,12 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Improved
+- Add order priority for whitelist in track select ([@Secozzi](https://github.com/Secozzi)) ([#159](https://github.com/quickdesh/Animiru/pull/159))
+
+### Fixed
+- Fix subtitle list not updating when selecting ([@Secozzi](https://github.com/Secozzi)) ([#159](https://github.com/quickdesh/Animiru/pull/159))
+- Fix subtitle & audio track list not updating properly when changing episodes ([@Secozzi](https://github.com/Secozzi)) ([#159](https://github.com/quickdesh/Animiru/pull/159))
 
 ## [v0.19.7.4] - 2026-05-27
 ### Added
