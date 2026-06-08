@@ -47,9 +47,13 @@ class TrackSelect(
                 chosenLocale?.let { containsLang(track, it) } ?: true
             }
 
-        return filtered.firstOrNull { (_, track) ->
-            whitelist.any { track.title.contains(it, true) }
-        }?.value ?: filtered.getOrNull(0)?.value
+        whitelist.forEach { w ->
+            filtered.firstOrNull { (_, track) ->
+                track.title.contains(w, true)
+            }?.let { return it.value }
+        }
+
+        return filtered.getOrNull(0)?.value
     }
 
     private fun containsLang(track: VideoTrack, locale: Locale): Boolean {
