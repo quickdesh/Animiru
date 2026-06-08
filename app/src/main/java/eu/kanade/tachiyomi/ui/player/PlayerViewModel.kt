@@ -437,6 +437,12 @@ class PlayerViewModel @JvmOverloads constructor(
             )
     }
 
+    fun clearTracks() {
+        hasLoadedTracks.update { _ -> false }
+        _externalAudioTracks.update { _ -> emptyList() }
+        _externalSubtitleTracks.update { _ -> emptyList() }
+    }
+
     fun updateIsLoadingEpisode(value: Boolean) {
         _isLoadingEpisode.update { _ -> value }
     }
@@ -494,7 +500,7 @@ class PlayerViewModel @JvmOverloads constructor(
             updateAudioTrackAt(idx) {
                 it.copy(id = track.id, state = TrackState.Loaded)
             }
-            selectAudioById(track.id)
+            selectAudioById(track.id, false)
         }
     }
 
@@ -525,7 +531,7 @@ class PlayerViewModel @JvmOverloads constructor(
             subtitle = false,
         )
         preferredAudio?.let {
-            selectAudio(it)
+            selectAudio(it, true)
         }
     }
 
@@ -580,7 +586,7 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    fun selectAudio(track: VideoTrack) {
+    fun selectAudio(track: VideoTrack, force: Boolean = false) {
         when (track) {
             is VideoTrack.External -> {
                 if (track.id == null) {
@@ -596,11 +602,11 @@ class PlayerViewModel @JvmOverloads constructor(
                         )
                     }
                 } else {
-                    selectAudioById(track.id)
+                    selectAudioById(track.id, force)
                 }
             }
             is VideoTrack.Internal -> {
-                selectAudioById(track.data.id)
+                selectAudioById(track.data.id, force)
             }
         }
     }
@@ -655,8 +661,8 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    private fun selectAudioById(id: Int) {
-        if (id == mpv.getPropertyInt("aid")) {
+    private fun selectAudioById(id: Int, force: Boolean) {
+        if (!force && id == mpv.getPropertyInt("aid")) {
             mpv.setPropertyBoolean("aid", false)
         } else {
             mpv.setPropertyInt("aid", id)
