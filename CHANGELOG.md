@@ -11,6 +11,11 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Improved
+- Don't start playing until external tracks are loaded and ready ([@Secozzi](https://github.com/Secozzi)) ([#160](https://github.com/quickdesh/Animiru/pull/160))
+
+### Fixed
+- Fix tracks not being selected when switching episodes ([@Secozzi](https://github.com/Secozzi)) ([#160](https://github.com/quickdesh/Animiru/pull/160))
 
 ## [v0.19.7.5] - 2026-06-08
 ### Improved
