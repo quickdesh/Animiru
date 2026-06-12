@@ -1112,8 +1112,7 @@ class PlayerActivity : BaseActivity() {
         setMpvMediaTitle()
         setupPlayerOrientation()
         setupChapters()
-        viewModel.setPausedState()
-        viewModel.updateIsLoadingEpisode(false)
+        viewModel.checkFileLoaded()
 
         // aniSkip stuff
         viewModel.viewModelScope.launchIO {
