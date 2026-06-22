@@ -35,12 +35,14 @@ SELECT *
 FROM custom_buttons
 ORDER BY sortIndex;
 
-insert {
-    INSERT INTO custom_buttons(name, isFavorite, sortIndex, content, longPressContent, onStartup)
-    VALUES (:name, :isFavorite, :sortIndex, :content, :longPressContent, :onStartup);
+insert:
+INSERT INTO custom_buttons(name, isFavorite, sortIndex, content, longPressContent, onStartup)
+VALUES (:name, :isFavorite, :sortIndex, :content, :longPressContent, :onStartup);
 
-    SELECT last_insert_rowid();
-}
+insertReturningId:
+INSERT INTO custom_buttons(name, isFavorite, sortIndex, content, longPressContent, onStartup)
+VALUES (:name, :isFavorite, :sortIndex, :content, :longPressContent, :onStartup)
+RETURNING _id;
 
 delete:
 DELETE FROM custom_buttons

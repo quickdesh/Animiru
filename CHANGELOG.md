@@ -11,6 +11,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Fixed
+- Fix custom buttons not being added ([@Secozzi](https://github.com/Secozzi)) ([#164](https://github.com/quickdesh/Animiru/pull/164))
 
 ## [v0.19.7.6] - 2026-06-12
 ### Improved

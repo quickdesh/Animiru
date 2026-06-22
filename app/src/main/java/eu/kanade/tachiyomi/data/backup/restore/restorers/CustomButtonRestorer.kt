@@ -28,7 +28,7 @@ class CustomButtonRestorer(
                     if (dbCustomButton != null) return@map dbCustomButton
                     val sortIndex = nextSortIndex++
                     val isFavorite = it.isFavorite && !dbHasFavorite
-                    database.custom_buttonsQueries.insert(
+                    database.custom_buttonsQueries.insertReturningId(
                         it.name,
                         isFavorite,
                         sortIndex,
