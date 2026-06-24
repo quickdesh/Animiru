@@ -1626,6 +1626,9 @@ class PlayerViewModel @JvmOverloads constructor(
         )
 
         _currentVideo.update { _ -> resolvedVideo }
+        if (hasLoadedTracks.value) {
+            clearTracks()
+        }
 
         qualityIndex = Pair(hosterIndex, videoIndex)
 
