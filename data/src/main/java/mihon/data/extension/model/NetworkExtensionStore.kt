@@ -58,14 +58,18 @@ data class NetworkExtensionStore(
     @Suppress("Unused")
     enum class ContentWarning {
         @ProtoNumber(0)
+        @JsonNames("CONTENT_WARNING_UNSPECIFIED")
+        UNSPECIFIED,
+
+        @ProtoNumber(1)
         @JsonNames("CONTENT_WARNING_SAFE")
         SAFE,
 
-        @ProtoNumber(1)
-        @JsonNames("CONTENT_WARNING_MIXED")
-        Mixed,
-
         @ProtoNumber(2)
+        @JsonNames("CONTENT_WARNING_MIXED")
+        MIXED,
+
+        @ProtoNumber(3)
         @JsonNames("CONTENT_WARNING_NSFW")
         NSFW,
     }
