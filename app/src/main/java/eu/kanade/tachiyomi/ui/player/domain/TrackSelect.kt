@@ -1,7 +1,7 @@
 package eu.kanade.tachiyomi.ui.player.domain
 
 import androidx.core.os.LocaleListCompat
-import eu.kanade.tachiyomi.ui.player.VideoTrack
+import eu.kanade.tachiyomi.ui.player.mpv.VideoTrack
 import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
 import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
 import uy.kohesive.injekt.Injekt

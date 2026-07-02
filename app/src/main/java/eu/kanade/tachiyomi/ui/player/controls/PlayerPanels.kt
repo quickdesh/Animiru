@@ -59,7 +59,7 @@ fun PlayerPanels(
     isItalic: Boolean,
     subJustify: SubtitleJustification,
     subFont: String,
-    subFontList: ImmutableList<String>,
+    subFontList: List<String>,
     subFontSize: Int,
     subBorderStyle: SubtitlesBorderStyle,
     subBorderSize: Int,

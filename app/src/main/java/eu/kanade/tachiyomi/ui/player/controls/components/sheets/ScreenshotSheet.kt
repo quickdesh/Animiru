@@ -35,11 +35,10 @@ fun ScreenshotSheet(
     showSubtitles: Boolean,
     onToggleShowSubtitles: (Boolean) -> Unit,
 
-    cachePath: String,
     onSetAsArt: (ArtType, (() -> InputStream)) -> Unit,
     onShare: (() -> InputStream) -> Unit,
     onSave: (() -> InputStream) -> Unit,
-    takeScreenshot: (String, Boolean) -> InputStream?,
+    takeScreenshot: (Boolean) -> InputStream?,
 
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
@@ -80,7 +79,7 @@ fun ScreenshotSheet(
                     title = stringResource(MR.strings.action_share),
                     icon = Icons.Outlined.Share,
                     onClick = {
-                        onShare { takeScreenshot(cachePath, showSubtitles)!! }
+                        onShare { takeScreenshot(showSubtitles)!! }
                     },
                 )
                 ActionButton(
@@ -88,7 +87,7 @@ fun ScreenshotSheet(
                     title = stringResource(MR.strings.action_save),
                     icon = Icons.Outlined.Save,
                     onClick = {
-                        onSave { takeScreenshot(cachePath, showSubtitles)!! }
+                        onSave { takeScreenshot(showSubtitles)!! }
                     },
                 )
             }
@@ -116,10 +115,7 @@ fun ScreenshotSheet(
             modifier = Modifier.fillMaxWidth(fraction = 0.6F).padding(MaterialTheme.padding.medium),
             onConfirmRequest = {
                 onSetAsArt(setArtTypeAs!!) {
-                    takeScreenshot(
-                        cachePath,
-                        showSubtitles,
-                    )!!
+                    takeScreenshot(showSubtitles)!!
                 }
             },
             onDismissRequest = { setArtTypeAs = null },

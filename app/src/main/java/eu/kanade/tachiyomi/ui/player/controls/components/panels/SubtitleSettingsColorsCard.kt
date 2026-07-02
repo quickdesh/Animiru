@@ -167,23 +167,23 @@ enum class SubColorType(
 
 fun resetColors(
     preferences: SubtitlePreferences,
-    mpv: MPV?,
+    setStringValue: (String, String) -> Unit,
     type: SubColorType,
 ) {
     when (type) {
         SubColorType.Text -> {
             val textColor = preferences.textColorSubtitles.deleteAndGet().toColorHexString()
-            mpv?.setPropertyString("sub-color", textColor)
+            setStringValue("sub-color", textColor)
         }
 
         SubColorType.Border -> {
             val borderColor = preferences.borderColorSubtitles.deleteAndGet().toColorHexString()
-            mpv?.setPropertyString("sub-outline-color", borderColor)
+            setStringValue("sub-outline-color", borderColor)
         }
 
         SubColorType.Background -> {
             val backgroundColor = preferences.backgroundColorSubtitles.deleteAndGet().toColorHexString()
-            mpv?.setPropertyString("sub-back-color", backgroundColor)
+            setStringValue("sub-back-color", backgroundColor)
         }
     }
 }

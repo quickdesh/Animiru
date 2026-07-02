@@ -77,8 +77,8 @@ fun HosterState.Ready.getChangedAt(index: Int, newVideo: Video, newState: Video.
 @Composable
 fun QualitySheet(
     isLoadingHosters: Boolean,
-    hosterState: ImmutableList<HosterState>,
-    expandedState: ImmutableList<Boolean>,
+    hosterState: List<HosterState>,
+    expandedState: List<Boolean>,
     selectedVideoIndex: Pair<Int, Int>,
     onClickHoster: (Int) -> Unit,
     onClickVideo: (Int, Int) -> Unit,

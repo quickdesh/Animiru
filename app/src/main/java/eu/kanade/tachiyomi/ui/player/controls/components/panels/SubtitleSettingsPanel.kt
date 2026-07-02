@@ -34,7 +34,7 @@ fun SubtitleSettingsPanel(
     isItalic: Boolean,
     justify: SubtitleJustification,
     font: String,
-    fontList: ImmutableList<String>,
+    fontList: List<String>,
     fontSize: Int,
     borderStyle: SubtitlesBorderStyle,
     borderSize: Int,

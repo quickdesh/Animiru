@@ -26,7 +26,6 @@ import eu.kanade.tachiyomi.ui.player.ArtType
 import eu.kanade.tachiyomi.ui.player.Decoder
 import eu.kanade.tachiyomi.ui.player.Panels
 import eu.kanade.tachiyomi.ui.player.Sheets
-import eu.kanade.tachiyomi.ui.player.VideoTrack
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.AudioTracksSheet
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.ChaptersSheet
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
@@ -35,6 +34,7 @@ import eu.kanade.tachiyomi.ui.player.controls.components.sheets.PlaybackSpeedShe
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.QualitySheet
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.ScreenshotSheet
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.SubtitlesSheet
+import eu.kanade.tachiyomi.ui.player.mpv.VideoTrack
 import eu.kanade.tachiyomi.ui.player.settings.AudioChannels
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -46,19 +46,19 @@ fun PlayerSheets(
     sheetShown: Sheets,
 
     // subtitles sheet
-    subtitles: ImmutableList<VideoTrack>,
+    subtitles: List<VideoTrack>,
     onAddSubtitle: (Uri) -> Unit,
     onSelectSubtitle: (VideoTrack) -> Unit,
 
     // audio sheet
-    audioTracks: ImmutableList<VideoTrack>,
+    audioTracks: List<VideoTrack>,
     onAddAudio: (Uri) -> Unit,
     onSelectAudio: (VideoTrack) -> Unit,
 
     // video sheet
     isLoadingHosters: Boolean,
-    hosterState: ImmutableList<HosterState>,
-    expandedState: ImmutableList<Boolean>,
+    hosterState: List<HosterState>,
+    expandedState: List<Boolean>,
     selectedVideoIndex: Pair<Int, Int>,
     onClickHoster: (Int) -> Unit,
     onClickVideo: (Int, Int) -> Unit,
@@ -66,7 +66,7 @@ fun PlayerSheets(
 
     // chapters sheet
     chapter: Segment?,
-    chapters: ImmutableList<Segment>,
+    chapters: List<Segment>,
     onSeekToChapter: (Int) -> Unit,
 
     // Decoders sheet
@@ -77,7 +77,7 @@ fun PlayerSheets(
     pitchCorrection: Boolean,
     onPitchCorrectionChange: (Boolean) -> Unit,
     speed: Float,
-    speedPresets: ImmutableList<Float>,
+    speedPresets: List<Float>,
     onSpeedChange: (Float) -> Unit,
     onAddSpeedPreset: (Float) -> Unit,
     onRemoveSpeedPreset: (Float) -> Unit,
@@ -94,17 +94,16 @@ fun PlayerSheets(
     onAudioChannelsChange: (AudioChannels) -> Unit,
     onCustomButtonClick: (CustomButton) -> Unit,
     onCustomButtonLongClick: (CustomButton) -> Unit,
-    buttons: ImmutableList<CustomButton>,
+    buttons: List<CustomButton>,
 
     // Screenshot sheet
     isLocalSource: Boolean,
     showSubtitles: Boolean,
     onToggleShowSubtitles: (Boolean) -> Unit,
-    cachePath: String,
     onSetAsArt: (ArtType, (() -> InputStream)) -> Unit,
     onShare: (() -> InputStream) -> Unit,
     onSave: (() -> InputStream) -> Unit,
-    takeScreenshot: (String, Boolean) -> InputStream?,
+    takeScreenshot: (Boolean) -> InputStream?,
     onDismissScreenshot: () -> Unit,
 
     onOpenPanel: (Panels) -> Unit,
@@ -211,7 +210,6 @@ fun PlayerSheets(
                 hasSubTracks = subtitles.isNotEmpty(),
                 showSubtitles = showSubtitles,
                 onToggleShowSubtitles = onToggleShowSubtitles,
-                cachePath = cachePath,
                 onSetAsArt = onSetAsArt,
                 onShare = onShare,
                 onSave = onSave,

@@ -137,7 +137,7 @@ sealed class Dialogs {
 sealed class PlayerUpdates {
     data object None : PlayerUpdates()
     data object DoubleSpeed : PlayerUpdates()
-    data object AspectRatio : PlayerUpdates()
+    data class AspectRatio(val aspect: VideoAspect) : PlayerUpdates()
     data class ShowText(val value: String) : PlayerUpdates()
     data class ShowTextResource(val textResource: StringResource) : PlayerUpdates()
 }

@@ -1,34 +1,17 @@
-/*
- * Copyright 2024 Abdallah Mehiz
- * https://github.com/abdallahmehiz/mpvKt
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
- * Code is a mix between PlayerViewModel from mpvKt and the former
- * PlayerViewModel from Aniyomi.
- */
-
 package eu.kanade.tachiyomi.ui.player
 
 import android.app.Application
+import android.content.pm.ActivityInfo
 import android.net.Uri
+import android.view.KeyEvent
+import androidx.compose.runtime.Stable
+import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.yubyf.truetypeparser.TTFFile
 import dev.icerock.moko.resources.StringResource
+import dev.vivvvek.seeker.Segment
 import eu.kanade.domain.anime.interactor.SetAnimeViewerFlags
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.connection.SyncPreferences
@@ -36,7 +19,6 @@ import eu.kanade.domain.episode.model.toDbEpisode
 import eu.kanade.domain.source.interactor.GetIncognitoState
 import eu.kanade.domain.track.interactor.TrackEpisode
 import eu.kanade.domain.track.service.TrackPreferences
-import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.animesource.model.Hoster
@@ -56,7 +38,6 @@ import eu.kanade.tachiyomi.data.saver.Location
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
-import eu.kanade.tachiyomi.ui.player.PlayerActivity.Companion.MPV_DIR
 import eu.kanade.tachiyomi.ui.player.controls.components.IndexedSegment
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.getChangedAt
@@ -65,7 +46,13 @@ import eu.kanade.tachiyomi.ui.player.domain.BrightnessManager
 import eu.kanade.tachiyomi.ui.player.domain.TrackSelect
 import eu.kanade.tachiyomi.ui.player.loader.EpisodeLoader
 import eu.kanade.tachiyomi.ui.player.loader.HosterLoader
+import eu.kanade.tachiyomi.ui.player.mpv.ChapterNode
+import eu.kanade.tachiyomi.ui.player.mpv.MPVPlayer
+import eu.kanade.tachiyomi.ui.player.mpv.TrackNode
+import eu.kanade.tachiyomi.ui.player.mpv.TrackState
+import eu.kanade.tachiyomi.ui.player.mpv.VideoTrack
 import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
+import eu.kanade.tachiyomi.ui.player.settings.DecoderPreferences
 import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
@@ -80,31 +67,26 @@ import eu.kanade.tachiyomi.util.lang.byteSize
 import eu.kanade.tachiyomi.util.lang.takeBytes
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.cacheImageDir
-import `is`.xyz.mpv.MPV
 import `is`.xyz.mpv.MPVNode
 import `is`.xyz.mpv.Utils
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
-import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import tachiyomi.core.common.i18n.stringResource
@@ -137,1052 +119,369 @@ import java.io.File
 import java.io.InputStream
 import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.collections.first
+import kotlin.collections.distinctBy
+import kotlin.collections.orEmpty
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.time.Duration.Companion.seconds
 
 class PlayerViewModel @JvmOverloads constructor(
     private val context: Application,
     private val savedState: SavedStateHandle,
     private val json: Json = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
-    private val storageManager: StorageManager = Injekt.get(),
-    private val imageSaver: ImageSaver = Injekt.get(),
-    private val downloadPreferences: DownloadPreferences = Injekt.get(),
-    private val trackPreferences: TrackPreferences = Injekt.get(),
-    private val trackEpisode: TrackEpisode = Injekt.get(),
+
     private val getAnime: GetAnime = Injekt.get(),
     private val getNextEpisodes: GetNextEpisodes = Injekt.get(),
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
     private val getCategories: GetCategories = Injekt.get(),
     private val getTracks: GetTracks = Injekt.get(),
+    private val getIncognitoState: GetIncognitoState = Injekt.get(),
+
     private val upsertHistory: UpsertHistory = Injekt.get(),
     private val updateEpisode: UpdateEpisode = Injekt.get(),
+    private val trackEpisode: TrackEpisode = Injekt.get(),
     private val setAnimeViewerFlags: SetAnimeViewerFlags = Injekt.get(),
+
+    private val imageSaver: ImageSaver = Injekt.get(),
+    private val downloadManager: DownloadManager = Injekt.get(),
+    private val sourceManager: SourceManager = Injekt.get(),
+    private val storageManager: StorageManager = Injekt.get(),
+    private val trackerManager: TrackerManager = Injekt.get(),
+
+    private val basePreferences: BasePreferences = Injekt.get(),
+    private val libraryPreferences: LibraryPreferences = Injekt.get(),
+    private val downloadPreferences: DownloadPreferences = Injekt.get(),
+    private val trackPreferences: TrackPreferences = Injekt.get(),
     private val playerPreferences: PlayerPreferences = Injekt.get(),
+    private val decoderPreferences: DecoderPreferences = Injekt.get(),
+    private val gesturePreferences: GesturePreferences = Injekt.get(),
     private val audioPreferences: AudioPreferences = Injekt.get(),
     private val subtitlePreferences: SubtitlePreferences = Injekt.get(),
-    private val gesturePreferences: GesturePreferences = Injekt.get(),
-    private val basePreferences: BasePreferences = Injekt.get(),
     private val getCustomButtons: GetCustomButtons = Injekt.get(),
     private val trackSelect: TrackSelect = Injekt.get(),
-    private val getIncognitoState: GetIncognitoState = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
     private val audioManager: AudioManager = Injekt.get(),
-    brightnessManager: BrightnessManager = Injekt.get(),
+    private val brightnessManager: BrightnessManager = Injekt.get(),
     // AM (SYNC) -->
     private val syncPreferences: SyncPreferences = Injekt.get(),
     // <-- AM (SYNC)
-    uiPreferences: UiPreferences = Injekt.get(),
 ) : AndroidViewModel(context) {
+    val videoOutput = if (decoderPreferences.gpuNext.get()) "gpu-next" else "gpu"
 
-    val cachePath: String = context.applicationContext.cacheDir.path
-    val mpv = MPV(context.applicationContext) {
-        it.setOptionString("config", "yes")
-        it.setOptionString("config-dir", context.filesDir.resolve(MPV_DIR).toString())
-        it.setOptionString("gpu-shader-cache-dir", cachePath)
-        it.setOptionString("icc-cache-dir", cachePath)
-        it.setOptionString("keep-open", "yes")
+    val player = MPVPlayer(context, videoOutput)
+    val mpv = player.mpv
+
+    // Prefs
+    private val reduceMotion = playerPreferences.reduceMotion.get()
+    private val playerTimeToDisappearMs = playerPreferences.playerTimeToDisappear.get()
+    private val swapVolumeAndBrightness = gesturePreferences.swapVolumeBrightness.get()
+    private val boostCap = audioPreferences.volumeBoostCap.get()
+    private val displayVolumeAsPercentage = playerPreferences.displayVolPer.get()
+    private val showLoadingCircle = playerPreferences.showLoadingCircle.get()
+    private val invertDuration = playerPreferences.invertDuration.get()
+    private val smoothSeeking = gesturePreferences.playerSmoothSeek.get()
+    private val showChapterIndicator = playerPreferences.showCurrentChapter.get()
+
+    private val aniSkipEnabled = playerPreferences.aniSkipEnabled.get()
+    private val disableAniSkipOnChapters = playerPreferences.disableAniSkipOnChapters.get()
+    private val introSkipEnabled = playerPreferences.enableSkipIntro.get()
+    private val autoSkip = playerPreferences.autoSkipIntro.get()
+    private val netflixStyle = playerPreferences.enableNetflixStyleIntroSkip.get()
+    private val defaultWaitingTime = playerPreferences.waitingTimeIntroSkip.get()
+
+    private val maxVolume = audioManager.getMaxVolume()
+    private val screenAspectRatio: Double by lazy {
+        val metrics = context.resources.displayMetrics
+        metrics.widthPixels.toDouble() / metrics.heightPixels.toDouble()
     }
 
-    private val _isStopped = MutableStateFlow(false)
-    val isStopped = _isStopped.asStateFlow()
+    private val _stateData = MutableStateFlow(
+        PlayerStateData(
+            maxVolume = maxVolume,
+        ),
+    )
+    val stateData = _stateData.asStateFlow()
+    private val _uiData = MutableStateFlow(
+        PlayerUiData(
+            reduceMotion = reduceMotion,
+            playerTimeToDisappearMs = playerTimeToDisappearMs,
+            swapVolumeAndBrightness = swapVolumeAndBrightness,
+            boostCap = boostCap,
+            displayVolumeAsPercentage = displayVolumeAsPercentage,
+            showLoadingCircle = showLoadingCircle,
+            invertDuration = invertDuration,
+            smoothSeeking = smoothSeeking,
+            showChapterIndicator = showChapterIndicator,
+        ),
+    )
+    val uiData = _uiData.asStateFlow()
+    private val _playbackData = MutableStateFlow(
+        PlayerPlaybackData(
+            currentVolume = if (playerPreferences.rememberPlayerVolume.get()) {
+                playerPreferences.playerVolumeValue.get().takeUnless { it == -1 }
+                    ?: audioManager.getVolume()
+            } else {
+                audioManager.getVolume()
+            },
+            currentBrightness = if (playerPreferences.rememberPlayerBrightness.get()) {
+                playerPreferences.playerBrightnessValue.get().takeUnless { it == -1f }
+                    ?: brightnessManager.getCurrentBrightness()
+            } else {
+                brightnessManager.getCurrentBrightness()
+            },
+        ),
+    )
+    val playbackData = _playbackData.asStateFlow()
 
-    private val _currentPlaylist = MutableStateFlow<ImmutableList<Episode>>(persistentListOf())
-    val currentPlaylist = _currentPlaylist.asStateFlow()
+    private val _aspectRatio = MutableStateFlow<Double?>(null)
+    val aspectRatio = _aspectRatio.asStateFlow()
 
-    private val _hasPreviousEpisode = MutableStateFlow(false)
-    val hasPreviousEpisode = _hasPreviousEpisode.asStateFlow()
-
-    private val _hasNextEpisode = MutableStateFlow(false)
-    val hasNextEpisode = _hasNextEpisode.asStateFlow()
-
-    private val _currentEpisode = MutableStateFlow<Episode?>(null)
-    val currentEpisode = _currentEpisode.asStateFlow()
-
-    private val _currentAnime = MutableStateFlow<Anime?>(null)
-    val currentAnime = _currentAnime.asStateFlow()
-
-    private val _currentSource = MutableStateFlow<AnimeSource?>(null)
-    val currentSource = _currentSource.asStateFlow()
-
-    private val _isEpisodeOnline = MutableStateFlow(false)
-    val isEpisodeOnline = _isEpisodeOnline.asStateFlow()
-
-    private val _isLoadingEpisode = MutableStateFlow(false)
-    val isLoadingEpisode = _isLoadingEpisode.asStateFlow()
-
-    val mediaTitle = MutableStateFlow("")
-    val animeTitle = MutableStateFlow("")
-
-    val isLoading = MutableStateFlow(true)
-    val hasLoadedTracks = MutableStateFlow(false)
-    val hasLoadedSubs = MutableStateFlow(false)
-    val hasLoadedAudio = MutableStateFlow(false)
-
-    private val _externalSubtitleTracks = MutableStateFlow<List<VideoTrack.External>>(emptyList())
-    val externalSubtitleTracks = _externalSubtitleTracks.asStateFlow()
-
-    private val _externalAudioTracks = MutableStateFlow<List<VideoTrack.External>>(emptyList())
-    val externalAudioTracks = _externalAudioTracks.asStateFlow()
-
-    private val _hosterList = MutableStateFlow<List<Hoster>>(emptyList())
-    val hosterList = _hosterList.asStateFlow()
-    private val _isLoadingHosters = MutableStateFlow(true)
-    val isLoadingHosters = _isLoadingHosters.asStateFlow()
-    private val _hosterState = MutableStateFlow<List<HosterState>>(emptyList())
-    val hosterState = _hosterState.asStateFlow()
-    private val _hosterExpandedList = MutableStateFlow<List<Boolean>>(emptyList())
-    val hosterExpandedList = _hosterExpandedList.asStateFlow()
-    private val _selectedHosterVideoIndex = MutableStateFlow(Pair(-1, -1))
-    val selectedHosterVideoIndex = _selectedHosterVideoIndex.asStateFlow()
-    private val _currentVideo = MutableStateFlow<Video?>(null)
-    val currentVideo = _currentVideo.asStateFlow()
-
-    private val _pausedState = MutableStateFlow<Boolean?>(false)
-    val pausedState = _pausedState.asStateFlow()
-
-    private val netflixTimeout = MutableStateFlow<Int?>(null)
-
-    // Start mpvKt
-
-    private val _customButtons = MutableStateFlow<ImmutableList<CustomButton>>(persistentListOf())
-    val customButtons = _customButtons.asStateFlow()
-
-    private val _primaryButtonTitle = MutableStateFlow("")
-    val primaryButtonTitle = _primaryButtonTitle.asStateFlow()
-
-    private val _primaryButton = MutableStateFlow<CustomButton?>(null)
-    val primaryButton = _primaryButton.asStateFlow()
-
-    val paused by mpv.propFlow<Boolean>("pause").collectAsState(viewModelScope)
-    val pos by mpv.propFlow<Int>("time-pos").collectAsState(viewModelScope)
-    val duration by mpv.propFlow<Int>("duration").collectAsState(viewModelScope)
-
-    val currentVolume = MutableStateFlow(audioManager.getVolume())
-    private val volumeBoostCap by mpv.propFlow<Int>("volume-max").collectAsState(viewModelScope)
-
-    val subtitleTracks = mpv.propFlow<MPVNode>("track-list")
-        .map { node ->
-            (
-                node?.toObject<List<TrackNode>>(json)
-                    ?.filter { it.isSubtitle }
-                    ?.filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true }
-                    ?: persistentListOf()
-                ).toImmutableList()
-        }
-
-    val audioTracks = mpv.propFlow<MPVNode>("track-list")
-        .map { node ->
-            (
-                node?.toObject<List<TrackNode>>(json)
-                    ?.filter { it.isAudio }
-                    ?.filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true }
-                    ?: persistentListOf()
-                ).toImmutableList()
-        }
-
-    val chapters = mpv.propFlow<MPVNode>("chapter-list")
-        .map { (it?.toObject<List<ChapterNode>>(json) ?: persistentListOf()).map { it.toSegment() }.toImmutableList() }
-
-    private val _skipIntroText = MutableStateFlow<String?>(null)
-    val skipIntroText = _skipIntroText.asStateFlow()
-
-    private val _controlsShown = MutableStateFlow(true)
-    val controlsShown = _controlsShown.asStateFlow()
-    private val _seekBarShown = MutableStateFlow(true)
-    val seekBarShown = _seekBarShown.asStateFlow()
-    private val _areControlsLocked = MutableStateFlow(false)
-    val areControlsLocked = _areControlsLocked.asStateFlow()
-
-    val playerUpdate = MutableStateFlow<PlayerUpdates>(PlayerUpdates.None)
-    val isBrightnessSliderShown = MutableStateFlow(false)
-    val isVolumeSliderShown = MutableStateFlow(false)
-    val currentBrightness = MutableStateFlow(brightnessManager.getCurrentBrightness())
-
-    val sheetShown = MutableStateFlow(Sheets.None)
-    val panelShown = MutableStateFlow(Panels.None)
-    val dialogShown = MutableStateFlow<Dialogs>(Dialogs.None)
-    private val _dismissSheet = MutableStateFlow(false)
-    val dismissSheet = _dismissSheet.asStateFlow()
-
-    // Pair(startingPosition, seekAmount)
-    val gestureSeekAmount = MutableStateFlow<Pair<Int, Int>?>(null)
-
-    private val _seekText = MutableStateFlow<String?>(null)
-    val seekText = _seekText.asStateFlow()
-    private val _doubleTapSeekAmount = MutableStateFlow(0)
-    val doubleTapSeekAmount = _doubleTapSeekAmount.asStateFlow()
-    private val _isSeekingForwards = MutableStateFlow(false)
-    val isSeekingForwards = _isSeekingForwards.asStateFlow()
+    private val _eventFlow = MutableSharedFlow<Event>()
+    val eventFlow = _eventFlow.asSharedFlow()
 
     private var timerJob: Job? = null
-    private val _remainingTime = MutableStateFlow(0)
-    val remainingTime = _remainingTime.asStateFlow()
-
-    private val _fontList = MutableStateFlow<ImmutableList<String>>(persistentListOf())
-    val fontList = _fontList.asStateFlow()
 
     init {
         viewModelScope.launchIO {
-            subtitlePreferences.subtitleSystemFonts.changes().collectLatest {
-                _fontList.update { _ -> fetchFonts(it).toPersistentList() }
+            getCustomButtons.subscribeAll().collectLatest { buttons ->
+                setupCustomButtons(buttons)
             }
         }
 
-        mpv.propFlow<Long>("time-pos")
-            .filterNotNull()
-            .onEach(::onSecondReached)
-            .launchIn(viewModelScope)
-
-        mpv.propFlow<Int>("chapter")
-            .onEach(::onChapterChanged)
-            .launchIn(viewModelScope)
-
-        mpv.propFlow<MPVNode>("sid")
-            .onEach { onSubtitleTrackSelectChange() }
-            .launchIn(viewModelScope)
-
-        mpv.propFlow<MPVNode>("secondary-sid")
-            .onEach { onSubtitleTrackSelectChange() }
-            .launchIn(viewModelScope)
-
-        mpv.propFlow<Long>("user-data/current-anime/intro-length")
-            .filterNotNull()
-            .onEach(::setAnimeSkipIntroLength)
-            .launchIn(viewModelScope)
-
-        mpv.propFlow<MPVNode>("track-list")
-            .filterNotNull()
-            .onEach { onTrackListChanged(it) }
-            .launchIn(viewModelScope)
-    }
-
-    /**
-     * Starts a sleep timer/cancels the current timer if [seconds] is less than 1.
-     */
-    fun startTimer(seconds: Int) {
-        timerJob?.cancel()
-        _remainingTime.value = seconds
-        if (seconds < 1) return
-        timerJob = viewModelScope.launch {
-            for (time in seconds downTo 0) {
-                _remainingTime.value = time
-                delay(1000)
-            }
-            mpv.setPropertyBoolean("pause", true)
-            eventChannel.send(Event.ShowToast(AYMR.strings.toast_sleep_timer_ended))
-        }
-    }
-
-    fun fetchFonts(includeSystemFonts: Boolean): List<String> {
-        val fontFiles = mutableListOf<String>()
-
-        storageManager.getFontsDirectory()?.listFiles()?.filter { file ->
-            file.name?.lowercase()?.matches(FONT_EXTENSION_REGEX) == true
-        }?.mapNotNull {
-            try {
-                TTFFile.open(it.openInputStream()).families.values.first()
-            } catch (_: Exception) {
-                null
-            }
-        }?.let {
-            fontFiles.addAll(it)
-        }
-
-        if (!includeSystemFonts) {
-            return fontFiles.distinct()
-        }
-
-        val fontDirectories = listOf(
-            "/system/fonts/",
-            "/product/fonts/",
-        )
-
-        for (directory in fontDirectories) {
-            val dir = File(directory)
-            if (dir.exists() && dir.isDirectory) {
-                val files = dir.listFiles()
-                files?.filter { file ->
-                    file.isFile && file.name.lowercase().matches(FONT_EXTENSION_REGEX)
-                }?.forEach { file ->
-                    try {
-                        fontFiles.add(
-                            TTFFile.open(file.inputStream()).families.values.first(),
-                        )
-                    } catch (_: Exception) { }
-                }
+        viewModelScope.launchIO {
+            subtitlePreferences.subtitleSystemFonts.changes().collectLatest { fonts ->
+                updateUiData { it.copy(fontList = fetchFonts(fonts)) }
             }
         }
 
-        return fontFiles.distinct()
-    }
-
-    private fun setCustomButtons(buttons: List<CustomButton>) {
-        _customButtons.update { _ -> buttons.toPersistentList() }
-        buttons.firstOrNull { it.isFavorite }?.let {
-            _primaryButton.update { _ -> it }
-            if (primaryButtonTitle.value.isEmpty()) {
-                setPrimaryCustomButtonTitle(it)
-            }
-        }
-    }
-
-    fun isEpisodeOnline(): Boolean? {
-        val anime = currentAnime.value ?: return null
-        val episode = currentEpisode.value ?: return null
-        val source = currentSource.value ?: return null
-        return source is AnimeHttpSource &&
-            !EpisodeLoader.isDownload(
-                episode.toDomainEpisode()!!,
-                anime,
-            )
-    }
-
-    fun clearTracks() {
-        hasLoadedTracks.update { _ -> false }
-        _externalAudioTracks.update { _ -> emptyList() }
-        _externalSubtitleTracks.update { _ -> emptyList() }
-    }
-
-    fun updateIsLoadingEpisode(value: Boolean) {
-        _isLoadingEpisode.update { _ -> value }
-    }
-
-    private fun updateEpisodeList(episodeList: List<Episode>) {
-        _currentPlaylist.update { _ -> filterEpisodeList(episodeList).toPersistentList() }
-    }
-
-    /**
-     * When all subtitle/audio tracks are loaded, select the preferred one based on preferences,
-     * or select the first one in the list if trackSelect fails.
-     */
-    fun onTrackListChanged(tracks: MPVNode) {
-        val tracks = tracks.toObject<List<TrackNode>>(json).ifEmpty { return }
-        if (hasLoadedTracks.value) {
-            onTrackAdded(tracks)
-        } else {
-            hasLoadedTracks.update { _ -> true }
-            onTracksLoaded(tracks)
-        }
-    }
-
-    private fun onTrackAdded(tracks: List<TrackNode>) {
-        val externalSubtitle = tracks.filter {
-            it.isSubtitle && it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true
-        }
-        val externalAudio = tracks.filter {
-            it.isAudio && it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true
-        }
-
-        externalSubtitle.forEach { track ->
-            val idx = track.title!!.split("=")[1].toInt()
-            val external = externalSubtitleTracks.value[idx]
-
-            if (external.id != null) {
-                // External subtitle has already been added
-                return@forEach
-            }
-
-            updateSubtitleTrackAt(idx) {
-                it.copy(id = track.id, state = TrackState.Loaded)
-            }
-            hasLoadedSubs.update { _ -> true }
-            checkFileLoaded()
-            selectSubById(track.id)
-        }
-
-        externalAudio.forEach { track ->
-            val idx = track.title!!.split("=")[1].toInt()
-            val external = externalAudioTracks.value[idx]
-
-            if (external.id != null) {
-                // External audio has already been added
-                return@forEach
-            }
-
-            updateAudioTrackAt(idx) {
-                it.copy(id = track.id, state = TrackState.Loaded)
-            }
-            hasLoadedAudio.update { _ -> true }
-            checkFileLoaded()
-            selectAudioById(track.id, false)
-        }
-    }
-
-    /**
-     * Called when embedded tracks are first loaded
-     */
-    private fun onTracksLoaded(tracks: List<TrackNode>) {
-        val embeddedSubs = tracks.filter { it.isSubtitle }
-        val embeddedAudio = tracks.filter { it.isAudio }
-        val externalSubs = currentVideo.value?.subtitleTracks.orEmpty().distinctBy { it.url }
-            .mapIndexed { idx, track -> VideoTrack.External(track, idx) }
-        val externalAudio = currentVideo.value?.audioTracks.orEmpty().distinctBy { it.url }
-            .mapIndexed { idx, track -> VideoTrack.External(track, idx) }
-
-        _externalSubtitleTracks.update { _ -> externalSubs }
-        _externalAudioTracks.update { _ -> externalAudio }
-
-        val preferredSubtitle = trackSelect.getPreferredTrackIndex(
-            tracks = embeddedSubs.map { VideoTrack.Internal(it) } + externalSubs,
-            subtitle = true,
-        )
-        if (preferredSubtitle == null) {
-            hasLoadedSubs.update { _ -> true }
-        } else {
-            selectSub(preferredSubtitle)
-        }
-
-        val preferredAudio = trackSelect.getPreferredTrackIndex(
-            tracks = embeddedAudio.map { VideoTrack.Internal(it) } + externalAudio,
-            subtitle = false,
-        )
-        if (preferredAudio == null) {
-            hasLoadedAudio.update { _ -> true }
-        } else {
-            selectAudio(preferredAudio, true)
-        }
-    }
-
-    fun addAudio(uri: Uri) {
-        val url = uri.toString()
-        val isContentUri = url.startsWith("content://")
-        val path = (if (isContentUri) uri.openContentFd(context.applicationContext) else url)
-            ?: return
-        val name = if (isContentUri) uri.getFileName(context.applicationContext) else null
-        if (name == null) {
-            mpv.command("audio-add", path, "cached")
-        } else {
-            mpv.command("audio-add", path, "cached", name)
-        }
-    }
-
-    fun addSubtitle(uri: Uri) {
-        val url = uri.toString()
-        val isContentUri = url.startsWith("content://")
-        val path = (if (isContentUri) uri.openContentFd(context.applicationContext) else url)
-            ?: return
-        val name = if (isContentUri) uri.getFileName(context.applicationContext) else null
-        if (name == null) {
-            mpv.command("sub-add", path, "cached")
-        } else {
-            mpv.command("sub-add", path, "cached", name)
-        }
-    }
-
-    fun selectSub(track: VideoTrack) {
-        when (track) {
-            is VideoTrack.External -> {
-                if (track.id == null) {
-                    updateSubtitleTrackAt(track.index) {
-                        it.copy(state = TrackState.Loading)
-                    }
-                    viewModelScope.launchIO {
-                        mpv.command(
-                            "sub-add",
-                            track.data.url,
-                            "auto",
-                            "${VideoTrack.TRACK_TITLE_TAG}=${track.index}",
-                        )
-                    }
-                } else {
-                    hasLoadedSubs.update { _ -> true }
-                    checkFileLoaded()
-                    selectSubById(track.id)
-                }
-            }
-            is VideoTrack.Internal -> {
-                hasLoadedSubs.update { _ -> true }
-                checkFileLoaded()
-                selectSubById(track.data.id)
-            }
-        }
-    }
-
-    fun selectAudio(track: VideoTrack, force: Boolean = false) {
-        when (track) {
-            is VideoTrack.External -> {
-                if (track.id == null) {
-                    updateAudioTrackAt(track.index) {
-                        it.copy(state = TrackState.Loading)
-                    }
-                    viewModelScope.launchIO {
-                        mpv.command(
-                            "audio-add",
-                            track.data.url,
-                            "auto",
-                            "${VideoTrack.TRACK_TITLE_TAG}=${track.index}",
-                        )
-                    }
-                } else {
-                    hasLoadedAudio.update { _ -> true }
-                    checkFileLoaded()
-                    selectAudioById(track.id, force)
-                }
-            }
-            is VideoTrack.Internal -> {
-                hasLoadedAudio.update { _ -> true }
-                checkFileLoaded()
-                selectAudioById(track.data.id, force)
-            }
-        }
-    }
-
-    fun onTrackLoadedFailure(url: String) {
-        val subtitleIdx = externalSubtitleTracks.value.indexOfFirst {
-            it.data.url == url
-        }
-        if (subtitleIdx != -1) {
-            updateSubtitleTrackAt(subtitleIdx) {
-                it.copy(state = TrackState.Error)
-            }
-            hasLoadedSubs.update { _ -> true }
-            checkFileLoaded()
-        }
-        val audioIdx = externalAudioTracks.value.indexOfFirst {
-            it.data.url == url
-        }
-        if (audioIdx != -1) {
-            updateAudioTrackAt(audioIdx) {
-                it.copy(state = TrackState.Error)
-            }
-            hasLoadedAudio.update { _ -> true }
-            checkFileLoaded()
-        }
-    }
-
-    fun onSubtitleTrackSelectChange() {
-        val id = mpv.getPropertyInt("sid")
-        val sid = mpv.getPropertyInt("secondary-sid")
-
-        _externalSubtitleTracks.update { subtitleTracks ->
-            subtitleTracks.map {
-                it.copy(
-                    mainSelection = when (it.id) {
-                        null -> -1
-                        id -> 0
-                        sid -> 1
-                        else -> -1
-                    },
-                )
-            }
-        }
-    }
-
-    private fun selectSubById(id: Int) {
-        val selectedSubs = Pair(mpv.getPropertyInt("sid"), mpv.getPropertyInt("secondary-sid"))
-        when (id) {
-            selectedSubs.first -> Pair(selectedSubs.second, null)
-            selectedSubs.second -> Pair(selectedSubs.first, null)
-            else -> if (selectedSubs.first != null) Pair(selectedSubs.first, id) else Pair(id, null)
-        }.let {
-            it.second?.let { mpv.setPropertyInt("secondary-sid", it) }
-                ?: mpv.setPropertyBoolean("secondary-sid", false)
-            it.first?.let { mpv.setPropertyInt("sid", it) } ?: mpv.setPropertyBoolean("sid", false)
-        }
-    }
-
-    private fun selectAudioById(id: Int, force: Boolean) {
-        if (!force && id == mpv.getPropertyInt("aid")) {
-            mpv.setPropertyBoolean("aid", false)
-        } else {
-            mpv.setPropertyInt("aid", id)
-        }
-    }
-
-    private fun updateSubtitleTrackAt(index: Int, transform: (VideoTrack.External) -> VideoTrack.External) {
-        _externalSubtitleTracks.update { externalSubtitles ->
-            externalSubtitles.toMutableList().apply {
-                this[index] = transform(this[index])
-            }
-        }
-    }
-
-    private fun updateAudioTrackAt(index: Int, transform: (VideoTrack.External) -> VideoTrack.External) {
-        _externalAudioTracks.update { externalAudio ->
-            externalAudio.toMutableList().apply {
-                this[index] = transform(this[index])
-            }
-        }
-    }
-
-    fun getChapterCount(): Int {
-        return mpv.getPropertyInt("chapter-list/count") ?: 0
-    }
-
-    fun addTimestamps(timestamps: List<TimeStamp>) {
-        if (timestamps.isEmpty()) return
-        val current = (
-            mpv.getPropertyNode("chapter-list")
-                ?.toObject<List<ChapterNode>>(json) ?: emptyList()
-            )
-            .map { IndexedSegment(name = it.chapterTitle, start = it.time, index = 0) }
-        val merged = ChapterUtils.mergeChapters(current, timestamps, duration)
-
-        val node = MPVNode.ArrayNode(
-            merged.map { c ->
-                MPVNode.MapNode(
-                    value = mapOf(
-                        "time" to MPVNode.DoubleNode(c.start.toDouble()),
-                        "title" to MPVNode.StringNode(c.name),
-                    ),
-                )
-            }.toTypedArray(),
-        )
-        mpv.setPropertyNode("chapter-list", node)
-    }
-
-    private fun updatePausedState() {
-        if (pausedState.value == null) {
-            _pausedState.update { _ -> paused }
-        }
-    }
-
-    /**
-     * Check when file has loaded and see if the player can be (un)paused.
-     *
-     * If external subs/audio tracks was selected, wait until mpv has fetched them.
-     */
-    fun checkFileLoaded() {
-        if (isLoadingEpisode.value && hasLoadedSubs.value && hasLoadedAudio.value) {
-            _isLoadingEpisode.update { _ -> false }
-            pausedState.value?.let {
-                if (it) {
-                    pause()
-                } else {
-                    unpause()
-                }
-                _pausedState.update { _ -> null }
-            }
-        }
-    }
-
-    fun pauseUnpause() = mpv.command("cycle", "pause")
-    fun pause() = mpv.setPropertyBoolean("pause", true)
-    fun unpause() = mpv.setPropertyBoolean("pause", false)
-
-    private val showStatusBar = playerPreferences.showSystemStatusBar.get()
-    fun showControls() {
-        if (sheetShown.value != Sheets.None ||
-            panelShown.value != Panels.None ||
-            dialogShown.value != Dialogs.None
-        ) {
-            return
-        }
-        if (showStatusBar) {
-            viewModelScope.launch {
-                eventChannel.send(Event.SetStatusBar(true))
-            }
-        }
-        _controlsShown.update { true }
-    }
-
-    fun hideControls() {
         viewModelScope.launch {
-            eventChannel.send(Event.SetStatusBar(false))
-        }
-        _controlsShown.update { false }
-    }
+            player.eventFlow
+                .onEach { handlePlayerFlow(it) }
+                .launchIn(viewModelScope)
 
-    fun hideSeekBar() {
-        _seekBarShown.update { false }
-    }
+            playerPreferences.autoplayEnabled.changes()
+                .onEach { v -> updateUiData { it.copy(autoPlayEnabled = v) } }
+                .launchIn(viewModelScope)
 
-    fun showSeekBar() {
-        if (sheetShown.value != Sheets.None) return
-        _seekBarShown.update { true }
-    }
+            playerPreferences.playerSpeed.changes()
+                .onEach { v -> updateUiData { it.copy(playerSpeedPref = v) } }
+                .launchIn(viewModelScope)
 
-    fun lockControls() {
-        _areControlsLocked.update { true }
-    }
-
-    fun unlockControls() {
-        _areControlsLocked.update { false }
-    }
-
-    fun dismissSheet() {
-        _dismissSheet.update { _ -> true }
-    }
-
-    private fun resetDismissSheet() {
-        _dismissSheet.update { _ -> false }
-    }
-
-    fun showSheet(sheet: Sheets) {
-        sheetShown.update { sheet }
-        if (sheet == Sheets.None) {
-            resetDismissSheet()
-            showControls()
-        } else {
-            hideControls()
-            panelShown.update { Panels.None }
-            dialogShown.update { Dialogs.None }
-        }
-    }
-
-    fun showPanel(panel: Panels) {
-        panelShown.update { panel }
-        if (panel == Panels.None) {
-            showControls()
-        } else {
-            hideControls()
-            sheetShown.update { Sheets.None }
-            dialogShown.update { Dialogs.None }
-        }
-    }
-
-    fun showDialog(dialog: Dialogs) {
-        dialogShown.update { dialog }
-        if (dialog == Dialogs.None) {
-            showControls()
-        } else {
-            hideControls()
-            sheetShown.update { Sheets.None }
-            panelShown.update { Panels.None }
-        }
-    }
-
-    fun seekBy(offset: Int, precise: Boolean = false) {
-        mpv.command("seek", offset.toString(), if (precise) "relative+exact" else "relative")
-    }
-
-    fun seekTo(position: Int, precise: Boolean = true) {
-        if (position !in 0..(mpv.getPropertyInt("duration") ?: 0)) return
-        mpv.command("seek", position.toString(), if (precise) "absolute" else "absolute+keyframes")
-    }
-
-    fun changeBrightnessTo(
-        brightness: Float,
-    ) {
-        currentBrightness.update { _ -> brightness.coerceIn(-0.75f, 1f) }
-        viewModelScope.launch {
-            eventChannel.send(Event.SetBrightness(brightness.coerceIn(0f, 1f)))
-        }
-    }
-
-    fun displayBrightnessSlider() {
-        isBrightnessSliderShown.update { true }
-    }
-
-    val maxVolume = audioManager.getMaxVolume()
-    fun changeVolumeBy(change: Int) {
-        val mpvVolume = mpv.getPropertyInt("volume")
-        if ((volumeBoostCap ?: audioPreferences.volumeBoostCap.get()) > 0 && currentVolume.value == maxVolume) {
-            if (mpvVolume == 100 && change < 0) changeVolumeTo(currentVolume.value + change)
-            val finalMPVVolume = (mpvVolume?.plus(change))?.coerceAtLeast(100) ?: 100
-            if (finalMPVVolume in 100..(volumeBoostCap ?: audioPreferences.volumeBoostCap.get()) + 100) {
-                changeMPVVolumeTo(finalMPVVolume)
-                return
-            }
-        }
-        changeVolumeTo(currentVolume.value + change)
-    }
-
-    fun changeVolumeTo(volume: Int) {
-        val newVolume = volume.coerceIn(0..maxVolume)
-        audioManager.setVolume(newVolume)
-        currentVolume.update { newVolume }
-    }
-
-    fun changeMPVVolumeTo(volume: Int) {
-        mpv.setPropertyInt("volume", volume)
-    }
-
-    fun displayVolumeSlider() {
-        isVolumeSliderShown.update { true }
-    }
-
-    fun setAutoPlay(value: Boolean) {
-        val textRes = if (value) {
-            AYMR.strings.enable_auto_play
-        } else {
-            AYMR.strings.disable_auto_play
-        }
-        playerUpdate.update { PlayerUpdates.ShowTextResource(textRes) }
-        playerPreferences.autoplayEnabled.set(value)
-    }
-
-    @Suppress("DEPRECATION")
-    fun changeVideoAspect(aspect: VideoAspect) {
-        viewModelScope.launch {
-            eventChannel.send(Event.ChangeVideoAspect(aspect))
-        }
-    }
-
-    fun setAspect(aspect: VideoAspect, pan: Double, ratio: Double) {
-        mpv.setPropertyDouble("panscan", pan)
-        mpv.setPropertyDouble("video-aspect-override", ratio)
-        playerPreferences.aspectState.set(aspect)
-        playerUpdate.update { PlayerUpdates.AspectRatio }
-    }
-
-    fun cycleScreenRotations() {
-        viewModelScope.launch {
-            eventChannel.send(Event.CycleRotations)
-        }
-    }
-
-    fun handleLuaInvocation(property: String, value: String) {
-        val data = value
-            .removePrefix("\"")
-            .removeSuffix("\"")
-            .ifEmpty { return }
-
-        when (property.substringAfterLast("/")) {
-            "show_text" -> playerUpdate.update { PlayerUpdates.ShowText(data) }
-            "toggle_ui" -> {
-                when (data) {
-                    "show" -> showControls()
-                    "toggle" -> {
-                        if (controlsShown.value) hideControls() else showControls()
-                    }
-                    "hide" -> {
-                        sheetShown.update { Sheets.None }
-                        panelShown.update { Panels.None }
-                        dialogShown.update { Dialogs.None }
-                        hideControls()
-                    }
-                }
-            }
-            "show_panel" -> {
-                when (data) {
-                    "subtitle_settings" -> showPanel(Panels.SubtitleSettings)
-                    "subtitle_delay" -> showPanel(Panels.SubtitleDelay)
-                    "audio_delay" -> showPanel(Panels.AudioDelay)
-                    "video_filters" -> showPanel(Panels.VideoFilters)
-                }
-            }
-            "set_button_title" -> {
-                _primaryButtonTitle.update { _ -> data }
-            }
-            "reset_button_title" -> {
-                _customButtons.value.firstOrNull { it.isFavorite }?.let {
-                    setPrimaryCustomButtonTitle(it)
-                }
-            }
-            "switch_episode" -> {
-                when (data) {
-                    "n" -> changeEpisode(false)
-                    "p" -> changeEpisode(true)
-                }
-            }
-            "launch_int_picker" -> {
-                val (title, nameFormat, start, stop, step, pickerProperty) = data.split("|")
-                val defaultValue = mpv.getPropertyInt(pickerProperty)!!
-                showDialog(
-                    Dialogs.IntegerPicker(
-                        defaultValue = defaultValue,
-                        minValue = start.toInt(),
-                        maxValue = stop.toInt(),
-                        step = step.toInt(),
-                        nameFormat = nameFormat,
-                        title = title,
-                        onChange = { mpv.setPropertyInt(pickerProperty, it) },
-                        onDismissRequest = { showDialog(Dialogs.None) },
-                    ),
-                )
-            }
-            "show_seek_text" -> {
-                val (forward, text) = data.split("|", limit = 2)
-                showSeekText(forward == "true", text)
-            }
-            "pause" -> {
-                when (data) {
-                    "pause" -> pause()
-                    "unpause" -> unpause()
-                    "pauseunpause" -> pauseUnpause()
-                }
-            }
-            "seek_to_with_text" -> {
-                val (seekValue, text) = data.split("|", limit = 2)
-                seekToWithText(seekValue.toInt(), text)
-            }
-            "seek_by_with_text" -> {
-                val (seekValue, text) = data.split("|", limit = 2)
-                seekByWithText(seekValue.toInt(), text)
-            }
-            "seek_by" -> seekByWithText(data.toInt(), null)
-            "seek_to" -> seekToWithText(data.toInt(), null)
-            "toggle_button" -> {
-                fun showButton() {
-                    if (_primaryButton.value == null) {
-                        _primaryButton.update {
-                            customButtons.value.firstOrNull { it.isFavorite }
+            combine(
+                propFlow<Double>("video-params/aspect"),
+                propFlow<Int>("video-params/rotate"),
+            ) { aspect, rotation -> aspect to rotation }
+                .onEach { (aspect, rotation) ->
+                    _aspectRatio.update { _ ->
+                        aspect?.let {
+                            if (it < 0.001) return@update 0.0
+                            if ((rotation ?: 0) % 180 == 90) 1.0 / it else it
                         }
                     }
                 }
+                .launchIn(viewModelScope)
 
-                when (data) {
-                    "show" -> showButton()
-                    "hide" -> _primaryButton.update { null }
-                    "toggle" -> if (_primaryButton.value == null) showButton() else _primaryButton.update { null }
+            propFlow<Int>("video-params/w")
+                .filterNotNull()
+                .onEach { v -> updateStateData { it.copy(videoWidth = v) } }
+                .launchIn(viewModelScope)
+
+            propFlow<Int>("video-params/h")
+                .filterNotNull()
+                .onEach { v -> updateStateData { it.copy(videoHeight = v) } }
+                .launchIn(viewModelScope)
+
+            propFlow<MPVNode>("track-list")
+                .filterNotNull()
+                .onEach { onTrackListChanged(it) }
+                .launchIn(viewModelScope)
+
+            propFlow<MPVNode>("chapter-list")
+                .filterNotNull()
+                .onEach { onChapterListChanged(it) }
+                .launchIn(viewModelScope)
+
+            propFlow<Int>("chapter")
+                .onEach { onChapterChanged(it) }
+                .launchIn(viewModelScope)
+
+            propFlow<Int>("duration")
+                .filterNotNull()
+                .onEach { v ->
+                    updatePlaybackData { it.copy(duration = v) }
+                }
+                .launchIn(viewModelScope)
+
+            propFlow<Int>("time-pos")
+                .filterNotNull()
+                .onEach { onSecondReached(it) }
+                .launchIn(viewModelScope)
+
+            propFlow<Boolean>("pause")
+                .filterNotNull()
+                .onEach { v ->
+                    updatePlaybackData { it.copy(paused = v) }
+                }
+                .launchIn(viewModelScope)
+
+            propFlow<Int>("volume-max")
+                .filterNotNull()
+                .onEach { v ->
+                    updateStateData { it.copy(volumeBoostCap = v) }
+                }
+                .launchIn(viewModelScope)
+
+            propFlow<MPVNode>("sid")
+                .onEach { onSubtitleTrackSelectChange() }
+                .launchIn(viewModelScope)
+
+            propFlow<MPVNode>("secondary-sid")
+                .onEach { onSubtitleTrackSelectChange() }
+                .launchIn(viewModelScope)
+
+            propFlow<Long>("user-data/current-anime/intro-length")
+                .filterNotNull()
+                .onEach { setAnimeSkipIntroLength(it) }
+                .launchIn(viewModelScope)
+        }
+    }
+
+    fun isPlayerExiting(): Boolean {
+        return player.isExiting
+    }
+
+    fun setPlayerExiting(value: Boolean) {
+        player.isExiting = value
+    }
+
+    private fun updateStateData(update: (PlayerStateData) -> PlayerStateData) {
+        _stateData.update { update(it) }
+    }
+
+    private fun updateUiData(update: (PlayerUiData) -> PlayerUiData) {
+        _uiData.update { update(it) }
+    }
+
+    private fun updatePlaybackData(update: (PlayerPlaybackData) -> PlayerPlaybackData) {
+        _playbackData.update { update(it) }
+    }
+
+    inline fun <reified T> propFlow(name: String): StateFlow<T?> {
+        return mpv.propFlow<T>(name)
+    }
+
+    fun setPropertyBoolean(property: String, value: Boolean) {
+        mpv.setPropertyBoolean(property, value)
+    }
+
+    fun setPropertyInt(property: String, value: Int) {
+        mpv.setPropertyInt(property, value)
+    }
+
+    fun setPropertyFloat(property: String, value: Float) {
+        mpv.setPropertyFloat(property, value)
+    }
+
+    fun setPropertyDouble(property: String, value: Double) {
+        mpv.setPropertyDouble(property, value)
+    }
+
+    fun setPropertyString(property: String, value: String) {
+        mpv.setPropertyString(property, value)
+    }
+
+    fun setPropertyNode(property: String, value: MPVNode) {
+        mpv.setPropertyNode(property, value)
+    }
+
+    fun mpvCommand(vararg command: String) {
+        mpv.command(*command)
+    }
+
+    fun handlePlayerEvent(event: PlayerEvent) {
+        when (event) {
+            PlayerEvent.ChangeAspect -> {
+                cycleAspectRatio()
+            }
+            is PlayerEvent.ChangeSpeed -> {
+                setSpeed(event.value)
+            }
+            PlayerEvent.CycleRotation -> {
+                cycleRotations()
+            }
+            PlayerEvent.EnterPip -> {
+                viewModelScope.launch {
+                    _eventFlow.emit(Event.EnterPip)
                 }
             }
-            "software_keyboard" -> {
-                viewModelScope.launch {
-                    when (data) {
-                        "show" -> eventChannel.send(Event.SetKeyboard(true))
-                        "hide" -> eventChannel.send(Event.SetKeyboard(false))
-                        "toggle" -> eventChannel.send(Event.ToggleKeyboard)
+            is PlayerEvent.ExecuteCustomButton -> {
+                uiData.value.primaryButton?.let {
+                    if (event.long) {
+                        executeLongPressButton(it)
+                    } else {
+                        executeButton(it)
                     }
                 }
             }
-        }
-
-        mpv.setPropertyString(property, "")
-    }
-
-    private operator fun <T> List<T>.component6(): T = get(5)
-
-    private val doubleTapToSeekDuration = gesturePreferences.skipLengthPreference.get()
-    private val preciseSeek = gesturePreferences.playerSmoothSeek.get()
-    private val showSeekBar = gesturePreferences.showSeekBar.get()
-
-    private fun showSeekText(isForward: Boolean, text: String) {
-        _seekText.update { _ -> text }
-        _isSeekingForwards.update { _ -> isForward }
-        _doubleTapSeekAmount.update { _ -> if (isForward) 1 else -1 }
-        if (showSeekBar) showSeekBar()
-    }
-
-    private fun seekToWithText(seekValue: Int, text: String?) {
-        _isSeekingForwards.value = seekValue > 0
-        _doubleTapSeekAmount.value = seekValue - (pos ?: return)
-        _seekText.update { _ -> text }
-        seekTo(seekValue, preciseSeek)
-        if (showSeekBar) showSeekBar()
-    }
-
-    private fun seekByWithText(value: Int, text: String?) {
-        _doubleTapSeekAmount.update {
-            if ((value < 0 && it < 0) || (pos ?: return) + value > (duration ?: return)) 0 else it + value
-        }
-        _seekText.update { text }
-        _isSeekingForwards.value = value > 0
-        seekBy(value, preciseSeek)
-        if (showSeekBar) showSeekBar()
-    }
-
-    fun updateSeekAmount(amount: Int) {
-        _doubleTapSeekAmount.update { _ -> amount }
-    }
-
-    fun updateSeekText(value: String?) {
-        _seekText.update { _ -> value }
-    }
-
-    fun leftSeek() {
-        if ((pos ?: return) > 0) _doubleTapSeekAmount.value -= doubleTapToSeekDuration
-        _isSeekingForwards.value = false
-        seekBy(-doubleTapToSeekDuration, preciseSeek)
-        if (showSeekBar) showSeekBar()
-    }
-
-    fun rightSeek() {
-        if ((pos ?: return) < (duration ?: return)) {
-            _doubleTapSeekAmount.value += doubleTapToSeekDuration
-        }
-        _isSeekingForwards.value = true
-        seekBy(doubleTapToSeekDuration, preciseSeek)
-        if (showSeekBar) showSeekBar()
-    }
-
-    fun resetHosterState() {
-        _pausedState.update { _ -> false }
-        _hosterState.update { _ -> emptyList() }
-        _hosterList.update { _ -> emptyList() }
-        _hosterExpandedList.update { _ -> emptyList() }
-        _selectedHosterVideoIndex.update { _ -> Pair(-1, -1) }
-    }
-
-    fun changeEpisode(previous: Boolean, autoPlay: Boolean = false) {
-        viewModelScope.launch {
-            if (previous && !hasPreviousEpisode.value) {
-                eventChannel.send(Event.ShowToast(AYMR.strings.no_prev_episode))
-                return@launch
+            is PlayerEvent.LockControls -> {
+                updateUiData { it.copy(isControlsLocked = event.lock) }
             }
-
-            if (!previous && !hasNextEpisode.value) {
-                eventChannel.send(Event.ShowToast(AYMR.strings.no_next_episode))
-                return@launch
+            is PlayerEvent.NextEpisode -> {
+                nextEpisode(event.next)
             }
-
-            eventChannel.send(
-                Event.ChangeEpisode(
-                    episodeId = getAdjacentEpisodeId(previous = previous),
-                    autoPlay = autoPlay,
-                ),
-            )
-        }
-    }
-
-    fun handleLeftDoubleTap() {
-        when (gesturePreferences.leftDoubleTapGesture.get()) {
-            SingleActionGesture.Seek -> {
-                leftSeek()
-            }
-            SingleActionGesture.PlayPause -> {
+            PlayerEvent.PlayPause -> {
                 pauseUnpause()
             }
-            SingleActionGesture.Custom -> {
-                mpv.command("keypress", CustomKeyCodes.DoubleTapLeft.keyCode)
+            is PlayerEvent.Seek -> {
+                updatePlaybackData { it.copy(isSeeking = true) }
+                seekTo(event.position)
             }
-            SingleActionGesture.None -> {}
-            SingleActionGesture.Switch -> changeEpisode(true)
-        }
-    }
-
-    fun handleCenterDoubleTap() {
-        when (gesturePreferences.centerDoubleTapGesture.get()) {
-            SingleActionGesture.PlayPause -> {
-                pauseUnpause()
+            PlayerEvent.SeekFinished -> {
+                updatePlaybackData { it.copy(isSeeking = false) }
             }
-            SingleActionGesture.Custom -> {
-                mpv.command("keypress", CustomKeyCodes.DoubleTapCenter.keyCode)
+            is PlayerEvent.SetAutoPlay -> {
+                setAutoPlay(event.value)
             }
-            SingleActionGesture.Seek -> {}
-            SingleActionGesture.None -> {}
-            SingleActionGesture.Switch -> {}
-        }
-    }
-
-    fun handleRightDoubleTap() {
-        when (gesturePreferences.rightDoubleTapGesture.get()) {
-            SingleActionGesture.Seek -> {
-                rightSeek()
+            is PlayerEvent.SetPanel -> {
+                setPanel(event.panel)
             }
-            SingleActionGesture.PlayPause -> {
-                pauseUnpause()
+            is PlayerEvent.SetSheet -> {
+                setSheet(event.sheet)
             }
-            SingleActionGesture.Custom -> {
-                mpv.command("keypress", CustomKeyCodes.DoubleTapRight.keyCode)
+            is PlayerEvent.ShowBrightnessSlider -> {
+                displayBrightnessSlider(event.show)
             }
-            SingleActionGesture.None -> {}
-            SingleActionGesture.Switch -> changeEpisode(false)
-        }
-    }
-
-    override fun onCleared() {
-        if (currentEpisode.value != null) {
-            saveWatchingProgress(currentEpisode.value!!)
-            episodeToDownload?.let {
-                downloadManager.addDownloadsToStartOfQueue(listOf(it))
+            PlayerEvent.ShowEpisodeDialog -> {
+                updateUiData { it.copy(dialogShown = Dialogs.EpisodeList) }
+            }
+            is PlayerEvent.ShowPlayerUpdate -> {
+                updateUiData { it.copy(playerUpdate = event.update) }
+            }
+            is PlayerEvent.ShowVolumeSlider -> {
+                displayVolumeSlider(event.show)
+            }
+            PlayerEvent.SkipIntro -> {
+                onSkipIntro()
+            }
+            PlayerEvent.ToggleDurationTimer -> {
+                val newValue = !uiData.value.invertDuration
+                playerPreferences.invertDuration.set(newValue)
+                updateUiData { it.copy(invertDuration = newValue) }
             }
         }
     }
 
-    // ====== OLD ======
+    fun handlePlayerFlow(event: MPVPlayer.Event) {
+        when (event) {
+            is MPVPlayer.Event.EOF -> eofReached(event.value)
+            is MPVPlayer.Event.EndFile -> endFile(event.node)
+            MPVPlayer.Event.FileLoaded -> fileLoaded()
+            is MPVPlayer.Event.LuaEvent -> handleLuaInvocation(event.property, event.value)
+            is MPVPlayer.Event.TrackLoadFailure -> onTrackLoadedFailure(event.url)
+        }
+    }
 
-    private val eventChannel = Channel<Event>()
-    val eventFlow = eventChannel.receiveAsFlow()
-
-    private val incognitoMode: Boolean by lazy { getIncognitoState.await(currentAnime.value?.source) }
-    private val downloadAheadAmount = downloadPreferences.autoDownloadWhileWatching.get()
-
-    internal val relativeTime = uiPreferences.relativeTime.get()
-    internal val dateFormat = uiPreferences.dateFormat.get()
+    // === Setup ===
 
     /**
      * The position in the current video. Used to restore from process kill.
@@ -1211,14 +510,191 @@ class PlayerViewModel @JvmOverloads constructor(
             field = value
         }
 
-    private var episodeToDownload: Download? = null
+    private val fontExtensionRegex = Regex($$""".*\.[ot]tf$""")
+    fun fetchFonts(includeSystemFonts: Boolean): List<String> {
+        val fontFiles = mutableListOf<String>()
 
-    private fun filterEpisodeList(episodes: List<Episode>): List<Episode> {
-        val anime = currentAnime.value ?: return episodes
+        storageManager.getFontsDirectory()?.listFiles()?.filter { file ->
+            file.name?.lowercase()?.matches(fontExtensionRegex) == true
+        }?.mapNotNull {
+            try {
+                TTFFile.open(it.openInputStream()).families.values.first()
+            } catch (_: Exception) {
+                null
+            }
+        }?.let {
+            fontFiles.addAll(it)
+        }
+
+        if (!includeSystemFonts) {
+            return fontFiles.distinct()
+        }
+
+        val fontDirectories = listOf(
+            "/system/fonts/",
+            "/product/fonts/",
+        )
+
+        for (directory in fontDirectories) {
+            val dir = File(directory)
+            if (dir.exists() && dir.isDirectory) {
+                val files = dir.listFiles()
+                files?.filter { file ->
+                    file.isFile && file.name.lowercase().matches(fontExtensionRegex)
+                }?.forEach { file ->
+                    try {
+                        fontFiles.add(
+                            TTFFile.open(file.inputStream()).families.values.first(),
+                        )
+                    } catch (_: Exception) { }
+                }
+            }
+        }
+
+        return fontFiles.distinct()
+    }
+
+    // === Initialize ===
+
+    fun updateIsLoadingHosters(value: Boolean) {
+        updateUiData { it.copy(isLoadingHosters = value) }
+    }
+
+    fun updateIsLoadingEpisode(value: Boolean) {
+        updateUiData { it.copy(isLoadingEpisode = value) }
+    }
+
+    /**
+     * Whether this viewModel is initialized with the correct episode.
+     */
+    private fun needsInit(animeId: Long, episodeId: Long): Boolean {
+        return stateData.value.let {
+            it.currentAnime?.id != animeId || it.currentEpisode?.id != episodeId
+        }
+    }
+
+    data class InitResult(
+        val hosterList: List<Hoster>?,
+        val videoIndex: Pair<Int, Int>,
+        val position: Long?,
+    )
+
+    private var currentHosterList: List<Hoster>? = null
+
+    class ExceptionWithStringResource(
+        message: String,
+        val stringResource: StringResource,
+    ) : Exception(message)
+
+    suspend fun init(
+        animeId: Long,
+        initialEpisodeId: Long,
+        hostList: String,
+        hostIndex: Int,
+        vidIndex: Int,
+    ): Pair<InitResult, Result<Boolean>> {
+        val defaultResult = InitResult(currentHosterList, qualityIndex, null)
+        if (!needsInit(animeId, initialEpisodeId)) return Pair(defaultResult, Result.success(true))
+
+        return try {
+            getAnime.await(animeId)?.let { anime ->
+                sourceManager.isInitialized.first { it }
+                val source = sourceManager.getOrStub(anime.source)
+                val incognito = getIncognitoState.await(anime.source)
+
+                updateStateData { it.copy(currentAnime = anime, currentSource = source, incognitoMode = incognito) }
+                updateUiData { it.copy(animeTitle = anime.title) }
+                episodeId = initialEpisodeId
+
+                setupTrackers(anime.id)
+                setupEpisodeList(anime)
+
+                val episode = stateData.value.currentPlaylist.firstOrNull { it.id == episodeId }
+                    ?: throw ExceptionWithStringResource("No episode loaded", AYMR.strings.no_episode_loaded)
+                setupEpisode(episode)
+
+                // Write to mpv table
+                val parentTitle = anime.parentId?.let { getAnime.await(it)?.title } ?: ""
+                setPropertyString("user-data/current-anime/anime-title", anime.title)
+                setPropertyString("user-data/current-anime/parent-title", parentTitle)
+                setPropertyInt("user-data/current-anime/intro-length", getAnimeSkipIntroLength())
+                setPropertyString(
+                    "user-data/current-anime/category",
+                    getCategories.await(anime.id).joinToString {
+                        it.name
+                    },
+                )
+
+                // Load hosters
+                if (hostList.isNotBlank()) {
+                    currentHosterList = hostList.toHosterList().ifEmpty {
+                        currentHosterList = null
+                        throw ExceptionWithStringResource(
+                            "Hoster selected from empty list",
+                            AYMR.strings.select_hoster_from_empty_list,
+                        )
+                    }
+                    qualityIndex = Pair(hostIndex, vidIndex)
+                } else {
+                    EpisodeLoader.getHosters(episode.toDomainEpisode()!!, anime, source)
+                        .takeIf { it.isNotEmpty() }
+                        ?.also { currentHosterList = it }
+                        ?: run {
+                            currentHosterList = null
+                            throw ExceptionWithStringResource("Hoster list is empty", AYMR.strings.no_hosters)
+                        }
+                }
+
+                val result = InitResult(
+                    hosterList = currentHosterList,
+                    videoIndex = qualityIndex,
+                    position = episodePosition,
+                )
+
+                Pair(result, Result.success(true))
+            } ?: Pair(defaultResult, Result.success(false)) // Unlikely but okay
+        } catch (e: Throwable) {
+            Pair(defaultResult, Result.failure(e))
+        }
+    }
+
+    private fun setupCustomButtons(buttons: List<CustomButton>) {
+        val primaryButton = buttons.firstOrNull { it.isFavorite }
+
+        updateUiData {
+            it.copy(
+                customButtons = buttons,
+                primaryButton = primaryButton ?: it.primaryButton,
+                primaryButtonTitle = if (it.primaryButtonTitle.isEmpty() && primaryButton != null) {
+                    primaryButton.name
+                } else {
+                    it.primaryButtonTitle
+                },
+            )
+        }
+    }
+
+    private suspend fun setupTrackers(animeId: Long) {
+        val tracks = getTracks.await(animeId)
+        updateStateData { it.copy(hasTrackers = tracks.isNotEmpty()) }
+    }
+
+    private suspend fun setupEpisodeList(anime: Anime) {
+        val episodes = getEpisodesByAnimeId.await(anime.id)
+            .sortedWith(getEpisodeSort(anime, sortDescending = false))
+            .run {
+                if (basePreferences.downloadedOnly.get()) {
+                    filterDownloaded(anime)
+                } else {
+                    this
+                }
+            }
+            .map { it.toDbEpisode() }
+
         val selectedEpisode = episodes.find { it.id == episodeId }
             ?: error("Requested episode of id $episodeId not found in episode list")
 
-        val episodesForPlayer = episodes.filterNot {
+        val filtered = episodes.filterNot {
             (anime.unseenFilterRaw == Anime.EPISODE_SHOW_SEEN && !it.seen) ||
                 (anime.unseenFilterRaw == Anime.EPISODE_SHOW_UNSEEN && it.seen) ||
                 (
@@ -1263,187 +739,86 @@ class PlayerViewModel @JvmOverloads constructor(
                     )
         }.toMutableList()
 
-        if (episodesForPlayer.all { it.id != episodeId }) {
-            episodesForPlayer += listOf(selectedEpisode)
+        if (filtered.all { it.id != episodeId }) {
+            filtered += listOf(selectedEpisode)
         }
 
-        return episodesForPlayer
+        updateStateData { it.copy(currentPlaylist = filtered.toList()) }
     }
 
-    fun getCurrentEpisodeIndex(): Int {
-        return currentPlaylist.value.indexOfFirst { currentEpisode.value?.id == it.id }
+    private fun isEpisodeOnline(): Boolean? {
+        val currentState = stateData.value
+
+        val anime = currentState.currentAnime ?: return null
+        val episode = currentState.currentEpisode ?: return null
+        val source = currentState.currentSource ?: return null
+        return source is AnimeHttpSource &&
+            !EpisodeLoader.isDownload(
+                episode.toDomainEpisode()!!,
+                anime,
+            )
     }
 
-    private fun getAdjacentEpisodeId(previous: Boolean): Long {
-        val newIndex = if (previous) getCurrentEpisodeIndex() - 1 else getCurrentEpisodeIndex() + 1
+    private fun setupEpisode(episode: Episode) {
+        val currentState = stateData.value
 
-        return when {
-            previous && getCurrentEpisodeIndex() == 0 -> -1L
-            !previous && currentPlaylist.value.lastIndex == getCurrentEpisodeIndex() -> -1L
-            else -> currentPlaylist.value.getOrNull(newIndex)?.id ?: -1L
+        val currentEpisodeIndex = currentState.currentPlaylist.indexOfFirst {
+            episode.id == it.id
         }
-    }
 
-    fun updateHasNextEpisode(value: Boolean) {
-        _hasNextEpisode.update { _ -> value }
-    }
-
-    fun updateHasPreviousEpisode(value: Boolean) {
-        _hasPreviousEpisode.update { _ -> value }
-    }
-
-    fun showEpisodeListDialog() {
-        if (currentAnime.value != null) {
-            showDialog(Dialogs.EpisodeList)
+        updateStateData {
+            it.copy(
+                currentEpisode = episode,
+                currentPlaylistIndex = currentEpisodeIndex,
+                isEpisodeOnline = isEpisodeOnline() == true,
+                hasPreviousEpisode = currentEpisodeIndex != 0,
+                hasNextEpisode = currentEpisodeIndex != currentState.currentPlaylist.size - 1,
+            )
         }
-    }
 
-    /**
-     * Called when the activity is saved and not changing configurations. It updates the database
-     * to persist the current progress of the active episode.
-     */
-    fun onSaveInstanceStateNonConfigurationChange() {
-        val currentEpisode = currentEpisode.value ?: return
-        viewModelScope.launchNonCancellable {
-            saveEpisodeProgress(currentEpisode)
+        updateUiData {
+            it.copy(mediaTitle = episode.name)
         }
+
+        setPropertyDouble("user-data/current-anime/episode-number", episode.episode_number.toDouble())
     }
 
-    // ====== Initialize anime, episode, hoster, and video list ======
-
-    fun updateIsLoadingHosters(value: Boolean) {
-        _isLoadingHosters.update { _ -> value }
-    }
-
-    /**
-     * Whether this viewModel is initialized with the correct episode.
-     */
-    private fun needsInit(animeId: Long, episodeId: Long): Boolean {
-        return currentAnime.value?.id != animeId || currentEpisode.value?.id != episodeId
-    }
-
-    data class InitResult(
-        val hosterList: List<Hoster>?,
-        val videoIndex: Pair<Int, Int>,
-        val position: Long?,
-    )
-
-    private var currentHosterList: List<Hoster>? = null
-
-    class ExceptionWithStringResource(
-        message: String,
-        val stringResource: StringResource,
-    ) : Exception(message)
-
-    suspend fun init(
-        animeId: Long,
-        initialEpisodeId: Long,
-        hostList: String,
-        hostIndex: Int,
-        vidIndex: Int,
-    ): Pair<InitResult, Result<Boolean>> {
-        val defaultResult = InitResult(currentHosterList, qualityIndex, null)
-        if (!needsInit(animeId, initialEpisodeId)) return Pair(defaultResult, Result.success(true))
-        return try {
-            val anime = getAnime.await(animeId)
-            if (anime != null) {
-                _currentAnime.update { _ -> anime }
-                animeTitle.update { _ -> anime.title }
-                sourceManager.isInitialized.first { it }
-                episodeId = initialEpisodeId
-
-                val buttons = getCustomButtons.getAll()
-                setCustomButtons(buttons)
-
-                checkTrackers(anime)
-
-                updateEpisodeList(initEpisodeList(anime))
-
-                val episode = currentPlaylist.value.first { it.id == episodeId }
-                val source = sourceManager.getOrStub(anime.source)
-
-                _currentEpisode.update { _ -> episode }
-                _currentSource.update { _ -> source }
-
-                updateEpisode(episode)
-
-                _hasPreviousEpisode.update { _ -> getCurrentEpisodeIndex() != 0 }
-                _hasNextEpisode.update { _ -> getCurrentEpisodeIndex() != currentPlaylist.value.size - 1 }
-
-                // Write to mpv table
-                val parentTitle = anime.parentId?.let { getAnime.await(it)?.title } ?: ""
-                mpv.setPropertyString("user-data/current-anime/anime-title", anime.title)
-                mpv.setPropertyString("user-data/current-anime/parent-title", parentTitle)
-                mpv.setPropertyInt("user-data/current-anime/intro-length", getAnimeSkipIntroLength())
-                mpv.setPropertyString(
-                    "user-data/current-anime/category",
-                    getCategories.await(anime.id).joinToString {
-                        it.name
-                    },
-                )
-
-                val currentEp = currentEpisode.value
-                    ?: throw ExceptionWithStringResource("No episode loaded", AYMR.strings.no_episode_loaded)
-                if (hostList.isNotBlank()) {
-                    currentHosterList = hostList.toHosterList().ifEmpty {
-                        currentHosterList = null
-                        throw ExceptionWithStringResource(
-                            "Hoster selected from empty list",
-                            AYMR.strings.select_hoster_from_empty_list,
-                        )
-                    }
-                    qualityIndex = Pair(hostIndex, vidIndex)
-                } else {
-                    EpisodeLoader.getHosters(currentEp.toDomainEpisode()!!, anime, source)
-                        .takeIf { it.isNotEmpty() }
-                        ?.also { currentHosterList = it }
-                        ?: run {
-                            currentHosterList = null
-                            throw ExceptionWithStringResource("Hoster list is empty", AYMR.strings.no_hosters)
-                        }
-                }
-
-                val result = InitResult(
-                    hosterList = currentHosterList,
-                    videoIndex = qualityIndex,
-                    position = episodePosition,
-                )
-                Pair(result, Result.success(true))
+    fun setupPlayerOrientation() {
+        if (player.isExiting) return
+        val orientation = when (playerPreferences.defaultPlayerOrientationType.get()) {
+            PlayerOrientation.Free -> ActivityInfo.SCREEN_ORIENTATION_SENSOR
+            PlayerOrientation.Video -> if ((aspectRatio.value ?: 0.0) > 1.0) {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             } else {
-                // Unlikely but okay
-                Pair(defaultResult, Result.success(false))
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             }
-        } catch (e: Throwable) {
-            Pair(defaultResult, Result.failure(e))
+            PlayerOrientation.Portrait -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            PlayerOrientation.ReversePortrait -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
+            PlayerOrientation.SensorPortrait -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            PlayerOrientation.Landscape -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            PlayerOrientation.ReverseLandscape -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
+            PlayerOrientation.SensorLandscape -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         }
+
+        updatePlaybackData { it.copy(currentOrientation = orientation) }
     }
 
-    private fun updateEpisode(episode: Episode) {
-        mediaTitle.update { _ -> episode.name }
-        _isEpisodeOnline.update { _ -> isEpisodeOnline() == true }
-        mpv.setPropertyDouble("user-data/current-anime/episode-number", episode.episode_number.toDouble())
-    }
-
-    private fun initEpisodeList(anime: Anime): List<Episode> {
-        val episodes = runBlocking { getEpisodesByAnimeId.await(anime.id) }
-
-        return episodes
-            .sortedWith(getEpisodeSort(anime, sortDescending = false))
-            .run {
-                if (basePreferences.downloadedOnly.get()) {
-                    filterDownloaded(anime)
-                } else {
-                    this
-                }
+    private fun cycleRotations() {
+        val orientation = when (playbackData.value.currentOrientation) {
+            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
+            ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
+            -> {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
             }
-            .map { it.toDbEpisode() }
+            else -> {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
+        }
+        updatePlaybackData { it.copy(currentOrientation = orientation) }
     }
 
-    private var hasTrackers: Boolean = false
-    private val checkTrackers: (Anime) -> Unit = { anime ->
-        val tracks = runBlocking { getTracks.await(anime.id) }
-        hasTrackers = tracks.isNotEmpty()
-    }
+    // === Load ===
 
     private var getHosterVideoLinksJob: Job? = null
 
@@ -1451,34 +826,34 @@ class PlayerViewModel @JvmOverloads constructor(
         getHosterVideoLinksJob?.cancel()
     }
 
-    /**
-     * Set the video list for hosters.
-     */
-    fun loadHosters(source: AnimeSource, hosterList: List<Hoster>, hosterIndex: Int, videoIndex: Int) {
+    fun loadHosters(hosterList: List<Hoster>, hosterIndex: Int, videoIndex: Int) {
         val hasFoundPreferredVideo = AtomicBoolean(false)
 
-        _hosterList.update { _ -> hosterList }
-        _hosterExpandedList.update { _ ->
-            List(hosterList.size) { true }
-        }
+        updateStateData { it.copy(hosterList = hosterList) }
+        updateUiData { it.copy(hosterExpandedList = List(hosterList.size) { true }) }
+
+        val source = stateData.value.currentSource
+            ?: throw Exception("No source available")
 
         getHosterVideoLinksJob?.cancel()
         getHosterVideoLinksJob = viewModelScope.launchIO {
-            _hosterState.update { _ ->
-                hosterList.map { hoster ->
-                    if (hoster.lazy) {
-                        HosterState.Idle(hoster.hosterName)
-                    } else if (hoster.videoList == null) {
-                        HosterState.Loading(hoster.hosterName)
-                    } else {
-                        val videoList = hoster.videoList!!
-                        HosterState.Ready(
-                            hoster.hosterName,
-                            videoList,
-                            List(videoList.size) { Video.State.QUEUE },
-                        )
-                    }
-                }
+            updateStateData {
+                it.copy(
+                    hosterState = hosterList.map { hoster ->
+                        if (hoster.lazy) {
+                            HosterState.Idle(hoster.hosterName)
+                        } else if (hoster.videoList == null) {
+                            HosterState.Loading(hoster.hosterName)
+                        } else {
+                            val videoList = hoster.videoList!!
+                            HosterState.Ready(
+                                hoster.hosterName,
+                                videoList,
+                                List(videoList.size) { Video.State.QUEUE },
+                            )
+                        }
+                    },
+                )
             }
 
             try {
@@ -1487,13 +862,13 @@ class PlayerViewModel @JvmOverloads constructor(
                         async {
                             val hosterState = EpisodeLoader.loadHosterVideos(source, hoster)
 
-                            _hosterState.updateAt(hosterIdx, hosterState)
+                            updateHosterStateAt(hosterIdx, hosterState)
 
                             if (hosterState is HosterState.Ready) {
                                 if (hosterIdx == hosterIndex) {
                                     hosterState.videoList.getOrNull(videoIndex)?.let {
                                         hasFoundPreferredVideo.set(true)
-                                        val success = loadVideo(source, it, hosterIndex, videoIndex)
+                                        val success = loadVideo(it, hosterIndex, videoIndex)
                                         if (!success) {
                                             hasFoundPreferredVideo.set(false)
                                         }
@@ -1503,10 +878,9 @@ class PlayerViewModel @JvmOverloads constructor(
                                 val prefIndex = hosterState.videoList.indexOfFirst { it.preferred }
                                 if (prefIndex != -1 && hosterIndex == -1) {
                                     if (hasFoundPreferredVideo.compareAndSet(false, true)) {
-                                        if (selectedHosterVideoIndex.value == Pair(-1, -1)) {
+                                        if (uiData.value.selectedHosterVideoIndex == Pair(-1, -1)) {
                                             val success =
                                                 loadVideo(
-                                                    source,
                                                     hosterState.videoList[prefIndex],
                                                     hosterIdx,
                                                     prefIndex,
@@ -1522,19 +896,22 @@ class PlayerViewModel @JvmOverloads constructor(
                     }.awaitAll()
 
                     if (hasFoundPreferredVideo.compareAndSet(false, true)) {
-                        val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(hosterState.value)
+                        val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(stateData.value.hosterState)
                         if (hosterIdx == -1) {
                             throw ExceptionWithStringResource("No available videos", AYMR.strings.no_available_videos)
                         }
 
-                        val video = (hosterState.value[hosterIdx] as HosterState.Ready).videoList[videoIdx]
-
-                        loadVideo(source, video, hosterIdx, videoIdx)
+                        val video = (stateData.value.hosterState[hosterIdx] as HosterState.Ready).videoList[videoIdx]
+                        loadVideo(video, hosterIdx, videoIdx)
                     }
                 }
             } catch (e: CancellationException) {
-                _hosterState.update { _ ->
-                    hosterList.map { HosterState.Idle(it.hosterName) }
+                updateStateData {
+                    it.copy(
+                        hosterState = it.hosterList.map { h ->
+                            HosterState.Idle(h.hosterName)
+                        },
+                    )
                 }
 
                 throw e
@@ -1542,46 +919,47 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    fun setIsStopped(value: Boolean) {
-        _isStopped.update { _ -> value }
-    }
-
-    fun setCurrentVideoError() {
-        val (hosterIdx, videoIdx) = selectedHosterVideoIndex.value
-        val currentHosterState = (hosterState.value[hosterIdx] as? HosterState.Ready) ?: return
-        val currentVideo = currentHosterState.videoList[videoIdx]
-
-        _hosterState.updateAt(
-            hosterIdx,
-            currentHosterState.getChangedAt(videoIdx, currentVideo, Video.State.ERROR),
-        )
-    }
-
     fun loadBestVideo(): Boolean {
-        val source = currentSource.value ?: return false
-        val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(hosterState.value)
+        val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(stateData.value.hosterState)
         if (hosterIdx == -1) return false
-        val newVideo = (hosterState.value[hosterIdx] as HosterState.Ready).videoList[videoIdx]
+        val newVideo = (stateData.value.hosterState[hosterIdx] as HosterState.Ready).videoList[videoIdx]
         viewModelScope.launchIO {
-            loadVideo(source, newVideo, hosterIdx, videoIdx)
+            loadVideo(newVideo, hosterIdx, videoIdx)
         }
         return true
     }
 
-    private suspend fun loadVideo(source: AnimeSource?, video: Video, hosterIndex: Int, videoIndex: Int): Boolean {
-        val selectedHosterState = (_hosterState.value[hosterIndex] as? HosterState.Ready) ?: return false
-        updateIsLoadingEpisode(true)
+    /**
+     * Try and load a video
+     *
+     * returns true if successful, false if not
+     */
+    private suspend fun loadVideo(video: Video, hosterIndex: Int, videoIndex: Int): Boolean {
+        val source = stateData.value.currentSource
+            ?: throw Exception("No source loaded")
+        val currentUi = uiData.value
+        val selectedHosterState = (stateData.value.hosterState[hosterIndex] as? HosterState.Ready)
+            ?: return false
 
-        val oldSelectedIndex = _selectedHosterVideoIndex.value
-        _selectedHosterVideoIndex.update { _ -> Pair(hosterIndex, videoIndex) }
-
-        _hosterState.updateAt(
-            hosterIndex,
-            selectedHosterState.getChangedAt(videoIndex, video, Video.State.LOAD_VIDEO),
-        )
+        val oldSelectedIndex = currentUi.selectedHosterVideoIndex
+        updateUiData {
+            it.copy(
+                isLoadingEpisode = true,
+                selectedHosterVideoIndex = Pair(hosterIndex, videoIndex),
+                previousPauseState = it.previousPauseState ?: playbackData.value.paused,
+            )
+        }
+        updateStateData {
+            it.copy(
+                hosterState = getHosterStateAt(
+                    hosters = it.hosterState,
+                    index = hosterIndex,
+                    state = selectedHosterState.getChangedAt(videoIndex, video, Video.State.LOAD_VIDEO),
+                ),
+            )
+        }
 
         // Pause until everything has loaded
-        updatePausedState()
         pause()
 
         val resolvedVideo = if (selectedHosterState.videoState[videoIndex] != Video.State.READY) {
@@ -1591,56 +969,161 @@ class PlayerViewModel @JvmOverloads constructor(
         }
 
         if (resolvedVideo == null || resolvedVideo.videoUrl.isEmpty()) {
-            if (currentVideo.value == null) {
-                _hosterState.updateAt(
-                    hosterIndex,
-                    selectedHosterState.getChangedAt(videoIndex, video, Video.State.ERROR),
-                )
+            if (stateData.value.currentVideo == null) {
+                updateHosterStateAt(hosterIndex, selectedHosterState.getChangedAt(videoIndex, video, Video.State.ERROR))
 
-                val (newHosterIdx, newVideoIdx) = HosterLoader.selectBestVideo(hosterState.value)
+                val (newHosterIdx, newVideoIdx) = HosterLoader.selectBestVideo(stateData.value.hosterState)
                 if (newHosterIdx == -1) {
-                    if (_hosterState.value.any { it is HosterState.Loading }) {
-                        _selectedHosterVideoIndex.update { _ -> Pair(-1, -1) }
+                    if (stateData.value.hosterState.any { it is HosterState.Loading }) {
+                        updateUiData { it.copy(selectedHosterVideoIndex = Pair(-1, -1)) }
                         return false
                     } else {
                         throw ExceptionWithStringResource("No available videos", AYMR.strings.no_available_videos)
                     }
                 }
 
-                val newVideo = (hosterState.value[newHosterIdx] as HosterState.Ready).videoList[newVideoIdx]
-
-                return loadVideo(source, newVideo, newHosterIdx, newVideoIdx)
+                val newVideo = (stateData.value.hosterState[newHosterIdx] as HosterState.Ready).videoList[newVideoIdx]
+                return loadVideo(newVideo, newHosterIdx, newVideoIdx)
             } else {
-                _selectedHosterVideoIndex.update { _ -> oldSelectedIndex }
-                _hosterState.updateAt(
-                    hosterIndex,
-                    selectedHosterState.getChangedAt(videoIndex, video, Video.State.ERROR),
-                )
+                updateStateData {
+                    it.copy(
+                        hosterState = getHosterStateAt(
+                            hosters = it.hosterState,
+                            index = hosterIndex,
+                            state = selectedHosterState.getChangedAt(videoIndex, video, Video.State.ERROR),
+                        ),
+                    )
+                }
+                updateUiData {
+                    it.copy(
+                        selectedHosterVideoIndex = oldSelectedIndex,
+                    )
+                }
                 return false
             }
         }
 
-        _hosterState.updateAt(
-            hosterIndex,
-            selectedHosterState.getChangedAt(videoIndex, resolvedVideo, Video.State.READY),
+        updateHosterStateAt(
+            index = hosterIndex,
+            state = selectedHosterState.getChangedAt(videoIndex, resolvedVideo, Video.State.READY),
         )
+        updateStateData { it.copy(currentVideo = resolvedVideo) }
 
-        _currentVideo.update { _ -> resolvedVideo }
-        if (hasLoadedTracks.value) {
+        if (stateData.value.hasLoadedTracks) {
             clearTracks()
         }
 
         qualityIndex = Pair(hosterIndex, videoIndex)
-
-        eventChannel.send(Event.SetVideo(resolvedVideo))
+        setVideo(resolvedVideo)
         return true
     }
 
+    private fun setVideo(video: Video?) {
+        if (player.isExiting) return
+        if (video == null) return
+
+        updateStateData { it.copy(isStopped = false) }
+        setHttpOptions(video)
+
+        if (uiData.value.isLoadingEpisode) {
+            stateData.value.currentEpisode?.let { episode ->
+                val preservePos = playerPreferences.preserveWatchingPosition.get()
+                val resumePosition = if (episode.seen && !preservePos) {
+                    0L
+                } else {
+                    episode.last_second_seen
+                }
+                mpvCommand("set", "start", "${resumePosition / 1000F}")
+            }
+        } else {
+            mpvCommand("set", "start", playbackData.value.position.toString())
+        }
+
+        // We handle selecting these in the viewmodel
+        val mpvOpts = listOf(
+            Pair("sid", "no"),
+            Pair("aid", "no"),
+        )
+        val videoOptions = (video.mpvArgs + mpvOpts).joinToString(",") { (option, value) ->
+            "$option=\"$value\""
+        }
+
+        mpvCommand(
+            "loadfile",
+            parseVideoUrl(video.videoUrl)!!,
+            "replace",
+            "0",
+            videoOptions,
+        )
+    }
+
+    private fun parseVideoUrl(videoUrl: String?): String? {
+        return videoUrl?.toUri()?.resolveUri(context)
+            ?: videoUrl
+    }
+
+    private fun setHttpOptions(video: Video) {
+        if (!stateData.value.isEpisodeOnline) return
+        val source = stateData.value.currentSource as? AnimeHttpSource
+            ?: return
+
+        val headers = (video.headers ?: source.headers)
+            .toMultimap()
+            .mapValues { it.value.firstOrNull() ?: "" }
+
+        val httpHeaderString = headers.map {
+            it.key + ": " + it.value.replace(",", "\\,")
+        }.joinToString(",")
+
+        mpv.setOptionString("http-header-fields", httpHeaderString)
+    }
+
+    private fun eofReached(eofReached: Boolean) {
+        if (eofReached && uiData.value.autoPlayEnabled) {
+            nextEpisode(next = true, autoplay = true)
+        }
+    }
+
+    private fun endFile(node: MPVNode) {
+        val errorNode = node.asMap()?.get("file_error") ?: return
+        var errorMessage = errorNode.asString() ?: "Error: File ended"
+
+        val httpError = player.getHttpError()
+        if (!httpError.isNullOrEmpty()) {
+            errorMessage += ": $httpError"
+            player.resetHttpError()
+        }
+
+        logcat(LogPriority.ERROR) { errorMessage }
+        _eventFlow.tryEmit(Event.ToastString(errorMessage))
+
+        setCurrentVideoError()
+
+        if (playerPreferences.switchOnFailure.get()) {
+            if (!loadBestVideo()) {
+                viewModelScope.launch { _eventFlow.emit(Event.Finish) }
+            }
+        } else {
+            updateStateData { it.copy(isStopped = true) }
+        }
+    }
+
+    fun setCurrentVideoError() {
+        val (hosterIdx, videoIdx) = uiData.value.selectedHosterVideoIndex
+        val currentHosterState = (stateData.value.hosterState[hosterIdx] as? HosterState.Ready) ?: return
+        val currentVideo = currentHosterState.videoList[videoIdx]
+
+        updateHosterStateAt(
+            index = hosterIdx,
+            state = currentHosterState.getChangedAt(videoIdx, currentVideo, Video.State.ERROR),
+        )
+    }
+
     fun onVideoClicked(hosterIndex: Int, videoIndex: Int) {
-        val hosterState = _hosterState.value[hosterIndex] as? HosterState.Ready
+        val hosterState = stateData.value.hosterState[hosterIndex] as? HosterState.Ready
         val video = hosterState?.videoList
             ?.getOrNull(videoIndex)
-            ?: return // Shouldn't happen, but just in case™
+            ?: return // How did we get here?
 
         val videoState = hosterState.videoState
             .getOrNull(videoIndex)
@@ -1651,9 +1134,9 @@ class PlayerViewModel @JvmOverloads constructor(
         }
 
         viewModelScope.launchIO {
-            val success = loadVideo(currentSource.value, video, hosterIndex, videoIndex)
+            val success = loadVideo(video, hosterIndex, videoIndex)
             if (success) {
-                if (sheetShown.value == Sheets.QualityTracks) {
+                if (uiData.value.sheetShown == Sheets.QualityTracks) {
                     dismissSheet()
                 }
             }
@@ -1661,113 +1144,1126 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun onHosterClicked(index: Int) {
-        when (hosterState.value[index]) {
+        when (stateData.value.hosterState[index]) {
             is HosterState.Ready -> {
-                _hosterExpandedList.updateAt(index, !_hosterExpandedList.value[index])
+                updateUiData {
+                    it.copy(
+                        hosterExpandedList = it.hosterExpandedList.toMutableList().apply {
+                            this[index] = !it.hosterExpandedList[index]
+                        }.toList(),
+                    )
+                }
             }
             is HosterState.Idle -> {
-                val hosterName = hosterList.value[index].hosterName
-                _hosterState.updateAt(index, HosterState.Loading(hosterName))
+                val source = stateData.value.currentSource
+                    ?: throw Exception("Source not loaded")
+
+                val hosterName = stateData.value.hosterList[index].hosterName
+                updateHosterStateAt(index, HosterState.Loading(hosterName))
 
                 viewModelScope.launchIO {
                     val hosterState = EpisodeLoader.loadHosterVideos(
-                        source = currentSource.value!!,
-                        hoster = hosterList.value[index],
+                        source = source,
+                        hoster = stateData.value.hosterList[index],
                         force = true,
                     )
-                    _hosterState.updateAt(index, hosterState)
+                    updateHosterStateAt(index, hosterState)
                 }
             }
-            is HosterState.Loading, is HosterState.Error -> {}
+            is HosterState.Error, is HosterState.Loading -> { }
         }
     }
 
-    private fun <T> MutableStateFlow<List<T>>.updateAt(index: Int, newValue: T) {
-        this.update { values ->
-            values.toMutableList().apply {
-                this[index] = newValue
+    private fun getHosterStateAt(hosters: List<HosterState>, index: Int, state: HosterState): List<HosterState> {
+        return hosters.toMutableList().apply {
+            this[index] = state
+        }.toList()
+    }
+
+    private fun updateHosterStateAt(index: Int, state: HosterState) {
+        updateStateData {
+            it.copy(
+                hosterState = getHosterStateAt(it.hosterState, index, state),
+            )
+        }
+    }
+
+    private fun fileLoaded() {
+        if (player.isExiting) return
+
+        setMpvOptions()
+        setMpvMediaTitle()
+        setupChapters()
+        setupPlayerOrientation()
+        checkFileLoaded()
+
+        // AniSkip stuff
+        val chapterCount = stateData.value.chapters.size
+        viewModelScope.launchIO {
+            if (introSkipEnabled && aniSkipEnabled && !(disableAniSkipOnChapters && chapterCount > 0)) {
+                aniSkipResponse(playbackData.value.duration)?.let {
+                    addTimeStamps(it)
+                }
             }
         }
     }
 
-    data class EpisodeLoadResult(
-        val hosterList: List<Hoster>?,
-        val episodeTitle: String,
-        val source: AnimeSource,
-    )
+    private fun setMpvOptions() {
+        val video = stateData.value.currentVideo ?: return
 
-    suspend fun loadEpisode(episodeId: Long?): EpisodeLoadResult? {
-        val anime = currentAnime.value ?: return null
-        val source = sourceManager.getOrStub(anime.source)
+        // Only check for `MPV_ARGS_TAG` on downloaded videos
+        if (listOf("file", "content", "data").none { video.videoUrl.startsWith(it) }) {
+            return
+        }
 
-        val chosenEpisode = currentPlaylist.value.firstOrNull { ep -> ep.id == episodeId } ?: return null
+        try {
+            val metadata = mpv.getPropertyNode("metadata")?.asMap()
+                ?: return
 
-        _currentEpisode.update { _ -> chosenEpisode }
-        updateEpisode(chosenEpisode)
+            val opts = metadata[Video.MPV_ARGS_TAG]
+                ?.asString()
+                ?.split(";")
+                ?.map { it.split("=", limit = 2) }
+                ?: return
 
-        return withIOContext {
-            try {
-                val currentEpisode =
-                    currentEpisode.value
-                        ?: throw ExceptionWithStringResource("No episode loaded", AYMR.strings.no_episode_loaded)
-                currentHosterList = EpisodeLoader.getHosters(
-                    currentEpisode.toDomainEpisode()!!,
-                    anime,
-                    source,
+            opts.forEach { (option, value) ->
+                setPropertyString(option, value)
+            }
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e) { "Failed to read video metadata" }
+        }
+    }
+
+    private fun setMpvMediaTitle() {
+        val anime = stateData.value.currentAnime ?: return
+        val episode = stateData.value.currentEpisode ?: return
+
+        // Write to mpv table
+        setPropertyString("user-data/current-anime/episode-title", episode.name)
+
+        val epNumber = episode.episode_number.let { number ->
+            if (ceil(number) == floor(number)) number.toInt() else number
+        }.toString().padStart(2, '0')
+
+        val title = context.stringResource(
+            AYMR.strings.mpv_media_title,
+            anime.title,
+            epNumber,
+            episode.name,
+        )
+
+        setPropertyString("force-media-title", title)
+    }
+
+    private fun setupChapters() {
+        val timeStamps = stateData.value.currentVideo?.timestamps?.takeIf { it.isNotEmpty() }
+            ?.map { timeStamp ->
+                if (timeStamp.name.isEmpty() && timeStamp.type != ChapterType.Other) {
+                    timeStamp.copy(
+                        name = timeStamp.type.getStringRes()?.let { context.stringResource(it) } ?: "",
+                    )
+                } else {
+                    timeStamp
+                }
+            }
+            ?: return
+
+        addTimeStamps(timeStamps)
+    }
+
+    private fun addTimeStamps(timeStamps: List<TimeStamp>) {
+        if (timeStamps.isEmpty()) return
+
+        val current = (
+            mpv.getPropertyNode("chapter-list")
+                ?.toObject<List<ChapterNode>>(json) ?: emptyList()
+            )
+            .map { IndexedSegment(name = it.chapterTitle, start = it.time, index = 0) }
+        val merged = ChapterUtils.mergeChapters(current, timeStamps, playbackData.value.duration)
+        val node = MPVNode.ArrayNode(
+            merged.map { c ->
+                MPVNode.MapNode(
+                    value = mapOf(
+                        "time" to MPVNode.DoubleNode(c.start.toDouble()),
+                        "title" to MPVNode.StringNode(c.name),
+                    ),
                 )
+            }.toTypedArray(),
+        )
+        setPropertyNode("chapter-list", node)
+    }
 
-                this@PlayerViewModel.episodeId = currentEpisode.id!!
-            } catch (e: Exception) {
-                logcat(LogPriority.ERROR, e) { e.message ?: "Error getting links" }
+    /**
+     * Check when file has loaded and see if the player can be (un)paused.
+     *
+     * If external subs/audio tracks was selected, wait until mpv has fetched them.
+     */
+    private fun checkFileLoaded() {
+        if (uiData.value.isLoadingEpisode && stateData.value.hasLoadedSubs && stateData.value.hasLoadedAudio) {
+            uiData.value.previousPauseState?.let { shouldPause ->
+                if (shouldPause) pause() else unpause()
             }
 
-            EpisodeLoadResult(
-                hosterList = currentHosterList,
-                episodeTitle = anime.title + " - " + chosenEpisode.name,
-                source = source,
+            updateUiData {
+                it.copy(
+                    isLoadingEpisode = false,
+                    previousPauseState = null,
+                )
+            }
+        }
+    }
+
+    fun clearTracks() {
+        updateStateData {
+            it.copy(
+                externalSubtitleTracks = emptyList(),
+                externalAudioTracks = emptyList(),
+                hasLoadedTracks = false,
+                hasLoadedSubs = false,
+                hasLoadedAudio = false,
             )
         }
     }
 
     /**
+     * When all subtitle/audio tracks are loaded, select the preferred one based on preferences,
+     * or select the first one in the list if trackSelect fails.
+     */
+    fun onTrackListChanged(tracks: MPVNode) {
+        val tracks = tracks.toObject<List<TrackNode>>(json).ifEmpty { return }
+        updateStateData {
+            it.copy(
+                subtitleTracks = tracks.filter { it.isSubtitle }
+                    .filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true },
+                audioTracks = tracks.filter { it.isAudio }
+                    .filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true },
+            )
+        }
+
+        if (stateData.value.hasLoadedTracks) {
+            onTrackAdded(tracks)
+        } else {
+            updateStateData { it.copy(hasLoadedTracks = true) }
+            onTracksLoaded(tracks)
+        }
+    }
+
+    /**
+     * Called when a new track has been added to mpv
+     *
+     * Every new external tracks needs to be tracked internally
+     */
+    private fun onTrackAdded(tracks: List<TrackNode>) {
+        val externalSubtitle = tracks.filter {
+            it.isSubtitle && it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true
+        }
+        val externalAudio = tracks.filter {
+            it.isAudio && it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true
+        }
+
+        externalSubtitle.forEach { track ->
+            val idx = track.title!!.split("=")[1].toInt()
+            val external = stateData.value.externalSubtitleTracks[idx]
+
+            if (external.id != null) {
+                // External subtitle has already been added
+                return@forEach
+            }
+
+            updateSubtitleTrackAt(idx) {
+                it.copy(id = track.id, state = TrackState.Loaded)
+            }
+            updateStateData { it.copy(hasLoadedSubs = true) }
+            checkFileLoaded()
+            selectSubById(track.id)
+        }
+
+        externalAudio.forEach { track ->
+            val idx = track.title!!.split("=")[1].toInt()
+            val external = stateData.value.externalAudioTracks[idx]
+
+            if (external.id != null) {
+                // External audio has already been added
+                return@forEach
+            }
+
+            updateAudioTrackAt(idx) {
+                it.copy(id = track.id, state = TrackState.Loaded)
+            }
+            updateStateData { it.copy(hasLoadedAudio = true) }
+            checkFileLoaded()
+            selectAudioById(track.id, false)
+        }
+    }
+
+    /**
+     * Called when embedded tracks are first loaded
+     */
+    private fun onTracksLoaded(tracks: List<TrackNode>) {
+        val embeddedSubs = tracks.filter { it.isSubtitle }
+        val embeddedAudio = tracks.filter { it.isAudio }
+        val currentVideo = stateData.value.currentVideo
+        val externalSubs = currentVideo?.subtitleTracks.orEmpty().distinctBy { it.url }
+            .mapIndexed { idx, track -> VideoTrack.External(track, idx) }
+        val externalAudio = currentVideo?.audioTracks.orEmpty().distinctBy { it.url }
+            .mapIndexed { idx, track -> VideoTrack.External(track, idx) }
+
+        updateStateData {
+            it.copy(
+                externalSubtitleTracks = externalSubs,
+                externalAudioTracks = externalAudio,
+            )
+        }
+
+        val preferredSubtitle = trackSelect.getPreferredTrackIndex(
+            tracks = embeddedSubs.map { VideoTrack.Internal(it) } + externalSubs,
+            subtitle = true,
+        )
+        if (preferredSubtitle == null) {
+            updateStateData { it.copy(hasLoadedSubs = true) }
+        } else {
+            selectSub(preferredSubtitle)
+        }
+
+        val preferredAudio = trackSelect.getPreferredTrackIndex(
+            tracks = embeddedAudio.map { VideoTrack.Internal(it) } + externalAudio,
+            subtitle = false,
+        )
+        if (preferredAudio == null) {
+            updateStateData { it.copy(hasLoadedAudio = true) }
+        } else {
+            selectAudio(preferredAudio, true)
+        }
+    }
+
+    private fun updateSubtitleTrackAt(index: Int, transform: (VideoTrack.External) -> VideoTrack.External) {
+        updateStateData {
+            it.copy(
+                externalSubtitleTracks = it.externalSubtitleTracks.toMutableList().apply {
+                    this[index] = transform(this[index])
+                }.toList(),
+            )
+        }
+    }
+
+    private fun updateAudioTrackAt(index: Int, transform: (VideoTrack.External) -> VideoTrack.External) {
+        updateStateData {
+            it.copy(
+                externalAudioTracks = it.externalAudioTracks.toMutableList().apply {
+                    this[index] = transform(this[index])
+                }.toList(),
+            )
+        }
+    }
+
+    fun addSubtitle(uri: Uri) {
+        val url = uri.toString()
+        val isContentUri = url.startsWith("content://")
+        val path = (if (isContentUri) uri.openContentFd(context) else url)
+            ?: return
+        val name = if (isContentUri) uri.getFileName(context) else null
+        if (name == null) {
+            mpvCommand("sub-add", path, "cached")
+        } else {
+            mpvCommand("sub-add", path, "cached", name)
+        }
+    }
+
+    fun selectSub(track: VideoTrack) {
+        when (track) {
+            is VideoTrack.External -> {
+                if (track.id == null) {
+                    updateSubtitleTrackAt(track.index) {
+                        it.copy(state = TrackState.Loading)
+                    }
+                    viewModelScope.launchIO {
+                        mpvCommand(
+                            "sub-add",
+                            track.data.url,
+                            "auto",
+                            "${VideoTrack.TRACK_TITLE_TAG}=${track.index}",
+                        )
+                    }
+                } else {
+                    updateStateData { it.copy(hasLoadedSubs = true) }
+                    checkFileLoaded()
+                    selectSubById(track.id)
+                }
+            }
+            is VideoTrack.Internal -> {
+                updateStateData { it.copy(hasLoadedSubs = true) }
+                checkFileLoaded()
+                selectSubById(track.data.id)
+            }
+        }
+    }
+
+    private fun selectSubById(id: Int) {
+        val selectedSubs = Pair(mpv.getPropertyInt("sid"), mpv.getPropertyInt("secondary-sid"))
+        when (id) {
+            selectedSubs.first -> Pair(selectedSubs.second, null)
+            selectedSubs.second -> Pair(selectedSubs.first, null)
+            else -> if (selectedSubs.first != null) Pair(selectedSubs.first, id) else Pair(id, null)
+        }.let {
+            it.second?.let { setPropertyInt("secondary-sid", it) }
+                ?: setPropertyBoolean("secondary-sid", false)
+            it.first?.let { setPropertyInt("sid", it) } ?: setPropertyBoolean("sid", false)
+        }
+    }
+
+    private fun onSubtitleTrackSelectChange() {
+        val id = mpv.getPropertyInt("sid")
+        val sid = mpv.getPropertyInt("secondary-sid")
+
+        updateStateData {
+            it.copy(
+                externalSubtitleTracks = it.externalSubtitleTracks.map { tracks ->
+                    tracks.copy(
+                        mainSelection = when (tracks.id) {
+                            null -> -1
+                            id -> 0
+                            sid -> 1
+                            else -> -1
+                        },
+                    )
+                },
+            )
+        }
+    }
+
+    fun addAudio(uri: Uri) {
+        val url = uri.toString()
+        val isContentUri = url.startsWith("content://")
+        val path = (if (isContentUri) uri.openContentFd(context) else url)
+            ?: return
+        val name = if (isContentUri) uri.getFileName(context) else null
+        if (name == null) {
+            mpvCommand("audio-add", path, "cached")
+        } else {
+            mpvCommand("audio-add", path, "cached", name)
+        }
+    }
+
+    fun selectAudio(track: VideoTrack, force: Boolean = false) {
+        when (track) {
+            is VideoTrack.External -> {
+                if (track.id == null) {
+                    updateAudioTrackAt(track.index) {
+                        it.copy(state = TrackState.Loading)
+                    }
+                    viewModelScope.launchIO {
+                        mpvCommand(
+                            "audio-add",
+                            track.data.url,
+                            "auto",
+                            "${VideoTrack.TRACK_TITLE_TAG}=${track.index}",
+                        )
+                    }
+                } else {
+                    updateStateData { it.copy(hasLoadedAudio = true) }
+                    checkFileLoaded()
+                    selectAudioById(track.id, force)
+                }
+            }
+            is VideoTrack.Internal -> {
+                updateStateData { it.copy(hasLoadedAudio = true) }
+                checkFileLoaded()
+                selectAudioById(track.data.id, force)
+            }
+        }
+    }
+
+    private fun selectAudioById(id: Int, force: Boolean) {
+        if (!force && id == mpv.getPropertyInt("aid")) {
+            setPropertyBoolean("aid", false)
+        } else {
+            setPropertyInt("aid", id)
+        }
+    }
+
+    fun onTrackLoadedFailure(url: String) {
+        val subtitleIdx = stateData.value.externalSubtitleTracks.indexOfFirst {
+            it.data.url == url
+        }
+        if (subtitleIdx != -1) {
+            updateSubtitleTrackAt(subtitleIdx) {
+                it.copy(state = TrackState.Error)
+            }
+            updateStateData { it.copy(hasLoadedSubs = true) }
+            checkFileLoaded()
+        }
+        val audioIdx = stateData.value.externalAudioTracks.indexOfFirst {
+            it.data.url == url
+        }
+        if (audioIdx != -1) {
+            updateAudioTrackAt(audioIdx) {
+                it.copy(state = TrackState.Error)
+            }
+            updateStateData { it.copy(hasLoadedAudio = true) }
+            checkFileLoaded()
+        }
+    }
+
+    fun onChapterListChanged(node: MPVNode) {
+        val chapters = node.toObject<List<ChapterNode>>(json).map {
+            it.toSegment()
+        }
+        updateStateData { it.copy(chapters = chapters) }
+    }
+
+    private data class EpisodeLoadResult(
+        val hosterList: List<Hoster>?,
+        val episodeTitle: String,
+    )
+
+    /**
+     * Load an episode, returning the hosterlist, episode title, and source
+     * associated with the episode.
+     */
+    private suspend fun loadEpisode(episodeId: Long?): EpisodeLoadResult? {
+        val anime = stateData.value.currentAnime ?: return null
+        val source = sourceManager.getOrStub(anime.source)
+
+        val chosenEpisode = stateData.value.currentPlaylist.firstOrNull { ep ->
+            ep.id == episodeId
+        } ?: return null
+
+        setupEpisode(chosenEpisode)
+
+        return withIOContext {
+            try {
+                currentHosterList = EpisodeLoader.getHosters(
+                    episode = chosenEpisode.toDomainEpisode()!!,
+                    anime,
+                    source,
+                )
+                this@PlayerViewModel.episodeId = chosenEpisode.id!!
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                logcat(LogPriority.ERROR, e) { e.message ?: "Error getting links" }
+            }
+
+            EpisodeLoadResult(
+                hosterList = currentHosterList,
+                episodeTitle = "${anime.title} - ${chosenEpisode.name}",
+            )
+        }
+    }
+
+    private val pipEpisodeToasts = playerPreferences.pipEpisodeToasts.get()
+
+    /**
+     * Load next or previous episode
+     */
+    fun nextEpisode(next: Boolean, autoplay: Boolean = false) {
+        val currentIndex = stateData.value.currentPlaylistIndex
+        val newIndex = if (next) currentIndex + 1 else currentIndex - 1
+
+        if (newIndex !in 0..<stateData.value.currentPlaylist.size) return
+        val episodeId = stateData.value.currentPlaylist.getOrNull(newIndex)?.id ?: return
+
+        changeEpisode(episodeId, autoplay)
+    }
+
+    /**
+     * Switches to the episode based on [episodeId],
+     *
+     * @param episodeId id of the episode to switch the player to
+     * @param autoPlay whether the episode is switching due to auto play
+     */
+    fun changeEpisode(episodeId: Long?, autoPlay: Boolean = false) {
+        pause()
+        clearTracks()
+
+        updateStateData { it.copy(hosterList = emptyList()) }
+        updateUiData {
+            it.copy(
+                sheetShown = Sheets.None,
+                panelShown = Panels.None,
+                isLoadingEpisode = true,
+                isLoadingHosters = true,
+                previousPauseState = false,
+                hosterExpandedList = emptyList(),
+                selectedHosterVideoIndex = Pair(-1, -1),
+            )
+        }
+        cancelHosterVideoLinksJob()
+
+        viewModelScope.launch {
+            val switchMethod = loadEpisode(episodeId)
+            updateUiData { it.copy(isLoadingHosters = false) }
+
+            if (switchMethod == null) {
+                if (stateData.value.currentAnime != null && !autoPlay) {
+                    _eventFlow.emit(Event.ToastResource(AYMR.strings.no_next_episode))
+                }
+                return@launch
+            }
+
+            if (switchMethod.hosterList != null) {
+                when {
+                    switchMethod.hosterList.isEmpty() -> _eventFlow.emit(
+                        Event.InitialEpisodeError(
+                            ExceptionWithStringResource(
+                                "Hoster list is empty",
+                                AYMR.strings.no_hosters,
+                            ),
+                        ),
+                    )
+                    else -> {
+                        loadHosters(
+                            hosterList = switchMethod.hosterList,
+                            hosterIndex = -1,
+                            videoIndex = -1,
+                        )
+                    }
+                }
+            } else {
+                logcat(LogPriority.ERROR) { "Error getting links" }
+            }
+
+            if (pipEpisodeToasts) {
+                _eventFlow.emit(Event.ToastString(switchMethod.episodeTitle))
+            }
+        }
+    }
+
+    // === Controls ===
+
+    fun onKey(keyEvent: KeyEvent): Boolean {
+        return player.onKey(keyEvent)
+    }
+
+    fun updateHasPip(value: Boolean) {
+        updateStateData { it.copy(isPipAvailable = value) }
+    }
+
+    fun pauseUnpause() = mpvCommand("cycle", "pause")
+    fun pause() = setPropertyBoolean("pause", true)
+    fun unpause() = setPropertyBoolean("pause", false)
+
+    private val showStatusBar = playerPreferences.showSystemStatusBar.get()
+    fun showControls() {
+        val currentUi = uiData.value
+        if (currentUi.sheetShown != Sheets.None ||
+            currentUi.panelShown != Panels.None ||
+            currentUi.dialogShown != Dialogs.None
+        ) {
+            return
+        }
+        updateUiData {
+            it.copy(
+                controlsShown = true,
+                statusBarShown = showStatusBar,
+            )
+        }
+    }
+
+    fun hideControls() {
+        updateUiData {
+            it.copy(
+                controlsShown = false,
+                statusBarShown = false,
+            )
+        }
+    }
+
+    fun hideSeekBar() {
+        updateUiData { it.copy(seekBarShown = false) }
+    }
+
+    fun showSeekBar() {
+        if (uiData.value.sheetShown != Sheets.None) return
+        updateUiData { it.copy(seekBarShown = true) }
+    }
+
+    fun dismissSheet() {
+        updateUiData { it.copy(dismissSheet = true) }
+    }
+
+    private fun resetDismissSheet() {
+        updateUiData { it.copy(dismissSheet = false) }
+    }
+
+    fun setSheet(sheet: Sheets) {
+        updateUiData { it.copy(sheetShown = sheet) }
+        if (sheet == Sheets.None) {
+            resetDismissSheet()
+            showControls()
+        } else {
+            hideControls()
+            updateUiData {
+                it.copy(
+                    panelShown = Panels.None,
+                    dialogShown = Dialogs.None,
+                )
+            }
+        }
+    }
+
+    fun setPanel(panel: Panels) {
+        updateUiData { it.copy(panelShown = panel) }
+        if (panel == Panels.None) {
+            showControls()
+        } else {
+            hideControls()
+            updateUiData {
+                it.copy(
+                    sheetShown = Sheets.None,
+                    dialogShown = Dialogs.None,
+                )
+            }
+        }
+    }
+
+    fun setDialog(dialog: Dialogs) {
+        updateUiData { it.copy(dialogShown = dialog) }
+        if (dialog == Dialogs.None) {
+            showControls()
+        } else {
+            hideControls()
+            updateUiData {
+                it.copy(
+                    sheetShown = Sheets.None,
+                    panelShown = Panels.None,
+                )
+            }
+        }
+    }
+
+    fun changeBrightnessTo(brightness: Float) {
+        updatePlaybackData { it.copy(currentBrightness = brightness.coerceIn(-0.75f, 1f)) }
+    }
+
+    fun displayBrightnessSlider(show: Boolean) {
+        updateUiData { it.copy(isBrightnessSliderShown = show) }
+    }
+
+    fun changeVolumeBy(change: Int) {
+        val mpvVolume = mpv.getPropertyInt("volume")
+        if ((stateData.value.volumeBoostCap ?: audioPreferences.volumeBoostCap.get()) > 0 &&
+            playbackData.value.currentVolume == maxVolume
+        ) {
+            if (mpvVolume == 100 && change < 0) changeVolumeTo(playbackData.value.currentVolume + change)
+
+            val finalMPVVolume = (mpvVolume?.plus(change))?.coerceAtLeast(100) ?: 100
+            if (finalMPVVolume in
+                100..(stateData.value.volumeBoostCap ?: audioPreferences.volumeBoostCap.get()) + 100
+            ) {
+                changeMPVVolumeTo(finalMPVVolume)
+                return
+            }
+        }
+        changeVolumeTo(playbackData.value.currentVolume + change)
+    }
+
+    fun setVolumeTo(volume: Int) {
+        updatePlaybackData { it.copy(currentVolume = volume) }
+    }
+
+    fun changeVolumeTo(volume: Int) {
+        val newVolume = volume.coerceIn(0..maxVolume)
+        audioManager.setVolume(newVolume)
+        playerPreferences.playerVolumeValue.set(newVolume)
+        updatePlaybackData { it.copy(currentVolume = newVolume) }
+    }
+
+    fun changeMPVVolumeTo(volume: Int) {
+        setPropertyInt("volume", volume)
+    }
+
+    fun displayVolumeSlider(show: Boolean) {
+        updateUiData { it.copy(isVolumeSliderShown = show) }
+    }
+
+    private fun cycleAspectRatio() {
+        val newAspectRatio = when (playerPreferences.aspectState.get()) {
+            VideoAspect.Fit -> VideoAspect.Stretch
+            VideoAspect.Stretch -> VideoAspect.Crop
+            VideoAspect.Crop -> VideoAspect.Fit
+        }
+
+        setAspectRatio(newAspectRatio)
+    }
+
+    fun setAspectRatio(aspect: VideoAspect) {
+        val (pan, ratio) = when (aspect) {
+            VideoAspect.Crop -> {
+                1.0 to -1.0
+            }
+            VideoAspect.Fit -> {
+                0.0 to -1.0
+            }
+            VideoAspect.Stretch -> {
+                0.0 to screenAspectRatio
+            }
+        }
+
+        setPropertyDouble("panscan", pan)
+        setPropertyDouble("video-aspect-override", ratio)
+        playerPreferences.aspectState.set(aspect)
+        updateUiData { it.copy(playerUpdate = PlayerUpdates.AspectRatio(aspect)) }
+    }
+
+    private fun setSpeed(value: Float) {
+        setPropertyFloat("speed", value)
+        playerPreferences.playerSpeed.set(value)
+    }
+
+    private fun setAutoPlay(value: Boolean) {
+        val textRes = if (value) {
+            AYMR.strings.enable_auto_play
+        } else {
+            AYMR.strings.disable_auto_play
+        }
+        updateUiData { it.copy(playerUpdate = PlayerUpdates.ShowTextResource(textRes)) }
+        playerPreferences.autoplayEnabled.set(value)
+    }
+
+    // === Custom buttons ===
+
+    fun executeButton(button: CustomButton) {
+        mpvCommand("script-message", "call_button_${button.id}")
+    }
+
+    fun executeLongPressButton(button: CustomButton) {
+        mpvCommand("script-message", "call_button_${button.id}_long")
+    }
+
+    fun setPrimaryCustomButtonTitle(button: CustomButton) {
+        updateUiData { it.copy(primaryButtonTitle = button.name) }
+    }
+
+    fun handleLuaInvocation(property: String, value: String) {
+        val data = value
+            .removePrefix("\"")
+            .removeSuffix("\"")
+            .ifEmpty { return }
+
+        when (property.substringAfterLast("/")) {
+            "show_text" -> updateUiData { it.copy(playerUpdate = PlayerUpdates.ShowText(data)) }
+            "toggle_ui" -> {
+                when (data) {
+                    "show" -> showControls()
+                    "toggle" -> if (uiData.value.controlsShown) hideControls() else showControls()
+                    "hide" -> {
+                        updateUiData {
+                            it.copy(
+                                sheetShown = Sheets.None,
+                                panelShown = Panels.None,
+                                dialogShown = Dialogs.None,
+                            )
+                        }
+                        hideControls()
+                    }
+                }
+            }
+            "show_panel" -> {
+                when (data) {
+                    "subtitle_settings" -> setPanel(Panels.SubtitleSettings)
+                    "subtitle_delay" -> setPanel(Panels.SubtitleDelay)
+                    "audio_delay" -> setPanel(Panels.AudioDelay)
+                    "video_filters" -> setPanel(Panels.VideoFilters)
+                }
+            }
+            "set_button_title" -> {
+                updateUiData { it.copy(primaryButtonTitle = data) }
+            }
+            "reset_button_title" -> {
+                uiData.value.customButtons.firstOrNull { it.isFavorite }?.let {
+                    setPrimaryCustomButtonTitle(it)
+                }
+            }
+            "switch_episode" -> {
+                when (data) {
+                    "n" -> nextEpisode(next = true)
+                    "p" -> nextEpisode(next = false)
+                }
+            }
+            "launch_int_picker" -> {
+                val (title, nameFormat, start, stop, step, pickerProperty) = data.split("|")
+                val defaultValue = mpv.getPropertyInt(pickerProperty)!!
+                setDialog(
+                    Dialogs.IntegerPicker(
+                        defaultValue = defaultValue,
+                        minValue = start.toInt(),
+                        maxValue = stop.toInt(),
+                        step = step.toInt(),
+                        nameFormat = nameFormat,
+                        title = title,
+                        onChange = { setPropertyInt(pickerProperty, it) },
+                        onDismissRequest = { setDialog(Dialogs.None) },
+                    ),
+                )
+            }
+            "show_seek_text" -> {
+                val (forward, text) = data.split("|", limit = 2)
+                showSeekText(forward == "true", text)
+            }
+            "pause" -> {
+                when (data) {
+                    "pause" -> pause()
+                    "unpause" -> unpause()
+                    "pauseunpause" -> pauseUnpause()
+                }
+            }
+            "seek_to_with_text" -> {
+                val (seekValue, text) = data.split("|", limit = 2)
+                seekToWithText(seekValue.toInt(), text)
+            }
+            "seek_by_with_text" -> {
+                val (seekValue, text) = data.split("|", limit = 2)
+                seekByWithText(seekValue.toInt(), text)
+            }
+            "seek_by" -> seekByWithText(data.toInt(), null)
+            "seek_to" -> seekToWithText(data.toInt(), null)
+            "toggle_button" -> {
+                fun showButton() {
+                    if (uiData.value.primaryButton == null) {
+                        updateUiData {
+                            it.copy(
+                                primaryButton = it.customButtons.firstOrNull { it.isFavorite },
+                            )
+                        }
+                    }
+                }
+
+                when (data) {
+                    "show" -> showButton()
+                    "hide" -> updateUiData { it.copy(primaryButton = null) }
+                    "toggle" -> if (uiData.value.primaryButton == null) {
+                        showButton()
+                    } else {
+                        updateUiData { it.copy(primaryButton = null) }
+                    }
+                }
+            }
+            "software_keyboard" -> {
+                viewModelScope.launch {
+                    when (data) {
+                        "show" -> _eventFlow.emit(Event.SetKeyboard(true))
+                        "hide" -> _eventFlow.emit(Event.SetKeyboard(false))
+                        "toggle" -> _eventFlow.emit(Event.ToggleKeyboard)
+                    }
+                }
+            }
+        }
+
+        setPropertyString(property, "")
+    }
+
+    private operator fun <T> List<T>.component6(): T = get(5)
+
+    // === Seeking ===
+
+    private val leftDoubleTapGesture = gesturePreferences.leftDoubleTapGesture.get()
+    private val centerDoubleTapGesture = gesturePreferences.centerDoubleTapGesture.get()
+    private val rightDoubleTapGesture = gesturePreferences.rightDoubleTapGesture.get()
+    private val doubleTapToSeekDuration = gesturePreferences.skipLengthPreference.get()
+    private val showSeekBar = gesturePreferences.showSeekBar.get()
+
+    fun updateGestureSeekAmount(value: Pair<Int, Int>?) {
+        updatePlaybackData { it.copy(gestureSeekAmount = value) }
+    }
+
+    fun updateIsSeeking(value: Boolean) {
+        updatePlaybackData { it.copy(isSeeking = value) }
+    }
+
+    fun updateSeekAmount(amount: Int) {
+        updatePlaybackData { it.copy(doubleTapSeekAmount = amount) }
+    }
+
+    fun updateSeekText(value: String?) {
+        updatePlaybackData { it.copy(seekText = value) }
+    }
+
+    fun handleLeftDoubleTap() {
+        when (leftDoubleTapGesture) {
+            SingleActionGesture.None -> { }
+            SingleActionGesture.Seek -> {
+                leftSeek()
+            }
+            SingleActionGesture.PlayPause -> {
+                pauseUnpause()
+            }
+            SingleActionGesture.Switch -> {
+                nextEpisode(next = false)
+            }
+            SingleActionGesture.Custom -> {
+                mpvCommand("keypress", CustomKeyCodes.DoubleTapLeft.keyCode)
+            }
+        }
+    }
+
+    fun handleCenterDoubleTap() {
+        when (centerDoubleTapGesture) {
+            SingleActionGesture.None -> { }
+            SingleActionGesture.Seek -> { }
+            SingleActionGesture.PlayPause -> {
+                pauseUnpause()
+            }
+            SingleActionGesture.Switch -> { }
+            SingleActionGesture.Custom -> {
+                mpvCommand("keypress", CustomKeyCodes.DoubleTapCenter.keyCode)
+            }
+        }
+    }
+
+    fun handleRightDoubleTap() {
+        when (rightDoubleTapGesture) {
+            SingleActionGesture.None -> { }
+            SingleActionGesture.Seek -> {
+                rightSeek()
+            }
+            SingleActionGesture.PlayPause -> {
+                pauseUnpause()
+            }
+            SingleActionGesture.Switch -> {
+                nextEpisode(next = true)
+            }
+            SingleActionGesture.Custom -> {
+                mpvCommand("keypress", CustomKeyCodes.DoubleTapRight.keyCode)
+            }
+        }
+    }
+
+    fun leftSeek() {
+        if (playbackData.value.position > 0) {
+            updatePlaybackData { it.copy(doubleTapSeekAmount = it.doubleTapSeekAmount - doubleTapToSeekDuration) }
+        }
+        updatePlaybackData { it.copy(isSeekingForwards = false) }
+        seekBy(-doubleTapToSeekDuration)
+        if (showSeekBar) showSeekBar()
+    }
+
+    fun rightSeek() {
+        if (playbackData.value.position < playbackData.value.duration) {
+            updatePlaybackData { it.copy(doubleTapSeekAmount = it.doubleTapSeekAmount + doubleTapToSeekDuration) }
+        }
+        updatePlaybackData { it.copy(isSeekingForwards = true) }
+        seekBy(doubleTapToSeekDuration)
+        if (showSeekBar) showSeekBar()
+    }
+
+    private fun showSeekText(isForward: Boolean, text: String) {
+        updatePlaybackData {
+            it.copy(
+                seekText = text,
+                isSeekingForwards = isForward,
+                doubleTapSeekAmount = if (isForward) 1 else -1,
+            )
+        }
+        if (showSeekBar) showSeekBar()
+    }
+
+    private fun seekToWithText(seekValue: Int, text: String?) {
+        updatePlaybackData {
+            it.copy(
+                seekText = text,
+                isSeekingForwards = seekValue > 0,
+                doubleTapSeekAmount = seekValue - it.position,
+            )
+        }
+        seekTo(seekValue)
+        if (showSeekBar) showSeekBar()
+    }
+
+    private fun seekByWithText(value: Int, text: String?) {
+        updatePlaybackData {
+            it.copy(
+                seekText = text,
+                isSeekingForwards = value > 0,
+                doubleTapSeekAmount = if ((value < 0 && it.doubleTapSeekAmount < 0) ||
+                    it.position + value > it.duration
+                ) {
+                    0
+                } else {
+                    it.doubleTapSeekAmount + value
+                },
+            )
+        }
+        seekBy(value)
+        if (showSeekBar) showSeekBar()
+    }
+
+    fun seekBy(offset: Int) {
+        mpvCommand("seek", offset.toString(), if (smoothSeeking) "relative+exact" else "relative")
+    }
+
+    fun seekTo(position: Int) {
+        if (position !in 0..playbackData.value.duration) return
+        mpvCommand("seek", position.toString(), if (smoothSeeking) "absolute" else "absolute+keyframes")
+    }
+
+    fun selectChapter(index: Int) {
+        setPropertyInt("chapter", index)
+        dismissSheet()
+        unpause()
+    }
+
+    // === Aniyomi ===
+
+    /**
+     * Called when the activity is saved and not changing configurations. It updates the database
+     * to persist the current progress of the active episode.
+     */
+    fun onSaveInstanceStateNonConfigurationChange() {
+        val currentEpisode = stateData.value.currentEpisode ?: return
+        viewModelScope.launchNonCancellable {
+            saveEpisodeProgress(currentEpisode)
+        }
+    }
+
+    override fun onCleared() {
+        stateData.value.currentEpisode?.let {
+            saveWatchingProgress(it)
+            episodeToDownload?.let { toDownload ->
+                downloadManager.addDownloadsToStartOfQueue(listOf(toDownload))
+            }
+        }
+
+        super.onCleared()
+    }
+
+    private val progress = playerPreferences.progressPreference.get()
+
+    /**
      * Called every time a second is reached in the player. Used to mark the flag of episode being
      * seen, update tracking services, enqueue downloaded episode deletion and download next episode.
      */
-    fun onSecondReached(position: Long) {
-        if (isLoadingEpisode.value) return
-        val currentEp = currentEpisode.value ?: return
+    fun onSecondReached(position: Int) {
+        updatePlaybackData { it.copy(position = position) }
+        if (uiData.value.isLoadingEpisode) return
+        val currentEpisode = stateData.value.currentEpisode ?: return
         if (episodeId == -1L) return
-        val dur = duration ?: return
-        if (dur == 0) return
+        val duration = playbackData.value.duration
+        if (duration == 0) return
 
         // Set netflix-style timeout
-        netflixTimeout.value?.let {
-            if (it > 0) {
-                netflixTimeout.value = it - 1
+        playbackData.value.netflixTimeout?.let { timeout ->
+            if (timeout > 0) {
+                updatePlaybackData { it.copy(netflixTimeout = timeout - 1) }
             } else {
                 onSkipIntro()
             }
         }
 
-        val seconds = position * 1000L
-        val totalSeconds = dur * 1000L
-        // Save last second seen and mark as seen if needed
-        currentEp.last_second_seen = seconds
-        currentEp.total_seconds = totalSeconds
+        // It's called seconds, but it's supposed to be in milliseconds. WTF?
+        currentEpisode.last_second_seen = position.toLong() * 1000L
+        currentEpisode.total_seconds = duration.toLong() * 1000L
 
-        episodePosition = seconds
-
-        val progress = playerPreferences.progressPreference.get()
-        val shouldTrack = !incognitoMode || hasTrackers
-        if (seconds >= totalSeconds * progress && shouldTrack) {
+        episodePosition = position.toLong()
+        val shouldTrack = !stateData.value.incognitoMode || stateData.value.hasTrackers
+        if (position >= duration * progress && shouldTrack) {
             viewModelScope.launchNonCancellable {
-                updateEpisodeProgressOnComplete(currentEp)
+                updateEpisodeProgressOnComplete(currentEpisode)
             }
         }
 
-        saveWatchingProgress(currentEp)
+        saveWatchingProgress(currentEpisode)
 
-        val inDownloadRange = seconds.toDouble() / totalSeconds > 0.35
+        val inDownloadRange = position.toDouble() / duration > 0.35
         if (inDownloadRange) {
             downloadNextEpisodes()
         }
@@ -1782,7 +2278,7 @@ class PlayerViewModel @JvmOverloads constructor(
             .contains(LibraryPreferences.MARK_DUPLICATE_EPISODE_SEEN_EXISTING)
         if (!markDuplicateAsSeen) return
 
-        val duplicateUnseenEpisodes = currentPlaylist.value
+        val duplicateUnseenEpisodes = stateData.value.currentPlaylist
             .mapNotNull { episode ->
                 if (
                     !episode.seen &&
@@ -1800,57 +2296,26 @@ class PlayerViewModel @JvmOverloads constructor(
         val isSyncEnabled = syncPreferences.isSyncEnabled()
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
         if (isSyncEnabled && syncTriggerOpt.syncOnEpisodeSeen) {
-            SyncDataJob.startNow(Injekt.get<Application>())
+            SyncDataJob.startNow(context)
         }
         // <-- AM (SYNC)
     }
 
-    private fun downloadNextEpisodes() {
-        if (downloadAheadAmount == 0) return
-        val anime = currentAnime.value ?: return
+    private fun updateTrackEpisodeSeen(episode: Episode) {
+        if (basePreferences.incognitoMode.get() || !stateData.value.hasTrackers) return
+        if (!trackPreferences.autoUpdateTrack.get()) return
 
-        // Only download ahead if current + next episode is already downloaded too to avoid jank
-        if (getCurrentEpisodeIndex() == currentPlaylist.value.lastIndex) return
-        val currentEpisode = currentEpisode.value ?: return
+        val anime = stateData.value.currentAnime ?: return
 
-        val nextEpisode = currentPlaylist.value[getCurrentEpisodeIndex() + 1]
-        val episodesAreDownloaded =
-            EpisodeLoader.isDownload(currentEpisode.toDomainEpisode()!!, anime) &&
-                EpisodeLoader.isDownload(nextEpisode.toDomainEpisode()!!, anime)
-
-        viewModelScope.launchIO {
-            if (!episodesAreDownloaded) {
-                return@launchIO
-            }
-            val episodesToDownload = getNextEpisodes.await(anime.id, nextEpisode.id!!)
-                .take(downloadAheadAmount)
-            downloadManager.downloadEpisodes(anime, episodesToDownload)
-        }
-    }
-
-    /**
-     * Determines if deleting option is enabled and nth to last episode actually exists.
-     * If both conditions are satisfied enqueues episode for delete
-     * @param chosenEpisode current episode, which is going to be marked as seen.
-     */
-    private fun deleteEpisodeIfNeeded(chosenEpisode: Episode) {
-        // Determine which episode should be deleted and enqueue
-        val currentEpisodePosition = currentPlaylist.value.indexOf(chosenEpisode)
-        val removeAfterSeenSlots = downloadPreferences.removeAfterSeenSlots.get()
-        val episodeToDelete = currentPlaylist.value.getOrNull(
-            currentEpisodePosition - removeAfterSeenSlots,
-        )
-        // If episode is completely seen no need to download it
-        episodeToDownload = null
-
-        // Check if deleting option is enabled and episode exists
-        if (removeAfterSeenSlots != -1 && episodeToDelete != null) {
-            enqueueDeleteSeenEpisodes(episodeToDelete)
+        viewModelScope.launchNonCancellable {
+            trackEpisode.await(context, anime.id, episode.episode_number.toDouble())
         }
     }
 
     fun saveCurrentEpisodeWatchingProgress() {
-        currentEpisode.value?.let { saveWatchingProgress(it) }
+        stateData.value.currentEpisode?.let {
+            saveWatchingProgress(it)
+        }
     }
 
     /**
@@ -1868,7 +2333,8 @@ class PlayerViewModel @JvmOverloads constructor(
      * If incognito mode isn't on or has at least 1 tracker
      */
     private suspend fun saveEpisodeProgress(episode: Episode) {
-        if (!incognitoMode || hasTrackers) {
+        val stateData = stateData.value
+        if (!stateData.incognitoMode || stateData.hasTrackers) {
             updateEpisode.await(
                 EpisodeUpdate(
                     id = episode.id!!,
@@ -1883,7 +2349,7 @@ class PlayerViewModel @JvmOverloads constructor(
             val isSyncEnabled = syncPreferences.isSyncEnabled()
             val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
             if (isSyncEnabled && syncTriggerOpt.syncOnEpisodeOpen && episode.last_second_seen >= 1L) {
-                SyncDataJob.startNow(Injekt.get<Application>())
+                SyncDataJob.startNow(context)
             }
             // <-- AM (SYNC)
         }
@@ -1893,7 +2359,7 @@ class PlayerViewModel @JvmOverloads constructor(
      * Saves this [episode] last seen history if incognito mode isn't on.
      */
     private suspend fun saveEpisodeHistory(episode: Episode) {
-        if (!incognitoMode) {
+        if (!stateData.value.incognitoMode) {
             val episodeId = episode.id!!
             val seenAt = Date()
             upsertHistory.await(
@@ -1916,8 +2382,6 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    // AY -->
-
     /**
      * Fillermarks the currently active episode.
      */
@@ -1931,134 +2395,54 @@ class PlayerViewModel @JvmOverloads constructor(
             )
         }
     }
-    // <-- AY
 
-    fun takeScreenshot(cachePath: String, showSubtitles: Boolean): InputStream? {
-        val filename = cachePath + "/${System.currentTimeMillis()}_mpv_screenshot_tmp.png"
-        val subtitleFlag = if (showSubtitles) "subtitles" else "video"
+    private var episodeToDownload: Download? = null
+    private val downloadAheadAmount = downloadPreferences.autoDownloadWhileWatching.get()
 
-        mpv.command("screenshot-to-file", filename, subtitleFlag)
-        val tempFile = File(filename).takeIf { it.exists() } ?: return null
-        val newFile = File("$cachePath/mpv_screenshot.png")
+    private fun downloadNextEpisodes() {
+        if (downloadAheadAmount == 0) return
+        val anime = stateData.value.currentAnime ?: return
 
-        newFile.delete()
-        tempFile.renameTo(newFile)
-        return newFile.takeIf { it.exists() }?.inputStream()
-    }
+        val currentPlaylist = stateData.value.currentPlaylist
+        val currentPlaylistIndex = stateData.value.currentPlaylistIndex
 
-    /**
-     * Saves the screenshot on the pictures directory and notifies the UI of the result.
-     * There's also a notification to allow sharing the image somewhere else or deleting it.
-     */
-    fun saveImage(imageStream: () -> InputStream, timePos: Int?) {
-        val anime = currentAnime.value ?: return
+        // Only download ahead if current + next episode is already downloaded too to avoid jank
+        if (currentPlaylistIndex == currentPlaylist.lastIndex) return
+        val currentEpisode = stateData.value.currentEpisode ?: return
 
-        val context = Injekt.get<Application>()
-        val notifier = SaveImageNotifier(context)
-        notifier.onClear()
+        val nextEpisode = currentPlaylist[currentPlaylistIndex + 1]
+        val episodesAreDownloaded =
+            EpisodeLoader.isDownload(currentEpisode.toDomainEpisode()!!, anime) &&
+                EpisodeLoader.isDownload(nextEpisode.toDomainEpisode()!!, anime)
 
-        val seconds = timePos?.let { Utils.prettyTime(it) } ?: return
-        val filename = generateFilename(anime, seconds) ?: return
-
-        // Pictures directory.
-        val relativePath = DiskUtil.buildValidFilename(anime.title)
-
-        // Copy file in background.
-        viewModelScope.launchNonCancellable {
-            try {
-                val uri = imageSaver.save(
-                    image = Image.Screenshot(
-                        inputStream = imageStream,
-                        name = filename,
-                        location = Location.Pictures(relativePath),
-                    ),
-                )
-                notifier.onComplete(uri)
-                eventChannel.send(Event.SavedImage(SaveImageResult.Success(uri)))
-            } catch (e: Throwable) {
-                notifier.onError(e.message)
-                eventChannel.send(Event.SavedImage(SaveImageResult.Error(e)))
+        viewModelScope.launchIO {
+            if (!episodesAreDownloaded) {
+                return@launchIO
             }
+            val episodesToDownload = getNextEpisodes.await(anime.id, nextEpisode.id!!)
+                .take(downloadAheadAmount)
+            downloadManager.downloadEpisodes(anime, episodesToDownload)
         }
     }
 
     /**
-     * Shares the screenshot and notifies the UI with the path of the file to share.
-     * The image must be first copied to the internal partition because there are many possible
-     * formats it can come from, like a zipped chapter, in which case it's not possible to directly
-     * get a path to the file, and it has to be decompressed somewhere first. Only the last shared
-     * image will be kept so it won't be taking lots of internal disk space.
+     * Determines if deleting option is enabled and nth to last episode actually exists.
+     * If both conditions are satisfied enqueues episode for delete
+     * @param chosenEpisode current episode, which is going to be marked as seen.
      */
-    fun shareImage(imageStream: () -> InputStream, timePos: Int?) {
-        val anime = currentAnime.value ?: return
+    private fun deleteEpisodeIfNeeded(chosenEpisode: Episode) {
+        // Determine which episode should be deleted and enqueue
+        val currentEpisodePosition = stateData.value.currentPlaylist.indexOf(chosenEpisode)
+        val removeAfterSeenSlots = downloadPreferences.removeAfterSeenSlots.get()
+        val episodeToDelete = stateData.value.currentPlaylist.getOrNull(
+            currentEpisodePosition - removeAfterSeenSlots,
+        )
+        // If episode is completely seen no need to download it
+        episodeToDownload = null
 
-        val context = Injekt.get<Application>()
-        val destDir = context.cacheImageDir
-
-        val seconds = timePos?.let { Utils.prettyTime(it) } ?: return
-        val filename = generateFilename(anime, seconds) ?: return
-
-        try {
-            viewModelScope.launchIO {
-                destDir.deleteRecursively()
-                val uri = imageSaver.save(
-                    image = Image.Screenshot(
-                        inputStream = imageStream,
-                        name = filename,
-                        location = Location.Cache,
-                    ),
-                )
-                eventChannel.send(Event.ShareImage(uri, seconds))
-            }
-        } catch (e: Throwable) {
-            logcat(LogPriority.ERROR, e)
-        }
-    }
-
-    /**
-     * Sets the screenshot as art and notifies the UI of the result.
-     */
-    fun setAsArt(artType: ArtType, imageStream: () -> InputStream) {
-        val anime = currentAnime.value ?: return
-        val episode = currentEpisode.value ?: return
-
-        viewModelScope.launchNonCancellable {
-            val result = try {
-                when (artType) {
-                    ArtType.Cover -> anime.editCover(Injekt.get(), imageStream())
-                    ArtType.Background -> anime.editBackground(Injekt.get(), imageStream())
-                    ArtType.Thumbnail -> episode.editThumbnail(anime, Injekt.get(), imageStream())
-                }
-
-                if (anime.isLocal() || anime.favorite) {
-                    SetAsArt.Success
-                } else {
-                    SetAsArt.AddToLibraryFirst
-                }
-            } catch (_: Exception) {
-                SetAsArt.Error
-            }
-            eventChannel.send(Event.SetArtResult(result, artType))
-        }
-    }
-
-    /**
-     * Results of the save image feature.
-     */
-    sealed class SaveImageResult {
-        class Success(val uri: Uri) : SaveImageResult()
-        class Error(val error: Throwable) : SaveImageResult()
-    }
-
-    private fun updateTrackEpisodeSeen(episode: Episode) {
-        if (basePreferences.incognitoMode.get() || !hasTrackers) return
-        if (!trackPreferences.autoUpdateTrack.get()) return
-
-        val anime = currentAnime.value ?: return
-        val context = Injekt.get<Application>()
-
-        viewModelScope.launchNonCancellable {
-            trackEpisode.await(context, anime.id, episode.episode_number.toDouble())
+        // Check if deleting option is enabled and episode exists
+        if (removeAfterSeenSlots != -1 && episodeToDelete != null) {
+            enqueueDeleteSeenEpisodes(episodeToDelete)
         }
     }
 
@@ -2068,7 +2452,7 @@ class PlayerViewModel @JvmOverloads constructor(
      */
     private fun enqueueDeleteSeenEpisodes(episode: Episode) {
         if (!episode.seen) return
-        val anime = currentAnime.value ?: return
+        val anime = stateData.value.currentAnime ?: return
         viewModelScope.launchNonCancellable {
             downloadManager.enqueueEpisodesToDelete(listOf(episode.toDomainEpisode()!!), anime)
         }
@@ -2085,11 +2469,219 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     /**
+     * Results of the save image feature.
+     */
+    sealed class SaveImageResult {
+        class Success(val uri: Uri) : SaveImageResult()
+        class Error(val error: Throwable) : SaveImageResult()
+    }
+
+    /**
+     * Sets the screenshot as art and notifies the UI of the result.
+     */
+    fun setAsArt(artType: ArtType, imageStream: () -> InputStream) {
+        val anime = stateData.value.currentAnime ?: return
+        val episode = stateData.value.currentEpisode ?: return
+
+        viewModelScope.launchNonCancellable {
+            val result = try {
+                when (artType) {
+                    ArtType.Cover -> anime.editCover(Injekt.get(), imageStream())
+                    ArtType.Background -> anime.editBackground(Injekt.get(), imageStream())
+                    ArtType.Thumbnail -> episode.editThumbnail(anime, Injekt.get(), imageStream())
+                }
+
+                if (anime.isLocal() || anime.favorite) {
+                    SetAsArt.Success
+                } else {
+                    SetAsArt.AddToLibraryFirst
+                }
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR, e) { "Failed to set art" }
+                SetAsArt.Error
+            }
+            _eventFlow.emit(Event.SetArtResult(result, artType))
+        }
+    }
+
+    /**
+     * Shares the screenshot and notifies the UI with the path of the file to share.
+     * The image must be first copied to the internal partition because there are many possible
+     * formats it can come from, like a zipped chapter, in which case it's not possible to directly
+     * get a path to the file, and it has to be decompressed somewhere first. Only the last shared
+     * image will be kept so it won't be taking lots of internal disk space.
+     */
+    fun shareImage(imageStream: () -> InputStream) {
+        val anime = stateData.value.currentAnime ?: return
+        val pos = playbackData.value.position
+
+        val context = Injekt.get<Application>()
+        val destDir = context.cacheImageDir
+
+        val seconds = Utils.prettyTime(pos)
+        val filename = generateFilename(anime, seconds) ?: return
+
+        try {
+            viewModelScope.launchIO {
+                destDir.deleteRecursively()
+                val uri = imageSaver.save(
+                    image = Image.Screenshot(
+                        inputStream = imageStream,
+                        name = filename,
+                        location = Location.Cache,
+                    ),
+                )
+                _eventFlow.emit(Event.ShareImage(uri, seconds))
+            }
+        } catch (e: Throwable) {
+            logcat(LogPriority.ERROR, e)
+        }
+    }
+
+    /**
+     * Saves the screenshot on the pictures directory and notifies the UI of the result.
+     * There's also a notification to allow sharing the image somewhere else or deleting it.
+     */
+    fun saveImage(imageStream: () -> InputStream) {
+        val anime = stateData.value.currentAnime ?: return
+        val pos = playbackData.value.position
+
+        val context = Injekt.get<Application>()
+        val notifier = SaveImageNotifier(context)
+        notifier.onClear()
+
+        val seconds = Utils.prettyTime(pos)
+        val filename = generateFilename(anime, seconds) ?: return
+
+        // Pictures directory.
+        val relativePath = DiskUtil.buildValidFilename(anime.title)
+
+        // Copy file in background.
+        viewModelScope.launchNonCancellable {
+            try {
+                val uri = imageSaver.save(
+                    image = Image.Screenshot(
+                        inputStream = imageStream,
+                        name = filename,
+                        location = Location.Pictures(relativePath),
+                    ),
+                )
+                notifier.onComplete(uri)
+                _eventFlow.emit(Event.SavedImage(SaveImageResult.Success(uri)))
+            } catch (e: Throwable) {
+                notifier.onError(e.message)
+                _eventFlow.emit(Event.SavedImage(SaveImageResult.Error(e)))
+            }
+        }
+    }
+
+    // TODO: Make use of nodes instead of saving to cache
+    fun takeScreenshot(showSubtitles: Boolean): InputStream? {
+        val filename = context.cacheDir.path + "/${System.currentTimeMillis()}_mpv_screenshot_tmp.png"
+        val subtitleFlag = if (showSubtitles) "subtitles" else "video"
+
+        mpvCommand("screenshot-to-file", filename, subtitleFlag)
+        val tempFile = File(filename).takeIf { it.exists() } ?: return null
+        val newFile = File("${context.cacheDir.path}/mpv_screenshot.png")
+
+        newFile.delete()
+        tempFile.renameTo(newFile)
+        return newFile.takeIf { it.exists() }?.inputStream()
+    }
+
+    /**
+     * Generate a filename for the given [anime] and [timePos]
+     */
+    private fun generateFilename(
+        anime: Anime,
+        timePos: String,
+    ): String? {
+        val episode = stateData.value.currentEpisode ?: return null
+        val filenameSuffix = " - $timePos"
+        return DiskUtil.buildValidFilename(
+            "${anime.title} - ${episode.name}".takeBytes(
+                DiskUtil.MAX_FILE_NAME_BYTES - filenameSuffix.byteSize(),
+            ),
+        ) + filenameSuffix
+    }
+
+    // === Skip intro ===
+
+    fun onChapterChanged(chapterIndex: Int?) {
+        if (chapterIndex == null) return
+        if (!introSkipEnabled) return
+
+        val chapterList = mpv.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json)
+            ?: emptyList()
+        val chapter = chapterList.getOrNull(chapterIndex) ?: return
+        val chapterType = chapter.chapterType
+
+        if (chapterType == ChapterType.Other) {
+            updateUiData { it.copy(skipIntroText = null) }
+            updatePlaybackData { it.copy(netflixTimeout = null) }
+        } else {
+            if (netflixStyle) {
+                // show a toast with the seconds before the skip
+                _eventFlow.tryEmit(
+                    Event.ToastString(
+                        "Skip Intro: ${context.stringResource(
+                            AYMR.strings.player_aniskip_dontskip_toast,
+                            chapter.chapterTitle,
+                            defaultWaitingTime,
+                        )}",
+                    ),
+                )
+                updateUiData { it.copy(skipIntroText = context.stringResource(AYMR.strings.player_aniskip_dontskip)) }
+                updatePlaybackData { it.copy(netflixTimeout = defaultWaitingTime) }
+            } else if (autoSkip) {
+                skipIntro(chapter.chapterTitle)
+            } else {
+                updateSkipIntroButton(chapterType)
+            }
+        }
+    }
+
+    private fun skipIntro(chapterName: String) {
+        mpvCommand("add", "chapter", "1")
+        showSeekText(true, context.stringResource(AYMR.strings.player_intro_skipped, chapterName))
+    }
+
+    private fun updateSkipIntroButton(chapterType: ChapterType) {
+        val skipButtonString = chapterType.getStringRes()
+
+        updateUiData {
+            it.copy(
+                skipIntroText = skipButtonString?.let { s ->
+                    context.stringResource(
+                        AYMR.strings.player_skip_action,
+                        context.stringResource(s),
+                    )
+                },
+            )
+        }
+    }
+
+    fun onSkipIntro() {
+        val chapterIndex = mpv.getPropertyInt("chapter") ?: return
+        val chapterList = mpv.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json)
+            ?: emptyList()
+        val chapter = chapterList.getOrNull(chapterIndex) ?: return
+
+        updatePlaybackData { it.copy(netflixTimeout = null) }
+        if ((playbackData.value.netflixTimeout ?: 0) > 0 && netflixStyle) {
+            updateSkipIntroButton(chapter.chapterType)
+            return
+        }
+
+        skipIntro(chapter.chapterTitle)
+    }
+
+    /**
      * Returns the skipIntroLength used by this anime or the default one.
      */
     fun getAnimeSkipIntroLength(): Int {
         val default = gesturePreferences.defaultIntroLength.get()
-        val anime = currentAnime.value ?: return default
+        val anime = stateData.value.currentAnime ?: return default
         val skipIntroLength = anime.skipIntroLength
         val skipIntroDisable = anime.skipIntroDisable
         return when {
@@ -2103,43 +2695,28 @@ class PlayerViewModel @JvmOverloads constructor(
      * Updates the skipIntroLength for the open anime.
      */
     fun setAnimeSkipIntroLength(skipIntroLength: Long) {
-        val anime = currentAnime.value ?: return
+        val anime = stateData.value.currentAnime ?: return
         if (!anime.favorite) return
         // Skip unnecessary database operation
         if (skipIntroLength == getAnimeSkipIntroLength().toLong()) return
         viewModelScope.launchIO {
             setAnimeViewerFlags.awaitSetSkipIntroLength(anime.id, skipIntroLength)
-            _currentAnime.update { _ -> getAnime.await(anime.id) }
+            val newAnime = getAnime.await(anime.id)
+            updateStateData { it.copy(currentAnime = newAnime) }
         }
     }
 
     /**
-     * Generate a filename for the given [anime] and [timePos]
-     */
-    private fun generateFilename(
-        anime: Anime,
-        timePos: String,
-    ): String? {
-        val episode = currentEpisode.value ?: return null
-        val filenameSuffix = " - $timePos"
-        return DiskUtil.buildValidFilename(
-            "${anime.title} - ${episode.name}".takeBytes(
-                DiskUtil.MAX_FILE_NAME_BYTES - filenameSuffix.byteSize(),
-            ),
-        ) + filenameSuffix
-    }
-
-    /**
      * Returns the response of the AniSkipApi for this episode.
-     * just works if tracking is enabled.
+     *
+     * Only works if tracking is enabled.
      */
     suspend fun aniSkipResponse(playerDuration: Int?): List<TimeStamp>? {
-        val animeId = currentAnime.value?.id ?: return null
-        val trackerManager = Injekt.get<TrackerManager>()
+        val animeId = stateData.value.currentAnime?.id ?: return null
         var malId: Long?
-        val episodeNumber = currentEpisode.value?.episode_number?.toInt() ?: return null
+        val episodeNumber = stateData.value.currentEpisode?.episode_number?.toInt() ?: return null
         if (getTracks.await(animeId).isEmpty()) {
-            logcat { "AniSkip: No tracks found for anime $animeId" }
+            logcat(LogPriority.DEBUG) { "AniSkip: No tracks found for anime $animeId" }
             return null
         }
 
@@ -2158,111 +2735,146 @@ class PlayerViewModel @JvmOverloads constructor(
         return null
     }
 
-    val introSkipEnabled = playerPreferences.enableSkipIntro.get()
-    private val autoSkip = playerPreferences.autoSkipIntro.get()
-    private val netflixStyle = playerPreferences.enableNetflixStyleIntroSkip.get()
+    // === Misc ===
 
-    private val defaultWaitingTime = playerPreferences.waitingTimeIntroSkip.get()
-
-    fun onChapterChanged(chapterIndex: Int?) {
-        if (chapterIndex == null) return
-        if (!introSkipEnabled) return
-
-        val chapterList = (mpv.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json) ?: emptyList())
-        val chapter = chapterList.getOrNull(chapterIndex) ?: return
-        val chapterType = chapter.chapterType
-
-        if (chapterType == ChapterType.Other) {
-            _skipIntroText.update { _ -> null }
-            netflixTimeout.update { _ -> null }
-        } else {
-            if (netflixStyle) {
-                // show a toast with the seconds before the skip
-                eventChannel.trySend(
-                    Event.ShowToastString(
-                        "Skip Intro: ${context.applicationContext.stringResource(
-                            AYMR.strings.player_aniskip_dontskip_toast,
-                            chapter.chapterTitle,
-                            defaultWaitingTime,
-                        )}",
-                    ),
-                )
-                _skipIntroText.update { _ ->
-                    context.applicationContext.stringResource(AYMR.strings.player_aniskip_dontskip)
-                }
-                netflixTimeout.update { _ -> defaultWaitingTime }
-            } else if (autoSkip) {
-                skipIntro(chapter.chapterTitle)
-            } else {
-                updateSkipIntroButton(chapterType)
+    /**
+     * Starts a sleep timer/cancels the current timer if [seconds] is less than 1.
+     */
+    fun startTimer(seconds: Int) {
+        timerJob?.cancel()
+        updatePlaybackData { it.copy(remainingTime = seconds) }
+        if (seconds < 1) return
+        timerJob = viewModelScope.launch {
+            for (time in seconds downTo 0) {
+                updatePlaybackData { it.copy(remainingTime = time) }
+                delay(1.seconds)
             }
+            setPropertyBoolean("pause", true)
+            _eventFlow.emit(Event.ToastResource(AYMR.strings.toast_sleep_timer_ended))
         }
     }
 
-    private fun skipIntro(chapterName: String) {
-        mpv.command("add", "chapter", "1")
-        showSeekText(true, context.applicationContext.stringResource(AYMR.strings.player_intro_skipped, chapterName))
+    // === Data ===
+    @Stable
+    data class PlayerStateData(
+        val isStopped: Boolean = false,
+        val hasTrackers: Boolean = false,
+        val incognitoMode: Boolean = false,
+        val currentPlaylist: List<Episode> = emptyList(),
+        val currentPlaylistIndex: Int = -1,
+        val hasPreviousEpisode: Boolean = false,
+        val hasNextEpisode: Boolean = false,
+        val isEpisodeOnline: Boolean = false,
+        val currentEpisode: Episode? = null,
+        val currentAnime: Anime? = null,
+        val currentSource: AnimeSource? = null,
+        val currentVideo: Video? = null,
+        val videoHeight: Int = 0,
+        val videoWidth: Int = 0,
+        val maxVolume: Int,
+        val volumeBoostCap: Int? = null,
+        val hasLoadedTracks: Boolean = false,
+        val hasLoadedSubs: Boolean = false,
+        val hasLoadedAudio: Boolean = false,
+        val chapters: List<Segment> = emptyList(),
+        val subtitleTracks: List<TrackNode> = emptyList(),
+        val audioTracks: List<TrackNode> = emptyList(),
+        val externalSubtitleTracks: List<VideoTrack.External> = emptyList(),
+        val externalAudioTracks: List<VideoTrack.External> = emptyList(),
+        val hosterList: List<Hoster> = emptyList(),
+        val hosterState: List<HosterState> = emptyList(),
+        val isPipAvailable: Boolean = false,
+    )
+
+    @Stable
+    data class PlayerUiData(
+        val isLoadingHosters: Boolean = false,
+        val isLoadingEpisode: Boolean = false,
+        val previousPauseState: Boolean? = false,
+        val hosterExpandedList: List<Boolean> = emptyList(),
+        val selectedHosterVideoIndex: Pair<Int, Int> = Pair(-1, -1),
+        val mediaTitle: String = "",
+        val animeTitle: String = "",
+        val controlsShown: Boolean = true,
+        val statusBarShown: Boolean = false,
+        val seekBarShown: Boolean = true,
+        val isControlsLocked: Boolean = false,
+        val playerUpdate: PlayerUpdates = PlayerUpdates.None,
+        val isBrightnessSliderShown: Boolean = false,
+        val isVolumeSliderShown: Boolean = false,
+        val sheetShown: Sheets = Sheets.None,
+        val panelShown: Panels = Panels.None,
+        val dialogShown: Dialogs = Dialogs.None,
+        val dismissSheet: Boolean = false,
+        val fontList: List<String> = emptyList(),
+        val customButtons: List<CustomButton> = emptyList(),
+        val primaryButtonTitle: String = "",
+        val primaryButton: CustomButton? = null,
+        val skipIntroText: String? = null,
+
+        // Prefs
+        val reduceMotion: Boolean = false,
+        val playerTimeToDisappearMs: Int = 4000,
+        val swapVolumeAndBrightness: Boolean = false,
+        val boostCap: Int = 30,
+        val displayVolumeAsPercentage: Boolean = true,
+        val showLoadingCircle: Boolean = true,
+        val invertDuration: Boolean = false,
+        val smoothSeeking: Boolean = false,
+        val autoPlayEnabled: Boolean = false,
+        val showChapterIndicator: Boolean = true,
+        val playerSpeedPref: Float = 1f,
+    )
+
+    @Stable
+    data class PlayerPlaybackData(
+        val paused: Boolean = false,
+        val position: Int = 0,
+        val duration: Int = 0,
+        val currentVolume: Int,
+        val currentBrightness: Float,
+        val currentOrientation: Int? = null,
+        val isSeeking: Boolean = false,
+        val seekText: String? = null,
+        val doubleTapSeekAmount: Int = 0,
+        val isSeekingForwards: Boolean = false,
+        val gestureSeekAmount: Pair<Int, Int>? = null,
+        val remainingTime: Int = 0,
+        val netflixTimeout: Int? = null,
+    )
+
+    sealed interface PlayerEvent {
+        data object ChangeAspect : PlayerEvent
+        data class ChangeSpeed(val value: Float) : PlayerEvent
+        data object CycleRotation : PlayerEvent
+        data object EnterPip : PlayerEvent
+        data class ExecuteCustomButton(val long: Boolean) : PlayerEvent
+        data class LockControls(val lock: Boolean) : PlayerEvent
+        data class NextEpisode(val next: Boolean) : PlayerEvent
+        data object PlayPause : PlayerEvent
+        data class Seek(val position: Int) : PlayerEvent
+        data object SeekFinished : PlayerEvent
+        data class SetAutoPlay(val value: Boolean) : PlayerEvent
+        data class SetPanel(val panel: Panels) : PlayerEvent
+        data class SetSheet(val sheet: Sheets) : PlayerEvent
+        data class ShowBrightnessSlider(val show: Boolean) : PlayerEvent
+        data object ShowEpisodeDialog : PlayerEvent
+        data class ShowPlayerUpdate(val update: PlayerUpdates) : PlayerEvent
+        data class ShowVolumeSlider(val show: Boolean) : PlayerEvent
+        data object SkipIntro : PlayerEvent
+        data object ToggleDurationTimer : PlayerEvent
     }
 
-    private fun updateSkipIntroButton(chapterType: ChapterType) {
-        val skipButtonString = chapterType.getStringRes()
-
-        _skipIntroText.update { _ ->
-            skipButtonString?.let {
-                context.applicationContext.stringResource(
-                    AYMR.strings.player_skip_action,
-                    context.applicationContext.stringResource(skipButtonString),
-                )
-            }
-        }
+    sealed interface Event {
+        data object EnterPip : Event
+        data object Finish : Event
+        data class InitialEpisodeError(val error: Throwable) : Event
+        data class SavedImage(val result: SaveImageResult) : Event
+        data class SetArtResult(val result: SetAsArt, val artType: ArtType) : Event
+        data class SetKeyboard(val show: Boolean) : Event
+        data class ShareImage(val uri: Uri, val seconds: String) : Event
+        data class ToastResource(val stringRes: StringResource) : Event
+        data class ToastString(val string: String) : Event
+        data object ToggleKeyboard : Event
     }
-
-    fun onSkipIntro() {
-        val chapterIndex = mpv.getPropertyInt("chapter") ?: return
-        val chapterList = (mpv.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json) ?: emptyList())
-        val chapter = chapterList.getOrNull(chapterIndex) ?: return
-
-        if ((netflixTimeout.value ?: 0) > 0 && netflixStyle) {
-            netflixTimeout.update { _ -> null }
-            updateSkipIntroButton(chapter.chapterType)
-            return
-        }
-
-        netflixTimeout.update { _ -> null }
-        skipIntro(chapter.chapterTitle)
-    }
-
-    fun setPrimaryCustomButtonTitle(button: CustomButton) {
-        _primaryButtonTitle.update { _ -> button.name }
-    }
-
-    sealed class Event {
-        data class SetArtResult(val result: SetAsArt, val artType: ArtType) : Event()
-        data class SavedImage(val result: SaveImageResult) : Event()
-        data class ShareImage(val uri: Uri, val seconds: String) : Event()
-        data class ShowToast(val stringResource: StringResource) : Event()
-        data class ShowToastString(val string: String) : Event()
-        data class ChangeEpisode(val episodeId: Long, val autoPlay: Boolean) : Event()
-        data class SetVideo(val video: Video?) : Event()
-        data class SetStatusBar(val show: Boolean) : Event()
-        data class SetBrightness(val brightness: Float) : Event()
-        data class ChangeVideoAspect(val aspect: VideoAspect) : Event()
-        data object CycleRotations : Event()
-        data object ToggleKeyboard : Event()
-        data class SetKeyboard(val show: Boolean) : Event()
-    }
-}
-
-private val FONT_EXTENSION_REGEX = Regex($$""".*\.[ot]tf$""")
-
-fun CustomButton.execute(mpv: MPV) {
-    mpv.command("script-message", "call_button_$id")
-}
-
-fun CustomButton.executeLongPress(mpv: MPV) {
-    mpv.command("script-message", "call_button_${id}_long")
-}
-
-fun Float.normalize(inMin: Float, inMax: Float, outMin: Float, outMax: Float): Float {
-    return (this - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
 }

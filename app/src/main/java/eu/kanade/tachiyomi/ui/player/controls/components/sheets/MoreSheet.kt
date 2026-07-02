@@ -87,7 +87,7 @@ fun MoreSheet(
     onAudioChannelsChange: (AudioChannels) -> Unit,
     onDismissRequest: () -> Unit,
     onEnterFiltersPanel: () -> Unit,
-    customButtons: ImmutableList<CustomButton>,
+    customButtons: List<CustomButton>,
     modifier: Modifier = Modifier,
 ) {
     PlayerSheet(

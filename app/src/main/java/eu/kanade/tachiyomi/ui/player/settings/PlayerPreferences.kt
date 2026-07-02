@@ -31,7 +31,7 @@ class PlayerPreferences(
     val rememberPlayerBrightness: Preference<Boolean> = preferenceStore.getBoolean("pref_remember_brightness", false)
     val playerBrightnessValue: Preference<Float> = preferenceStore.getFloat("player_brightness_value", -1.0F)
     val rememberPlayerVolume: Preference<Boolean> = preferenceStore.getBoolean("pref_remember_volume", false)
-    val playerVolumeValue: Preference<Float> = preferenceStore.getFloat("player_volume_value", -1.0F)
+    val playerVolumeValue: Preference<Int> = preferenceStore.getInt("player_volume_value_v2", -1)
 
     // Hoster
 

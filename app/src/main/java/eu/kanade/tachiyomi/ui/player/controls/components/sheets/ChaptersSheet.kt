@@ -38,7 +38,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun ChaptersSheet(
-    chapters: ImmutableList<Segment>,
+    chapters: List<Segment>,
     currentChapter: Segment,
     onClick: (Segment) -> Unit,
     onDismissRequest: () -> Unit,

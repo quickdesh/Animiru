@@ -38,7 +38,6 @@ import eu.kanade.presentation.anime.components.DotSeparatorText
 import eu.kanade.presentation.util.formatEpisodeNumber
 import eu.kanade.tachiyomi.data.database.models.Episode
 import eu.kanade.tachiyomi.util.lang.toRelativeString
-import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.VerticalFastScroller
@@ -48,13 +47,12 @@ import tachiyomi.presentation.core.i18n.stringResource
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun EpisodeListDialog(
     displayMode: Long?,
     currentEpisodeIndex: Int,
-    episodeList: ImmutableList<Episode>,
+    episodeList: List<Episode>,
     dateRelativeTime: Boolean,
     dateFormat: String,
     onBookmarkClicked: (Long?, Boolean) -> Unit,
@@ -63,6 +61,7 @@ fun EpisodeListDialog(
     onDismissRequest: () -> Unit,
 ) {
     val context = LocalContext.current
+
     val itemScrollIndex = (episodeList.size - currentEpisodeIndex) - 1
     val episodeListState = rememberLazyListState(initialFirstVisibleItemIndex = itemScrollIndex)
     val dateFormatter = remember(dateFormat) { UiPreferences.dateFormat(dateFormat) }

@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.ui.player
+package eu.kanade.tachiyomi.ui.player.mpv
 
 import androidx.compose.runtime.Immutable
 import dev.vivvvek.seeker.Segment
@@ -89,6 +89,12 @@ data class TrackNode(
     fun getMetadata(key: String): String? = metadata?.get(key)
     fun hasMetadata(): Boolean = !metadata.isNullOrEmpty()
 }
+
+@Serializable
+data class VideoParamNode(
+    @SerialName("w") val width: Long? = null,
+    @SerialName("h") val height: Long? = null,
+)
 
 enum class TrackState {
     Idle,

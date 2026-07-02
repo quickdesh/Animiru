@@ -43,7 +43,7 @@ import kotlinx.collections.immutable.ImmutableList
 @Composable
 fun ExposedTextDropDownMenu(
     selectedValue: String,
-    options: ImmutableList<String>,
+    options: List<String>,
     label: String,
     onValueChangedEvent: (String) -> Unit,
     modifier: Modifier = Modifier,

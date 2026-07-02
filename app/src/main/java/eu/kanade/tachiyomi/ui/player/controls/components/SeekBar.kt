@@ -73,7 +73,7 @@ fun SeekbarWithTimers(
     timersInverted: Pair<Boolean, Boolean>,
     positionTimerOnClick: () -> Unit,
     durationTimerOnCLick: () -> Unit,
-    chapters: ImmutableList<Segment>,
+    chapters: List<Segment>,
     modifier: Modifier = Modifier,
 ) {
     val clickEvent = LocalPlayerButtonsClickEvent.current

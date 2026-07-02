@@ -15,7 +15,7 @@ fun PlayerDialogs(
     // Episode list
     episodeDisplayMode: Long?,
     currentEpisodeIndex: Int,
-    episodeList: ImmutableList<Episode>,
+    episodeList: List<Episode>,
     dateRelativeTime: Boolean,
     dateFormat: String,
     onBookmarkClicked: (Long?, Boolean) -> Unit,

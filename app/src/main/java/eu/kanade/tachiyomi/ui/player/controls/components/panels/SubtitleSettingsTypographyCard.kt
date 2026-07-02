@@ -78,7 +78,7 @@ fun SubtitleSettingsTypographyCard(
     isItalic: Boolean,
     justify: SubtitleJustification,
     font: String,
-    fontList: ImmutableList<String>,
+    fontList: List<String>,
     fontSize: Int,
     borderStyle: SubtitlesBorderStyle,
     borderSize: Int,
@@ -260,17 +260,19 @@ fun SubtitleSettingsTypographyCard(
 }
 
 fun resetTypography(
-    mpv: MPV,
+    setStringValue: (String, String) -> Unit,
+    setBooleanValue: (String, Boolean) -> Unit,
+    setIntValue: (String, Int) -> Unit,
     preferences: SubtitlePreferences,
 ) {
-    mpv.setPropertyBoolean("sub-bold", preferences.boldSubtitles.deleteAndGet())
-    mpv.setPropertyBoolean("sub-italic", preferences.italicSubtitles.deleteAndGet())
-    mpv.setPropertyString("sub-justify", preferences.subtitleJustification.deleteAndGet().value)
-    mpv.setPropertyString("sub-font", preferences.subtitleFont.deleteAndGet())
-    mpv.setPropertyInt("sub-font-size", preferences.subtitleFontSize.deleteAndGet())
-    mpv.setPropertyInt("sub-outline-size", preferences.subtitleBorderSize.deleteAndGet())
-    mpv.setPropertyInt("sub-shadow-offset", preferences.shadowOffsetSubtitles.deleteAndGet())
-    mpv.setPropertyString("sub-border-style", preferences.borderStyleSubtitles.deleteAndGet().value)
+    setBooleanValue("sub-bold", preferences.boldSubtitles.deleteAndGet())
+    setBooleanValue("sub-italic", preferences.italicSubtitles.deleteAndGet())
+    setStringValue("sub-justify", preferences.subtitleJustification.deleteAndGet().value)
+    setStringValue("sub-font", preferences.subtitleFont.deleteAndGet())
+    setIntValue("sub-font-size", preferences.subtitleFontSize.deleteAndGet())
+    setIntValue("sub-outline-size", preferences.subtitleBorderSize.deleteAndGet())
+    setIntValue("sub-shadow-offset", preferences.shadowOffsetSubtitles.deleteAndGet())
+    setStringValue("sub-border-style", preferences.borderStyleSubtitles.deleteAndGet().value)
 }
 
 enum class SubtitlesBorderStyle(
