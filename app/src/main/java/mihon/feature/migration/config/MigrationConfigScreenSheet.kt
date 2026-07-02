@@ -202,16 +202,16 @@ private fun MigrationSheetSwitchItem(
     onClick: () -> Unit,
 ) {
     ListItem(
-        headlineContent = { Text(text = title) },
-        supportingContent = subtitle?.let { { Text(text = subtitle) } },
+        modifier = Modifier.clickable(onClick = onClick),
         trailingContent = {
             Switch(
                 checked = checked,
                 onCheckedChange = null,
             )
         },
+        supportingContent = subtitle?.let { { Text(text = subtitle) } },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        modifier = Modifier.clickable(onClick = onClick),
+        content = { Text(text = title) },
     )
 }
 
@@ -232,13 +232,12 @@ private fun MigrationSheetWarningItem(
                 tint = MaterialTheme.colorScheme.active,
             )
         },
-        headlineContent = {
-            Text(
-                text = text,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier,
-            )
-        },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-    )
+    ) {
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier,
+        )
+    }
 }

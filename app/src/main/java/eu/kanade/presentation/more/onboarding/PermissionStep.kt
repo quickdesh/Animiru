@@ -137,8 +137,6 @@ internal class PermissionStep : OnboardingStep {
     ) {
         ListItem(
             modifier = modifier,
-            headlineContent = { Text(text = title) },
-            supportingContent = { Text(text = subtitle) },
             trailingContent = {
                 OutlinedButton(
                     enabled = !granted,
@@ -155,7 +153,9 @@ internal class PermissionStep : OnboardingStep {
                     }
                 }
             },
+            supportingContent = { Text(text = subtitle) },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            content = { Text(text = title) },
         )
     }
 
@@ -169,15 +169,15 @@ internal class PermissionStep : OnboardingStep {
     ) {
         ListItem(
             modifier = modifier,
-            headlineContent = { Text(text = title) },
-            supportingContent = { Text(text = subtitle) },
             trailingContent = {
                 Switch(
                     checked = granted,
                     onCheckedChange = onToggleChange,
                 )
             },
+            supportingContent = { Text(text = subtitle) },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            content = { Text(text = title) },
         )
     }
 }
