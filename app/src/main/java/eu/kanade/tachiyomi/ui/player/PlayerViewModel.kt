@@ -746,11 +746,10 @@ class PlayerViewModel @JvmOverloads constructor(
         updateStateData { it.copy(currentPlaylist = filtered.toList()) }
     }
 
-    private fun isEpisodeOnline(): Boolean? {
+    private fun isEpisodeOnline(episode: Episode): Boolean? {
         val currentState = stateData.value
 
         val anime = currentState.currentAnime ?: return null
-        val episode = currentState.currentEpisode ?: return null
         val source = currentState.currentSource ?: return null
         return source is AnimeHttpSource &&
             !EpisodeLoader.isDownload(
@@ -770,7 +769,7 @@ class PlayerViewModel @JvmOverloads constructor(
             it.copy(
                 currentEpisode = episode,
                 currentPlaylistIndex = currentEpisodeIndex,
-                isEpisodeOnline = isEpisodeOnline() == true,
+                isEpisodeOnline = isEpisodeOnline(episode) == true,
                 hasPreviousEpisode = currentEpisodeIndex != 0,
                 hasNextEpisode = currentEpisodeIndex != currentState.currentPlaylist.size - 1,
             )
