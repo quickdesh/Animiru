@@ -29,6 +29,7 @@ import eu.kanade.tachiyomi.ui.player.components.BrightnessOverlay
 import eu.kanade.tachiyomi.ui.player.components.MpvSurface
 import eu.kanade.tachiyomi.ui.player.components.OrientationOverlay
 import eu.kanade.tachiyomi.ui.player.components.SystemAwakeOverlay
+import eu.kanade.tachiyomi.ui.player.components.SystemBarOverlay
 import eu.kanade.tachiyomi.ui.player.controls.DoubleTapToSeekOvals
 import eu.kanade.tachiyomi.ui.player.controls.GestureHandler
 import eu.kanade.tachiyomi.ui.player.controls.LocalPlayerButtonsClickEvent
@@ -127,6 +128,10 @@ fun PlayerScreen(
 
         BrightnessOverlay(
             brightness = playbackData.currentBrightness,
+        )
+
+        SystemBarOverlay(
+            showStatusBar = uiData.statusBarShown
         )
 
         var resetControls by remember { mutableStateOf(true) }
