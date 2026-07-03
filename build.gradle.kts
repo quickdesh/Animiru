@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.moko.resources) apply false
     alias(libs.plugins.sqldelight) apply false
+    alias(libs.plugins.stability.analyzer) apply false
 
     alias(mihonx.plugins.spotless)
 }

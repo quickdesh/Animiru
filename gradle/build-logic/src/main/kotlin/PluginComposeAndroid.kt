@@ -16,6 +16,7 @@ class PluginComposeAndroid : Plugin<Project> {
     override fun apply(target: Project): Unit = with(target) {
         plugins {
             alias(libs.plugins.kotlin.compose.compiler)
+            alias(libs.plugins.stability.analyzer)
         }
 
         android {
