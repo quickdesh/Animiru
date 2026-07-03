@@ -87,7 +87,7 @@ fun PlayerScreen(
         val pausedForCache by viewModel.propFlow<Boolean>("paused-for-cache").collectAsStateWithLifecycle()
         val coreIdle by viewModel.propFlow<Boolean>("core-idle").collectAsStateWithLifecycle()
         val readAhead by viewModel.propFlow<Float>("demuxer-cache-time").collectAsStateWithLifecycle()
-        val remaining by viewModel.propFlow<Float>("playtime-remaining").collectAsStateWithLifecycle()
+        val remaining by viewModel.propFlow<Int>("playtime-remaining").collectAsStateWithLifecycle()
         val playbackSpeed by viewModel.propFlow<Float>("speed").collectAsStateWithLifecycle()
         val currentChapter by viewModel.propFlow<Int>("chapter").collectAsStateWithLifecycle()
 

@@ -61,7 +61,7 @@ fun PlayerControls(
     pausedForCache: Boolean?,
     coreIdle: Boolean?,
     readAhead: Float?,
-    remaining: Float?,
+    remaining: Int?,
     playbackSpeed: Float?,
     currentChapter: Int?,
     modifier: Modifier = Modifier,
@@ -282,7 +282,7 @@ fun PlayerControls(
                 SeekbarWithTimers(
                     position = playbackData.position.toFloat(),
                     duration = playbackData.duration.toFloat(),
-                    remaining = remaining ?: 0f,
+                    remaining = remaining?.toFloat() ?: 0f,
                     readAheadValue = readAhead ?: 0f,
                     onValueChange = { onPlayerEvent(PlayerEvent.Seek(it.roundToInt())) },
                     onValueChangeFinished = { onPlayerEvent(PlayerEvent.SeekFinished) },
@@ -448,7 +448,7 @@ private fun PlayerControlsPreview() {
             pausedForCache = false,
             coreIdle = false,
             readAhead = 0f,
-            remaining = 0f,
+            remaining = 0,
             playbackSpeed = 1f,
             currentChapter = 0,
         )
