@@ -387,6 +387,7 @@ class MPVPlayer(
     }
 
     fun release() {
+        if (isExiting) return
         isExiting = true
 
         audioFocusRequest?.let {

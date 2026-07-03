@@ -47,6 +47,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -90,6 +92,7 @@ class PlayerActivity : BaseActivity() {
     // private val connectionPreferences: ConnectionPreferences = Injekt.get()
     // <-- AM (DISCORD_RPC)
 
+    private var isResumed: Boolean = false
     private var pipRect: Rect? = null
     val isPipSupportedAndEnabled by lazy {
         packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) &&
@@ -243,7 +246,7 @@ class PlayerActivity : BaseActivity() {
                 PlayerScreen(
                     viewModel = viewModel,
                     onBack = {
-                        if (isPipSupportedAndEnabled && viewModel.playbackData.value.paused &&
+                        if (isPipSupportedAndEnabled && !viewModel.playbackData.value.paused &&
                             playerPreferences.pipOnExit.get()
                         ) {
                             enterPictureInPictureMode(createPipParams())
@@ -251,7 +254,17 @@ class PlayerActivity : BaseActivity() {
                             finish()
                         }
                     },
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().onGloballyPositioned {
+                        pipRect = run {
+                            val boundsInWindow = it.boundsInWindow()
+                            Rect(
+                                boundsInWindow.left.toInt(),
+                                boundsInWindow.top.toInt(),
+                                boundsInWindow.right.toInt(),
+                                boundsInWindow.bottom.toInt(),
+                            )
+                        }
+                    },
                 )
             }
         }
@@ -276,6 +289,7 @@ class PlayerActivity : BaseActivity() {
     }
 
     override fun onPause() {
+        isResumed = false
         viewModel.saveCurrentEpisodeWatchingProgress()
 
         if (isInPictureInPictureMode) {
@@ -337,6 +351,7 @@ class PlayerActivity : BaseActivity() {
     }
 
     override fun onResume() {
+        isResumed = true
         if (!viewModel.isPlayerExiting()) {
             super.onResume()
             return
@@ -395,11 +410,12 @@ class PlayerActivity : BaseActivity() {
         )
         builder.setSourceRectHint(pipRect)
         viewModel.stateData.value.let {
-            if (it.videoWidth > 0 && it.videoHeight > 0) {
-                builder.setAspectRatio(
-                    Rational(it.videoWidth, it.videoHeight),
-                )
+            val rational = if (it.videoWidth > 0 && it.videoHeight > 0) {
+                Rational(it.videoWidth, it.videoHeight)
+            } else {
+                Rational(16, 9)
             }
+            builder.setAspectRatio(rational)
         }
         return builder.build()
     }
@@ -411,6 +427,16 @@ class PlayerActivity : BaseActivity() {
                 unregisterReceiver(pipReceiver)
                 pipReceiver = null
             }
+
+            window.decorView.postDelayed(
+                {
+                    if (!isResumed) {
+                        viewModel.player.release()
+                        finish()
+                    }
+                },
+                100,
+            )
         } else {
             setPictureInPictureParams(createPipParams())
             viewModel.hideControls()
