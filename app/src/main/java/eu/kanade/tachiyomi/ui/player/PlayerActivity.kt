@@ -206,6 +206,11 @@ class PlayerActivity : BaseActivity() {
                     PlayerViewModel.Event.EnterPip -> {
                         enterPictureInPictureMode(createPipParams())
                     }
+                    is PlayerViewModel.Event.EpisodeTitle -> {
+                        if (isInPictureInPictureMode) {
+                            showToast(event.name)
+                        }
+                    }
                     PlayerViewModel.Event.Finish -> {
                         finish()
                     }

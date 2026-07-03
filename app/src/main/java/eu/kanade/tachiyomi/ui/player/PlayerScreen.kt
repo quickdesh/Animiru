@@ -131,7 +131,7 @@ fun PlayerScreen(
         )
 
         SystemBarOverlay(
-            showStatusBar = uiData.statusBarShown
+            showStatusBar = uiData.statusBarShown,
         )
 
         var resetControls by remember { mutableStateOf(true) }

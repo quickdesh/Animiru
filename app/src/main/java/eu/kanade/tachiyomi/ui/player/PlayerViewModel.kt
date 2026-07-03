@@ -1722,7 +1722,7 @@ class PlayerViewModel @JvmOverloads constructor(
             }
 
             if (pipEpisodeToasts) {
-                _eventFlow.emit(Event.ToastString(switchMethod.episodeTitle))
+                _eventFlow.emit(Event.EpisodeTitle(switchMethod.episodeTitle))
             }
         }
     }
@@ -2866,6 +2866,7 @@ class PlayerViewModel @JvmOverloads constructor(
 
     sealed interface Event {
         data object EnterPip : Event
+        data class EpisodeTitle(val name: String) : Event
         data object Finish : Event
         data class InitialEpisodeError(val error: Throwable) : Event
         data class SavedImage(val result: SaveImageResult) : Event
