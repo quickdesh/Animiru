@@ -1738,8 +1738,16 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun pauseUnpause() = mpvCommand("cycle", "pause")
-    fun pause() = setPropertyBoolean("pause", true)
-    fun unpause() = setPropertyBoolean("pause", false)
+    fun pause() {
+        setPropertyBoolean("pause", true)
+
+        // PiP needs to know the state immediately, so we update it here
+        updatePlaybackData { it.copy(paused = true) }
+    }
+    fun unpause() {
+        setPropertyBoolean("pause", false)
+        updatePlaybackData { it.copy(paused = false) }
+    }
 
     private val showStatusBar = playerPreferences.showSystemStatusBar.get()
     fun showControls() {
