@@ -52,6 +52,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.theme.TachiyomiTheme
@@ -433,16 +434,23 @@ class PlayerActivity : BaseActivity() {
                 pipReceiver = null
             }
 
-            window.decorView.postDelayed(
-                {
-                    if (!isResumed) {
+            if (lifecycle.currentState == Lifecycle.State.CREATED) {
+                window.decorView.postDelayed(
+                    {
                         viewModel.player.release()
                         finish()
-                    }
-                },
-                100,
-            )
+                    },
+                    100,
+                )
+            } else {
+                window.attributes = window.attributes.apply {
+                    screenBrightness = viewModel.playbackData.value.currentBrightness.coerceIn(0f, 1f)
+                }
+            }
         } else {
+            window.attributes = window.attributes.apply {
+                screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+            }
             setPictureInPictureParams(createPipParams())
             viewModel.hideControls()
             viewModel.hideSeekBar()
