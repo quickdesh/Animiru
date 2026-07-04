@@ -93,7 +93,6 @@ class PlayerActivity : BaseActivity() {
     // private val connectionPreferences: ConnectionPreferences = Injekt.get()
     // <-- AM (DISCORD_RPC)
 
-    private var isResumed: Boolean = false
     private var pipRect: Rect? = null
     val isPipSupportedAndEnabled by lazy {
         packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) &&
@@ -295,7 +294,6 @@ class PlayerActivity : BaseActivity() {
     }
 
     override fun onPause() {
-        isResumed = false
         viewModel.saveCurrentEpisodeWatchingProgress()
 
         if (isInPictureInPictureMode) {
@@ -357,7 +355,6 @@ class PlayerActivity : BaseActivity() {
     }
 
     override fun onResume() {
-        isResumed = true
         if (!viewModel.isPlayerExiting()) {
             super.onResume()
             return
