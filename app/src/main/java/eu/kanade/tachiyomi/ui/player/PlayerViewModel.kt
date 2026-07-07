@@ -1094,7 +1094,9 @@ class PlayerViewModel @JvmOverloads constructor(
         }
 
         logcat(LogPriority.ERROR) { errorMessage }
-        _eventFlow.tryEmit(Event.ToastString(errorMessage))
+        viewModelScope.launch {
+            _eventFlow.emit(Event.ToastString(errorMessage))
+        }
 
         setCurrentVideoError()
 
@@ -1112,10 +1114,16 @@ class PlayerViewModel @JvmOverloads constructor(
         val currentHosterState = (stateData.value.hosterState[hosterIdx] as? HosterState.Ready) ?: return
         val currentVideo = currentHosterState.videoList[videoIdx]
 
-        updateHosterStateAt(
-            index = hosterIdx,
-            state = currentHosterState.getChangedAt(videoIdx, currentVideo, Video.State.ERROR),
-        )
+        updateStateData {
+            it.copy(
+                currentVideo = null,
+                hosterState = getHosterStateAt(
+                    hosters = it.hosterState,
+                    index = hosterIdx,
+                    state = currentHosterState.getChangedAt(videoIdx, currentVideo, Video.State.ERROR),
+                ),
+            )
+        }
     }
 
     fun onVideoClicked(hosterIndex: Int, videoIndex: Int) {
@@ -2629,15 +2637,17 @@ class PlayerViewModel @JvmOverloads constructor(
         } else {
             if (netflixStyle) {
                 // show a toast with the seconds before the skip
-                _eventFlow.tryEmit(
-                    Event.ToastString(
-                        "Skip Intro: ${context.stringResource(
-                            AYMR.strings.player_aniskip_dontskip_toast,
-                            chapter.chapterTitle,
-                            defaultWaitingTime,
-                        )}",
-                    ),
-                )
+                viewModelScope.launch {
+                    _eventFlow.emit(
+                        Event.ToastString(
+                            "Skip Intro: ${context.stringResource(
+                                AYMR.strings.player_aniskip_dontskip_toast,
+                                chapter.chapterTitle,
+                                defaultWaitingTime,
+                            )}",
+                        ),
+                    )
+                }
                 updateUiData { it.copy(skipIntroText = context.stringResource(AYMR.strings.player_aniskip_dontskip)) }
                 updatePlaybackData { it.copy(netflixTimeout = defaultWaitingTime) }
             } else if (autoSkip) {
