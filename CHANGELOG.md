@@ -15,7 +15,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - Added option to skip broken tracks on download ([@Secozzi](https://github.com/Secozzi)) ([#169](https://github.com/quickdesh/Animiru/pull/169))
 
 ### Other
-- Refactor video player code ([@Secozzi](https://github.com/Secozzi)) ([#170](https://github.com/quickdesh/Animiru/pull/170))
+- Refactor video player code ([@Secozzi](https://github.com/Secozzi)) ([#167](https://github.com/quickdesh/Animiru/pull/167))
 
 ## [v0.19.7.7] - 2026-06-24
 ### Fixed
