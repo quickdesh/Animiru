@@ -12,6 +12,13 @@ class DownloadPreferences(
         true,
     )
 
+    // AM -->
+    val ignoreBrokenTracks: Preference<Boolean> = preferenceStore.getBoolean(
+        "pref_download_ignore_broken_tracks",
+        false,
+    )
+    // <-- AM
+
     // AY -->
     val useExternalDownloader: Preference<Boolean> = preferenceStore.getBoolean("use_external_downloader", false)
 

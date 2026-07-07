@@ -19,6 +19,8 @@ import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.library.LibraryUpdateNotifier
 import eu.kanade.tachiyomi.data.notification.NotificationHandler
+import eu.kanade.tachiyomi.network.NetworkHelper
+import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.ui.player.loader.EpisodeLoader
 import eu.kanade.tachiyomi.ui.player.loader.HosterLoader
 import eu.kanade.tachiyomi.util.storage.DiskUtil
@@ -48,6 +50,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.suspendCancellableCoroutine
 import logcat.LogPriority
+import okhttp3.Headers
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.extension
 import tachiyomi.core.common.util.lang.launchIO
@@ -64,6 +69,7 @@ import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.injectLazy
 import java.io.BufferedReader
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -105,6 +111,12 @@ class Downloader(
      */
     val isRunning: Boolean
         get() = downloaderJob?.isActive ?: false
+
+    // AM -->
+    val networkService: NetworkHelper by injectLazy()
+    val client: OkHttpClient
+        get() = networkService.client
+    // <-- AM
 
     /**
      * Whether the downloader is paused
@@ -533,7 +545,7 @@ class Downloader(
             "${it.first}: ${it.second}\r\n"
         }
 
-        val ffmpegOptions = getFFmpegOptions(video, headerOptions, ffmpegFilename())
+        val ffmpegOptions = getFFmpegOptions(video, headers, headerOptions, ffmpegFilename())
         val duration = getDuration(video.videoUrl, headerOptions)?.toLong() ?: 0L
 
         val logCallback = LogCallback { log ->
@@ -574,7 +586,14 @@ class Downloader(
         }
     }
 
-    private fun getFFmpegOptions(video: Video, headerOptions: String, ffmpegFilename: String): Array<String> {
+    private suspend fun getFFmpegOptions(
+        video: Video,
+        // AM -->
+        headers: Headers,
+        // <-- AM
+        headerOptions: String,
+        ffmpegFilename: String,
+    ): Array<String> {
         fun formatInputs(tracks: List<Track>) = tracks.joinToString(" ", postfix = " ") {
             buildList {
                 if (it.url.startsWith("http")) {
@@ -593,13 +612,19 @@ class Downloader(
             "-metadata:s:$type:$i \"title=${track.lang}\""
         }.joinToString(" ")
 
-        val subtitleInputs = formatInputs(video.subtitleTracks)
-        val subtitleMaps = formatMaps(video.subtitleTracks, "s")
-        val subtitleMetadata = formatMetadata(video.subtitleTracks, "s")
+        // AM -->
+        val subtitleTracks = filterTracks(video.subtitleTracks, headers)
+        // <-- AM
+        val subtitleInputs = formatInputs(subtitleTracks)
+        val subtitleMaps = formatMaps(subtitleTracks, "s")
+        val subtitleMetadata = formatMetadata(subtitleTracks, "s")
 
-        val audioInputs = formatInputs(video.audioTracks)
-        val audioMaps = formatMaps(video.audioTracks, "a", video.subtitleTracks.size)
-        val audioMetadata = formatMetadata(video.audioTracks, "a")
+        // AM -->
+        val audioTracks = filterTracks(video.audioTracks, headers)
+        // <-- AM
+        val audioInputs = formatInputs(audioTracks)
+        val audioMaps = formatMaps(audioTracks, "a", subtitleTracks.size)
+        val audioMetadata = formatMetadata(audioTracks, "a")
 
         val sourceStreamOptions = video.ffmpegStreamArgs.joinToString(" ") { (key, value) ->
             "-$key \"$value\""
@@ -629,6 +654,26 @@ class Downloader(
 
         return FFmpegKitConfig.parseArguments(command)
     }
+
+    // AM -->
+    private suspend fun filterTracks(tracks: List<Track>, headers: Headers): List<Track> {
+        if (!downloadPreferences.ignoreBrokenTracks.get()) return tracks
+
+        return tracks.mapNotNull { track ->
+            try {
+                val request = Request.Builder()
+                    .url(track.url)
+                    .headers(headers)
+                    .head()
+                    .build()
+                client.newCall(request).awaitSuccess()
+                track
+            } catch (_: Exception) {
+                null
+            }
+        }
+    }
+    // <-- AM
 
     private suspend fun getDuration(videoUrl: String, headerOptions: String): Float? {
         val durationFile = context.createFileInCacheDir("ffprobe_duration.txt")
