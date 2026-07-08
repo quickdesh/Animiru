@@ -188,7 +188,17 @@ class PlayerViewModel @JvmOverloads constructor(
     private val autoSkip = playerPreferences.autoSkipIntro.get()
     private val netflixStyle = playerPreferences.enableNetflixStyleIntroSkip.get()
     private val defaultWaitingTime = playerPreferences.waitingTimeIntroSkip.get()
+    private val leftDoubleTapGesture = gesturePreferences.leftDoubleTapGesture.get()
+    private val centerDoubleTapGesture = gesturePreferences.centerDoubleTapGesture.get()
+    private val rightDoubleTapGesture = gesturePreferences.rightDoubleTapGesture.get()
+    private val doubleTapToSeekDuration = gesturePreferences.skipLengthPreference.get()
+    private val showSeekBar = gesturePreferences.showSeekBar.get()
+    private val pipEpisodeToasts = playerPreferences.pipEpisodeToasts.get()
+    private val showStatusBar = playerPreferences.showSystemStatusBar.get()
+    private val downloadAheadAmount = downloadPreferences.autoDownloadWhileWatching.get()
+    private val progress = playerPreferences.progressPreference.get()
 
+    private val fontExtensionRegex = Regex($$""".*\.[ot]tf$""")
     private val maxVolume = audioManager.getMaxVolume()
     private val screenAspectRatio: Double by lazy {
         val metrics = context.resources.displayMetrics
@@ -240,6 +250,9 @@ class PlayerViewModel @JvmOverloads constructor(
     val eventFlow = _eventFlow.asSharedFlow()
 
     private var timerJob: Job? = null
+    private var getHosterVideoLinksJob: Job? = null
+    private var episodeToDownload: Download? = null
+    private var currentHosterList: List<Hoster>? = null
 
     init {
         viewModelScope.launchIO {
@@ -510,7 +523,6 @@ class PlayerViewModel @JvmOverloads constructor(
             field = value
         }
 
-    private val fontExtensionRegex = Regex($$""".*\.[ot]tf$""")
     fun fetchFonts(includeSystemFonts: Boolean): List<String> {
         val fontFiles = mutableListOf<String>()
 
@@ -578,8 +590,6 @@ class PlayerViewModel @JvmOverloads constructor(
         val videoIndex: Pair<Int, Int>,
         val position: Long?,
     )
-
-    private var currentHosterList: List<Hoster>? = null
 
     class ExceptionWithStringResource(
         message: String,
@@ -818,8 +828,6 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     // === Load ===
-
-    private var getHosterVideoLinksJob: Job? = null
 
     fun cancelHosterVideoLinksJob() {
         getHosterVideoLinksJob?.cancel()
@@ -1657,8 +1665,6 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    private val pipEpisodeToasts = playerPreferences.pipEpisodeToasts.get()
-
     /**
      * Load next or previous episode
      */
@@ -1757,7 +1763,6 @@ class PlayerViewModel @JvmOverloads constructor(
         updatePlaybackData { it.copy(paused = false) }
     }
 
-    private val showStatusBar = playerPreferences.showSystemStatusBar.get()
     fun showControls() {
         val currentUi = uiData.value
         if (currentUi.sheetShown != Sheets.None ||
@@ -2071,12 +2076,6 @@ class PlayerViewModel @JvmOverloads constructor(
 
     // === Seeking ===
 
-    private val leftDoubleTapGesture = gesturePreferences.leftDoubleTapGesture.get()
-    private val centerDoubleTapGesture = gesturePreferences.centerDoubleTapGesture.get()
-    private val rightDoubleTapGesture = gesturePreferences.rightDoubleTapGesture.get()
-    private val doubleTapToSeekDuration = gesturePreferences.skipLengthPreference.get()
-    private val showSeekBar = gesturePreferences.showSeekBar.get()
-
     fun updateGestureSeekAmount(value: Pair<Int, Int>?) {
         updatePlaybackData { it.copy(gestureSeekAmount = value) }
     }
@@ -2240,8 +2239,6 @@ class PlayerViewModel @JvmOverloads constructor(
 
         super.onCleared()
     }
-
-    private val progress = playerPreferences.progressPreference.get()
 
     /**
      * Called every time a second is reached in the player. Used to mark the flag of episode being
@@ -2410,9 +2407,6 @@ class PlayerViewModel @JvmOverloads constructor(
             )
         }
     }
-
-    private var episodeToDownload: Download? = null
-    private val downloadAheadAmount = downloadPreferences.autoDownloadWhileWatching.get()
 
     private fun downloadNextEpisodes() {
         if (downloadAheadAmount == 0) return

@@ -11,6 +11,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Fixed
+- Fix player crash when opening player ([@Secozzi](https://github.com/Secozzi)) ([#170](https://github.com/quickdesh/Animiru/pull/170))
 
 ## [v0.19.7.8] - 2026-07-07
 ### Added
