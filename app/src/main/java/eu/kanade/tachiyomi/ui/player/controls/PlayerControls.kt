@@ -95,6 +95,7 @@ fun PlayerControls(
             val centerControls = createRef()
             val seekbar = createRef()
             val (playerUpdates) = createRefs()
+            val skipButton = createRef()
 
             LaunchedEffect(playbackData.currentVolume, mpvVolume, uiData.isVolumeSliderShown) {
                 delay(2.seconds)
@@ -276,7 +277,7 @@ fun PlayerControls(
                     fadeOut(playerControlsExitAnimationSpec())
                 },
                 modifier = Modifier.constrainAs(seekbar) {
-                    bottom.linkTo(parent.bottom, MaterialTheme.padding.medium)
+                    bottom.linkTo(bottomLeftControls.top)
                 },
             ) {
                 SeekbarWithTimers(
@@ -321,6 +322,7 @@ fun PlayerControls(
                     onBackClick = onBack,
                 )
             }
+
             AnimatedVisibility(
                 visible = uiData.controlsShown && !uiData.isControlsLocked,
                 enter = if (!uiData.reduceMotion) {
@@ -357,6 +359,35 @@ fun PlayerControls(
             AnimatedVisibility(
                 visible = uiData.controlsShown && !uiData.isControlsLocked,
                 enter = if (!uiData.reduceMotion) {
+                    slideInHorizontally(playerControlsEnterAnimationSpec()) { -it } +
+                        fadeIn(playerControlsEnterAnimationSpec())
+                } else {
+                    fadeIn(playerControlsEnterAnimationSpec())
+                },
+                exit = if (!uiData.reduceMotion) {
+                    slideOutHorizontally(playerControlsExitAnimationSpec()) { -it } +
+                        fadeOut(playerControlsExitAnimationSpec())
+                } else {
+                    fadeOut(playerControlsExitAnimationSpec())
+                },
+                modifier = Modifier.constrainAs(skipButton) {
+                    end.linkTo(seekbar.end, MaterialTheme.padding.small)
+                    bottom.linkTo(seekbar.top)
+                },
+            ) {
+                SkipIntroControls(
+                    customButton = uiData.primaryButton,
+                    customButtonTitle = uiData.primaryButtonTitle,
+                    skipIntroButton = uiData.skipIntroText,
+                    onPressSkipIntroButton = { onPlayerEvent(PlayerEvent.SkipIntro) },
+                    onCustomButtonClick = { onPlayerEvent(PlayerEvent.ExecuteCustomButton(false)) },
+                    onCustomButtonLongClick = { onPlayerEvent(PlayerEvent.ExecuteCustomButton(true)) },
+                )
+            }
+
+            AnimatedVisibility(
+                visible = uiData.controlsShown && !uiData.isControlsLocked,
+                enter = if (!uiData.reduceMotion) {
                     slideInHorizontally(playerControlsEnterAnimationSpec()) { it } +
                         fadeIn(playerControlsEnterAnimationSpec())
                 } else {
@@ -369,19 +400,13 @@ fun PlayerControls(
                     fadeOut(playerControlsExitAnimationSpec())
                 },
                 modifier = Modifier.constrainAs(bottomRightControls) {
-                    bottom.linkTo(seekbar.top)
+                    bottom.linkTo(parent.bottom, MaterialTheme.padding.small)
                     end.linkTo(seekbar.end)
                 },
             ) {
                 BottomRightPlayerControls(
-                    customButton = uiData.primaryButton,
-                    customButtonTitle = uiData.primaryButtonTitle,
-                    skipIntroButton = uiData.skipIntroText,
-                    onPressSkipIntroButton = { onPlayerEvent(PlayerEvent.SkipIntro) },
                     isPipAvailable = stateData.isPipAvailable,
                     onPipClick = { onPlayerEvent(PlayerEvent.EnterPip) },
-                    onCustomButtonClick = { onPlayerEvent(PlayerEvent.ExecuteCustomButton(false)) },
-                    onCustomButtonLongClick = { onPlayerEvent(PlayerEvent.ExecuteCustomButton(true)) },
                     onAspectClick = { onPlayerEvent(PlayerEvent.ChangeAspect) },
                 )
             }
@@ -401,7 +426,7 @@ fun PlayerControls(
                     fadeOut(playerControlsExitAnimationSpec())
                 },
                 modifier = Modifier.constrainAs(bottomLeftControls) {
-                    bottom.linkTo(seekbar.top)
+                    bottom.linkTo(parent.bottom, MaterialTheme.padding.small)
                     start.linkTo(seekbar.start)
                     width = Dimension.fillToConstraints
                     end.linkTo(bottomRightControls.start)

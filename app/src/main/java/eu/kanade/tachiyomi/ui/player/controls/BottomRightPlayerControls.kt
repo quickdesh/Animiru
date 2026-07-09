@@ -21,50 +21,32 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.PictureInPictureAlt
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import eu.kanade.tachiyomi.ui.player.controls.components.ControlsButton
-import eu.kanade.tachiyomi.ui.player.controls.components.FilledControlsButton
-import tachiyomi.domain.custombutton.model.CustomButton
+import tachiyomi.presentation.core.components.material.padding
 
 @Composable
 fun BottomRightPlayerControls(
-    customButton: CustomButton?,
-    customButtonTitle: String,
-    skipIntroButton: String?,
-    onPressSkipIntroButton: () -> Unit,
     isPipAvailable: Boolean,
-    onCustomButtonClick: () -> Unit,
-    onCustomButtonLongClick: () -> Unit,
     onAspectClick: () -> Unit,
     onPipClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(modifier) {
-        if (skipIntroButton != null) {
-            FilledControlsButton(
-                text = skipIntroButton,
-                onClick = onPressSkipIntroButton,
-                onLongClick = {},
-            )
-        } else if (customButton != null) {
-            FilledControlsButton(
-                text = customButtonTitle,
-                onClick = onCustomButtonClick,
-                onLongClick = onCustomButtonLongClick,
-            )
-        }
-
         if (isPipAvailable) {
             ControlsButton(
                 Icons.Default.PictureInPictureAlt,
                 onClick = onPipClick,
+                verticalSpacing = MaterialTheme.padding.small,
             )
         }
 
         ControlsButton(
             Icons.Default.AspectRatio,
             onClick = onAspectClick,
+            verticalSpacing = MaterialTheme.padding.small,
         )
     }
 }

@@ -78,7 +78,7 @@ fun SeekbarWithTimers(
 ) {
     val clickEvent = LocalPlayerButtonsClickEvent.current
     Row(
-        modifier = modifier.height(48.dp),
+        modifier = modifier.height(40.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.extraSmall),
     ) {
@@ -115,6 +115,7 @@ fun SeekbarWithTimers(
                 readAheadColor = MaterialTheme.colorScheme.inversePrimary,
             ),
         )
+
         VideoTimer(
             value = if (timersInverted.second) -remaining else duration,
             isInverted = timersInverted.second,

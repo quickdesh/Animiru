@@ -52,6 +52,7 @@ fun ControlsButton(
     title: String? = null,
     color: Color = Color.White,
     horizontalSpacing: Dp = MaterialTheme.padding.medium,
+    verticalSpacing: Dp = MaterialTheme.padding.medium,
     iconSize: Dp = 20.dp,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
@@ -78,7 +79,7 @@ fun ControlsButton(
                 ripple(),
             )
             .padding(
-                vertical = MaterialTheme.padding.medium,
+                vertical = verticalSpacing,
                 horizontal = horizontalSpacing,
             ),
     ) {
@@ -96,6 +97,8 @@ fun ControlsButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    horizontalSpacing: Dp = MaterialTheme.padding.medium,
+    verticalSpacing: Dp = MaterialTheme.padding.medium,
     onLongClick: () -> Unit = {},
     color: Color = Color.White,
 ) {
@@ -119,7 +122,10 @@ fun ControlsButton(
                 interactionSource,
                 ripple(),
             )
-            .padding(MaterialTheme.padding.medium),
+            .padding(
+                vertical = verticalSpacing,
+                horizontal = horizontalSpacing,
+            ),
     ) {
         Text(
             text,

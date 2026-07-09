@@ -25,14 +25,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.ScreenRotation
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import dev.vivvvek.seeker.Segment
 import eu.kanade.tachiyomi.ui.player.Sheets
 import eu.kanade.tachiyomi.ui.player.controls.components.ControlsButton
 import eu.kanade.tachiyomi.ui.player.controls.components.CurrentChapter
 import tachiyomi.i18n.aniyomi.AYMR
+import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
@@ -53,16 +56,20 @@ fun BottomLeftPlayerControls(
         ControlsButton(
             Icons.Default.LockOpen,
             onClick = onLockControls,
+            verticalSpacing = MaterialTheme.padding.small,
         )
         ControlsButton(
             icon = Icons.Default.ScreenRotation,
             onClick = onCycleRotation,
+            verticalSpacing = MaterialTheme.padding.small,
         )
         ControlsButton(
             text = stringResource(AYMR.strings.player_speed, playbackSpeed),
             onClick = { onPlaybackSpeedChange(if (playbackSpeed >= 2) 0.25f else playbackSpeed + 0.25f) },
             onLongClick = { onOpenSheet(Sheets.PlaybackSpeed) },
+            verticalSpacing = MaterialTheme.padding.small,
         )
+
         AnimatedVisibility(
             showChapterIndicator && currentChapter != null,
             enter = fadeIn(),
@@ -74,4 +81,19 @@ fun BottomLeftPlayerControls(
             )
         }
     }
+}
+
+@Composable
+@Preview
+private fun BottomLeftPlayerControlsPreview() {
+    BottomLeftPlayerControls(
+        playbackSpeed = 1.0f,
+        currentChapter = null,
+        showChapterIndicator = true,
+        onLockControls = { },
+        onCycleRotation = { },
+        onPlaybackSpeedChange = { },
+        onOpenSheet = { },
+        modifier = Modifier,
+    )
 }
