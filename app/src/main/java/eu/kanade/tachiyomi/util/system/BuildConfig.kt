@@ -4,6 +4,11 @@ package eu.kanade.tachiyomi.util.system
 
 import eu.kanade.tachiyomi.BuildConfig
 
+// AM -->
+val castIncluded: Boolean
+    inline get() = BuildConfig.CAST_INCLUDED
+// <-- AM
+
 val updaterEnabled: Boolean
     inline get() = BuildConfig.UPDATER_ENABLED
 

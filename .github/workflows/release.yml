@@ -56,7 +56,7 @@ jobs:
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Build
-        run: ./gradlew assembleRelease -Penable-updater
+        run: ./gradlew assembleRelease -Pinclude-cast -Penable-updater
 
       - name: Sign APK
         uses: r0adkll/sign-android-release@a391126403df92c6a0a3988a829dd47f79b89ed7
@@ -89,6 +89,62 @@ jobs:
             Animiru-armeabi-v7a-${{ needs.get_tag.outputs.tag }}.apk
             Animiru-x86-${{ needs.get_tag.outputs.tag }}.apk
             Animiru-x86_64-${{ needs.get_tag.outputs.tag }}.apk
+
+  build_foss:
+    if: github.repository == 'quickdesh/Animiru'
+    name: Build (FOSS)
+    runs-on: 'ubuntu-24.04'
+    needs: get_tag
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up JDK
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version-file: .github/.java-version
+          distribution: temurin
+
+      # AM (SYNC_DRIVE) -->
+      - name: Write client_secrets.json
+        uses: DamianReeves/write-file-action@v1.2
+        with:
+          path: app/src/main/assets/client_secrets.json
+          contents: ${{ secrets.CLIENT_SECRETS_TEXT }}
+          write-mode: overwrite
+      # <-- AM (SYNC_DRIVE)
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+        with:
+          cache-disabled: true
+
+      - name: Build
+        run: ./gradlew assembleFoss -Penable-updater
+
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@a391126403df92c6a0a3988a829dd47f79b89ed7
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: '35.0.1'
+
+      - name: Rename APK
+        run: |
+          set -e
+
+          mv app/build/outputs/apk/foss/app-universal-foss.apk Animiru-${{ needs.get_tag.outputs.tag }}-foss.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: Animiru
+          path: Animiru-${{ needs.get_tag.outputs.tag }}-foss.apk
 
   release:
     if: github.repository == 'quickdesh/Animiru'
@@ -128,6 +184,7 @@ jobs:
             > ### If you are unsure which version to download then go with `Animiru-${{ needs.get_tag.outputs.tag }}.apk`
           files: |
             Animiru-${{ needs.get_tag.outputs.tag }}.apk
+            Animiru-${{ needs.get_tag.outputs.tag }}-foss.apk
             Animiru-arm64-v8a-${{ needs.get_tag.outputs.tag }}.apk
             Animiru-armeabi-v7a-${{ needs.get_tag.outputs.tag }}.apk
             Animiru-x86-${{ needs.get_tag.outputs.tag }}.apk
