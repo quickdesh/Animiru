@@ -133,6 +133,7 @@ fun VideoTimer(
     value: Float,
     isInverted: Boolean,
     modifier: Modifier = Modifier,
+    color: Color = Color.White,
     onClick: () -> Unit = {},
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -146,7 +147,7 @@ fun VideoTimer(
             )
             .wrapContentHeight(Alignment.CenterVertically),
         text = Utils.prettyTime(value.toInt(), isInverted),
-        color = Color.White,
+        color = color,
         textAlign = TextAlign.Center,
     )
 }

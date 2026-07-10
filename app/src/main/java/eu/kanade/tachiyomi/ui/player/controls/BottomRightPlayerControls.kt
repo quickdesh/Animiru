@@ -20,11 +20,14 @@ package eu.kanade.tachiyomi.ui.player.controls
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AspectRatio
+import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.PictureInPictureAlt
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import eu.kanade.tachiyomi.ui.player.controls.components.ControlsButton
+import eu.kanade.tachiyomi.util.system.castIncluded
+import tachiyomi.cast.CastButton
 import tachiyomi.presentation.core.components.material.padding
 
 @Composable
@@ -35,6 +38,12 @@ fun BottomRightPlayerControls(
     modifier: Modifier = Modifier,
 ) {
     Row(modifier) {
+        if (castIncluded) {
+            CastButton(
+                verticalSpacing = MaterialTheme.padding.small,
+            )
+        }
+
         if (isPipAvailable) {
             ControlsButton(
                 Icons.Default.PictureInPictureAlt,

@@ -31,6 +31,8 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.core.XmlVersion
 import nl.adaptivity.xmlutil.serialization.XML
+import tachiyomi.cast.CastManager
+import tachiyomi.cast.CastManagerImpl
 import tachiyomi.core.common.storage.AndroidStorageFolderProvider
 import tachiyomi.data.Animes
 import tachiyomi.data.Database
@@ -161,6 +163,7 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { MpvConfig(app, get(), get(), get()) }
         addSingletonFactory { AudioManager(app) }
         addSingletonFactory { BrightnessManager(app) }
+        addSingletonFactory<CastManager> { CastManagerImpl() }
         // <-- AM
 
         // Asynchronously init expensive components for a faster cold start

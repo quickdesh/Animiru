@@ -89,6 +89,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import tachiyomi.cast.CastEvent
+import tachiyomi.cast.CastManager
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
@@ -165,6 +167,7 @@ class PlayerViewModel @JvmOverloads constructor(
     // AM (SYNC) -->
     private val syncPreferences: SyncPreferences = Injekt.get(),
     // <-- AM (SYNC)
+    internal val castManager: CastManager = Injekt.get(),
 ) : AndroidViewModel(context) {
     val videoOutput = if (decoderPreferences.gpuNext.get()) "gpu-next" else "gpu"
 
@@ -255,6 +258,10 @@ class PlayerViewModel @JvmOverloads constructor(
     private var currentHosterList: List<Hoster>? = null
 
     init {
+        viewModelScope.launch {
+            castManager.initialize(context)
+        }
+
         viewModelScope.launchIO {
             getCustomButtons.subscribeAll().collectLatest { buttons ->
                 setupCustomButtons(buttons)
@@ -270,6 +277,10 @@ class PlayerViewModel @JvmOverloads constructor(
         viewModelScope.launch {
             player.eventFlow
                 .onEach { handlePlayerFlow(it) }
+                .launchIn(viewModelScope)
+
+            castManager.castEvent
+                .onEach { handleCastFlow(it) }
                 .launchIn(viewModelScope)
 
             playerPreferences.autoplayEnabled.changes()
@@ -491,6 +502,23 @@ class PlayerViewModel @JvmOverloads constructor(
             MPVPlayer.Event.FileLoaded -> fileLoaded()
             is MPVPlayer.Event.LuaEvent -> handleLuaInvocation(event.property, event.value)
             is MPVPlayer.Event.TrackLoadFailure -> onTrackLoadedFailure(event.url)
+        }
+    }
+
+    fun handleCastFlow(event: CastEvent) {
+        val castState = castManager.castState.value
+        when (event) {
+            CastEvent.Connected -> {
+                updateStateData { it.copy(isCasting = castState.isConnected) }
+
+                if (castState.isConnected && !castState.hasLoadedVideo) {
+                    startCasting()
+                }
+            }
+            is CastEvent.Disconnected -> {
+            }
+            is CastEvent.PlaybackError -> {
+            }
         }
     }
 
@@ -827,6 +855,21 @@ class PlayerViewModel @JvmOverloads constructor(
         updatePlaybackData { it.copy(currentOrientation = orientation) }
     }
 
+    // === Casting ===
+
+    private fun startCasting() {
+        val video = stateData.value.currentVideo ?: return
+
+        pause()
+        updatePlaybackData {
+            it.copy(currentOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT)
+        }
+        castManager.startCasting(
+            video = video,
+            startPosition = playbackData.value.position.toLong(),
+        )
+    }
+
     // === Load ===
 
     fun cancelHosterVideoLinksJob() {
@@ -1028,6 +1071,8 @@ class PlayerViewModel @JvmOverloads constructor(
     private fun setVideo(video: Video?) {
         if (player.isExiting) return
         if (video == null) return
+        // TODO(cast)
+        // if (true) return
 
         updateStateData { it.copy(isStopped = false) }
         setHttpOptions(video)
@@ -2768,6 +2813,7 @@ class PlayerViewModel @JvmOverloads constructor(
     // === Data ===
     @Stable
     data class PlayerStateData(
+        val isCasting: Boolean = false,
         val isStopped: Boolean = false,
         val hasTrackers: Boolean = false,
         val incognitoMode: Boolean = false,

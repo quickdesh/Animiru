@@ -1,0 +1,18 @@
+package tachiyomi.cast
+
+import androidx.compose.runtime.Stable
+
+@Stable
+data class CastState(
+    val isConnected: Boolean = false,
+    val deviceName: String? = null,
+    val playing: Boolean = false,
+    val loading: Boolean = false,
+    val position: Long = 0L,
+    val duration: Long = 0L,
+    val hasLoadedVideo: Boolean = false,
+
+    val volume: Double = 1.0,
+    val muted: Boolean = false,
+    val speed: Double = 1.0,
+)
