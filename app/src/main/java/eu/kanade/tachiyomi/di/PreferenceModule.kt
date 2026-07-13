@@ -1,6 +1,12 @@
 package eu.kanade.tachiyomi.di
 
 import android.app.Application
+import animiru.domain.player.service.AdvancedPlayerPreferences
+import animiru.domain.player.service.AudioPreferences
+import animiru.domain.player.service.DecoderPreferences
+import animiru.domain.player.service.GesturePreferences
+import animiru.domain.player.service.PlayerPreferences
+import animiru.domain.player.service.SubtitlePreferences
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.connection.SyncPreferences
 import eu.kanade.domain.connection.service.ConnectionPreferences
@@ -9,12 +15,6 @@ import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.network.NetworkPreferences
-import eu.kanade.tachiyomi.ui.player.settings.AdvancedPlayerPreferences
-import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
-import eu.kanade.tachiyomi.ui.player.settings.DecoderPreferences
-import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
-import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
-import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
 import eu.kanade.tachiyomi.util.system.isDebugBuildType
 import tachiyomi.core.common.preference.AndroidPreferenceStore
 import tachiyomi.core.common.preference.PreferenceStore

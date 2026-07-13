@@ -39,17 +39,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import eu.kanade.tachiyomi.ui.player.mpv.MpvVideoTrack
 import eu.kanade.tachiyomi.ui.player.mpv.TrackState
-import eu.kanade.tachiyomi.ui.player.mpv.VideoTrack
-import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun AudioTracksSheet(
-    tracks: List<VideoTrack>,
-    onSelect: (VideoTrack) -> Unit,
+    tracks: List<MpvVideoTrack>,
+    onSelect: (MpvVideoTrack) -> Unit,
     onAddAudioTrack: () -> Unit,
     onOpenDelayPanel: () -> Unit,
     onDismissRequest: () -> Unit,
@@ -92,7 +91,7 @@ fun AudioTracksSheet(
 
 @Composable
 fun AudioTrackRow(
-    track: VideoTrack,
+    track: MpvVideoTrack,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -115,9 +114,9 @@ fun AudioTrackRow(
             fontStyle = if (isSelected) FontStyle.Italic else FontStyle.Normal,
         )
         Spacer(modifier = Modifier.weight(1f))
-        if (track is VideoTrack.External && track.state == TrackState.Loading) {
+        if (track is MpvVideoTrack.External && track.state == TrackState.Loading) {
             CircularProgressIndicator(modifier = Modifier.then(Modifier.size(24.dp)))
-        } else if (track is VideoTrack.External && track.state == TrackState.Error) {
+        } else if (track is MpvVideoTrack.External && track.state == TrackState.Error) {
             Icon(Icons.Default.ErrorOutline, null, tint = MaterialTheme.colorScheme.error)
         }
     }

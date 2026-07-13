@@ -1,4 +1,4 @@
-package eu.kanade.tachiyomi.ui.player.settings
+package animiru.domain.player.service
 
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore

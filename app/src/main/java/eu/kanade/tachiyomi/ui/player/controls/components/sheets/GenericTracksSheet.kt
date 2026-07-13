@@ -39,8 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.player.components.PlayerSheet
-import eu.kanade.tachiyomi.ui.player.mpv.VideoTrack
-import kotlinx.collections.immutable.ImmutableList
+import eu.kanade.tachiyomi.ui.player.mpv.MpvVideoTrack
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
@@ -106,11 +105,11 @@ fun AddTrackRow(
 }
 
 @Composable
-fun getTrackTitle(videoTrack: VideoTrack): String {
-    return when (videoTrack) {
-        is VideoTrack.External -> videoTrack.title
-        is VideoTrack.Internal -> {
-            val track = videoTrack.data
+fun getTrackTitle(mpvVideoTrack: MpvVideoTrack): String {
+    return when (mpvVideoTrack) {
+        is MpvVideoTrack.External -> mpvVideoTrack.title
+        is MpvVideoTrack.Internal -> {
+            val track = mpvVideoTrack.data
 
             val hasTitle = !track.title.isNullOrBlank()
             val hasLang = !track.lang.isNullOrBlank()

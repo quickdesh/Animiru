@@ -9,6 +9,18 @@ import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import animiru.domain.player.interactor.TrackSelect
+import animiru.domain.player.model.ArtType
+import animiru.domain.player.model.CustomKeyCodes
+import animiru.domain.player.model.PlayerOrientation
+import animiru.domain.player.model.SetAsArt
+import animiru.domain.player.model.SingleActionGesture
+import animiru.domain.player.model.VideoAspect
+import animiru.domain.player.service.AudioPreferences
+import animiru.domain.player.service.DecoderPreferences
+import animiru.domain.player.service.GesturePreferences
+import animiru.domain.player.service.PlayerPreferences
+import animiru.domain.player.service.SubtitlePreferences
 import com.yubyf.truetypeparser.TTFFile
 import dev.icerock.moko.resources.StringResource
 import dev.vivvvek.seeker.Segment
@@ -43,19 +55,13 @@ import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.getChangedAt
 import eu.kanade.tachiyomi.ui.player.domain.AudioManager
 import eu.kanade.tachiyomi.ui.player.domain.BrightnessManager
-import eu.kanade.tachiyomi.ui.player.domain.TrackSelect
 import eu.kanade.tachiyomi.ui.player.loader.EpisodeLoader
 import eu.kanade.tachiyomi.ui.player.loader.HosterLoader
 import eu.kanade.tachiyomi.ui.player.mpv.ChapterNode
 import eu.kanade.tachiyomi.ui.player.mpv.MPVPlayer
+import eu.kanade.tachiyomi.ui.player.mpv.MpvVideoTrack
 import eu.kanade.tachiyomi.ui.player.mpv.TrackNode
 import eu.kanade.tachiyomi.ui.player.mpv.TrackState
-import eu.kanade.tachiyomi.ui.player.mpv.VideoTrack
-import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
-import eu.kanade.tachiyomi.ui.player.settings.DecoderPreferences
-import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
-import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
-import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
 import eu.kanade.tachiyomi.ui.player.utils.AniSkipApi
 import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils
 import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils.Companion.getStringRes
@@ -258,10 +264,6 @@ class PlayerViewModel @JvmOverloads constructor(
     private var currentHosterList: List<Hoster>? = null
 
     init {
-        viewModelScope.launch {
-            castManager.initialize(context)
-        }
-
         viewModelScope.launchIO {
             getCustomButtons.subscribeAll().collectLatest { buttons ->
                 setupCustomButtons(buttons)
@@ -859,13 +861,19 @@ class PlayerViewModel @JvmOverloads constructor(
 
     private fun startCasting() {
         val video = stateData.value.currentVideo ?: return
+        val source = stateData.value.currentSource ?: return
+        val anime = stateData.value.currentAnime ?: return
+        val episode = stateData.value.currentEpisode ?: return
 
         pause()
         updatePlaybackData {
-            it.copy(currentOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT)
+            it.copy(currentOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
         }
         castManager.startCasting(
             video = video,
+            source = source,
+            anime = anime,
+            episodeTitle = episode.name,
             startPosition = playbackData.value.position.toLong(),
         )
     }
@@ -1394,9 +1402,9 @@ class PlayerViewModel @JvmOverloads constructor(
         updateStateData {
             it.copy(
                 subtitleTracks = tracks.filter { it.isSubtitle }
-                    .filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true },
+                    .filterNot { it.title?.startsWith(MpvVideoTrack.TRACK_TITLE_TAG) == true },
                 audioTracks = tracks.filter { it.isAudio }
-                    .filterNot { it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true },
+                    .filterNot { it.title?.startsWith(MpvVideoTrack.TRACK_TITLE_TAG) == true },
             )
         }
 
@@ -1415,10 +1423,10 @@ class PlayerViewModel @JvmOverloads constructor(
      */
     private fun onTrackAdded(tracks: List<TrackNode>) {
         val externalSubtitle = tracks.filter {
-            it.isSubtitle && it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true
+            it.isSubtitle && it.title?.startsWith(MpvVideoTrack.TRACK_TITLE_TAG) == true
         }
         val externalAudio = tracks.filter {
-            it.isAudio && it.title?.startsWith(VideoTrack.TRACK_TITLE_TAG) == true
+            it.isAudio && it.title?.startsWith(MpvVideoTrack.TRACK_TITLE_TAG) == true
         }
 
         externalSubtitle.forEach { track ->
@@ -1464,9 +1472,9 @@ class PlayerViewModel @JvmOverloads constructor(
         val embeddedAudio = tracks.filter { it.isAudio }
         val currentVideo = stateData.value.currentVideo
         val externalSubs = currentVideo?.subtitleTracks.orEmpty().distinctBy { it.url }
-            .mapIndexed { idx, track -> VideoTrack.External(track, idx) }
+            .mapIndexed { idx, track -> MpvVideoTrack.External(track, idx) }
         val externalAudio = currentVideo?.audioTracks.orEmpty().distinctBy { it.url }
-            .mapIndexed { idx, track -> VideoTrack.External(track, idx) }
+            .mapIndexed { idx, track -> MpvVideoTrack.External(track, idx) }
 
         updateStateData {
             it.copy(
@@ -1476,7 +1484,7 @@ class PlayerViewModel @JvmOverloads constructor(
         }
 
         val preferredSubtitle = trackSelect.getPreferredTrackIndex(
-            tracks = embeddedSubs.map { VideoTrack.Internal(it) } + externalSubs,
+            tracks = embeddedSubs.map { MpvVideoTrack.Internal(it) } + externalSubs,
             subtitle = true,
         )
         if (preferredSubtitle == null) {
@@ -1486,7 +1494,7 @@ class PlayerViewModel @JvmOverloads constructor(
         }
 
         val preferredAudio = trackSelect.getPreferredTrackIndex(
-            tracks = embeddedAudio.map { VideoTrack.Internal(it) } + externalAudio,
+            tracks = embeddedAudio.map { MpvVideoTrack.Internal(it) } + externalAudio,
             subtitle = false,
         )
         if (preferredAudio == null) {
@@ -1496,7 +1504,7 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    private fun updateSubtitleTrackAt(index: Int, transform: (VideoTrack.External) -> VideoTrack.External) {
+    private fun updateSubtitleTrackAt(index: Int, transform: (MpvVideoTrack.External) -> MpvVideoTrack.External) {
         updateStateData {
             it.copy(
                 externalSubtitleTracks = it.externalSubtitleTracks.toMutableList().apply {
@@ -1506,7 +1514,7 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    private fun updateAudioTrackAt(index: Int, transform: (VideoTrack.External) -> VideoTrack.External) {
+    private fun updateAudioTrackAt(index: Int, transform: (MpvVideoTrack.External) -> MpvVideoTrack.External) {
         updateStateData {
             it.copy(
                 externalAudioTracks = it.externalAudioTracks.toMutableList().apply {
@@ -1529,9 +1537,9 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    fun selectSub(track: VideoTrack) {
+    fun selectSub(track: MpvVideoTrack) {
         when (track) {
-            is VideoTrack.External -> {
+            is MpvVideoTrack.External -> {
                 if (track.id == null) {
                     updateSubtitleTrackAt(track.index) {
                         it.copy(state = TrackState.Loading)
@@ -1541,7 +1549,7 @@ class PlayerViewModel @JvmOverloads constructor(
                             "sub-add",
                             track.data.url,
                             "auto",
-                            "${VideoTrack.TRACK_TITLE_TAG}=${track.index}",
+                            "${MpvVideoTrack.TRACK_TITLE_TAG}=${track.index}",
                         )
                     }
                 } else {
@@ -1550,7 +1558,7 @@ class PlayerViewModel @JvmOverloads constructor(
                     selectSubById(track.id)
                 }
             }
-            is VideoTrack.Internal -> {
+            is MpvVideoTrack.Internal -> {
                 updateStateData { it.copy(hasLoadedSubs = true) }
                 checkFileLoaded()
                 selectSubById(track.data.id)
@@ -1604,9 +1612,9 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
-    fun selectAudio(track: VideoTrack, force: Boolean = false) {
+    fun selectAudio(track: MpvVideoTrack, force: Boolean = false) {
         when (track) {
-            is VideoTrack.External -> {
+            is MpvVideoTrack.External -> {
                 if (track.id == null) {
                     updateAudioTrackAt(track.index) {
                         it.copy(state = TrackState.Loading)
@@ -1616,7 +1624,7 @@ class PlayerViewModel @JvmOverloads constructor(
                             "audio-add",
                             track.data.url,
                             "auto",
-                            "${VideoTrack.TRACK_TITLE_TAG}=${track.index}",
+                            "${MpvVideoTrack.TRACK_TITLE_TAG}=${track.index}",
                         )
                     }
                 } else {
@@ -1625,7 +1633,7 @@ class PlayerViewModel @JvmOverloads constructor(
                     selectAudioById(track.id, force)
                 }
             }
-            is VideoTrack.Internal -> {
+            is MpvVideoTrack.Internal -> {
                 updateStateData { it.copy(hasLoadedAudio = true) }
                 checkFileLoaded()
                 selectAudioById(track.data.id, force)
@@ -2836,8 +2844,8 @@ class PlayerViewModel @JvmOverloads constructor(
         val chapters: List<Segment> = emptyList(),
         val subtitleTracks: List<TrackNode> = emptyList(),
         val audioTracks: List<TrackNode> = emptyList(),
-        val externalSubtitleTracks: List<VideoTrack.External> = emptyList(),
-        val externalAudioTracks: List<VideoTrack.External> = emptyList(),
+        val externalSubtitleTracks: List<MpvVideoTrack.External> = emptyList(),
+        val externalAudioTracks: List<MpvVideoTrack.External> = emptyList(),
         val hosterList: List<Hoster> = emptyList(),
         val hosterState: List<HosterState> = emptyList(),
         val isPipAvailable: Boolean = false,

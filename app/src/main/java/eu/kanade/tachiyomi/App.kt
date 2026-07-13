@@ -57,6 +57,7 @@ import logcat.LogcatLogger
 import mihon.core.migration.Migrator
 import mihon.core.migration.migrations.migrations
 import org.conscrypt.Conscrypt
+import tachiyomi.cast.CastManager
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
@@ -76,6 +77,10 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     // AM (SYNC) -->
     private val syncPreferences: SyncPreferences by injectLazy()
     // <-- AM (SYNC)
+
+    // AM (CAST) -->
+    private val castManager: CastManager by injectLazy()
+    // <-- AM (CAST)
 
     private val disableIncognitoReceiver = DisableIncognitoReceiver()
 
@@ -144,6 +149,10 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         // AM (SYNC) -->
         startSyncJob(syncPreferences.getSyncTriggerOptions().syncOnAppStart)
         // <-- AM (SYNC)
+
+        // AM --> (CAST)
+        castManager.initialize(this)
+        // <-- AM (CAST)
 
         if (!LogcatLogger.isInstalled) {
             val minLogPriority = when {

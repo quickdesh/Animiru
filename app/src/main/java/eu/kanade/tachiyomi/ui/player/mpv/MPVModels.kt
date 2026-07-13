@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.player.mpv
 
 import androidx.compose.runtime.Immutable
+import animiru.domain.player.model.VideoTrack
 import dev.vivvvek.seeker.Segment
 import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.animesource.model.Track
@@ -104,12 +105,12 @@ enum class TrackState {
 }
 
 @Immutable
-sealed interface VideoTrack {
+sealed interface MpvVideoTrack : VideoTrack {
     companion object {
         const val TRACK_TITLE_TAG = "aniyomi-track-index"
     }
 
-    data class Internal(val data: TrackNode) : VideoTrack
+    data class Internal(val data: TrackNode) : MpvVideoTrack
 
     data class External(
         val data: Track,
@@ -117,15 +118,15 @@ sealed interface VideoTrack {
         val id: Int? = null,
         val mainSelection: Int = -1,
         val state: TrackState = TrackState.Idle,
-    ) : VideoTrack
+    ) : MpvVideoTrack
 
-    val title: String
+    override val title: String
         get() = when (this) {
             is External -> data.lang
             is Internal -> data.title.orEmpty()
         }
 
-    val lang: String
+    override val language: String
         get() = when (this) {
             is External -> data.lang
             is Internal -> data.lang.orEmpty()

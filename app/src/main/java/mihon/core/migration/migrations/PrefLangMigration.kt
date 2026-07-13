@@ -3,8 +3,8 @@ package mihon.core.migration.migrations
 import android.app.Application
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
-import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
+import animiru.domain.player.service.AudioPreferences
+import animiru.domain.player.service.SubtitlePreferences
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
 import java.util.Locale

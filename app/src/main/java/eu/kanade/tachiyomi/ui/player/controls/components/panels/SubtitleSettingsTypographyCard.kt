@@ -30,9 +30,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
+import androidx.compose.material.icons.automirrored.filled.FormatAlignRight
 import androidx.compose.material.icons.filled.BorderColor
 import androidx.compose.material.icons.filled.BorderStyle
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.FormatAlignCenter
+import androidx.compose.material.icons.filled.FormatAlignJustify
 import androidx.compose.material.icons.filled.FormatBold
 import androidx.compose.material.icons.filled.FormatClear
 import androidx.compose.material.icons.filled.FormatColorText
@@ -54,7 +58,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import dev.icerock.moko.resources.StringResource
+import animiru.domain.player.model.SubtitleJustification
+import animiru.domain.player.model.SubtitlesBorderStyle
+import animiru.domain.player.service.SubtitlePreferences
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.player.components.ExpandableCard
 import eu.kanade.presentation.player.components.ExposedTextDropDownMenu
@@ -62,10 +68,6 @@ import eu.kanade.presentation.player.components.SliderItem
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.player.controls.CARDS_MAX_WIDTH
 import eu.kanade.tachiyomi.ui.player.controls.panelCardsColors
-import eu.kanade.tachiyomi.ui.player.settings.SubtitleJustification
-import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
-import `is`.xyz.mpv.MPV
-import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.core.common.preference.deleteAndGet
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
@@ -150,7 +152,14 @@ fun SubtitleSettingsTypographyCard(
                         checked = justify == justification,
                         onCheckedChange = { onJustificationChange(justification) },
                     ) {
-                        Icon(justification.icon, null)
+                        val imageVector = when (justification) {
+                            SubtitleJustification.Left -> Icons.AutoMirrored.Default.FormatAlignLeft
+                            SubtitleJustification.Center -> Icons.Default.FormatAlignCenter
+                            SubtitleJustification.Right -> Icons.AutoMirrored.Default.FormatAlignRight
+                            SubtitleJustification.Auto -> Icons.Default.FormatAlignJustify
+                        }
+
+                        Icon(imageVector, null)
                     }
                 }
                 Spacer(Modifier.weight(1f))
@@ -273,25 +282,4 @@ fun resetTypography(
     setIntValue("sub-outline-size", preferences.subtitleBorderSize.deleteAndGet())
     setIntValue("sub-shadow-offset", preferences.shadowOffsetSubtitles.deleteAndGet())
     setStringValue("sub-border-style", preferences.borderStyleSubtitles.deleteAndGet().value)
-}
-
-enum class SubtitlesBorderStyle(
-    val value: String,
-    val titleRes: StringResource,
-) {
-    OutlineAndShadow("outline-and-shadow", AYMR.strings.player_sheets_subtitles_border_style_outline_and_shadow),
-    OpaqueBox("opaque-box", AYMR.strings.player_sheets_subtitles_border_style_opaque_box),
-    BackgroundBox("background-box", AYMR.strings.player_sheets_subtitles_border_style_background_box),
-    ;
-
-    companion object {
-        fun byValue(value: String): SubtitlesBorderStyle {
-            return when (value) {
-                "outline-and-shadow" -> OutlineAndShadow
-                "opaque-box" -> OpaqueBox
-                "background-box" -> BackgroundBox
-                else -> throw IllegalArgumentException("Unsupported border style: $value")
-            }
-        }
-    }
 }

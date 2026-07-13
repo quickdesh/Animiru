@@ -33,20 +33,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import eu.kanade.tachiyomi.ui.player.DebandSettings
-import eu.kanade.tachiyomi.ui.player.Debanding
+import animiru.domain.player.model.DebandSettings
+import animiru.domain.player.model.Debanding
+import animiru.domain.player.model.SubtitleJustification
+import animiru.domain.player.model.SubtitlesBorderStyle
+import animiru.domain.player.model.VideoFilters
+import animiru.domain.player.service.PlayerPreferences
+import animiru.domain.player.service.SubtitleAssOverride
 import eu.kanade.tachiyomi.ui.player.Panels
-import eu.kanade.tachiyomi.ui.player.VideoFilters
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.AudioDelayPanel
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.SubColorType
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.SubtitleDelayPanel
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.SubtitleSettingsPanel
-import eu.kanade.tachiyomi.ui.player.controls.components.panels.SubtitlesBorderStyle
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.VideoSettingsPanel
-import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
-import eu.kanade.tachiyomi.ui.player.settings.SubtitleAssOverride
-import eu.kanade.tachiyomi.ui.player.settings.SubtitleJustification
-import kotlinx.collections.immutable.ImmutableList
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 

@@ -1,6 +1,7 @@
 package eu.kanade.domain
 
 import android.app.Application
+import animiru.domain.player.interactor.TrackSelect
 import eu.kanade.domain.anime.interactor.GetExcludedScanlators
 import eu.kanade.domain.anime.interactor.SetAnimeViewerFlags
 import eu.kanade.domain.anime.interactor.SetExcludedScanlators
@@ -27,7 +28,6 @@ import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.domain.track.interactor.RefreshTracks
 import eu.kanade.domain.track.interactor.SyncEpisodeProgressWithTrack
 import eu.kanade.domain.track.interactor.TrackEpisode
-import eu.kanade.tachiyomi.ui.player.domain.TrackSelect
 import mihon.data.repository.ExtensionRepoRepositoryImpl
 import mihon.domain.episode.interactor.FilterEpisodesForDownload
 import mihon.domain.extensionrepo.interactor.CreateExtensionRepo

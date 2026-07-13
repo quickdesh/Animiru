@@ -1,10 +1,9 @@
-package eu.kanade.tachiyomi.ui.player.settings
+package animiru.domain.player.service
 
-import dev.icerock.moko.resources.StringResource
+import animiru.domain.player.model.AudioChannels
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
-import tachiyomi.i18n.aniyomi.AYMR
 
 class AudioPreferences(
     preferenceStore: PreferenceStore,
@@ -17,12 +16,4 @@ class AudioPreferences(
     // Non-preferences
 
     val audioDelay: Preference<Int> = preferenceStore.getInt("pref_audio_delay", 0)
-}
-
-enum class AudioChannels(val titleRes: StringResource, val property: String, val value: String) {
-    Auto(AYMR.strings.pref_player_audio_channels_auto, "audio-channels", "auto-safe"),
-    AutoSafe(AYMR.strings.pref_player_audio_channels_auto_safe, "audio-channels", "auto"),
-    Mono(AYMR.strings.pref_player_audio_channels_mono, "audio-channels", "mono"),
-    Stereo(AYMR.strings.pref_player_audio_channels_stereo, "audio-channels", "stereo"),
-    ReverseStereo(AYMR.strings.pref_player_audio_channels_reverse_stereo, "af", "pan=[stereo|c0=c1|c1=c0]"),
 }

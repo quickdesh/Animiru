@@ -4,8 +4,8 @@ import android.app.Application
 import android.content.Context
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
-import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
+import animiru.domain.player.service.GesturePreferences
+import animiru.domain.player.service.PlayerPreferences
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
 

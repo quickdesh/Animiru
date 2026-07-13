@@ -17,9 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import animiru.domain.player.model.ArtType
 import eu.kanade.presentation.player.components.PlayerSheet
 import eu.kanade.presentation.player.components.SwitchPreference
-import eu.kanade.tachiyomi.ui.player.ArtType
 import eu.kanade.tachiyomi.ui.player.controls.components.dialogs.PlayerDialog
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR

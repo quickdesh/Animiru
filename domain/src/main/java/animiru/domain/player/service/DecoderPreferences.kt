@@ -1,6 +1,6 @@
-package eu.kanade.tachiyomi.ui.player.settings
+package animiru.domain.player.service
 
-import eu.kanade.tachiyomi.ui.player.Debanding
+import animiru.domain.player.model.Debanding
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum

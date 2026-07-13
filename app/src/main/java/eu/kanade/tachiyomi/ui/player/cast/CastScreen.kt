@@ -36,7 +36,7 @@ fun CastScreen(
         modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(vertical = MaterialTheme.padding.medium),
+            .padding(MaterialTheme.padding.medium),
     ) {
         val topControls = createRef()
         val infoBox = createRef()

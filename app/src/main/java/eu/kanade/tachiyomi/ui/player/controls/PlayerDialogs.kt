@@ -5,8 +5,6 @@ import eu.kanade.tachiyomi.data.database.models.Episode
 import eu.kanade.tachiyomi.ui.player.Dialogs
 import eu.kanade.tachiyomi.ui.player.controls.components.dialogs.EpisodeListDialog
 import eu.kanade.tachiyomi.ui.player.controls.components.dialogs.IntegerPickerDialog
-import kotlinx.collections.immutable.ImmutableList
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun PlayerDialogs(

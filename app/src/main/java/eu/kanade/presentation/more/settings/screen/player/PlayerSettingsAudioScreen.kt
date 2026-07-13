@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import animiru.domain.player.model.AudioChannels
+import animiru.domain.player.service.AudioPreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.SearchableSettings
-import eu.kanade.tachiyomi.ui.player.settings.AudioChannels
-import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
 import kotlinx.collections.immutable.toImmutableMap
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource

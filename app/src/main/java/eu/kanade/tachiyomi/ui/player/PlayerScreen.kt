@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.ui.player
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -19,11 +20,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import animiru.domain.player.model.AudioChannels
+import animiru.domain.player.model.DebandSettings
+import animiru.domain.player.model.Debanding
+import animiru.domain.player.model.Decoder.Companion.getDecoderFromValue
+import animiru.domain.player.model.SubtitleJustification
+import animiru.domain.player.model.SubtitlesBorderStyle
+import animiru.domain.player.model.VideoFilters
+import animiru.domain.player.service.AdvancedPlayerPreferences
+import animiru.domain.player.service.AudioPreferences
+import animiru.domain.player.service.DecoderPreferences
+import animiru.domain.player.service.PlayerPreferences
+import animiru.domain.player.service.SubtitleAssOverride
+import animiru.domain.player.service.SubtitlePreferences
 import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
-import cafe.adriel.voyager.navigator.internal.BackHandler
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.theme.playerRippleConfiguration
-import eu.kanade.tachiyomi.ui.player.Decoder.Companion.getDecoderFromValue
 import eu.kanade.tachiyomi.ui.player.PlayerViewModel.PlayerEvent
 import eu.kanade.tachiyomi.ui.player.cast.CastScreen
 import eu.kanade.tachiyomi.ui.player.components.BrightnessOverlay
@@ -39,20 +51,11 @@ import eu.kanade.tachiyomi.ui.player.controls.PlayerDialogs
 import eu.kanade.tachiyomi.ui.player.controls.PlayerPanels
 import eu.kanade.tachiyomi.ui.player.controls.PlayerSheets
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.SubColorType
-import eu.kanade.tachiyomi.ui.player.controls.components.panels.SubtitlesBorderStyle
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.resetColors
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.resetTypography
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.toColorHexString
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.toFixed
-import eu.kanade.tachiyomi.ui.player.mpv.VideoTrack
-import eu.kanade.tachiyomi.ui.player.settings.AdvancedPlayerPreferences
-import eu.kanade.tachiyomi.ui.player.settings.AudioChannels
-import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
-import eu.kanade.tachiyomi.ui.player.settings.DecoderPreferences
-import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
-import eu.kanade.tachiyomi.ui.player.settings.SubtitleAssOverride
-import eu.kanade.tachiyomi.ui.player.settings.SubtitleJustification
-import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
+import eu.kanade.tachiyomi.ui.player.mpv.MpvVideoTrack
 import kotlinx.coroutines.delay
 import tachiyomi.core.common.preference.deleteAndGet
 import tachiyomi.core.common.preference.minusAssign
@@ -84,6 +87,25 @@ fun PlayerScreen(
     val playbackData by viewModel.playbackData.collectAsStateWithLifecycle()
     val castState by viewModel.castManager.castState.collectAsStateWithLifecycle()
 
+    var hasNavigatedBack by remember { mutableStateOf(false) }
+
+    BackHandler {
+        if (!hasNavigatedBack) {
+            hasNavigatedBack = true
+            if (!stateData.isCasting && stateData.isPipAvailable && !playbackData.paused &&
+                playerPreferences.pipOnExit.get() &&
+                uiData.sheetShown == Sheets.None &&
+                uiData.panelShown == Panels.None &&
+                uiData.dialogShown == Dialogs.None
+            ) {
+                viewModel.handlePlayerEvent(PlayerEvent.EnterPip)
+            } else {
+                viewModel.castManager.disconnect()
+                onBack()
+            }
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
         OrientationOverlay(
             orientation = playbackData.currentOrientation,
@@ -93,7 +115,13 @@ fun PlayerScreen(
             CastScreen(
                 stateData = stateData,
                 castState = castState,
-                onBack = onBack,
+                onBack = {
+                    if (!hasNavigatedBack) {
+                        hasNavigatedBack = true
+                        viewModel.castManager.disconnect()
+                        onBack()
+                    }
+                },
             )
         } else {
             val mpvVolume by viewModel.propFlow<Int>("volume").collectAsStateWithLifecycle()
@@ -103,15 +131,6 @@ fun PlayerScreen(
             val remaining by viewModel.propFlow<Int>("playtime-remaining").collectAsStateWithLifecycle()
             val playbackSpeed by viewModel.propFlow<Float>("speed").collectAsStateWithLifecycle()
             val currentChapter by viewModel.propFlow<Int>("chapter").collectAsStateWithLifecycle()
-
-            BackHandler(
-                enabled = stateData.isPipAvailable && !playbackData.paused && playerPreferences.pipOnExit.get() &&
-                    uiData.sheetShown == Sheets.None &&
-                    uiData.panelShown == Panels.None &&
-                    uiData.dialogShown == Dialogs.None,
-            ) {
-                viewModel.handlePlayerEvent(PlayerEvent.EnterPip)
-            }
 
             MpvSurface(
                 modifier = Modifier.fillMaxSize(),
@@ -192,10 +211,10 @@ fun PlayerScreen(
                 val mpvAudioPitchCorrection by viewModel.propFlow<Boolean>("audio-pitch-correction").collectAsState()
 
                 val subtitles = remember(stateData.subtitleTracks, stateData.externalSubtitleTracks) {
-                    stateData.subtitleTracks.map { VideoTrack.Internal(it) } + stateData.externalSubtitleTracks
+                    stateData.subtitleTracks.map { MpvVideoTrack.Internal(it) } + stateData.externalSubtitleTracks
                 }
                 val audioTracks = remember(stateData.audioTracks, stateData.externalAudioTracks) {
-                    stateData.audioTracks.map { VideoTrack.Internal(it) } + stateData.externalAudioTracks
+                    stateData.audioTracks.map { MpvVideoTrack.Internal(it) } + stateData.externalAudioTracks
                 }
 
                 PlayerSheets(

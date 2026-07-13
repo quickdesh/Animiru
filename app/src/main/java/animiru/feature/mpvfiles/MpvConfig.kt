@@ -2,8 +2,8 @@ package animiru.feature.mpvfiles
 
 import android.content.Context
 import android.content.res.AssetManager
+import animiru.domain.player.service.AdvancedPlayerPreferences
 import com.hippo.unifile.UniFile
-import eu.kanade.tachiyomi.ui.player.settings.AdvancedPlayerPreferences
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

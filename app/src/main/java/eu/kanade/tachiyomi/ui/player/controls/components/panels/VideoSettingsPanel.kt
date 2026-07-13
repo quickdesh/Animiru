@@ -2,9 +2,9 @@ package eu.kanade.tachiyomi.ui.player.controls.components.panels
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import eu.kanade.tachiyomi.ui.player.DebandSettings
-import eu.kanade.tachiyomi.ui.player.Debanding
-import eu.kanade.tachiyomi.ui.player.VideoFilters
+import animiru.domain.player.model.DebandSettings
+import animiru.domain.player.model.Debanding
+import animiru.domain.player.model.VideoFilters
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.components.MultiCardPanel
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.i18n.stringResource

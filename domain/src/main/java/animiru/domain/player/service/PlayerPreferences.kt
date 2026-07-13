@@ -1,7 +1,7 @@
-package eu.kanade.tachiyomi.ui.player.settings
+package animiru.domain.player.service
 
-import eu.kanade.tachiyomi.ui.player.PlayerOrientation
-import eu.kanade.tachiyomi.ui.player.VideoAspect
+import animiru.domain.player.model.PlayerOrientation
+import animiru.domain.player.model.VideoAspect
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum

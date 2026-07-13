@@ -3,8 +3,8 @@ package mihon.core.migration.migrations
 import android.app.Application
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import eu.kanade.tachiyomi.ui.player.Debanding
-import eu.kanade.tachiyomi.ui.player.VideoAspect
+import animiru.domain.player.model.Debanding
+import animiru.domain.player.model.VideoAspect
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
 import tachiyomi.core.common.preference.PreferenceStore

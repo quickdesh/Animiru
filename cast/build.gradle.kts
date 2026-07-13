@@ -4,6 +4,8 @@ plugins {
     alias(mihonx.plugins.android.library)
     alias(mihonx.plugins.spotless)
     alias(mihonx.plugins.compose)
+
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -23,11 +25,14 @@ android {
 }
 
 dependencies {
+    implementation(projects.domain)
     implementation(projects.core.common)
     implementation(projects.presentationCore)
     implementation(projects.sourceApi)
     implementation(projects.i18nAnimiru)
     implementation(aniyomilibs.mediarouter)
+    implementation(aniyomilibs.ffmpeg.kit)
+    implementation(aniyomilibs.seeker)
     implementation(libs.androidx.appCompat)
 
     implementation(libs.androidx.compose.foundation)

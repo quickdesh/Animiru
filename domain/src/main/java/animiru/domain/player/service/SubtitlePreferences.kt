@@ -1,15 +1,10 @@
-package eu.kanade.tachiyomi.ui.player.settings
+package animiru.domain.player.service
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.FormatAlignLeft
-import androidx.compose.material.icons.automirrored.filled.FormatAlignRight
-import androidx.compose.material.icons.filled.FormatAlignCenter
-import androidx.compose.material.icons.filled.FormatAlignJustify
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.vector.ImageVector
+import animiru.domain.player.model.SubtitleJustification
+import animiru.domain.player.model.SubtitlesBorderStyle
 import dev.icerock.moko.resources.StringResource
-import eu.kanade.tachiyomi.ui.player.controls.components.panels.SubtitlesBorderStyle
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
@@ -65,28 +60,6 @@ class SubtitlePreferences(
     val subtitlesDelay: Preference<Int> = preferenceStore.getInt("pref_subtitles_delay", 0)
     val subtitlesSpeed: Preference<Float> = preferenceStore.getFloat("pref_subtitles_speed", 1f)
     val subtitlesSecondaryDelay: Preference<Int> = preferenceStore.getInt("pref_subtitles_secondary_delay", 0)
-}
-
-enum class SubtitleJustification(
-    val value: String,
-    val icon: ImageVector,
-) {
-    Left("left", Icons.AutoMirrored.Default.FormatAlignLeft),
-    Center("center", Icons.Default.FormatAlignCenter),
-    Right("right", Icons.AutoMirrored.Default.FormatAlignRight),
-    Auto("auto", Icons.Default.FormatAlignJustify),
-    ;
-
-    companion object {
-        fun byValue(value: String): SubtitleJustification {
-            return when (value) {
-                "left" -> Left
-                "center" -> Center
-                "right" -> Right
-                else -> Auto
-            }
-        }
-    }
 }
 
 enum class SubtitleAssOverride(

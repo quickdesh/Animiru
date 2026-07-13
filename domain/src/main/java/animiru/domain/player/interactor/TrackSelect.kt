@@ -1,9 +1,9 @@
-package eu.kanade.tachiyomi.ui.player.domain
+package animiru.domain.player.interactor
 
 import androidx.core.os.LocaleListCompat
-import eu.kanade.tachiyomi.ui.player.mpv.VideoTrack
-import eu.kanade.tachiyomi.ui.player.settings.AudioPreferences
-import eu.kanade.tachiyomi.ui.player.settings.SubtitlePreferences
+import animiru.domain.player.model.VideoTrack
+import animiru.domain.player.service.AudioPreferences
+import animiru.domain.player.service.SubtitlePreferences
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.util.Locale
@@ -12,7 +12,7 @@ class TrackSelect(
     private val subtitlePreferences: SubtitlePreferences = Injekt.get(),
     private val audioPreferences: AudioPreferences = Injekt.get(),
 ) {
-    fun getPreferredTrackIndex(tracks: List<VideoTrack>, subtitle: Boolean = true): VideoTrack? {
+    fun <T : VideoTrack> getPreferredTrackIndex(tracks: List<T>, subtitle: Boolean = true): T? {
         val prefLangs = if (subtitle) {
             subtitlePreferences.preferredSubLanguages.get()
         } else {
@@ -64,6 +64,6 @@ class TrackSelect(
 
         return trackTitle.contains(localName, true) ||
             trackTitle.contains(englishName, true) ||
-            track.lang.let { langRegex.find(it) != null }
+            track.language.let { langRegex.find(it) != null }
     }
 }

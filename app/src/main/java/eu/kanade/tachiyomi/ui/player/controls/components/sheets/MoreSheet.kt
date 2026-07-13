@@ -63,10 +63,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import animiru.domain.player.model.AudioChannels
+import animiru.domain.player.model.Decoder
 import eu.kanade.presentation.player.components.PlayerSheet
-import eu.kanade.tachiyomi.ui.player.Decoder
-import eu.kanade.tachiyomi.ui.player.settings.AudioChannels
-import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.domain.custombutton.model.CustomButton
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR

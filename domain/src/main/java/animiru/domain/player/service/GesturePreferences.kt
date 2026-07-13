@@ -1,6 +1,6 @@
-package eu.kanade.tachiyomi.ui.player.settings
+package animiru.domain.player.service
 
-import eu.kanade.tachiyomi.ui.player.SingleActionGesture
+import animiru.domain.player.model.SingleActionGesture
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum

@@ -11,8 +11,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import animiru.domain.player.service.PlayerPreferences
 import cafe.adriel.voyager.navigator.currentOrThrow
-import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import kotlin.math.abs

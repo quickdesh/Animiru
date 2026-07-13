@@ -19,10 +19,10 @@ package eu.kanade.tachiyomi.ui.player.controls.components.panels
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import animiru.domain.player.model.SubtitleJustification
+import animiru.domain.player.model.SubtitlesBorderStyle
+import animiru.domain.player.service.SubtitleAssOverride
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.components.MultiCardPanel
-import eu.kanade.tachiyomi.ui.player.settings.SubtitleAssOverride
-import eu.kanade.tachiyomi.ui.player.settings.SubtitleJustification
-import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
 

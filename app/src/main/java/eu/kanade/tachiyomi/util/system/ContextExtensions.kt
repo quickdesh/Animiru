@@ -19,7 +19,6 @@ import rikka.sui.Sui
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
-import java.io.File
 
 /**
  * Copies a string to clipboard
@@ -90,15 +89,6 @@ private fun Context.defaultBrowserPackageName(): String? {
     return resolveInfo
         ?.activityInfo?.packageName
         ?.takeUnless { it in DeviceUtil.invalidDefaultBrowsers }
-}
-
-fun Context.createFileInCacheDir(name: String): File {
-    val file = File(externalCacheDir, name)
-    if (file.exists()) {
-        file.delete()
-    }
-    file.createNewFile()
-    return file
 }
 
 /**
