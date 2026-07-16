@@ -15,7 +15,7 @@ import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.ui.setting.connection.DiscordLoginActivity
 import eu.kanade.tachiyomi.util.lang.truncateCenter
 import logcat.LogPriority
-import rikka.sui.Sui
+import rikka.shizuku.ShizukuProvider
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
@@ -114,7 +114,13 @@ fun Context.isPackageInstalled(packageName: String): Boolean {
 
 val Context.hasMiuiPackageInstaller get() = isPackageInstalled("com.miui.packageinstaller")
 
-val Context.isShizukuInstalled get() = isPackageInstalled("moe.shizuku.privileged.api") || Sui.isSui()
+val Context.isShizukuInstalled: Boolean
+    get() = try {
+        packageManager.getPermissionInfo(ShizukuProvider.PERMISSION, 0)
+        true
+    } catch (e: PackageManager.NameNotFoundException) {
+        false
+    }
 
 fun Context.launchRequestPackageInstallsPermission() {
     Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
