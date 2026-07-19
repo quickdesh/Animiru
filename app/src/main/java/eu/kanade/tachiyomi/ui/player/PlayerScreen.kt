@@ -112,9 +112,11 @@ fun PlayerScreen(
         )
 
         if (stateData.isCasting) {
+            val castUiData by viewModel.castUiData.collectAsStateWithLifecycle()
             CastScreen(
                 stateData = stateData,
                 castState = castState,
+                castUiData = castUiData,
                 onBack = {
                     if (!hasNavigatedBack) {
                         hasNavigatedBack = true
@@ -122,6 +124,7 @@ fun PlayerScreen(
                         onBack()
                     }
                 },
+                onCastManagerEvent = viewModel.castManager::handleCastManagerEvent,
             )
         } else {
             val mpvVolume by viewModel.propFlow<Int>("volume").collectAsStateWithLifecycle()

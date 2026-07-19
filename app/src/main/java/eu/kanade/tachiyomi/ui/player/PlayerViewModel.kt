@@ -50,6 +50,7 @@ import eu.kanade.tachiyomi.data.saver.Location
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
+import eu.kanade.tachiyomi.ui.player.cast.CastUiData
 import eu.kanade.tachiyomi.ui.player.controls.components.IndexedSegment
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.getChangedAt
@@ -75,6 +76,7 @@ import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.cacheImageDir
 import `is`.xyz.mpv.MPVNode
 import `is`.xyz.mpv.Utils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -93,10 +95,14 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import okhttp3.Headers
 import tachiyomi.cast.CastEvent
 import tachiyomi.cast.CastManager
+import tachiyomi.cast.domain.TrackInformation
+import tachiyomi.cast.domain.VideoInformation
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
@@ -173,7 +179,10 @@ class PlayerViewModel @JvmOverloads constructor(
     // AM (SYNC) -->
     private val syncPreferences: SyncPreferences = Injekt.get(),
     // <-- AM (SYNC)
+    // AM --> (CAST)
     internal val castManager: CastManager = Injekt.get(),
+    private val videoInformation: VideoInformation = Injekt.get(),
+    // <-- AM (CAST)
 ) : AndroidViewModel(context) {
     val videoOutput = if (decoderPreferences.gpuNext.get()) "gpu-next" else "gpu"
 
@@ -251,6 +260,12 @@ class PlayerViewModel @JvmOverloads constructor(
         ),
     )
     val playbackData = _playbackData.asStateFlow()
+    private val _castUiData = MutableStateFlow(
+        CastUiData(
+            showChapterIndicator = showChapterIndicator,
+        ),
+    )
+    val castUiData = _castUiData.asStateFlow()
 
     private val _aspectRatio = MutableStateFlow<Double?>(null)
     val aspectRatio = _aspectRatio.asStateFlow()
@@ -392,6 +407,10 @@ class PlayerViewModel @JvmOverloads constructor(
         _playbackData.update { update(it) }
     }
 
+    private fun updateCastUiData(update: (CastUiData) -> CastUiData) {
+        _castUiData.update { update(it) }
+    }
+
     inline fun <reified T> propFlow(name: String): StateFlow<T?> {
         return mpv.propFlow<T>(name)
     }
@@ -510,8 +529,32 @@ class PlayerViewModel @JvmOverloads constructor(
     fun handleCastFlow(event: CastEvent) {
         val castState = castManager.castState.value
         when (event) {
+            CastEvent.ConnectionError -> {
+                updateStateData {
+                    it.copy(
+                        isCasting = false,
+                        isLoadingCasting = false,
+                        isErrorCasting = true,
+                    )
+                }
+            }
+            CastEvent.ConnectionStart -> {
+                updateStateData {
+                    it.copy(
+                        isCasting = false,
+                        isLoadingCasting = true,
+                        isErrorCasting = false,
+                    )
+                }
+            }
             CastEvent.Connected -> {
-                updateStateData { it.copy(isCasting = castState.isConnected) }
+                updateStateData {
+                    it.copy(
+                        isCasting = castState.isConnected,
+                        isLoadingCasting = false,
+                        isErrorCasting = false,
+                    )
+                }
 
                 if (castState.isConnected && !castState.hasLoadedVideo) {
                     startCasting()
@@ -519,7 +562,16 @@ class PlayerViewModel @JvmOverloads constructor(
             }
             is CastEvent.Disconnected -> {
             }
+            is CastEvent.NextEpisode -> {
+                nextEpisode(next = event.next)
+            }
+            is CastEvent.OnSecondReached -> {
+                onSecondReached(position = event.position, isCasting = true)
+            }
             is CastEvent.PlaybackError -> {
+            }
+            CastEvent.Ready -> {
+                updateCastUiData { it.copy(loading = false) }
             }
         }
     }
@@ -865,17 +917,78 @@ class PlayerViewModel @JvmOverloads constructor(
         val anime = stateData.value.currentAnime ?: return
         val episode = stateData.value.currentEpisode ?: return
 
+        if (!player.isExiting) {
+            mpvCommand("stop")
+        }
+
         pause()
         updatePlaybackData {
             it.copy(currentOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
         }
-        castManager.startCasting(
-            video = video,
-            source = source,
-            anime = anime,
-            episodeTitle = episode.name,
-            startPosition = playbackData.value.position.toLong(),
-        )
+        updateCastUiData { it.copy(loading = true) }
+
+        viewModelScope.launch {
+            val headers = video.headers
+                ?: (source as? AnimeHttpSource)?.headers
+                ?: Headers.EMPTY
+
+            val codecInformation = withContext(Dispatchers.IO) {
+                videoInformation.getVideoInformation(
+                    videoUrl = video.videoUrl,
+                    headers = headers,
+                )
+            }
+
+            val maxIndex = codecInformation.tracks.maxByOrNull { it.index }?.index ?: 0
+            val externalSubtitleTracks = video.subtitleTracks.mapIndexed { index, track ->
+                TrackInformation(
+                    index = maxIndex + index,
+                    type = "subtitle",
+                    contentType = videoInformation.getSubtitleContentType(track.url),
+                    title = track.lang,
+                    language = "und",
+                    contentId = track.url,
+                )
+            }
+            val externalAudioTracks = video.audioTracks.mapIndexed { index, track ->
+                TrackInformation(
+                    index = maxIndex + externalSubtitleTracks.size + index,
+                    type = "audio",
+                    contentType = videoInformation.getAudioContentType(track.url),
+                    title = track.lang,
+                    language = "und",
+                    contentId = track.url,
+                )
+            }
+            val subtitleTracks = codecInformation.tracks.filter { it.type == "subtitle" } + externalSubtitleTracks
+            val audioTracks = codecInformation.tracks.filter { it.type == "audio" } + externalAudioTracks
+
+            val chapters = codecInformation.chapters.sortedBy { it.startTime }.map {
+                Segment(
+                    name = it.name,
+                    start = it.startTime.toFloat(),
+                )
+            }
+
+            updateCastUiData {
+                it.copy(
+                    duration = codecInformation.duration?.toLong() ?: 0L,
+                    subTracks = subtitleTracks,
+                    audioTracks = audioTracks,
+                    chapters = chapters,
+                )
+            }
+
+            castManager.startCasting(
+                video = video,
+                videoInformation = codecInformation,
+                subtitleTracks = subtitleTracks,
+                audioTracks = audioTracks,
+                anime = anime,
+                episodeTitle = episode.name,
+                startPosition = playbackData.value.position.toLong(),
+            )
+        }
     }
 
     // === Load ===
@@ -1081,6 +1194,11 @@ class PlayerViewModel @JvmOverloads constructor(
         if (video == null) return
         // TODO(cast)
         // if (true) return
+
+        if (stateData.value.isCasting) {
+            startCasting()
+            return
+        }
 
         updateStateData { it.copy(isStopped = false) }
         setHttpOptions(video)
@@ -1725,7 +1843,7 @@ class PlayerViewModel @JvmOverloads constructor(
         val currentIndex = stateData.value.currentPlaylistIndex
         val newIndex = if (next) currentIndex + 1 else currentIndex - 1
 
-        if (newIndex !in 0..<stateData.value.currentPlaylist.size) return
+        if (newIndex !in stateData.value.currentPlaylist.indices) return
         val episodeId = stateData.value.currentPlaylist.getOrNull(newIndex)?.id ?: return
 
         changeEpisode(episodeId, autoplay)
@@ -2297,20 +2415,25 @@ class PlayerViewModel @JvmOverloads constructor(
      * Called every time a second is reached in the player. Used to mark the flag of episode being
      * seen, update tracking services, enqueue downloaded episode deletion and download next episode.
      */
-    fun onSecondReached(position: Int) {
+    fun onSecondReached(position: Int, isCasting: Boolean = false) {
         updatePlaybackData { it.copy(position = position) }
         if (uiData.value.isLoadingEpisode) return
         val currentEpisode = stateData.value.currentEpisode ?: return
         if (episodeId == -1L) return
-        val duration = playbackData.value.duration
+        val duration = if (isCasting) castUiData.value.duration.toInt() else playbackData.value.duration
         if (duration == 0) return
 
-        // Set netflix-style timeout
-        playbackData.value.netflixTimeout?.let { timeout ->
-            if (timeout > 0) {
-                updatePlaybackData { it.copy(netflixTimeout = timeout - 1) }
-            } else {
-                onSkipIntro()
+        if (isCasting) {
+            val chapter = castUiData.value.chapters.filter { it.start < position }.maxByOrNull { it.start }
+            updateCastUiData { it.copy(currentChapter = chapter) }
+        } else {
+            // Set netflix-style timeout
+            playbackData.value.netflixTimeout?.let { timeout ->
+                if (timeout > 0) {
+                    updatePlaybackData { it.copy(netflixTimeout = timeout - 1) }
+                } else {
+                    onSkipIntro()
+                }
             }
         }
 
@@ -2822,6 +2945,8 @@ class PlayerViewModel @JvmOverloads constructor(
     @Stable
     data class PlayerStateData(
         val isCasting: Boolean = false,
+        val isLoadingCasting: Boolean = false,
+        val isErrorCasting: Boolean = false,
         val isStopped: Boolean = false,
         val hasTrackers: Boolean = false,
         val incognitoMode: Boolean = false,

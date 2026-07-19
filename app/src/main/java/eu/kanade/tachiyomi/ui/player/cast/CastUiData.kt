@@ -1,0 +1,16 @@
+package eu.kanade.tachiyomi.ui.player.cast
+
+import androidx.compose.runtime.Stable
+import dev.vivvvek.seeker.Segment
+import tachiyomi.cast.domain.TrackInformation
+
+@Stable
+data class CastUiData(
+    val loading: Boolean = true,
+    val duration: Long = 0L,
+    val subTracks: List<TrackInformation> = emptyList(),
+    val audioTracks: List<TrackInformation> = emptyList(),
+    val chapters: List<Segment> = emptyList(),
+    val currentChapter: Segment? = null,
+    val showChapterIndicator: Boolean = false,
+)

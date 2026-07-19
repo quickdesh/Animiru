@@ -32,6 +32,8 @@ import tachiyomi.presentation.core.components.material.padding
 
 @Composable
 fun BottomRightPlayerControls(
+    castLoading: Boolean,
+    castError: Boolean,
     isPipAvailable: Boolean,
     onAspectClick: () -> Unit,
     onPipClick: () -> Unit,
@@ -40,6 +42,8 @@ fun BottomRightPlayerControls(
     Row(modifier) {
         if (castIncluded) {
             CastButton(
+                loading = castLoading,
+                error = castError,
                 verticalSpacing = MaterialTheme.padding.small,
             )
         }

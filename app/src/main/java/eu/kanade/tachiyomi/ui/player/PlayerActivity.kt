@@ -256,7 +256,7 @@ class PlayerActivity : BaseActivity() {
                     viewModel = viewModel,
                     onBack = {
                         if (isPipSupportedAndEnabled && !viewModel.playbackData.value.paused &&
-                            playerPreferences.pipOnExit.get()
+                            playerPreferences.pipOnExit.get() && !viewModel.stateData.value.isCasting
                         ) {
                             enterPictureInPictureMode(createPipParams())
                         } else {

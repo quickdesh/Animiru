@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import okhttp3.Headers
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import tachiyomi.core.common.util.system.createFileInCacheDir
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -28,7 +29,7 @@ private data class FFprobeDto(
 private data class StreamDto(
     val index: Int,
     @SerialName("codec_name")
-    val codecName: String,
+    val codecName: String? = null,
     @SerialName("codec_type")
     val codecType: String,
     val tags: StreamTagDto? = null,
@@ -117,6 +118,7 @@ class VideoInformation(
         val tracks = mutableListOf<TrackInformation>()
         resultDto.streams.forEach {
             if (it.codecType != "audio" && it.codecType != "subtitle") return@forEach
+            if (it.codecName == null) return@forEach
 
             val contentType = if (it.codecType ==
                 "audio"
@@ -162,7 +164,7 @@ class VideoInformation(
                 val webm = setOf("vp8", "vp9", "av1", "opus", "vorbis")
                 val isWebm = tracks
                     .filter { it.codecType == "video" || it.codecType == "audio" }
-                    .all { it.codecName.lowercase() in webm }
+                    .all { it.codecName?.lowercase() in webm }
                 if (isWebm) "video/webm" else "video/x-matroska"
             }
             name in setOf("mp4", "mov", "m4a", "3gp", "3g2", "mj2") -> "video/mp4"
@@ -198,5 +200,35 @@ class VideoInformation(
         "hdmv_pgs_subtitle" -> "application/x-pgs"
         "dvd_subtitle" -> "application/x-dvd-subtitle"
         else -> "application/octet-stream"
+    }
+
+    fun getSubtitleContentType(url: String): String {
+        val extension = url.toHttpUrl().pathSegments.last()
+            .substringAfterLast(".", "")
+            .lowercase()
+        return when (extension) {
+            "vtt" -> "text/vtt"
+            "srt" -> "application/x-subrip"
+            "ttml", "dfxp", "xml" -> "application/ttml+xml"
+            "smi", "sami" -> "application/smil+xml"
+            "ssa", "ass" -> "text/x-ssa"
+            else -> "text/vtt"
+        }
+    }
+
+    fun getAudioContentType(url: String): String {
+        val extension = url.toHttpUrl().pathSegments.last()
+            .substringAfterLast(".", "")
+            .lowercase()
+        return when (extension) {
+            "aac" -> "audio/aac"
+            "mp3" -> "audio/mpeg"
+            "m4a", "m4b" -> "audio/mp4"
+            "wav" -> "audio/wav"
+            "ogg", "oga", "opus" -> "audio/ogg"
+            "flac" -> "audio/flac"
+            "webm" -> "audio/webm"
+            else -> "audio/mp4"
+        }
     }
 }

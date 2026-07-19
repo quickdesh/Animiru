@@ -15,6 +15,7 @@ android {
         getByName("main") {
             if (Config.includeCast) {
                 kotlin.directories.add("src/gms/kotlin")
+                res.directories.add("src/gms/res")
                 manifest.srcFile("src/gms/AndroidManifest.xml")
             } else {
                 kotlin.directories.add("src/noop/kotlin")
@@ -32,7 +33,6 @@ dependencies {
     implementation(projects.i18nAnimiru)
     implementation(aniyomilibs.mediarouter)
     implementation(aniyomilibs.ffmpeg.kit)
-    implementation(aniyomilibs.seeker)
     implementation(libs.androidx.appCompat)
 
     implementation(libs.androidx.compose.foundation)

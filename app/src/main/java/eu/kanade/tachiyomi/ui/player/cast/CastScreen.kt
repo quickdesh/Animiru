@@ -11,7 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
@@ -19,6 +19,7 @@ import eu.kanade.tachiyomi.ui.player.PlayerViewModel
 import eu.kanade.tachiyomi.ui.player.cast.controls.CastInfoBox
 import eu.kanade.tachiyomi.ui.player.cast.controls.CastMainControls
 import eu.kanade.tachiyomi.ui.player.cast.controls.CastTopControls
+import tachiyomi.cast.CastManagerEvent
 import tachiyomi.cast.CastState
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.components.material.padding
@@ -28,7 +29,9 @@ import tachiyomi.presentation.core.i18n.stringResource
 fun CastScreen(
     stateData: PlayerViewModel.PlayerStateData,
     castState: CastState,
+    castUiData: CastUiData,
     onBack: () -> Unit,
+    onCastManagerEvent: (CastManagerEvent) -> Unit,
 ) {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
@@ -73,6 +76,13 @@ fun CastScreen(
         )
 
         CastMainControls(
+            castState = castState,
+            castUiData = castUiData,
+            hasNext = stateData.hasNextEpisode,
+            hasPrevious = stateData.hasPreviousEpisode,
+            onPlayPause = { onCastManagerEvent(CastManagerEvent.PlayPause) },
+            onNext = { onCastManagerEvent(CastManagerEvent.Next(true)) },
+            onPrevious = { onCastManagerEvent(CastManagerEvent.Next(false)) },
             modifier = Modifier.constrainAs(controls) {
                 if (isLandscape) {
                     start.linkTo(infoBox.end)
@@ -95,7 +105,7 @@ fun CastScreen(
 }
 
 @Composable
-@Preview
+@PreviewLightDark
 private fun CastScreenPreview() {
     TachiyomiPreviewTheme {
         CastScreen(
@@ -103,7 +113,9 @@ private fun CastScreenPreview() {
                 maxVolume = 0,
             ),
             castState = CastState(),
+            castUiData = CastUiData(),
             onBack = { },
+            onCastManagerEvent = { },
         )
     }
 }

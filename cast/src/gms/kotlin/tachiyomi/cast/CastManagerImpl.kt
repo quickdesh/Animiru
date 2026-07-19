@@ -1,13 +1,16 @@
 package tachiyomi.cast
 
 import android.content.Context
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouterParams
 import animiru.domain.player.interactor.TrackSelect
+import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
+import com.google.android.gms.cast.MediaSeekOptions
 import com.google.android.gms.cast.MediaStatus
 import com.google.android.gms.cast.MediaTrack
 import com.google.android.gms.cast.framework.CastContext
@@ -15,10 +18,7 @@ import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.google.android.gms.common.images.WebImage
-import dev.vivvvek.seeker.Segment
-import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.Video
-import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,16 +29,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import logcat.LogPriority
-import okhttp3.Headers
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import tachiyomi.cast.domain.CodecInformation
 import tachiyomi.cast.domain.TrackInformation
-import tachiyomi.cast.domain.VideoInformation
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.model.Anime
 
 // Some code taken from https://github.com/MakD/AFinity/blob/master/app/src/main/java/com/makd/afinity/cast/CastManager.kt
 class CastManagerImpl(
-    private val videoInformation: VideoInformation,
     private val trackSelect: TrackSelect,
 ) : CastManager {
 
@@ -90,7 +87,9 @@ class CastManagerImpl(
 
     override fun startCasting(
         video: Video,
-        source: AnimeSource,
+        videoInformation: CodecInformation,
+        subtitleTracks: List<TrackInformation>,
+        audioTracks: List<TrackInformation>,
         anime: Anime,
         episodeTitle: String,
         startPosition: Long,
@@ -101,39 +100,6 @@ class CastManagerImpl(
                 _castEvent.emit(CastEvent.PlaybackError(CastNotConnectedException()))
                 return@launch
             }
-
-            val headers = video.headers
-                ?: (source as? AnimeHttpSource)?.headers
-                ?: Headers.EMPTY
-
-            val videoInformation = videoInformation.getVideoInformation(
-                videoUrl = video.videoUrl,
-                headers = headers,
-            )
-
-            val maxIndex = videoInformation.tracks.maxByOrNull { it.index }?.index ?: 0
-            val externalSubtitleTracks = video.subtitleTracks.mapIndexed { index, track ->
-                TrackInformation(
-                    index = maxIndex + index,
-                    type = "subtitle",
-                    contentType = getSubtitleContentType(track.url),
-                    title = track.lang,
-                    language = "und",
-                    contentId = track.url,
-                )
-            }
-            val externalAudioTracks = video.audioTracks.mapIndexed { index, track ->
-                TrackInformation(
-                    index = maxIndex + externalSubtitleTracks.size + index,
-                    type = "audio",
-                    contentType = getAudioContentType(track.url),
-                    title = track.lang,
-                    language = "und",
-                    contentId = track.url,
-                )
-            }
-            val subtitleTracks = videoInformation.tracks.filter { it.type == "subtitle" } + externalSubtitleTracks
-            val audioTracks = videoInformation.tracks.filter { it.type == "audio" } + externalAudioTracks
 
             val subtitleMediaTracks = subtitleTracks.map {
                 MediaTrack.Builder(it.index, MediaTrack.TYPE_TEXT).apply {
@@ -188,73 +154,56 @@ class CastManagerImpl(
                 setActiveTrackIds(preferred)
             }.build()
 
-            client.load(loadRequest)
-
-            val chapters = videoInformation.chapters.map {
-                Segment(
-                    name = it.name,
-                    start = it.startTime.toFloat(),
+            val loadTask = client.load(loadRequest).await()
+            if (startPosition > 0L && loadTask.status.isSuccess) {
+                client.seek(
+                    MediaSeekOptions.Builder()
+                        .setPosition(startPosition * 1000L)
+                        .build(),
                 )
+                scope.launch {
+                    _castEvent.emit(CastEvent.OnSecondReached(startPosition.toInt()))
+                }
             }
 
             _castState.update {
                 it.copy(
                     hasLoadedVideo = true,
-                    subTracks = subtitleTracks,
-                    audioTracks = audioTracks,
-                    chapters = chapters,
                 )
             }
+
+            _castEvent.emit(CastEvent.Ready)
         }
     }
 
-    private fun getSubtitleContentType(url: String): String {
-        val extension = url.toHttpUrl().pathSegments.last()
-            .substringAfterLast(".", "")
-            .lowercase()
-        return when (extension) {
-            "vtt" -> "text/vtt"
-            "srt" -> "application/x-subrip"
-            "ttml", "dfxp", "xml" -> "application/ttml+xml"
-            "smi", "sami" -> "application/smil+xml"
-            "ssa", "ass" -> "text/x-ssa"
-            else -> "text/vtt"
-        }
-    }
-
-    private fun getAudioContentType(url: String): String {
-        val extension = url.toHttpUrl().pathSegments.last()
-            .substringAfterLast(".", "")
-            .lowercase()
-        return when (extension) {
-            "aac" -> "audio/aac"
-            "mp3" -> "audio/mpeg"
-            "m4a", "m4b" -> "audio/mp4"
-            "wav" -> "audio/wav"
-            "ogg", "oga", "opus" -> "audio/ogg"
-            "flac" -> "audio/flac"
-            "webm" -> "audio/webm"
-            else -> "audio/mp4"
+    override fun handleCastManagerEvent(event: CastManagerEvent) {
+        when (event) {
+            is CastManagerEvent.Next -> {
+                scope.launch {
+                    _castEvent.emit(CastEvent.NextEpisode(event.next))
+                }
+            }
+            CastManagerEvent.PlayPause -> {
+                if (castState.value.playing) {
+                    remoteMediaClient?.pause()
+                } else {
+                    remoteMediaClient?.play()
+                }
+            }
         }
     }
 
     private fun updatePositionFromRemote() {
         try {
             val client = remoteMediaClient ?: return
-            val position = client.approximateStreamPosition / 1000L
-            if (position >= 0) {
-                _castState.update { it.copy(position = position) }
-            }
-
             val mediaStatus = client.mediaStatus
             if (mediaStatus != null) {
-                val duration = mediaStatus.mediaInfo?.streamDuration?.div(1000L) ?: 0
-
                 _castState.update {
                     it.copy(
                         playing = mediaStatus.playerState == MediaStatus.PLAYER_STATE_PLAYING,
-                        loading = mediaStatus.playerState == MediaStatus.PLAYER_STATE_BUFFERING,
-                        duration = if (duration > 0) duration else it.duration,
+                        buffering =
+                        mediaStatus.playerState == MediaStatus.PLAYER_STATE_BUFFERING ||
+                            mediaStatus.playerState == MediaStatus.PLAYER_STATE_LOADING,
                     )
                 }
             }
@@ -274,6 +223,10 @@ class CastManagerImpl(
 
     private val castSessionManagerListener = object : SessionManagerListener<CastSession> {
         override fun onSessionStarting(session: CastSession) {
+            _castState.update { _ -> CastState() }
+            scope.launch {
+                _castEvent.emit(CastEvent.ConnectionStart)
+            }
         }
 
         override fun onSessionStarted(session: CastSession, sessionId: String) {
@@ -281,6 +234,7 @@ class CastManagerImpl(
             castSession = session
             remoteMediaClient = session.remoteMediaClient
             remoteMediaClient?.registerCallback(remoteMediaClientCallback)
+            remoteMediaClient?.addProgressListener(remoteMediaClientProgressListener, 1000)
 
             _castState.update {
                 it.copy(
@@ -299,7 +253,7 @@ class CastManagerImpl(
         override fun onSessionStartFailed(session: CastSession, error: Int) {
             logcat(LogPriority.ERROR) { "Cast session failed: $error" }
             scope.launch {
-                _castEvent.emit(CastEvent.PlaybackError(CastStartException(error)))
+                _castEvent.emit(CastEvent.ConnectionError)
             }
         }
 
@@ -309,6 +263,7 @@ class CastManagerImpl(
         override fun onSessionEnded(session: CastSession, error: Int) {
             val state = castState.value
             remoteMediaClient?.unregisterCallback(remoteMediaClientCallback)
+            remoteMediaClient?.removeProgressListener(remoteMediaClientProgressListener)
             remoteMediaClient = null
             castSession = null
 
@@ -326,7 +281,7 @@ class CastManagerImpl(
             castSession = session
             remoteMediaClient = session.remoteMediaClient
             remoteMediaClient?.registerCallback(remoteMediaClientCallback)
-
+            remoteMediaClient?.addProgressListener(remoteMediaClientProgressListener, 1000)
             _castState.update {
                 it.copy(
                     isConnected = true,
@@ -342,9 +297,26 @@ class CastManagerImpl(
         }
     }
 
+    private val remoteMediaClientProgressListener = RemoteMediaClient.ProgressListener { progressMs, _ ->
+        _castState.update {
+            it.copy(
+                position = progressMs / 1000L,
+            )
+        }
+        if (castState.value.playing) {
+            scope.launch {
+                _castEvent.emit(CastEvent.OnSecondReached(position = progressMs.div(1000).toInt()))
+            }
+        }
+    }
+
     private val remoteMediaClientCallback = object : RemoteMediaClient.Callback() {
         override fun onStatusUpdated() {
             updatePositionFromRemote()
+        }
+
+        override fun onMediaError(p0: MediaError) {
+            // TODO(cast): Error handling
         }
     }
 }

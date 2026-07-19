@@ -1,10 +1,11 @@
 package tachiyomi.cast
 
 import android.content.Context
-import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.Video
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import tachiyomi.cast.domain.CodecInformation
+import tachiyomi.cast.domain.TrackInformation
 import tachiyomi.domain.anime.model.Anime
 
 interface CastManager {
@@ -19,9 +20,13 @@ interface CastManager {
 
     fun startCasting(
         video: Video,
-        source: AnimeSource,
+        videoInformation: CodecInformation,
+        subtitleTracks: List<TrackInformation>,
+        audioTracks: List<TrackInformation>,
         anime: Anime,
         episodeTitle: String,
         startPosition: Long = 0L,
     )
+
+    fun handleCastManagerEvent(event: CastManagerEvent)
 }

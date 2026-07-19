@@ -405,6 +405,8 @@ fun PlayerControls(
                 },
             ) {
                 BottomRightPlayerControls(
+                    castLoading = stateData.isLoadingCasting,
+                    castError = stateData.isErrorCasting,
                     isPipAvailable = stateData.isPipAvailable,
                     onPipClick = { onPlayerEvent(PlayerEvent.EnterPip) },
                     onAspectClick = { onPlayerEvent(PlayerEvent.ChangeAspect) },

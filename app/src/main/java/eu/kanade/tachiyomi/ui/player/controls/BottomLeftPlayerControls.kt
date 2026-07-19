@@ -32,8 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import dev.vivvvek.seeker.Segment
 import eu.kanade.tachiyomi.ui.player.Sheets
+import eu.kanade.tachiyomi.ui.player.components.CurrentChapter
 import eu.kanade.tachiyomi.ui.player.controls.components.ControlsButton
-import eu.kanade.tachiyomi.ui.player.controls.components.CurrentChapter
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
@@ -88,7 +88,7 @@ fun BottomLeftPlayerControls(
 private fun BottomLeftPlayerControlsPreview() {
     BottomLeftPlayerControls(
         playbackSpeed = 1.0f,
-        currentChapter = null,
+        currentChapter = Segment("Opening", 43f),
         showChapterIndicator = true,
         onLockControls = { },
         onCycleRotation = { },
