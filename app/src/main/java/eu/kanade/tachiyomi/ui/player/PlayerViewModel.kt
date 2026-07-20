@@ -50,10 +50,11 @@ import eu.kanade.tachiyomi.data.saver.Location
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
+import eu.kanade.tachiyomi.ui.player.cast.CastSheet
 import eu.kanade.tachiyomi.ui.player.cast.CastUiData
+import eu.kanade.tachiyomi.ui.player.components.HosterState
+import eu.kanade.tachiyomi.ui.player.components.getChangedAt
 import eu.kanade.tachiyomi.ui.player.controls.components.IndexedSegment
-import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
-import eu.kanade.tachiyomi.ui.player.controls.components.sheets.getChangedAt
 import eu.kanade.tachiyomi.ui.player.domain.AudioManager
 import eu.kanade.tachiyomi.ui.player.domain.BrightnessManager
 import eu.kanade.tachiyomi.ui.player.loader.EpisodeLoader
@@ -557,7 +558,8 @@ class PlayerViewModel @JvmOverloads constructor(
                 }
 
                 if (castState.isConnected && !castState.hasLoadedVideo) {
-                    startCasting()
+                    val position = playbackData.value.position.toLong()
+                    startCasting(startPosition = position)
                 }
             }
             is CastEvent.Disconnected -> {
@@ -571,7 +573,8 @@ class PlayerViewModel @JvmOverloads constructor(
             is CastEvent.PlaybackError -> {
             }
             CastEvent.Ready -> {
-                updateCastUiData { it.copy(loading = false) }
+                updateCastUiData { it.copy(isLoadingEpisode = false) }
+                // updateCastUiData { it.copy(loading = false) }
             }
         }
     }
@@ -911,7 +914,7 @@ class PlayerViewModel @JvmOverloads constructor(
 
     // === Casting ===
 
-    private fun startCasting() {
+    private fun startCasting(startPosition: Long = 0) {
         val video = stateData.value.currentVideo ?: return
         val source = stateData.value.currentSource ?: return
         val anime = stateData.value.currentAnime ?: return
@@ -925,7 +928,6 @@ class PlayerViewModel @JvmOverloads constructor(
         updatePlaybackData {
             it.copy(currentOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
         }
-        updateCastUiData { it.copy(loading = true) }
 
         viewModelScope.launch {
             val headers = video.headers
@@ -979,6 +981,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 )
             }
 
+            castManager.stopRemoteMediaClient()
             castManager.startCasting(
                 video = video,
                 videoInformation = codecInformation,
@@ -986,8 +989,15 @@ class PlayerViewModel @JvmOverloads constructor(
                 audioTracks = audioTracks,
                 anime = anime,
                 episodeTitle = episode.name,
-                startPosition = playbackData.value.position.toLong(),
+                startPosition = startPosition,
             )
+        }
+    }
+
+    fun setCastSheet(sheet: CastSheet) {
+        updateCastUiData { it.copy(sheetShown = sheet) }
+        if (sheet == CastSheet.None) {
+            resetDismissSheet()
         }
     }
 
@@ -1195,26 +1205,36 @@ class PlayerViewModel @JvmOverloads constructor(
         // TODO(cast)
         // if (true) return
 
+        val castState = castManager.castState.value
+        val isLoadingEpisode = if (castState.hasLoadedVideo) {
+            castUiData.value.isLoadingEpisode
+        } else {
+            uiData.value.isLoadingEpisode
+        }
+        val resumePosition = if (isLoadingEpisode) {
+            stateData.value.currentEpisode?.let { episode ->
+                val preservePos = playerPreferences.preserveWatchingPosition.get()
+                if (episode.seen && !preservePos) {
+                    0L
+                } else {
+                    episode.last_second_seen / 1000L
+                }
+            }
+        } else if (castState.hasLoadedVideo) {
+            castState.position
+        } else {
+            playbackData.value.position.toLong()
+        }
+
         if (stateData.value.isCasting) {
-            startCasting()
+            startCasting(startPosition = resumePosition ?: 0L)
             return
         }
 
         updateStateData { it.copy(isStopped = false) }
         setHttpOptions(video)
-
-        if (uiData.value.isLoadingEpisode) {
-            stateData.value.currentEpisode?.let { episode ->
-                val preservePos = playerPreferences.preserveWatchingPosition.get()
-                val resumePosition = if (episode.seen && !preservePos) {
-                    0L
-                } else {
-                    episode.last_second_seen
-                }
-                mpvCommand("set", "start", "${resumePosition / 1000F}")
-            }
-        } else {
-            mpvCommand("set", "start", playbackData.value.position.toString())
+        resumePosition?.let {
+            mpvCommand("set", "start", it.toString())
         }
 
         // We handle selecting these in the viewmodel
@@ -1322,7 +1342,9 @@ class PlayerViewModel @JvmOverloads constructor(
         viewModelScope.launchIO {
             val success = loadVideo(video, hosterIndex, videoIndex)
             if (success) {
-                if (uiData.value.sheetShown == Sheets.QualityTracks) {
+                if (uiData.value.sheetShown == Sheets.QualityTracks ||
+                    castUiData.value.sheetShown == CastSheet.Quality
+                ) {
                     dismissSheet()
                 }
             }
@@ -1856,8 +1878,13 @@ class PlayerViewModel @JvmOverloads constructor(
      * @param autoPlay whether the episode is switching due to auto play
      */
     fun changeEpisode(episodeId: Long?, autoPlay: Boolean = false) {
-        pause()
-        clearTracks()
+        if (stateData.value.isCasting) {
+            castManager.stopRemoteMediaClient()
+            updateCastUiData { it.copy(isLoadingEpisode = true) }
+        } else {
+            pause()
+            clearTracks()
+        }
 
         updateStateData { it.copy(hosterList = emptyList()) }
         updateUiData {

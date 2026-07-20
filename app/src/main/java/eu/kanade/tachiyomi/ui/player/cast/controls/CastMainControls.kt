@@ -54,6 +54,7 @@ fun CastMainControls(
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    onClickQuality: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -79,7 +80,7 @@ fun CastMainControls(
                 enabled = true,
             )
 
-            if (castState.buffering || castUiData.loading) {
+            if (castState.buffering || castState.isLoading || castUiData.isLoadingEpisode) {
                 Box(modifier = Modifier.padding(MaterialTheme.padding.medium)) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(36.dp),
@@ -194,7 +195,7 @@ fun CastMainControls(
 
             CastControlButton(
                 icon = Icons.Default.HighQuality,
-                onClick = { },
+                onClick = onClickQuality,
                 onLongClick = { },
                 horizontalSpacing = MaterialTheme.padding.mediumSmall,
             )
@@ -235,6 +236,7 @@ private fun CastMainControlsPreview() {
             onPlayPause = { },
             onNext = { },
             onPrevious = { },
+            onClickQuality = { },
         )
     }
 }

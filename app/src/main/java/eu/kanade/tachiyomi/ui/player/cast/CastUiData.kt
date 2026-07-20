@@ -6,11 +6,17 @@ import tachiyomi.cast.domain.TrackInformation
 
 @Stable
 data class CastUiData(
-    val loading: Boolean = true,
+    val isLoadingEpisode: Boolean = false,
     val duration: Long = 0L,
     val subTracks: List<TrackInformation> = emptyList(),
     val audioTracks: List<TrackInformation> = emptyList(),
     val chapters: List<Segment> = emptyList(),
     val currentChapter: Segment? = null,
     val showChapterIndicator: Boolean = false,
+    val sheetShown: CastSheet = CastSheet.None,
 )
+
+enum class CastSheet {
+    Quality,
+    None,
+}

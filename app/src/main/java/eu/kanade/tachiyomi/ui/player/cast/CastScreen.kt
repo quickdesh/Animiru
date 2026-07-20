@@ -31,6 +31,7 @@ fun CastScreen(
     castState: CastState,
     castUiData: CastUiData,
     onBack: () -> Unit,
+    onClickQuality: () -> Unit,
     onCastManagerEvent: (CastManagerEvent) -> Unit,
 ) {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -83,6 +84,7 @@ fun CastScreen(
             onPlayPause = { onCastManagerEvent(CastManagerEvent.PlayPause) },
             onNext = { onCastManagerEvent(CastManagerEvent.Next(true)) },
             onPrevious = { onCastManagerEvent(CastManagerEvent.Next(false)) },
+            onClickQuality = onClickQuality,
             modifier = Modifier.constrainAs(controls) {
                 if (isLandscape) {
                     start.linkTo(infoBox.end)
@@ -115,6 +117,7 @@ private fun CastScreenPreview() {
             castState = CastState(),
             castUiData = CastUiData(),
             onBack = { },
+            onClickQuality = { },
             onCastManagerEvent = { },
         )
     }

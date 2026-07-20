@@ -10,6 +10,7 @@ data class CastState(
     val buffering: Boolean = true,
     val position: Long = 0L,
     val hasLoadedVideo: Boolean = false,
+    val isLoading: Boolean = true,
 
     val volume: Double = 1.0,
     val muted: Boolean = false,

@@ -55,10 +55,10 @@ import eu.kanade.tachiyomi.animesource.model.Hoster
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.main.MainActivity
-import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
-import eu.kanade.tachiyomi.ui.player.controls.components.sheets.QualitySheetHosterContent
-import eu.kanade.tachiyomi.ui.player.controls.components.sheets.QualitySheetVideoContent
-import eu.kanade.tachiyomi.ui.player.controls.components.sheets.getChangedAt
+import eu.kanade.tachiyomi.ui.player.components.HosterState
+import eu.kanade.tachiyomi.ui.player.components.QualitySheetHosterContent
+import eu.kanade.tachiyomi.ui.player.components.QualitySheetVideoContent
+import eu.kanade.tachiyomi.ui.player.components.getChangedAt
 import eu.kanade.tachiyomi.ui.player.loader.EpisodeLoader
 import eu.kanade.tachiyomi.ui.player.loader.HosterLoader
 import eu.kanade.tachiyomi.util.system.toast

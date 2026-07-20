@@ -1,7 +1,6 @@
 package tachiyomi.cast
 
 import android.content.Context
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouterParams
@@ -101,6 +100,8 @@ class CastManagerImpl(
                 return@launch
             }
 
+            _castState.update { it.copy(isLoading = true) }
+
             val subtitleMediaTracks = subtitleTracks.map {
                 MediaTrack.Builder(it.index, MediaTrack.TYPE_TEXT).apply {
                     setName(it.title)
@@ -150,19 +151,24 @@ class CastManagerImpl(
             val loadRequest = MediaLoadRequestData.Builder().apply {
                 setMediaInfo(mediaInfo)
                 setAutoplay(true)
-                setCurrentTime(startPosition)
+                setCurrentTime(startPosition * 1000L)
                 setActiveTrackIds(preferred)
             }.build()
 
-            val loadTask = client.load(loadRequest).await()
-            if (startPosition > 0L && loadTask.status.isSuccess) {
-                client.seek(
-                    MediaSeekOptions.Builder()
-                        .setPosition(startPosition * 1000L)
-                        .build(),
-                )
-                scope.launch {
-                    _castEvent.emit(CastEvent.OnSecondReached(startPosition.toInt()))
+            val loadTask = client.load(loadRequest)
+            loadTask.setResultCallback { result ->
+                if (result.status.isSuccess) {
+                    _castState.update { it.copy(isLoading = false) }
+                    if (startPosition > 0L) {
+                        client.seek(
+                            MediaSeekOptions.Builder()
+                                .setPosition(startPosition * 1000L)
+                                .build(),
+                        )
+                        scope.launch {
+                            _castEvent.emit(CastEvent.OnSecondReached(startPosition.toInt()))
+                        }
+                    }
                 }
             }
 
@@ -174,6 +180,10 @@ class CastManagerImpl(
 
             _castEvent.emit(CastEvent.Ready)
         }
+    }
+
+    override fun stopRemoteMediaClient() {
+        remoteMediaClient?.stop()
     }
 
     override fun handleCastManagerEvent(event: CastManagerEvent) {
@@ -315,7 +325,7 @@ class CastManagerImpl(
             updatePositionFromRemote()
         }
 
-        override fun onMediaError(p0: MediaError) {
+        override fun onMediaError(error: MediaError) {
             // TODO(cast): Error handling
         }
     }

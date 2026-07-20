@@ -28,5 +28,7 @@ interface CastManager {
         startPosition: Long = 0L,
     )
 
+    fun stopRemoteMediaClient()
+
     fun handleCastManagerEvent(event: CastManagerEvent)
 }

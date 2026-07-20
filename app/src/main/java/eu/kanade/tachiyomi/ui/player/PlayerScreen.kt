@@ -38,6 +38,8 @@ import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.theme.playerRippleConfiguration
 import eu.kanade.tachiyomi.ui.player.PlayerViewModel.PlayerEvent
 import eu.kanade.tachiyomi.ui.player.cast.CastScreen
+import eu.kanade.tachiyomi.ui.player.cast.CastSheet
+import eu.kanade.tachiyomi.ui.player.cast.components.CastSheets
 import eu.kanade.tachiyomi.ui.player.components.BrightnessOverlay
 import eu.kanade.tachiyomi.ui.player.components.MpvSurface
 import eu.kanade.tachiyomi.ui.player.components.OrientationOverlay
@@ -87,6 +89,10 @@ fun PlayerScreen(
     val playbackData by viewModel.playbackData.collectAsStateWithLifecycle()
     val castState by viewModel.castManager.castState.collectAsStateWithLifecycle()
 
+    // Common
+    val showFailedHosters by playerPreferences.showFailedHosters.collectAsState()
+    val emptyHosters by playerPreferences.showEmptyHosters.collectAsState()
+
     var hasNavigatedBack by remember { mutableStateOf(false) }
 
     BackHandler {
@@ -124,7 +130,23 @@ fun PlayerScreen(
                         onBack()
                     }
                 },
+                onClickQuality = {
+                    viewModel.setCastSheet(CastSheet.Quality)
+                },
                 onCastManagerEvent = viewModel.castManager::handleCastManagerEvent,
+            )
+
+            CastSheets(
+                sheetShown = castUiData.sheetShown,
+                isLoadingHosters = uiData.isLoadingHosters,
+                hosterState = stateData.hosterState,
+                expandedState = uiData.hosterExpandedList,
+                selectedVideoIndex = uiData.selectedHosterVideoIndex,
+                onClickHoster = viewModel::onHosterClicked,
+                onClickVideo = viewModel::onVideoClicked,
+                displayHosters = Pair(showFailedHosters, emptyHosters),
+                onDismissRequest = { viewModel.setCastSheet(CastSheet.None) },
+                dismissSheet = uiData.dismissSheet,
             )
         } else {
             val mpvVolume by viewModel.propFlow<Int>("volume").collectAsStateWithLifecycle()
@@ -201,8 +223,6 @@ fun PlayerScreen(
                 )
 
                 // Sheets
-                val showFailedHosters by playerPreferences.showFailedHosters.collectAsState()
-                val emptyHosters by playerPreferences.showEmptyHosters.collectAsState()
                 val showSubtitles by subtitlePreferences.screenshotSubtitles.collectAsState()
                 val speedPresets by playerPreferences.speedPresets.collectAsState()
                 val statisticsPage by advancedPreferences.playerStatisticsPage.collectAsState()
