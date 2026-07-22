@@ -36,6 +36,7 @@ import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.animesource.model.Hoster
 import eu.kanade.tachiyomi.animesource.model.SerializableHoster.Companion.toHosterList
 import eu.kanade.tachiyomi.animesource.model.TimeStamp
+import eu.kanade.tachiyomi.animesource.model.Track
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncDataJob
@@ -572,6 +573,9 @@ class PlayerViewModel @JvmOverloads constructor(
             }
             is CastEvent.PlaybackError -> {
             }
+            is CastEvent.TrackLoadResult -> {
+                trackLoaded(event.trackId, event.success, event.isAudio)
+            }
             CastEvent.Ready -> {
                 updateCastUiData { it.copy(isLoadingEpisode = false) }
                 // updateCastUiData { it.copy(loading = false) }
@@ -941,7 +945,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 )
             }
 
-            val maxIndex = codecInformation.tracks.maxByOrNull { it.index }?.index ?: 0
+            val maxIndex = codecInformation.tracks.maxByOrNull { it.index }?.index?.plus(1) ?: 1
             val externalSubtitleTracks = video.subtitleTracks.mapIndexed { index, track ->
                 TrackInformation(
                     index = maxIndex + index,
@@ -964,6 +968,8 @@ class PlayerViewModel @JvmOverloads constructor(
             }
             val subtitleTracks = codecInformation.tracks.filter { it.type == "subtitle" } + externalSubtitleTracks
             val audioTracks = codecInformation.tracks.filter { it.type == "audio" } + externalAudioTracks
+            val preferredSubtitle = trackSelect.getPreferredTrackIndex(subtitleTracks, subtitle = true)
+            val preferredAudio = trackSelect.getPreferredTrackIndex(audioTracks, subtitle = false)
 
             val chapters = codecInformation.chapters.sortedBy { it.startTime }.map {
                 Segment(
@@ -977,6 +983,8 @@ class PlayerViewModel @JvmOverloads constructor(
                     duration = codecInformation.duration?.toLong() ?: 0L,
                     subTracks = subtitleTracks,
                     audioTracks = audioTracks,
+                    currentSubId = preferredSubtitle?.index ?: -1L,
+                    currentAudioId = preferredAudio?.index ?: -1L,
                     chapters = chapters,
                 )
             }
@@ -987,6 +995,8 @@ class PlayerViewModel @JvmOverloads constructor(
                 videoInformation = codecInformation,
                 subtitleTracks = subtitleTracks,
                 audioTracks = audioTracks,
+                subtitleId = preferredSubtitle?.index,
+                audioId = preferredAudio?.index,
                 anime = anime,
                 episodeTitle = episode.name,
                 startPosition = startPosition,
@@ -998,6 +1008,54 @@ class PlayerViewModel @JvmOverloads constructor(
         updateCastUiData { it.copy(sheetShown = sheet) }
         if (sheet == CastSheet.None) {
             resetDismissSheet()
+        }
+    }
+
+    fun selectTrack(track: TrackInformation, isAudio: Boolean) {
+        if (isAudio) {
+            updateCastUiData {
+                val index = it.audioTracks.indexOfFirst { t -> track.index == t.index }
+                it.copy(
+                    audioTracks = it.audioTracks.toMutableList().apply {
+                        this[index] = this[index].copy(loading = true, error = false)
+                    }.toList(),
+                )
+            }
+        } else {
+            updateCastUiData {
+                val index = it.subTracks.indexOfFirst { t -> track.index == t.index }
+                it.copy(
+                    subTracks = it.subTracks.toMutableList().apply {
+                        this[index] = this[index].copy(loading = true, error = false)
+                    }.toList(),
+                )
+            }
+        }
+
+        castManager.loadTrack(track.index, isAudio)
+    }
+
+    private fun trackLoaded(id: Long, success: Boolean, isAudio: Boolean) {
+        if (isAudio) {
+            updateCastUiData {
+                val index = it.audioTracks.indexOfFirst { t -> id == t.index }
+                it.copy(
+                    audioTracks = it.audioTracks.toMutableList().apply {
+                        this[index] = this[index].copy(loading = false, error = !success)
+                    }.toList(),
+                    currentAudioId = if (success) id else castManager.castState.value.lastLoadedAudioId,
+                )
+            }
+        } else {
+            updateCastUiData {
+                val index = it.subTracks.indexOfFirst { t -> id == t.index }
+                it.copy(
+                    subTracks = it.subTracks.toMutableList().apply {
+                        this[index] = this[index].copy(loading = false, error = !success)
+                    }.toList(),
+                    currentSubId = if (success) id else castManager.castState.value.lastLoadedSubId,
+                )
+            }
         }
     }
 

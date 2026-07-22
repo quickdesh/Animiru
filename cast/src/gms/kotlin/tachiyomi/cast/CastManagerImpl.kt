@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.core.net.toUri
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouterParams
-import animiru.domain.player.interactor.TrackSelect
 import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
@@ -20,6 +19,7 @@ import com.google.android.gms.common.images.WebImage
 import eu.kanade.tachiyomi.animesource.model.Video
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,22 +27,23 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import logcat.LogPriority
 import tachiyomi.cast.domain.CodecInformation
 import tachiyomi.cast.domain.TrackInformation
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.model.Anime
+import kotlin.coroutines.resume
 
 // Some code taken from https://github.com/MakD/AFinity/blob/master/app/src/main/java/com/makd/afinity/cast/CastManager.kt
-class CastManagerImpl(
-    private val trackSelect: TrackSelect,
-) : CastManager {
+class CastManagerImpl : CastManager {
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     lateinit var castContext: CastContext
     private var castSession: CastSession? = null
     private var remoteMediaClient: RemoteMediaClient? = null
+    private var startJob: Job? = null
 
     @Volatile
     private var initialized = false
@@ -89,11 +90,14 @@ class CastManagerImpl(
         videoInformation: CodecInformation,
         subtitleTracks: List<TrackInformation>,
         audioTracks: List<TrackInformation>,
+        subtitleId: Long?,
+        audioId: Long?,
         anime: Anime,
         episodeTitle: String,
         startPosition: Long,
     ) {
-        scope.launch {
+        startJob?.cancel()
+        startJob = scope.launch {
             val client = remoteMediaClient
             if (client == null) {
                 _castEvent.emit(CastEvent.PlaybackError(CastNotConnectedException()))
@@ -115,7 +119,7 @@ class CastManagerImpl(
             }
 
             val audioMediaTracks = audioTracks.map {
-                MediaTrack.Builder(it.index, MediaTrack.TYPE_AUDIO).apply {
+                MediaTrack.Builder(it.index + 6, MediaTrack.TYPE_AUDIO).apply {
                     setName(it.title)
                     setSubtype(MediaTrack.SUBTYPE_NONE)
                     setContentType(it.contentType)
@@ -126,9 +130,7 @@ class CastManagerImpl(
                 }.build()
             }
 
-            val preferredSubtitle = trackSelect.getPreferredTrackIndex(subtitleTracks, subtitle = true)
-            val preferredAudio = trackSelect.getPreferredTrackIndex(audioTracks, subtitle = false)
-            val preferred = listOfNotNull(preferredSubtitle?.index, preferredAudio?.index).toLongArray()
+            val preferred = listOfNotNull(subtitleId, audioId).toLongArray()
 
             val metadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE).apply {
                 putString(MediaMetadata.KEY_TITLE, anime.title)
@@ -156,18 +158,25 @@ class CastManagerImpl(
             }.build()
 
             val loadTask = client.load(loadRequest)
-            loadTask.setResultCallback { result ->
-                if (result.status.isSuccess) {
-                    _castState.update { it.copy(isLoading = false) }
-                    if (startPosition > 0L) {
-                        client.seek(
-                            MediaSeekOptions.Builder()
-                                .setPosition(startPosition * 1000L)
-                                .build(),
-                        )
-                        scope.launch {
-                            _castEvent.emit(CastEvent.OnSecondReached(startPosition.toInt()))
-                        }
+            val result = suspendCancellableCoroutine { continuation ->
+                loadTask.setResultCallback { result ->
+                    if (continuation.isActive) continuation.resume(result)
+                }
+                continuation.invokeOnCancellation {
+                    loadTask.cancel()
+                }
+            }
+
+            if (result.status.isSuccess) {
+                _castState.update { it.copy(isLoading = false) }
+                if (startPosition > 0L) {
+                    client.seek(
+                        MediaSeekOptions.Builder()
+                            .setPosition(startPosition * 1000L)
+                            .build(),
+                    )
+                    scope.launch {
+                        _castEvent.emit(CastEvent.OnSecondReached(startPosition.toInt()))
                     }
                 }
             }
@@ -179,6 +188,38 @@ class CastManagerImpl(
             }
 
             _castEvent.emit(CastEvent.Ready)
+        }
+    }
+
+    override fun loadTrack(trackId: Long, isAudio: Boolean) {
+        scope.launch {
+            val client = remoteMediaClient
+            if (client == null) {
+                _castEvent.emit(CastEvent.PlaybackError(CastNotConnectedException()))
+                return@launch
+            }
+
+            val loadTask = client.setActiveMediaTracks(longArrayOf(trackId))
+            val result = suspendCancellableCoroutine { continuation ->
+                loadTask.setResultCallback { result ->
+                    if (continuation.isActive) continuation.resume(result)
+                }
+                continuation.invokeOnCancellation {
+                    loadTask.cancel()
+                }
+            }
+
+            if (result.status.isSuccess) {
+                if (isAudio) {
+                    _castState.update { it.copy(lastLoadedAudioId = trackId) }
+                } else {
+                    _castState.update { it.copy(lastLoadedSubId = trackId) }
+                }
+            }
+
+            _castEvent.emit(
+                CastEvent.TrackLoadResult(trackId, result.status.isSuccess, isAudio),
+            )
         }
     }
 

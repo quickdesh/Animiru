@@ -10,6 +10,8 @@ data class CastUiData(
     val duration: Long = 0L,
     val subTracks: List<TrackInformation> = emptyList(),
     val audioTracks: List<TrackInformation> = emptyList(),
+    val currentAudioId: Long = -1L,
+    val currentSubId: Long = -1L,
     val chapters: List<Segment> = emptyList(),
     val currentChapter: Segment? = null,
     val showChapterIndicator: Boolean = false,
@@ -18,5 +20,7 @@ data class CastUiData(
 
 enum class CastSheet {
     Quality,
+    Audio,
+    Subtitle,
     None,
 }

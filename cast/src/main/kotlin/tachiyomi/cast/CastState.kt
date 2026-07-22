@@ -11,6 +11,8 @@ data class CastState(
     val position: Long = 0L,
     val hasLoadedVideo: Boolean = false,
     val isLoading: Boolean = true,
+    val lastLoadedSubId: Long = -1L,
+    val lastLoadedAudioId: Long = -1L,
 
     val volume: Double = 1.0,
     val muted: Boolean = false,

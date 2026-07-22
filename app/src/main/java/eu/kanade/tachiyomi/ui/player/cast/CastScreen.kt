@@ -31,6 +31,8 @@ fun CastScreen(
     castState: CastState,
     castUiData: CastUiData,
     onBack: () -> Unit,
+    onClickSubs: () -> Unit,
+    onClickAudio: () -> Unit,
     onClickQuality: () -> Unit,
     onCastManagerEvent: (CastManagerEvent) -> Unit,
 ) {
@@ -84,6 +86,8 @@ fun CastScreen(
             onPlayPause = { onCastManagerEvent(CastManagerEvent.PlayPause) },
             onNext = { onCastManagerEvent(CastManagerEvent.Next(true)) },
             onPrevious = { onCastManagerEvent(CastManagerEvent.Next(false)) },
+            onClickSubs = onClickSubs,
+            onClickAudio = onClickAudio,
             onClickQuality = onClickQuality,
             modifier = Modifier.constrainAs(controls) {
                 if (isLandscape) {
@@ -117,6 +121,8 @@ private fun CastScreenPreview() {
             castState = CastState(),
             castUiData = CastUiData(),
             onBack = { },
+            onClickSubs = { },
+            onClickAudio = { },
             onClickQuality = { },
             onCastManagerEvent = { },
         )

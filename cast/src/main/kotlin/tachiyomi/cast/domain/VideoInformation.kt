@@ -1,6 +1,7 @@
 package tachiyomi.cast.domain
 
 import android.content.Context
+import androidx.compose.runtime.Stable
 import androidx.core.net.toUri
 import animiru.domain.player.model.VideoTrack
 import com.arthenica.ffmpegkit.FFmpegKitConfig
@@ -55,6 +56,7 @@ private data class FormatDto(
     val duration: String? = null,
 )
 
+@Stable
 data class TrackInformation(
     override val title: String,
     override val language: String,
@@ -62,6 +64,8 @@ data class TrackInformation(
     val type: String,
     val contentType: String,
     val contentId: String? = null,
+    val loading: Boolean = false,
+    val error: Boolean = false,
 ) : VideoTrack
 
 data class ChapterInformation(

@@ -23,10 +23,14 @@ interface CastManager {
         videoInformation: CodecInformation,
         subtitleTracks: List<TrackInformation>,
         audioTracks: List<TrackInformation>,
+        subtitleId: Long?,
+        audioId: Long?,
         anime: Anime,
         episodeTitle: String,
         startPosition: Long = 0L,
     )
+
+    fun loadTrack(trackId: Long, isAudio: Boolean)
 
     fun stopRemoteMediaClient()
 

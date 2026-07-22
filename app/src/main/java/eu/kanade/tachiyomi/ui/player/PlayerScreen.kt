@@ -130,6 +130,12 @@ fun PlayerScreen(
                         onBack()
                     }
                 },
+                onClickSubs = {
+                    viewModel.setCastSheet(CastSheet.Subtitle)
+                },
+                onClickAudio = {
+                    viewModel.setCastSheet(CastSheet.Audio)
+                },
                 onClickQuality = {
                     viewModel.setCastSheet(CastSheet.Quality)
                 },
@@ -145,6 +151,8 @@ fun PlayerScreen(
                 onClickHoster = viewModel::onHosterClicked,
                 onClickVideo = viewModel::onVideoClicked,
                 displayHosters = Pair(showFailedHosters, emptyHosters),
+                castUiData = castUiData,
+                onSelectTrack = viewModel::selectTrack,
                 onDismissRequest = { viewModel.setCastSheet(CastSheet.None) },
                 dismissSheet = uiData.dismissSheet,
             )

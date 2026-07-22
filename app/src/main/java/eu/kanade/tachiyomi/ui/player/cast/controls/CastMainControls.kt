@@ -54,6 +54,8 @@ fun CastMainControls(
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    onClickSubs: () -> Unit,
+    onClickAudio: () -> Unit,
     onClickQuality: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -181,14 +183,14 @@ fun CastMainControls(
 
             CastControlButton(
                 icon = Icons.Default.Subtitles,
-                onClick = { },
+                onClick = onClickSubs,
                 onLongClick = { },
                 horizontalSpacing = MaterialTheme.padding.mediumSmall,
             )
 
             CastControlButton(
                 icon = Icons.Default.Audiotrack,
-                onClick = { },
+                onClick = onClickAudio,
                 onLongClick = { },
                 horizontalSpacing = MaterialTheme.padding.mediumSmall,
             )
@@ -236,6 +238,8 @@ private fun CastMainControlsPreview() {
             onPlayPause = { },
             onNext = { },
             onPrevious = { },
+            onClickSubs = { },
+            onClickAudio = { },
             onClickQuality = { },
         )
     }

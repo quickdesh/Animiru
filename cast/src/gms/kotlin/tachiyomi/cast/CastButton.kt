@@ -102,7 +102,7 @@ fun CastButton(
         val icon = when {
             loading -> ImageVector.vectorResource(icons[index])
             error -> ImageVector.vectorResource(R.drawable.cast_warning_24dp)
-            else -> Icons.Default.Cast
+            else -> ImageVector.vectorResource(R.drawable.ic_cast_24dp)
         }
 
         Icon(

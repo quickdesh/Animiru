@@ -8,5 +8,6 @@ sealed interface CastEvent {
     data class OnSecondReached(val position: Int) : CastEvent
     data class PlaybackError(val exception: Exception) : CastEvent
     data class Disconnected(val lastPosition: Long) : CastEvent
+    data class TrackLoadResult(val trackId: Long, val success: Boolean, val isAudio: Boolean) : CastEvent
     data object Ready : CastEvent
 }
