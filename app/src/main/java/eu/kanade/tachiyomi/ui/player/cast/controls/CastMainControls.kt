@@ -1,19 +1,23 @@
 package eu.kanade.tachiyomi.ui.player.cast.controls
 
+import android.content.res.Configuration
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeDown
+import androidx.compose.material.icons.automirrored.filled.VolumeMute
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Audiotrack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.HighQuality
@@ -28,10 +32,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import dev.vivvvek.seeker.Seeker
@@ -40,6 +51,7 @@ import dev.vivvvek.seeker.Segment
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import eu.kanade.tachiyomi.ui.player.cast.CastUiData
 import eu.kanade.tachiyomi.ui.player.cast.components.CastControlButton
+import eu.kanade.tachiyomi.ui.player.cast.components.SmallSlider
 import eu.kanade.tachiyomi.ui.player.components.CurrentChapter
 import eu.kanade.tachiyomi.ui.player.controls.components.VideoTimer
 import tachiyomi.cast.CastState
@@ -51,6 +63,11 @@ fun CastMainControls(
     castUiData: CastUiData,
     hasPrevious: Boolean,
     hasNext: Boolean,
+    customButton: String?,
+    onCustomButtonClick: () -> Unit,
+    onCustomButtonLongClick: () -> Unit,
+    volume: Float,
+    onVolumeChange: (Float) -> Unit,
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
@@ -60,10 +77,22 @@ fun CastMainControls(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom,
     ) {
+        val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End,
+            modifier = Modifier.fillMaxWidth().padding(end = MaterialTheme.padding.medium).height(42.dp),
+        ) {
+            OutlinedButton(onClick = {}) {
+                Text("Skip into")
+            }
+        }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround,
@@ -201,25 +230,110 @@ fun CastMainControls(
                 onLongClick = { },
                 horizontalSpacing = MaterialTheme.padding.mediumSmall,
             )
-
-            Button(onClick = {}) {
-                Text("+85s")
-            }
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.medium),
-        ) {
-            Button(onClick = {}) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Default.Close, null)
-                    Text("Stop casting")
-                }
-            }
+        var volumeSliderValue by remember { mutableFloatStateOf(volume) }
+        LaunchedEffect(volume) {
+            volumeSliderValue = volume
         }
+
+        if (isLandscape) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(bottom = MaterialTheme.padding.small),
+            ) {
+                VolumeSlider(
+                    volume = volumeSliderValue,
+                    onVolumeChange = {
+                        volumeSliderValue = it
+                        onVolumeChange(it)
+                    },
+                )
+
+                CustomButton(
+                    customButton = customButton,
+                    onClick = onCustomButtonClick,
+                    onLongClick = onCustomButtonLongClick,
+                )
+            }
+        } else {
+            CustomButton(
+                customButton = customButton,
+                onClick = onCustomButtonClick,
+                onLongClick = onCustomButtonLongClick,
+                modifier = Modifier.padding(vertical = MaterialTheme.padding.small),
+            )
+
+            VolumeSlider(
+                volume = volumeSliderValue,
+                onVolumeChange = {
+                    volumeSliderValue = it
+                    onVolumeChange(it)
+                },
+
+            )
+        }
+    }
+}
+
+@Composable
+private fun CustomButton(
+    customButton: String?,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    customButton?.let {
+        Box {
+            Button(onClick = {}, modifier = modifier) {
+                Text(it)
+            }
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .combinedClickable(
+                        onClick = onClick,
+                        onLongClick = onLongClick,
+                        interactionSource = interactionSource,
+                        indication = null,
+                    ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun VolumeSlider(
+    volume: Float,
+    onVolumeChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small),
+        modifier = modifier.fillMaxWidth(0.75f),
+    ) {
+        val icon = if (volume == 0f) {
+            Icons.AutoMirrored.Filled.VolumeMute
+        } else if (volume < 35f) {
+            Icons.AutoMirrored.Filled.VolumeDown
+        } else {
+            Icons.AutoMirrored.Filled.VolumeUp
+        }
+
+        Icon(
+            icon,
+            null,
+            tint = MaterialTheme.colorScheme.onBackground,
+        )
+
+        SmallSlider(
+            value = volume,
+            onValueChange = onVolumeChange,
+            valueRange = 0f..1f,
+        )
     }
 }
 
@@ -235,6 +349,11 @@ private fun CastMainControlsPreview() {
             ),
             hasNext = true,
             hasPrevious = false,
+            customButton = "+85s",
+            onCustomButtonClick = {},
+            onCustomButtonLongClick = {},
+            volume = 0.4f,
+            onVolumeChange = { },
             onPlayPause = { },
             onNext = { },
             onPrevious = { },

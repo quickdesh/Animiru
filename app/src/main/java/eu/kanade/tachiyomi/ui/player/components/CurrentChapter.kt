@@ -55,7 +55,7 @@ fun CurrentChapter(
     chapter: Segment,
     modifier: Modifier = Modifier,
     background: Color = MaterialTheme.colorScheme.background,
-    onBackground: Color = MaterialTheme.colorScheme.background,
+    onBackground: Color = MaterialTheme.colorScheme.onBackground,
     onClick: () -> Unit = {},
 ) {
     Box(

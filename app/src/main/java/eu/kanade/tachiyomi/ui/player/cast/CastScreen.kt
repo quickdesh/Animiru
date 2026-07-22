@@ -11,7 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
@@ -42,7 +42,7 @@ fun CastScreen(
         modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(MaterialTheme.padding.medium),
+            .padding(horizontal = MaterialTheme.padding.medium),
     ) {
         val topControls = createRef()
         val infoBox = createRef()
@@ -66,14 +66,15 @@ fun CastScreen(
                 if (isLandscape) {
                     start.linkTo(parent.start)
                     top.linkTo(topControls.bottom, MaterialTheme.padding.small)
-                    bottom.linkTo(parent.bottom)
+                    bottom.linkTo(parent.bottom, MaterialTheme.padding.small)
                     width = Dimension.percent(0.4f)
                     height = Dimension.fillToConstraints
                 } else {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     top.linkTo(topControls.bottom, MaterialTheme.padding.medium)
-                    height = Dimension.percent(0.5f)
+                    bottom.linkTo(controls.top, MaterialTheme.padding.medium)
+                    height = Dimension.fillToConstraints
                 }
             },
         )
@@ -83,6 +84,11 @@ fun CastScreen(
             castUiData = castUiData,
             hasNext = stateData.hasNextEpisode,
             hasPrevious = stateData.hasPreviousEpisode,
+            customButton = "+85s",
+            onCustomButtonClick = { },
+            onCustomButtonLongClick = { },
+            volume = castState.volume.toFloat(),
+            onVolumeChange = { onCastManagerEvent(CastManagerEvent.VolumeChange(it)) },
             onPlayPause = { onCastManagerEvent(CastManagerEvent.PlayPause) },
             onNext = { onCastManagerEvent(CastManagerEvent.Next(true)) },
             onPrevious = { onCastManagerEvent(CastManagerEvent.Next(false)) },
@@ -100,10 +106,8 @@ fun CastScreen(
                 } else {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    top.linkTo(infoBox.bottom, MaterialTheme.padding.medium)
                     bottom.linkTo(parent.bottom, MaterialTheme.padding.medium)
                     width = Dimension.fillToConstraints
-                    height = Dimension.fillToConstraints
                 }
             },
         )
@@ -111,7 +115,7 @@ fun CastScreen(
 }
 
 @Composable
-@PreviewLightDark
+@PreviewScreenSizes
 private fun CastScreenPreview() {
     TachiyomiPreviewTheme {
         CastScreen(

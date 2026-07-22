@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.net.toUri
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouterParams
+import com.google.android.gms.cast.Cast
 import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
@@ -21,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -34,6 +36,7 @@ import tachiyomi.cast.domain.TrackInformation
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.model.Anime
 import kotlin.coroutines.resume
+import kotlin.time.Duration.Companion.milliseconds
 
 // Some code taken from https://github.com/MakD/AFinity/blob/master/app/src/main/java/com/makd/afinity/cast/CastManager.kt
 class CastManagerImpl : CastManager {
@@ -44,6 +47,7 @@ class CastManagerImpl : CastManager {
     private var castSession: CastSession? = null
     private var remoteMediaClient: RemoteMediaClient? = null
     private var startJob: Job? = null
+    private var volumeDebounceJob: Job? = null
 
     @Volatile
     private var initialized = false
@@ -119,7 +123,7 @@ class CastManagerImpl : CastManager {
             }
 
             val audioMediaTracks = audioTracks.map {
-                MediaTrack.Builder(it.index + 6, MediaTrack.TYPE_AUDIO).apply {
+                MediaTrack.Builder(it.index, MediaTrack.TYPE_AUDIO).apply {
                     setName(it.title)
                     setSubtype(MediaTrack.SUBTYPE_NONE)
                     setContentType(it.contentType)
@@ -241,10 +245,26 @@ class CastManagerImpl : CastManager {
                     remoteMediaClient?.play()
                 }
             }
+            is CastManagerEvent.VolumeChange -> {
+                setVolume(event.volume.toDouble())
+            }
         }
     }
 
-    private fun updatePositionFromRemote() {
+    private fun setVolume(volume: Double) {
+        volumeDebounceJob?.cancel()
+        volumeDebounceJob = scope.launch {
+            delay(300.milliseconds)
+            try {
+                castSession?.volume = volume.coerceIn(0.0, 1.0)
+                _castState.update { it.copy(volume = volume.coerceIn(0.0, 1.0)) }
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR, e) { "Failed to set volume on cast receiver" }
+            }
+        }
+    }
+
+    private fun updateStatusFromRemote() {
         try {
             val client = remoteMediaClient ?: return
             val mediaStatus = client.mediaStatus
@@ -272,6 +292,24 @@ class CastManagerImpl : CastManager {
         }
     }
 
+    private fun addListeners(session: CastSession) {
+        castSession = session
+        castSession?.addCastListener(castListener)
+        remoteMediaClient = session.remoteMediaClient
+        remoteMediaClient?.registerCallback(remoteMediaClientCallback)
+        remoteMediaClient?.addProgressListener(remoteMediaClientProgressListener, 1000)
+    }
+
+    private fun removeListeners() {
+        castSession?.removeCastListener(castListener)
+        castSession = null
+        remoteMediaClient?.unregisterCallback(remoteMediaClientCallback)
+        remoteMediaClient?.removeProgressListener(remoteMediaClientProgressListener)
+        remoteMediaClient = null
+        startJob?.cancel()
+        volumeDebounceJob?.cancel()
+    }
+
     private val castSessionManagerListener = object : SessionManagerListener<CastSession> {
         override fun onSessionStarting(session: CastSession) {
             _castState.update { _ -> CastState() }
@@ -282,10 +320,7 @@ class CastManagerImpl : CastManager {
 
         override fun onSessionStarted(session: CastSession, sessionId: String) {
             val deviceName = session.castDevice?.friendlyName
-            castSession = session
-            remoteMediaClient = session.remoteMediaClient
-            remoteMediaClient?.registerCallback(remoteMediaClientCallback)
-            remoteMediaClient?.addProgressListener(remoteMediaClientProgressListener, 1000)
+            addListeners(session)
 
             _castState.update {
                 it.copy(
@@ -313,10 +348,7 @@ class CastManagerImpl : CastManager {
 
         override fun onSessionEnded(session: CastSession, error: Int) {
             val state = castState.value
-            remoteMediaClient?.unregisterCallback(remoteMediaClientCallback)
-            remoteMediaClient?.removeProgressListener(remoteMediaClientProgressListener)
-            remoteMediaClient = null
-            castSession = null
+            removeListeners()
 
             scope.launch {
                 _castEvent.emit(
@@ -329,10 +361,7 @@ class CastManagerImpl : CastManager {
         }
 
         override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) {
-            castSession = session
-            remoteMediaClient = session.remoteMediaClient
-            remoteMediaClient?.registerCallback(remoteMediaClientCallback)
-            remoteMediaClient?.addProgressListener(remoteMediaClientProgressListener, 1000)
+            addListeners(session)
             _castState.update {
                 it.copy(
                     isConnected = true,
@@ -345,6 +374,7 @@ class CastManagerImpl : CastManager {
         }
 
         override fun onSessionSuspended(session: CastSession, reason: Int) {
+            removeListeners()
         }
     }
 
@@ -361,9 +391,17 @@ class CastManagerImpl : CastManager {
         }
     }
 
+    private val castListener = object : Cast.Listener() {
+        override fun onVolumeChanged() {
+            castSession?.volume?.let { v ->
+                _castState.update { it.copy(volume = v) }
+            }
+        }
+    }
+
     private val remoteMediaClientCallback = object : RemoteMediaClient.Callback() {
         override fun onStatusUpdated() {
-            updatePositionFromRemote()
+            updateStatusFromRemote()
         }
 
         override fun onMediaError(error: MediaError) {
