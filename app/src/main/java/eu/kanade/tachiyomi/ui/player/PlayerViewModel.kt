@@ -51,6 +51,7 @@ import eu.kanade.tachiyomi.data.saver.Location
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
+import eu.kanade.tachiyomi.ui.player.cast.CastDialog
 import eu.kanade.tachiyomi.ui.player.cast.CastSheet
 import eu.kanade.tachiyomi.ui.player.cast.CastUiData
 import eu.kanade.tachiyomi.ui.player.components.HosterState
@@ -712,11 +713,14 @@ class PlayerViewModel @JvmOverloads constructor(
                     ?: throw ExceptionWithStringResource("No episode loaded", AYMR.strings.no_episode_loaded)
                 setupEpisode(episode)
 
+                val skipIntroLength = getAnimeSkipIntroLength()
+                updateCastUiData { it.copy(skipIntroLength = skipIntroLength.toLong()) }
+
                 // Write to mpv table
                 val parentTitle = anime.parentId?.let { getAnime.await(it)?.title } ?: ""
                 setPropertyString("user-data/current-anime/anime-title", anime.title)
                 setPropertyString("user-data/current-anime/parent-title", parentTitle)
-                setPropertyInt("user-data/current-anime/intro-length", getAnimeSkipIntroLength())
+                setPropertyInt("user-data/current-anime/intro-length", skipIntroLength)
                 setPropertyString(
                     "user-data/current-anime/category",
                     getCategories.await(anime.id).joinToString {
@@ -1011,6 +1015,10 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
+    fun setCastDialog(dialog: CastDialog) {
+        updateCastUiData { it.copy(dialogShown = dialog) }
+    }
+
     fun selectTrack(track: TrackInformation, isAudio: Boolean) {
         if (isAudio) {
             updateCastUiData {
@@ -1056,6 +1064,31 @@ class PlayerViewModel @JvmOverloads constructor(
                     currentSubId = if (success) id else castManager.castState.value.lastLoadedSubId,
                 )
             }
+        }
+    }
+
+    fun castSetSkipIntroLength(value: Long) {
+        updateCastUiData { it.copy(skipIntroLength = value) }
+        setAnimeSkipIntroLength(value)
+    }
+
+    fun castOnSkipIntro() {
+        castManager.seekBy(castUiData.value.skipIntroLength)
+    }
+
+    fun castStartSeek(position: Float) {
+        updateCastUiData {
+            it.copy(
+                seekPosition = position,
+                isSeeking = true,
+            )
+        }
+    }
+
+    fun castEndSeek() {
+        castManager.seekTo(castUiData.value.seekPosition.toLong())
+        updateCastUiData {
+            it.copy(isSeeking = false)
         }
     }
 

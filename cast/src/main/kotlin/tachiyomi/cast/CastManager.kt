@@ -30,6 +30,10 @@ interface CastManager {
         startPosition: Long = 0L,
     )
 
+    fun seekTo(position: Long)
+
+    fun seekBy(delta: Long)
+
     fun loadTrack(trackId: Long, isAudio: Boolean)
 
     fun stopRemoteMediaClient()

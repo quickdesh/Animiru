@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.net.toUri
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouterParams
+import animiru.domain.player.service.GesturePreferences
 import com.google.android.gms.cast.Cast
 import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.MediaInfo
@@ -39,7 +40,9 @@ import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.milliseconds
 
 // Some code taken from https://github.com/MakD/AFinity/blob/master/app/src/main/java/com/makd/afinity/cast/CastManager.kt
-class CastManagerImpl : CastManager {
+class CastManagerImpl(
+    private val gesturePreferences: GesturePreferences,
+) : CastManager {
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -195,6 +198,41 @@ class CastManagerImpl : CastManager {
         }
     }
 
+    override fun seekTo(position: Long) {
+        scope.launch {
+            val client = remoteMediaClient
+            if (client == null) {
+                _castEvent.emit(CastEvent.PlaybackError(CastNotConnectedException()))
+                return@launch
+            }
+
+            val durationMs = castState.value.durationMs
+            client.seek(
+                MediaSeekOptions.Builder()
+                    .setPosition(position.times(1000L).coerceIn(0, durationMs))
+                    .build(),
+            )
+        }
+    }
+
+    override fun seekBy(delta: Long) {
+        scope.launch {
+            val client = remoteMediaClient
+            if (client == null) {
+                _castEvent.emit(CastEvent.PlaybackError(CastNotConnectedException()))
+                return@launch
+            }
+
+            val position = castState.value.position
+            val durationMs = castState.value.durationMs
+            client.seek(
+                MediaSeekOptions.Builder()
+                    .setPosition((position + delta).times(1000L).coerceIn(0, durationMs))
+                    .build(),
+            )
+        }
+    }
+
     override fun loadTrack(trackId: Long, isAudio: Boolean) {
         scope.launch {
             val client = remoteMediaClient
@@ -233,6 +271,12 @@ class CastManagerImpl : CastManager {
 
     override fun handleCastManagerEvent(event: CastManagerEvent) {
         when (event) {
+            is CastManagerEvent.DoubleTapSeek -> {
+                val seekLength = gesturePreferences.skipLengthPreference.get().toLong()
+                if (seekLength > 0L) {
+                    seekBy(if (event.forwards) seekLength else -seekLength)
+                }
+            }
             is CastManagerEvent.Next -> {
                 scope.launch {
                     _castEvent.emit(CastEvent.NextEpisode(event.next))
@@ -378,10 +422,11 @@ class CastManagerImpl : CastManager {
         }
     }
 
-    private val remoteMediaClientProgressListener = RemoteMediaClient.ProgressListener { progressMs, _ ->
+    private val remoteMediaClientProgressListener = RemoteMediaClient.ProgressListener { progressMs, durationMs ->
         _castState.update {
             it.copy(
                 position = progressMs / 1000L,
+                durationMs = durationMs,
             )
         }
         if (castState.value.playing) {

@@ -37,8 +37,10 @@ import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.theme.playerRippleConfiguration
 import eu.kanade.tachiyomi.ui.player.PlayerViewModel.PlayerEvent
+import eu.kanade.tachiyomi.ui.player.cast.CastDialog
 import eu.kanade.tachiyomi.ui.player.cast.CastScreen
 import eu.kanade.tachiyomi.ui.player.cast.CastSheet
+import eu.kanade.tachiyomi.ui.player.cast.components.CastDialogs
 import eu.kanade.tachiyomi.ui.player.cast.components.CastSheets
 import eu.kanade.tachiyomi.ui.player.components.BrightnessOverlay
 import eu.kanade.tachiyomi.ui.player.components.MpvSurface
@@ -130,6 +132,8 @@ fun PlayerScreen(
                         onBack()
                     }
                 },
+                onSeekBarStart = viewModel::castStartSeek,
+                onSeekBarEnd = viewModel::castEndSeek,
                 onClickSubs = {
                     viewModel.setCastSheet(CastSheet.Subtitle)
                 },
@@ -139,6 +143,8 @@ fun PlayerScreen(
                 onClickQuality = {
                     viewModel.setCastSheet(CastSheet.Quality)
                 },
+                onClickCustomButton = viewModel::castOnSkipIntro,
+                onLongClickCustomButton = { viewModel.setCastDialog(CastDialog.IntroLength) },
                 onCastManagerEvent = viewModel.castManager::handleCastManagerEvent,
             )
 
@@ -155,6 +161,13 @@ fun PlayerScreen(
                 onSelectTrack = viewModel::selectTrack,
                 onDismissRequest = { viewModel.setCastSheet(CastSheet.None) },
                 dismissSheet = uiData.dismissSheet,
+            )
+
+            CastDialogs(
+                dialogShown = castUiData.dialogShown,
+                castUiData = castUiData,
+                onSkipIntroLengthChange = viewModel::castSetSkipIntroLength,
+                onDismissRequest = { viewModel.setCastDialog(CastDialog.None) },
             )
         } else {
             val mpvVolume by viewModel.propFlow<Int>("volume").collectAsStateWithLifecycle()

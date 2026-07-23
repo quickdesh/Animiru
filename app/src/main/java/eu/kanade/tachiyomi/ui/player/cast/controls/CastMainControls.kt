@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.ui.player.cast.controls
 
-import android.content.res.Configuration
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -42,7 +41,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import dev.vivvvek.seeker.Seeker
@@ -63,7 +61,6 @@ fun CastMainControls(
     castUiData: CastUiData,
     hasPrevious: Boolean,
     hasNext: Boolean,
-    customButton: String?,
     onCustomButtonClick: () -> Unit,
     onCustomButtonLongClick: () -> Unit,
     volume: Float,
@@ -71,6 +68,10 @@ fun CastMainControls(
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    onBackSeek: () -> Unit,
+    onForwardSeek: () -> Unit,
+    onSeekBarStart: (Float) -> Unit,
+    onSeekBarEnd: () -> Unit,
     onClickSubs: () -> Unit,
     onClickAudio: () -> Unit,
     onClickQuality: () -> Unit,
@@ -81,8 +82,6 @@ fun CastMainControls(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom,
     ) {
-        val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End,
@@ -106,7 +105,7 @@ fun CastMainControls(
 
             CastControlButton(
                 Icons.Filled.FastRewind,
-                onClick = { },
+                onClick = onBackSeek,
                 iconSize = 36.dp,
                 enabled = true,
             )
@@ -128,7 +127,7 @@ fun CastMainControls(
 
             CastControlButton(
                 Icons.Filled.FastForward,
-                onClick = { },
+                onClick = onForwardSeek,
                 iconSize = 36.dp,
                 enabled = true,
             )
@@ -141,12 +140,13 @@ fun CastMainControls(
             )
         }
 
+        val seekPosition = if (castUiData.isSeeking) castUiData.seekPosition else castState.position.toFloat()
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.height(40.dp),
         ) {
             VideoTimer(
-                value = castState.position.toFloat(),
+                value = seekPosition,
                 isInverted = false,
                 onClick = { },
                 color = MaterialTheme.colorScheme.onBackground,
@@ -176,10 +176,10 @@ fun CastMainControls(
         }
 
         Seeker(
-            value = castState.position.toFloat(),
+            value = seekPosition,
             range = 0f..castUiData.duration.toFloat(),
-            onValueChange = { },
-            onValueChangeFinished = { },
+            onValueChange = onSeekBarStart,
+            onValueChangeFinished = onSeekBarEnd,
             readAheadValue = 0f,
             segments = castUiData.chapters,
             modifier = Modifier,
@@ -230,6 +230,12 @@ fun CastMainControls(
                 onLongClick = { },
                 horizontalSpacing = MaterialTheme.padding.mediumSmall,
             )
+
+            CustomButton(
+                skipIntroLength = castUiData.skipIntroLength,
+                onClick = onCustomButtonClick,
+                onLongClick = onCustomButtonLongClick,
+            )
         }
 
         var volumeSliderValue by remember { mutableFloatStateOf(volume) }
@@ -237,58 +243,29 @@ fun CastMainControls(
             volumeSliderValue = volume
         }
 
-        if (isLandscape) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(bottom = MaterialTheme.padding.small),
-            ) {
-                VolumeSlider(
-                    volume = volumeSliderValue,
-                    onVolumeChange = {
-                        volumeSliderValue = it
-                        onVolumeChange(it)
-                    },
-                )
-
-                CustomButton(
-                    customButton = customButton,
-                    onClick = onCustomButtonClick,
-                    onLongClick = onCustomButtonLongClick,
-                )
-            }
-        } else {
-            CustomButton(
-                customButton = customButton,
-                onClick = onCustomButtonClick,
-                onLongClick = onCustomButtonLongClick,
-                modifier = Modifier.padding(vertical = MaterialTheme.padding.small),
-            )
-
-            VolumeSlider(
-                volume = volumeSliderValue,
-                onVolumeChange = {
-                    volumeSliderValue = it
-                    onVolumeChange(it)
-                },
-
-            )
-        }
+        VolumeSlider(
+            volume = volumeSliderValue,
+            onVolumeChange = {
+                volumeSliderValue = it
+                onVolumeChange(it)
+            },
+        )
     }
 }
 
 @Composable
 private fun CustomButton(
-    customButton: String?,
+    skipIntroLength: Long,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    customButton?.let {
+
+    if (skipIntroLength > 0L) {
         Box {
             Button(onClick = {}, modifier = modifier) {
-                Text(it)
+                Text("+${skipIntroLength}s")
             }
             Box(
                 modifier = Modifier
@@ -349,7 +326,6 @@ private fun CastMainControlsPreview() {
             ),
             hasNext = true,
             hasPrevious = false,
-            customButton = "+85s",
             onCustomButtonClick = {},
             onCustomButtonLongClick = {},
             volume = 0.4f,
@@ -357,6 +333,10 @@ private fun CastMainControlsPreview() {
             onPlayPause = { },
             onNext = { },
             onPrevious = { },
+            onBackSeek = { },
+            onForwardSeek = { },
+            onSeekBarStart = { },
+            onSeekBarEnd = { },
             onClickSubs = { },
             onClickAudio = { },
             onClickQuality = { },
