@@ -31,6 +31,7 @@ class ThemingDelegateImpl : ThemingDelegate {
 private val themeResources: Map<AppTheme, Int> = mapOf(
     AppTheme.MONET to R.style.Theme_Tachiyomi_Monet,
     AppTheme.CATPPUCCIN to R.style.Theme_Tachiyomi_Catppuccin,
+    AppTheme.TOKYONIGHT to R.style.Theme_Tachiyomi_TokyoNight,
     // AY -->
     AppTheme.CLOUDFLARE to R.style.Theme_Tachiyomi_Cloudflare,
     // <-- AY
