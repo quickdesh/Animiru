@@ -106,7 +106,7 @@ fun CurrentChapter(
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = onBackground,
                     overflow = TextOverflow.Clip,
                 )
                 Text(

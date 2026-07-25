@@ -71,6 +71,8 @@ fun CastMainControls(
     onPrevious: () -> Unit,
     onBackSeek: () -> Unit,
     onForwardSeek: () -> Unit,
+    onClickChapter: () -> Unit,
+    onClickDuration: () -> Unit,
     onSeekBarStart: (Float) -> Unit,
     onSeekBarEnd: () -> Unit,
     onClickSubs: () -> Unit,
@@ -161,18 +163,21 @@ fun CastMainControls(
                     chapter = castUiData.currentChapter,
                     background = MaterialTheme.colorScheme.onBackground,
                     onBackground = MaterialTheme.colorScheme.background,
+                    onClick = onClickChapter,
                 )
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
+            val duration = if (castUiData.invertDurationTimer) {
+                seekPosition - castUiData.duration.toFloat()
+            } else {
+                castUiData.duration.toFloat()
+            }
             VideoTimer(
-                value = castUiData.duration.toFloat(),
-                isInverted = false,
-                onClick = {
-                    // clickEvent()
-                    // positionTimerOnClick()
-                },
+                value = duration,
+                isInverted = castUiData.invertDurationTimer,
+                onClick = onClickDuration,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.width(92.dp),
             )
@@ -339,6 +344,8 @@ private fun CastMainControlsPreview() {
             onPrevious = { },
             onBackSeek = { },
             onForwardSeek = { },
+            onClickChapter = { },
+            onClickDuration = { },
             onSeekBarStart = { },
             onSeekBarEnd = { },
             onClickSubs = { },

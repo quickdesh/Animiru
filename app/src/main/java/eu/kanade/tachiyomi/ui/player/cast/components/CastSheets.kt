@@ -1,8 +1,10 @@
 package eu.kanade.tachiyomi.ui.player.cast.components
 
 import androidx.compose.runtime.Composable
+import dev.vivvvek.seeker.Segment
 import eu.kanade.tachiyomi.ui.player.cast.CastSheet
 import eu.kanade.tachiyomi.ui.player.cast.CastUiData
+import eu.kanade.tachiyomi.ui.player.components.ChaptersSheet
 import eu.kanade.tachiyomi.ui.player.components.HosterState
 import eu.kanade.tachiyomi.ui.player.components.QualitySheet
 import tachiyomi.cast.domain.TrackInformation
@@ -23,6 +25,9 @@ fun CastSheets(
     // Tracks sheet
     castUiData: CastUiData,
     onSelectTrack: (TrackInformation, Boolean) -> Unit,
+
+    // Chapter sheet
+    onClickChapter: (Segment) -> Unit,
 
     onDismissRequest: () -> Unit,
     dismissSheet: Boolean,
@@ -58,6 +63,16 @@ fun CastSheets(
                 selectedIndex = castUiData.currentSubId,
                 onSelect = { onSelectTrack(it, false) },
                 onDismissRequest = onDismissRequest,
+            )
+        }
+        CastSheet.Chapter -> {
+            if (castUiData.currentChapter == null) return
+            ChaptersSheet(
+                chapters = castUiData.chapters,
+                currentChapter = castUiData.currentChapter,
+                onClick = onClickChapter,
+                onDismissRequest = onDismissRequest,
+                dismissSheet = dismissSheet,
             )
         }
     }

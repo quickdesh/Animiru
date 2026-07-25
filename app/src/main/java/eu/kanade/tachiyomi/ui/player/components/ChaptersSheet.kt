@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-package eu.kanade.tachiyomi.ui.player.controls.components.sheets
+package eu.kanade.tachiyomi.ui.player.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,8 +33,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import dev.vivvvek.seeker.Segment
+import eu.kanade.tachiyomi.ui.player.controls.components.sheets.GenericTracksSheet
+import eu.kanade.tachiyomi.ui.player.controls.components.sheets.TrackSheetTitle
+import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils
 import `is`.xyz.mpv.Utils
-import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
@@ -63,7 +68,7 @@ fun ChaptersSheet(
         },
         onDismissRequest = onDismissRequest,
         dismissEvent = dismissSheet,
-        modifier = modifier,
+        modifier = modifier.windowInsetsPadding(WindowInsets.safeDrawing),
     )
 }
 
@@ -83,7 +88,11 @@ fun ChapterTrack(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
-            stringResource(AYMR.strings.player_sheets_track_title_wo_lang, index + 1, chapter.name),
+            stringResource(
+                AYMR.strings.player_sheets_track_title_wo_lang,
+                index + 1,
+                chapter.name.substringBefore(ChapterUtils.ANIYOMI_CHAPTER_IDENTIFIER),
+            ),
             fontStyle = if (selected) FontStyle.Italic else FontStyle.Normal,
             fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Normal,
             maxLines = 1,

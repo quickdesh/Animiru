@@ -264,6 +264,7 @@ class PlayerViewModel @JvmOverloads constructor(
     val playbackData = _playbackData.asStateFlow()
     private val _castUiData = MutableStateFlow(
         CastUiData(
+            invertDurationTimer = invertDuration,
             showChapterIndicator = showChapterIndicator,
         ),
     )
@@ -511,9 +512,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 onSkipIntro()
             }
             PlayerEvent.ToggleDurationTimer -> {
-                val newValue = !uiData.value.invertDuration
-                playerPreferences.invertDuration.set(newValue)
-                updateUiData { it.copy(invertDuration = newValue) }
+                toggleDurationTimer()
             }
         }
     }
@@ -1081,6 +1080,10 @@ class PlayerViewModel @JvmOverloads constructor(
         castManager.seekBy(castUiData.value.skipIntroLength)
     }
 
+    fun castSeekTo(value: Long) {
+        castManager.seekTo(value)
+    }
+
     fun castStartSeek(position: Float) {
         updateCastUiData {
             it.copy(
@@ -1318,16 +1321,6 @@ class PlayerViewModel @JvmOverloads constructor(
         } else {
             video
         }
-            ?.copy(
-                timestamps = listOf(
-                    TimeStamp(
-                        start = 12.0,
-                        end = 80.0,
-                        name = "Opening",
-                        type = ChapterType.Opening,
-                    ),
-                ),
-            )
 
         if (resolvedVideo == null || resolvedVideo.videoUrl.isEmpty()) {
             if (stateData.value.currentVideo == null) {
@@ -2185,6 +2178,13 @@ class PlayerViewModel @JvmOverloads constructor(
     fun showSeekBar() {
         if (uiData.value.sheetShown != Sheets.None) return
         updateUiData { it.copy(seekBarShown = true) }
+    }
+
+    fun toggleDurationTimer() {
+        val newValue = !uiData.value.invertDuration
+        playerPreferences.invertDuration.set(newValue)
+        updateUiData { it.copy(invertDuration = newValue) }
+        updateCastUiData { it.copy(invertDurationTimer = newValue) }
     }
 
     fun dismissSheet() {

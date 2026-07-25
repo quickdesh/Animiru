@@ -133,6 +133,8 @@ fun PlayerScreen(
                     }
                 },
                 onSkipIntroClicked = viewModel::castOnSkipIntro,
+                onClickChapter = { viewModel.setCastSheet(CastSheet.Chapter) },
+                onClickDuration = { viewModel.toggleDurationTimer() },
                 onSeekBarStart = viewModel::castStartSeek,
                 onSeekBarEnd = viewModel::castEndSeek,
                 onClickSubs = {
@@ -160,6 +162,10 @@ fun PlayerScreen(
                 displayHosters = Pair(showFailedHosters, emptyHosters),
                 castUiData = castUiData,
                 onSelectTrack = viewModel::selectTrack,
+                onClickChapter = {
+                    viewModel.castSeekTo(it.start.toLong())
+                    viewModel.dismissSheet()
+                },
                 onDismissRequest = { viewModel.setCastSheet(CastSheet.None) },
                 dismissSheet = uiData.dismissSheet,
             )

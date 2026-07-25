@@ -13,6 +13,7 @@ data class CastUiData(
     val seekPosition: Float = 0f,
     val skipIntroText: String? = null,
     val netflixTimeout: Int? = null,
+    val invertDurationTimer: Boolean = false,
     val subTracks: List<TrackInformation> = emptyList(),
     val audioTracks: List<TrackInformation> = emptyList(),
     val currentAudioId: Long = -1L,
@@ -28,6 +29,7 @@ enum class CastSheet {
     Quality,
     Audio,
     Subtitle,
+    Chapter,
     None,
 }
 
