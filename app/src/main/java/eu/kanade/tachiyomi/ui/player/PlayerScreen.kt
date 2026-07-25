@@ -97,6 +97,8 @@ fun PlayerScreen(
     val showFailedHosters by playerPreferences.showFailedHosters.collectAsState()
     val emptyHosters by playerPreferences.showEmptyHosters.collectAsState()
     val speedPresets by playerPreferences.speedPresets.collectAsState()
+    val relativeTime by uiPreferences.relativeTime.collectAsState()
+    val dateFormat by uiPreferences.dateFormat.collectAsState()
 
     var hasNavigatedBack by remember { mutableStateOf(false) }
 
@@ -140,7 +142,9 @@ fun PlayerScreen(
                 onClickDuration = { viewModel.toggleDurationTimer() },
                 onSeekBarStart = viewModel::castStartSeek,
                 onSeekBarEnd = viewModel::castEndSeek,
-                onClickPlaylist = { },
+                onClickPlaylist = {
+                    viewModel.setCastSheet(CastSheet.Playlist)
+                },
                 onClickSpeed = {
                     viewModel.setCastSheet(CastSheet.PlaybackSpeed)
                 },
@@ -188,6 +192,17 @@ fun PlayerScreen(
                     viewModel.castManager.setSpeed(
                         playerPreferences.playerSpeed.deleteAndGet().toFixed(2).toDouble(),
                     )
+                },
+                episodeDisplayMode = stateData.currentAnime?.displayMode,
+                currentEpisodeIndex = stateData.currentPlaylistIndex,
+                episodeList = stateData.currentPlaylist,
+                dateRelativeTime = relativeTime,
+                dateFormat = dateFormat,
+                onBookmarkClicked = viewModel::bookmarkEpisode,
+                onFillermarkClicked = viewModel::fillermarkEpisode,
+                onEpisodeClicked = {
+                    viewModel.setCastSheet(CastSheet.None)
+                    viewModel.changeEpisode(it)
                 },
                 onDismissRequest = { viewModel.setCastSheet(CastSheet.None) },
                 dismissSheet = uiData.dismissSheet,
@@ -599,9 +614,6 @@ fun PlayerScreen(
                 )
 
                 // Dialogs
-                val relativeTime by uiPreferences.relativeTime.collectAsState()
-                val dateFormat by uiPreferences.dateFormat.collectAsState()
-
                 PlayerDialogs(
                     dialogShown = uiData.dialogShown,
                     episodeDisplayMode = stateData.currentAnime?.displayMode,

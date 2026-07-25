@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.ui.player.cast.components
 
 import androidx.compose.runtime.Composable
 import dev.vivvvek.seeker.Segment
+import eu.kanade.tachiyomi.data.database.models.Episode
 import eu.kanade.tachiyomi.ui.player.cast.CastSheet
 import eu.kanade.tachiyomi.ui.player.cast.CastUiData
 import eu.kanade.tachiyomi.ui.player.components.ChaptersSheet
@@ -38,6 +39,16 @@ fun CastSheets(
     onResetSpeedPresets: () -> Unit,
     onMakeDefaultSpeed: (Float) -> Unit,
     onResetDefaultSpeed: () -> Unit,
+
+    // Playlist sheet
+    episodeDisplayMode: Long?,
+    currentEpisodeIndex: Int,
+    episodeList: List<Episode>,
+    dateRelativeTime: Boolean,
+    dateFormat: String,
+    onBookmarkClicked: (Long?, Boolean) -> Unit,
+    onFillermarkClicked: (Long?, Boolean) -> Unit,
+    onEpisodeClicked: (Long?) -> Unit,
 
     onDismissRequest: () -> Unit,
     dismissSheet: Boolean,
@@ -85,7 +96,6 @@ fun CastSheets(
                 dismissSheet = dismissSheet,
             )
         }
-
         CastSheet.PlaybackSpeed -> {
             CastPlaybackSpeedSheet(
                 speed = speed,
@@ -96,6 +106,19 @@ fun CastSheets(
                 onResetPresets = onResetSpeedPresets,
                 onMakeDefault = onMakeDefaultSpeed,
                 onResetDefault = onResetDefaultSpeed,
+                onDismissRequest = onDismissRequest,
+            )
+        }
+        CastSheet.Playlist -> {
+            CastPlaylistSheet(
+                displayMode = episodeDisplayMode,
+                currentEpisodeIndex = currentEpisodeIndex,
+                episodeList = episodeList,
+                dateRelativeFormat = dateRelativeTime,
+                dateFormat = dateFormat,
+                onBookmarkClicked = onBookmarkClicked,
+                onFillermarkClicked = onFillermarkClicked,
+                onEpisodeClicked = onEpisodeClicked,
                 onDismissRequest = onDismissRequest,
             )
         }
