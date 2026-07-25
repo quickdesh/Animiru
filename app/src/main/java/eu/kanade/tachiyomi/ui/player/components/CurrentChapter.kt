@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.vivvvek.seeker.Segment
+import eu.kanade.tachiyomi.ui.player.utils.ChapterUtils
 import `is`.xyz.mpv.Utils
 import tachiyomi.presentation.core.components.material.padding
 
@@ -109,7 +110,7 @@ fun CurrentChapter(
                     overflow = TextOverflow.Clip,
                 )
                 Text(
-                    text = chapter.name,
+                    text = chapter.name.substringBeforeLast(ChapterUtils.ANIYOMI_CHAPTER_IDENTIFIER),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,

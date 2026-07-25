@@ -132,6 +132,7 @@ fun PlayerScreen(
                         onBack()
                     }
                 },
+                onSkipIntroClicked = viewModel::castOnSkipIntro,
                 onSeekBarStart = viewModel::castStartSeek,
                 onSeekBarEnd = viewModel::castEndSeek,
                 onClickSubs = {
@@ -143,7 +144,7 @@ fun PlayerScreen(
                 onClickQuality = {
                     viewModel.setCastSheet(CastSheet.Quality)
                 },
-                onClickCustomButton = viewModel::castOnSkipIntro,
+                onClickCustomButton = viewModel::castOnSeekIntro,
                 onLongClickCustomButton = { viewModel.setCastDialog(CastDialog.IntroLength) },
                 onCastManagerEvent = viewModel.castManager::handleCastManagerEvent,
             )

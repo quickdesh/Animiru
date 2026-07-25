@@ -36,7 +36,6 @@ import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.animesource.model.Hoster
 import eu.kanade.tachiyomi.animesource.model.SerializableHoster.Companion.toHosterList
 import eu.kanade.tachiyomi.animesource.model.TimeStamp
-import eu.kanade.tachiyomi.animesource.model.Track
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncDataJob
@@ -975,12 +974,16 @@ class PlayerViewModel @JvmOverloads constructor(
             val preferredSubtitle = trackSelect.getPreferredTrackIndex(subtitleTracks, subtitle = true)
             val preferredAudio = trackSelect.getPreferredTrackIndex(audioTracks, subtitle = false)
 
-            val chapters = codecInformation.chapters.sortedBy { it.startTime }.map {
-                Segment(
-                    name = it.name,
-                    start = it.startTime.toFloat(),
-                )
-            }
+            val chapters = ChapterUtils.mergeChapters(
+                currentChapters = codecInformation.chapters.sortedBy { it.startTime }.map {
+                    IndexedSegment(
+                        name = it.name,
+                        start = it.startTime.toFloat(),
+                    )
+                },
+                stamps = video.timestamps + stateData.value.aniskipChapters,
+                codecInformation.duration?.toInt(),
+            ).map { it.toSegment() }
 
             updateCastUiData {
                 it.copy(
@@ -992,6 +995,8 @@ class PlayerViewModel @JvmOverloads constructor(
                     chapters = chapters,
                 )
             }
+
+            loadAniSkip(codecInformation.chapters.size, codecInformation.duration?.toInt())
 
             castManager.stopRemoteMediaClient()
             castManager.startCasting(
@@ -1072,7 +1077,7 @@ class PlayerViewModel @JvmOverloads constructor(
         setAnimeSkipIntroLength(value)
     }
 
-    fun castOnSkipIntro() {
+    fun castOnSeekIntro() {
         castManager.seekBy(castUiData.value.skipIntroLength)
     }
 
@@ -1090,6 +1095,80 @@ class PlayerViewModel @JvmOverloads constructor(
         updateCastUiData {
             it.copy(isSeeking = false)
         }
+    }
+
+    private fun castOnChapterChanged(chapter: Segment?) {
+        updateCastUiData { it.copy(currentChapter = chapter) }
+        if (chapter == null) {
+            updateCastUiData {
+                it.copy(
+                    skipIntroText = null,
+                    netflixTimeout = null,
+                )
+            }
+            return
+        }
+
+        val chapterType = chapter.getChapterType()
+        if (chapterType == ChapterType.Other) {
+            updateCastUiData {
+                it.copy(
+                    skipIntroText = null,
+                    netflixTimeout = null,
+                )
+            }
+        } else {
+            if (netflixStyle) {
+                // show a toast with the seconds before the skip
+                viewModelScope.launch {
+                    _eventFlow.emit(
+                        Event.ToastString(
+                            "Skip Intro: ${context.stringResource(
+                                AYMR.strings.player_aniskip_dontskip_toast,
+                                chapter.name.substringBeforeLast(ChapterUtils.ANIYOMI_CHAPTER_IDENTIFIER),
+                                defaultWaitingTime,
+                            )}",
+                        ),
+                    )
+                }
+                updateCastUiData {
+                    it.copy(
+                        skipIntroText = context.stringResource(AYMR.strings.player_aniskip_dontskip),
+                        netflixTimeout = defaultWaitingTime,
+                    )
+                }
+            } else if (autoSkip) {
+                castSkipIntro(chapter)
+            } else {
+                updateSkipIntroButton(chapterType)
+            }
+        }
+    }
+
+    private fun Segment.getChapterType(): ChapterType {
+        return name.substringAfterLast(
+            delimiter = ChapterUtils.ANIYOMI_CHAPTER_IDENTIFIER,
+            missingDelimiterValue = ChapterType.Other.ordinal.toString(),
+        ).toInt().let { ChapterType.entries[it] }
+    }
+
+    fun castOnSkipIntro() {
+        val chapter = castUiData.value.currentChapter ?: return
+        if ((castUiData.value.netflixTimeout ?: 0) > 0 && netflixStyle) {
+            updateCastUiData { it.copy(netflixTimeout = null) }
+            updateSkipIntroButton(chapter.getChapterType())
+            return
+        }
+
+        updateCastUiData { it.copy(netflixTimeout = null) }
+        castSkipIntro(chapter)
+    }
+
+    private fun castSkipIntro(chapter: Segment) {
+        val nextChapterStart = castUiData.value.chapters.filter { it.start > chapter.start }
+            .minByOrNull { it.start }?.start?.toLong()
+            ?: castUiData.value.duration
+        castManager.seekTo(nextChapterStart)
     }
 
     // === Load ===
@@ -1239,6 +1318,16 @@ class PlayerViewModel @JvmOverloads constructor(
         } else {
             video
         }
+            ?.copy(
+                timestamps = listOf(
+                    TimeStamp(
+                        start = 12.0,
+                        end = 80.0,
+                        name = "Opening",
+                        type = ChapterType.Opening,
+                    ),
+                ),
+            )
 
         if (resolvedVideo == null || resolvedVideo.videoUrl.isEmpty()) {
             if (stateData.value.currentVideo == null) {
@@ -1498,11 +1587,23 @@ class PlayerViewModel @JvmOverloads constructor(
 
         // AniSkip stuff
         val chapterCount = stateData.value.chapters.size
+        val duration = playbackData.value.duration
+        loadAniSkip(chapterCount, duration)
+    }
+
+    private fun loadAniSkip(chapterCount: Int, duration: Int?) {
         viewModelScope.launchIO {
             if (introSkipEnabled && aniSkipEnabled && !(disableAniSkipOnChapters && chapterCount > 0)) {
-                aniSkipResponse(playbackData.value.duration)?.let {
-                    addTimeStamps(it)
+                aniSkipResponse(duration)?.let { stamps ->
+                    updateStateData { it.copy(aniskipChapters = stamps) }
+                    if (!stateData.value.isCasting) {
+                        addTimeStamps(stamps)
+                    }
+                } ?: run {
+                    updateStateData { it.copy(aniskipChapters = emptyList()) }
                 }
+            } else {
+                updateStateData { it.copy(aniskipChapters = emptyList()) }
             }
         }
     }
@@ -2542,10 +2643,22 @@ class PlayerViewModel @JvmOverloads constructor(
         if (duration == 0) return
 
         if (isCasting) {
-            val chapter = castUiData.value.chapters.filter { it.start < position }.maxByOrNull { it.start }
-            updateCastUiData { it.copy(currentChapter = chapter) }
+            val chapter = castUiData.value.chapters.filter { it.start <= position }.maxByOrNull { it.start }
+            if (chapter != castUiData.value.currentChapter) {
+                castOnChapterChanged(chapter)
+            }
+        }
+
+        // Set netflix-style timeout
+        if (isCasting) {
+            castUiData.value.netflixTimeout?.let { timeout ->
+                if (timeout > 0) {
+                    updateCastUiData { it.copy(netflixTimeout = timeout - 1) }
+                } else {
+                    castOnSkipIntro()
+                }
+            }
         } else {
-            // Set netflix-style timeout
             playbackData.value.netflixTimeout?.let { timeout ->
                 if (timeout > 0) {
                     updatePlaybackData { it.copy(netflixTimeout = timeout - 1) }
@@ -2953,17 +3066,15 @@ class PlayerViewModel @JvmOverloads constructor(
 
     private fun updateSkipIntroButton(chapterType: ChapterType) {
         val skipButtonString = chapterType.getStringRes()
-
-        updateUiData {
-            it.copy(
-                skipIntroText = skipButtonString?.let { s ->
-                    context.stringResource(
-                        AYMR.strings.player_skip_action,
-                        context.stringResource(s),
-                    )
-                },
+        val skipIntroText = skipButtonString?.let { s ->
+            context.stringResource(
+                AYMR.strings.player_skip_action,
+                context.stringResource(s),
             )
         }
+
+        updateUiData { it.copy(skipIntroText = skipIntroText) }
+        updateCastUiData { it.copy(skipIntroText = skipIntroText) }
     }
 
     fun onSkipIntro() {
@@ -2972,12 +3083,13 @@ class PlayerViewModel @JvmOverloads constructor(
             ?: emptyList()
         val chapter = chapterList.getOrNull(chapterIndex) ?: return
 
-        updatePlaybackData { it.copy(netflixTimeout = null) }
         if ((playbackData.value.netflixTimeout ?: 0) > 0 && netflixStyle) {
+            updatePlaybackData { it.copy(netflixTimeout = null) }
             updateSkipIntroButton(chapter.chapterType)
             return
         }
 
+        updatePlaybackData { it.copy(netflixTimeout = null) }
         skipIntro(chapter.chapterTitle)
     }
 
@@ -3085,6 +3197,7 @@ class PlayerViewModel @JvmOverloads constructor(
         val hasLoadedSubs: Boolean = false,
         val hasLoadedAudio: Boolean = false,
         val chapters: List<Segment> = emptyList(),
+        val aniskipChapters: List<TimeStamp> = emptyList(),
         val subtitleTracks: List<TrackNode> = emptyList(),
         val audioTracks: List<TrackNode> = emptyList(),
         val externalSubtitleTracks: List<MpvVideoTrack.External> = emptyList(),

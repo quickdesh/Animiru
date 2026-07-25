@@ -11,6 +11,8 @@ data class CastUiData(
     val skipIntroLength: Long = 0L,
     val isSeeking: Boolean = false,
     val seekPosition: Float = 0f,
+    val skipIntroText: String? = null,
+    val netflixTimeout: Int? = null,
     val subTracks: List<TrackInformation> = emptyList(),
     val audioTracks: List<TrackInformation> = emptyList(),
     val currentAudioId: Long = -1L,

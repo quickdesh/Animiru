@@ -61,6 +61,7 @@ fun CastMainControls(
     castUiData: CastUiData,
     hasPrevious: Boolean,
     hasNext: Boolean,
+    onSkipIntroClick: () -> Unit,
     onCustomButtonClick: () -> Unit,
     onCustomButtonLongClick: () -> Unit,
     volume: Float,
@@ -87,8 +88,10 @@ fun CastMainControls(
             horizontalArrangement = Arrangement.End,
             modifier = Modifier.fillMaxWidth().padding(end = MaterialTheme.padding.medium).height(42.dp),
         ) {
-            OutlinedButton(onClick = {}) {
-                Text("Skip into")
+            castUiData.skipIntroText?.let {
+                OutlinedButton(onClick = onSkipIntroClick) {
+                    Text(it)
+                }
             }
         }
 
@@ -326,8 +329,9 @@ private fun CastMainControlsPreview() {
             ),
             hasNext = true,
             hasPrevious = false,
-            onCustomButtonClick = {},
-            onCustomButtonLongClick = {},
+            onSkipIntroClick = { },
+            onCustomButtonClick = { },
+            onCustomButtonLongClick = { },
             volume = 0.4f,
             onVolumeChange = { },
             onPlayPause = { },
