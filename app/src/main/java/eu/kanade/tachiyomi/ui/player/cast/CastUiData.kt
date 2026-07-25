@@ -30,6 +30,7 @@ enum class CastSheet {
     Audio,
     Subtitle,
     Chapter,
+    PlaybackSpeed,
     None,
 }
 

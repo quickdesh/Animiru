@@ -75,6 +75,8 @@ fun CastMainControls(
     onClickDuration: () -> Unit,
     onSeekBarStart: (Float) -> Unit,
     onSeekBarEnd: () -> Unit,
+    onClickPlaylist: () -> Unit,
+    onClickSpeed: () -> Unit,
     onClickSubs: () -> Unit,
     onClickAudio: () -> Unit,
     onClickQuality: () -> Unit,
@@ -206,14 +208,14 @@ fun CastMainControls(
         ) {
             CastControlButton(
                 icon = Icons.Default.VideoLibrary,
-                onClick = { },
+                onClick = onClickPlaylist,
                 onLongClick = { },
                 horizontalSpacing = MaterialTheme.padding.mediumSmall,
             )
 
             CastControlButton(
                 icon = Icons.Default.Speed,
-                onClick = { },
+                onClick = onClickSpeed,
                 onLongClick = { },
                 horizontalSpacing = MaterialTheme.padding.mediumSmall,
             )
@@ -348,6 +350,8 @@ private fun CastMainControlsPreview() {
             onClickDuration = { },
             onSeekBarStart = { },
             onSeekBarEnd = { },
+            onClickPlaylist = { },
+            onClickSpeed = { },
             onClickSubs = { },
             onClickAudio = { },
             onClickQuality = { },

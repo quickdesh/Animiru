@@ -28,11 +28,14 @@ interface CastManager {
         anime: Anime,
         episodeTitle: String,
         startPosition: Long = 0L,
+        playbackRate: Double,
     )
 
     fun seekTo(position: Long)
 
     fun seekBy(delta: Long)
+
+    fun setSpeed(speed: Double)
 
     fun loadTrack(trackId: Long, isAudio: Boolean)
 

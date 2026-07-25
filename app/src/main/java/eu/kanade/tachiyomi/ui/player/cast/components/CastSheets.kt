@@ -29,6 +29,16 @@ fun CastSheets(
     // Chapter sheet
     onClickChapter: (Segment) -> Unit,
 
+    // Speed sheet
+    speed: Float,
+    speedPresets: List<Float>,
+    onSpeedChange: (Float) -> Unit,
+    onAddSpeedPreset: (Float) -> Unit,
+    onRemoveSpeedPreset: (Float) -> Unit,
+    onResetSpeedPresets: () -> Unit,
+    onMakeDefaultSpeed: (Float) -> Unit,
+    onResetDefaultSpeed: () -> Unit,
+
     onDismissRequest: () -> Unit,
     dismissSheet: Boolean,
 ) {
@@ -73,6 +83,20 @@ fun CastSheets(
                 onClick = onClickChapter,
                 onDismissRequest = onDismissRequest,
                 dismissSheet = dismissSheet,
+            )
+        }
+
+        CastSheet.PlaybackSpeed -> {
+            CastPlaybackSpeedSheet(
+                speed = speed,
+                onSpeedChange = onSpeedChange,
+                speedPresets = speedPresets,
+                onAddSpeedPreset = onAddSpeedPreset,
+                onRemoveSpeedPreset = onRemoveSpeedPreset,
+                onResetPresets = onResetSpeedPresets,
+                onMakeDefault = onMakeDefaultSpeed,
+                onResetDefault = onResetDefaultSpeed,
+                onDismissRequest = onDismissRequest,
             )
         }
     }

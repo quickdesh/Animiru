@@ -1008,6 +1008,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 anime = anime,
                 episodeTitle = episode.name,
                 startPosition = startPosition,
+                playbackRate = mpv.getPropertyDouble("speed") ?: 1.0,
             )
         }
     }

@@ -8,6 +8,7 @@ import animiru.domain.player.service.GesturePreferences
 import com.google.android.gms.cast.Cast
 import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.MediaInfo
+import com.google.android.gms.cast.MediaLoadOptions
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
 import com.google.android.gms.cast.MediaSeekOptions
@@ -102,6 +103,7 @@ class CastManagerImpl(
         anime: Anime,
         episodeTitle: String,
         startPosition: Long,
+        playbackRate: Double,
     ) {
         startJob?.cancel()
         startJob = scope.launch {
@@ -162,6 +164,9 @@ class CastManagerImpl(
                 setAutoplay(true)
                 setCurrentTime(startPosition * 1000L)
                 setActiveTrackIds(preferred)
+                setPlaybackRate(
+                    playbackRate.coerceIn(MediaLoadOptions.PLAYBACK_RATE_MIN, MediaLoadOptions.PLAYBACK_RATE_MAX),
+                )
             }.build()
 
             val loadTask = client.load(loadRequest)
@@ -230,6 +235,18 @@ class CastManagerImpl(
                     .setPosition((position + delta).times(1000L).coerceIn(0, durationMs))
                     .build(),
             )
+        }
+    }
+
+    override fun setSpeed(speed: Double) {
+        scope.launch {
+            val client = remoteMediaClient
+            if (client == null) {
+                _castEvent.emit(CastEvent.PlaybackError(CastNotConnectedException()))
+                return@launch
+            }
+
+            client.setPlaybackRate(speed)
         }
     }
 
@@ -319,6 +336,7 @@ class CastManagerImpl(
                         buffering =
                         mediaStatus.playerState == MediaStatus.PLAYER_STATE_BUFFERING ||
                             mediaStatus.playerState == MediaStatus.PLAYER_STATE_LOADING,
+                        speed = mediaStatus.playbackRate,
                     )
                 }
             }
@@ -341,7 +359,7 @@ class CastManagerImpl(
         castSession?.addCastListener(castListener)
         remoteMediaClient = session.remoteMediaClient
         remoteMediaClient?.registerCallback(remoteMediaClientCallback)
-        remoteMediaClient?.addProgressListener(remoteMediaClientProgressListener, 1000)
+        remoteMediaClient?.addProgressListener(remoteMediaClientProgressListener, 100)
     }
 
     private fun removeListeners() {
@@ -423,16 +441,16 @@ class CastManagerImpl(
     }
 
     private val remoteMediaClientProgressListener = RemoteMediaClient.ProgressListener { progressMs, durationMs ->
+        if (castState.value.position != progressMs / 1000L) {
+            scope.launch {
+                _castEvent.emit(CastEvent.OnSecondReached(position = progressMs.div(1000).toInt()))
+            }
+        }
         _castState.update {
             it.copy(
                 position = progressMs / 1000L,
                 durationMs = durationMs,
             )
-        }
-        if (castState.value.playing) {
-            scope.launch {
-                _castEvent.emit(CastEvent.OnSecondReached(position = progressMs.div(1000).toInt()))
-            }
         }
     }
 

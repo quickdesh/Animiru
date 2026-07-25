@@ -40,6 +40,8 @@ import eu.kanade.tachiyomi.ui.player.PlayerViewModel.PlayerEvent
 import eu.kanade.tachiyomi.ui.player.cast.CastDialog
 import eu.kanade.tachiyomi.ui.player.cast.CastScreen
 import eu.kanade.tachiyomi.ui.player.cast.CastSheet
+import eu.kanade.tachiyomi.ui.player.cast.components.CAST_PLAYBACK_MAX
+import eu.kanade.tachiyomi.ui.player.cast.components.CAST_PLAYBACK_MIN
 import eu.kanade.tachiyomi.ui.player.cast.components.CastDialogs
 import eu.kanade.tachiyomi.ui.player.cast.components.CastSheets
 import eu.kanade.tachiyomi.ui.player.components.BrightnessOverlay
@@ -94,6 +96,7 @@ fun PlayerScreen(
     // Common
     val showFailedHosters by playerPreferences.showFailedHosters.collectAsState()
     val emptyHosters by playerPreferences.showEmptyHosters.collectAsState()
+    val speedPresets by playerPreferences.speedPresets.collectAsState()
 
     var hasNavigatedBack by remember { mutableStateOf(false) }
 
@@ -137,6 +140,10 @@ fun PlayerScreen(
                 onClickDuration = { viewModel.toggleDurationTimer() },
                 onSeekBarStart = viewModel::castStartSeek,
                 onSeekBarEnd = viewModel::castEndSeek,
+                onClickPlaylist = { },
+                onClickSpeed = {
+                    viewModel.setCastSheet(CastSheet.PlaybackSpeed)
+                },
                 onClickSubs = {
                     viewModel.setCastSheet(CastSheet.Subtitle)
                 },
@@ -165,6 +172,22 @@ fun PlayerScreen(
                 onClickChapter = {
                     viewModel.castSeekTo(it.start.toLong())
                     viewModel.dismissSheet()
+                },
+                speed = castState.speed.toFloat(),
+                speedPresets = speedPresets.map {
+                    it.toFloat()
+                }.filter { it in CAST_PLAYBACK_MIN..CAST_PLAYBACK_MAX }.sorted(),
+                onSpeedChange = {
+                    viewModel.castManager.setSpeed(it.toDouble())
+                },
+                onAddSpeedPreset = { playerPreferences.speedPresets += it.toFixed(2).toString() },
+                onRemoveSpeedPreset = { playerPreferences.speedPresets -= it.toFixed(2).toString() },
+                onResetSpeedPresets = playerPreferences.speedPresets::delete,
+                onMakeDefaultSpeed = { playerPreferences.playerSpeed.set(it.toFixed(2)) },
+                onResetDefaultSpeed = {
+                    viewModel.castManager.setSpeed(
+                        playerPreferences.playerSpeed.deleteAndGet().toFixed(2).toDouble(),
+                    )
                 },
                 onDismissRequest = { viewModel.setCastSheet(CastSheet.None) },
                 dismissSheet = uiData.dismissSheet,
@@ -252,7 +275,6 @@ fun PlayerScreen(
 
                 // Sheets
                 val showSubtitles by subtitlePreferences.screenshotSubtitles.collectAsState()
-                val speedPresets by playerPreferences.speedPresets.collectAsState()
                 val statisticsPage by advancedPreferences.playerStatisticsPage.collectAsState()
 
                 val mpvDecoder by viewModel.propFlow<String>("hwdec-current").collectAsState()
