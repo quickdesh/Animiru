@@ -31,6 +31,7 @@ fun CastScreen(
     castState: CastState,
     castUiData: CastUiData,
     onBack: () -> Unit,
+    onStopCasting: () -> Unit,
     onSkipIntroClicked: () -> Unit,
     onClickChapter: () -> Unit,
     onClickDuration: () -> Unit,
@@ -60,6 +61,7 @@ fun CastScreen(
         CastTopControls(
             deviceName = castState.deviceName ?: stringResource(AMMR.strings.player_cast_unknown_device),
             onBack = onBack,
+            onStopCasting = onStopCasting,
             modifier = Modifier.constrainAs(topControls) {
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
@@ -142,6 +144,7 @@ private fun CastScreenPreview() {
             castState = CastState(),
             castUiData = CastUiData(),
             onBack = { },
+            onStopCasting = { },
             onSkipIntroClicked = { },
             onClickChapter = { },
             onClickDuration = { },

@@ -563,6 +563,13 @@ class PlayerViewModel @JvmOverloads constructor(
                 }
             }
             is CastEvent.Disconnected -> {
+                updateStateData {
+                    it.copy(
+                        isCasting = false,
+                        isLoadingCasting = false,
+                        isErrorCasting = false,
+                    )
+                }
             }
             is CastEvent.NextEpisode -> {
                 nextEpisode(next = event.next)
@@ -1011,6 +1018,15 @@ class PlayerViewModel @JvmOverloads constructor(
                 playbackRate = mpv.getPropertyDouble("speed") ?: 1.0,
             )
         }
+    }
+
+    fun stopCasting() {
+        castManager.disconnect()
+        updateStateData { it.copy(isCasting = false) }
+        updateUiData { it.copy(isLoadingEpisode = true) }
+        val video = stateData.value.currentVideo
+        setVideo(video)
+        unpause()
     }
 
     fun setCastSheet(sheet: CastSheet) {

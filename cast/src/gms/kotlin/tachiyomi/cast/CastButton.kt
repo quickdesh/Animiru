@@ -54,7 +54,6 @@ fun CastButton(
             R.drawable.ic_cast_2_24dp,
             R.drawable.ic_cast_3_24dp,
             R.drawable.ic_cast_2_24dp,
-            R.drawable.ic_cast_1_24dp,
         )
     }
 

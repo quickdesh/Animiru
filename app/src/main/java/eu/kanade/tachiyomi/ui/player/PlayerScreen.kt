@@ -137,6 +137,7 @@ fun PlayerScreen(
                         onBack()
                     }
                 },
+                onStopCasting = viewModel::stopCasting,
                 onSkipIntroClicked = viewModel::castOnSkipIntro,
                 onClickChapter = { viewModel.setCastSheet(CastSheet.Chapter) },
                 onClickDuration = { viewModel.toggleDurationTimer() },
