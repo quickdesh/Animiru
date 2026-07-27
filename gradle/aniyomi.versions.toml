@@ -6,6 +6,7 @@ ffmpeg-kit = "1.18"
 gms-cast = "22.3.1"
 media = "1.7.0"
 mediarouter = "1.8.1"
+nanohttpd = "2.3.1"
 seeker = "1.2.2"
 truetypeparser = "2.1.4"
 google-api-drive = "v3-rev197-1.25.0"
@@ -28,4 +29,5 @@ google-api-client-oauth = { module = "com.google.oauth-client:google-oauth-clien
 # AM (CAST) -->
 gms-cast = { module = "com.google.android.gms:play-services-cast-framework", version.ref = "gms-cast" }
 mediarouter = { module = "androidx.mediarouter:mediarouter", version.ref = "mediarouter" }
+nanohttpd = { module = "org.nanohttpd:nanohttpd", version.ref = "nanohttpd" }
 # <-- AM (CAST)

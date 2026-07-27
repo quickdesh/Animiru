@@ -336,6 +336,10 @@ dependencies {
     implementation(aniyomilibs.google.api.client.oauth)
     // <-- AM (SYNC_DRIVE)
 
+    // AM (CAST) -->
+    implementation(aniyomilibs.nanohttpd)
+    // <-- AM (CAST)
+
     testImplementation(libs.kotlinx.coroutines.test)
 }
 

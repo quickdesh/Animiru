@@ -6,7 +6,6 @@ import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouterParams
 import animiru.domain.player.service.GesturePreferences
 import com.google.android.gms.cast.Cast
-import com.google.android.gms.cast.MediaError
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadOptions
 import com.google.android.gms.cast.MediaLoadRequestData
@@ -191,6 +190,8 @@ class CastManagerImpl(
                         _castEvent.emit(CastEvent.OnSecondReached(startPosition.toInt()))
                     }
                 }
+            } else {
+                _castEvent.emit(CastEvent.LoadingFailed)
             }
 
             _castState.update {
@@ -465,10 +466,6 @@ class CastManagerImpl(
     private val remoteMediaClientCallback = object : RemoteMediaClient.Callback() {
         override fun onStatusUpdated() {
             updateStatusFromRemote()
-        }
-
-        override fun onMediaError(error: MediaError) {
-            // TODO(cast): Error handling
         }
     }
 }

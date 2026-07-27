@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.player
 
 import android.app.Application
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.view.KeyEvent
@@ -21,6 +22,7 @@ import animiru.domain.player.service.DecoderPreferences
 import animiru.domain.player.service.GesturePreferences
 import animiru.domain.player.service.PlayerPreferences
 import animiru.domain.player.service.SubtitlePreferences
+import animiru.feature.cast.CastProxyServerService
 import com.yubyf.truetypeparser.TTFFile
 import dev.icerock.moko.resources.StringResource
 import dev.vivvvek.seeker.Segment
@@ -76,6 +78,7 @@ import eu.kanade.tachiyomi.util.lang.byteSize
 import eu.kanade.tachiyomi.util.lang.takeBytes
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.cacheImageDir
+import eu.kanade.tachiyomi.util.system.getWanIp
 import `is`.xyz.mpv.MPVNode
 import `is`.xyz.mpv.Utils
 import kotlinx.coroutines.Dispatchers
@@ -98,9 +101,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import okhttp3.Headers
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import tachiyomi.cast.CastEvent
 import tachiyomi.cast.CastManager
 import tachiyomi.cast.domain.TrackInformation
@@ -127,6 +132,7 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.domain.track.interactor.GetTracks
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
@@ -570,6 +576,8 @@ class PlayerViewModel @JvmOverloads constructor(
                         isErrorCasting = false,
                     )
                 }
+
+                context.stopService(Intent(context, CastProxyServerService::class.java))
             }
             is CastEvent.NextEpisode -> {
                 nextEpisode(next = event.next)
@@ -584,7 +592,11 @@ class PlayerViewModel @JvmOverloads constructor(
             }
             CastEvent.Ready -> {
                 updateCastUiData { it.copy(isLoadingEpisode = false) }
-                // updateCastUiData { it.copy(loading = false) }
+            }
+            CastEvent.LoadingFailed -> {
+                viewModelScope.launch {
+                    _eventFlow.emit(Event.ToastResource(AMMR.strings.cast_server_load_failed))
+                }
             }
         }
     }
@@ -927,6 +939,22 @@ class PlayerViewModel @JvmOverloads constructor(
 
     // === Casting ===
 
+    // TODO(cast): Port preference
+    private fun getProxyUrl(address: String, url: String, headers: Headers): String {
+        return "http://$address:8091".toHttpUrl().newBuilder().apply {
+            addPathSegment("proxy")
+            addQueryParameter("url", url)
+            addQueryParameter("header", json.encodeToString(headers.toMap()))
+        }.build().toString()
+    }
+
+    private fun getLocalUrl(address: String, url: String): String {
+        return "http://$address:8091".toHttpUrl().newBuilder().apply {
+            addPathSegment("local")
+            addQueryParameter("url", url)
+        }.build().toString()
+    }
+
     private fun startCasting(startPosition: Long = 0) {
         val video = stateData.value.currentVideo ?: return
         val source = stateData.value.currentSource ?: return
@@ -941,8 +969,31 @@ class PlayerViewModel @JvmOverloads constructor(
         updatePlaybackData {
             it.copy(currentOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
         }
+        updateStateData {
+            it.copy(
+                hasLoadedTracks = false,
+                hasLoadedSubs = false,
+                hasLoadedAudio = false,
+            )
+        }
 
         viewModelScope.launch {
+            val address = context.getWanIp() ?: "127.0.0.1"
+            context.startService(
+                Intent(context, CastProxyServerService::class.java)
+                    .putExtra(CastProxyServerService.EXTRA_ADDRESS, address),
+            )
+
+            val isReady = withTimeoutOrNull(5.seconds) {
+                CastProxyServerService.isRunning.first { it }
+            }
+
+            if (isReady != true) {
+                _eventFlow.emit(Event.ToastResource(AMMR.strings.cast_server_start_failed))
+                stopCasting()
+                return@launch
+            }
+
             val headers = video.headers
                 ?: (source as? AnimeHttpSource)?.headers
                 ?: Headers.EMPTY
@@ -951,6 +1002,24 @@ class PlayerViewModel @JvmOverloads constructor(
                 videoInformation.getVideoInformation(
                     videoUrl = video.videoUrl,
                     headers = headers,
+                )
+            }
+
+            val videoHeaders = video.headers ?: Headers.EMPTY
+
+            val video = if (isEpisodeOnline(episode) == false) {
+                video.copy(
+                    videoUrl = getLocalUrl(address, video.videoUrl),
+                )
+            } else {
+                video.copy(
+                    videoUrl = getProxyUrl(address, video.videoUrl, videoHeaders),
+                    subtitleTracks = video.subtitleTracks.map {
+                        it.copy(url = getProxyUrl(address, it.url, videoHeaders))
+                    },
+                    audioTracks = video.audioTracks.map {
+                        it.copy(url = getProxyUrl(address, it.url, videoHeaders))
+                    },
                 )
             }
 
@@ -1392,8 +1461,6 @@ class PlayerViewModel @JvmOverloads constructor(
     private fun setVideo(video: Video?) {
         if (player.isExiting) return
         if (video == null) return
-        // TODO(cast)
-        // if (true) return
 
         val castState = castManager.castState.value
         val isLoadingEpisode = if (castState.hasLoadedVideo) {
@@ -1431,6 +1498,7 @@ class PlayerViewModel @JvmOverloads constructor(
         val mpvOpts = listOf(
             Pair("sid", "no"),
             Pair("aid", "no"),
+            Pair("vid", "auto"),
         )
         val videoOptions = (video.mpvArgs + mpvOpts).joinToString(",") { (option, value) ->
             "$option=\"$value\""

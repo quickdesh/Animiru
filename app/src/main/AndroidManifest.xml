@@ -238,6 +238,13 @@
         </service>
         <!--AM (DISCORD_RPC) -->
 
+        <!-- AM (CAST) -->
+        <service
+            android:name="animiru.feature.cast.CastProxyServerService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
+        <!-- AM (CAST) -->
+
         <receiver
             android:name=".data.notification.NotificationReceiver"
             android:exported="false" />

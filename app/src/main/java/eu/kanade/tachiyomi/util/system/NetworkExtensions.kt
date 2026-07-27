@@ -2,10 +2,16 @@ package eu.kanade.tachiyomi.util.system
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.LinkProperties
+import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.wifi.WifiManager
 import android.os.Build
 import androidx.core.content.getSystemService
+import kotlinx.coroutines.suspendCancellableCoroutine
+import java.net.Inet4Address
+import kotlin.coroutines.resume
 
 val Context.connectivityManager: ConnectivityManager
     get() = getSystemService()!!
@@ -40,3 +46,42 @@ fun Context.isConnectedToWifi(): Boolean {
         wifiManager.connectionInfo.bssid != null
     }
 }
+
+// AM (CAST) -->
+suspend fun Context.getWanIp(): String? {
+    return suspendCancellableCoroutine { continuation ->
+        val cm = connectivityManager
+
+        val request = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
+                val ip = linkProperties.linkAddresses
+                    .map { it.address }
+                    .filterIsInstance<Inet4Address>()
+                    .firstOrNull { !it.isLoopbackAddress }
+                    ?.hostAddress
+
+                if (ip != null && continuation.isActive) {
+                    continuation.resume(ip)
+                    cm.unregisterNetworkCallback(this)
+                }
+            }
+
+            override fun onUnavailable() {
+                if (continuation.isActive) {
+                    continuation.resume(null)
+                }
+            }
+        }
+
+        cm.registerNetworkCallback(request, callback)
+        continuation.invokeOnCancellation {
+            cm.unregisterNetworkCallback(callback)
+        }
+    }
+}
+// <-- AM (CAST)

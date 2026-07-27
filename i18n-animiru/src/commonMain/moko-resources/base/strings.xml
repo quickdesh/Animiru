@@ -107,6 +107,11 @@
     <string name="messing">Messing around with</string>
     <string name="video">Video</string>
 
+    <!-- Casting -->
+    <string name="pref_cast_server">Chromecast Server</string>
+    <string name="cast_server_load_failed">Loading failed</string>
+    <string name="cast_server_start_failed">Failed to start chromecast server</string>
+
     <!-- Advanced Settings -->
     <string name="starting_cleanup">Starting cleanup</string>
     <string name="clean_up_downloaded_episodes">Clean up downloaded episodes</string>

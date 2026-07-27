@@ -89,8 +89,18 @@ class VideoInformation(
         val informationFile = context.createFileInCacheDir("ffprobe_information.json")
         val informationFilePath = informationFile.toUri().toFFmpegString(context)
 
-        val headerOptions = headers.joinToString("", "-headers '", "'") {
-            "${it.first}: ${it.second}\r\n"
+        val headerOptions = if (headers.toMap().isEmpty()) {
+            ""
+        } else {
+            headers.joinToString("", "-headers '", "'") {
+                "${it.first}: ${it.second}\r\n"
+            }
+        }
+
+        val videoUrl = if (videoUrl.startsWith("content")) {
+            videoUrl.toUri().toFFmpegString(context)
+        } else {
+            videoUrl
         }
 
         val ffprobeCommand = FFmpegKitConfig.parseArguments(
