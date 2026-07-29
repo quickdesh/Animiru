@@ -174,7 +174,7 @@ class DomainModule : InjektModule {
         // <-- AY
 
         addSingletonFactory<ReleaseService> { ReleaseServiceImpl(get(), get()) }
-        addFactory { GetApplicationRelease(get(), get()) }
+        addFactory { GetApplicationRelease(get()) }
 
         addSingletonFactory<TrackRepository> { TrackRepositoryImpl(get()) }
         addFactory { TrackEpisode(get(), get(), get(), get()) }
