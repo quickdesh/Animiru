@@ -34,7 +34,7 @@ dependencies {
     compileOnly(platform(libs.androidx.compose.bom))
     compileOnly(libs.androidx.compose.runtimeAnnotation)
     // AM (CAST) -->
-    implementation(libs.androidx.compose.foundation)
+    compileOnly(libs.androidx.compose.foundation)
     // <-- AM (CAST)
 
     testImplementation(libs.bundles.test)
