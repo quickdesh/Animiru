@@ -11,6 +11,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Added
+- Added chromecast support ([@Secozzi](https://github.com/Secozzi)) ([#175](https://github.com/quickdesh/Animiru/pull/175))
 
 ## [v0.19.7.9] - 2026-07-08
 ### Fixed
