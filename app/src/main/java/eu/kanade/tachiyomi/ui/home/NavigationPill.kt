@@ -2,7 +2,6 @@
 package eu.kanade.tachiyomi.ui.home
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.TwoWayConverter
@@ -66,14 +65,12 @@ import eu.kanade.tachiyomi.ui.library.LibraryTab
 import eu.kanade.tachiyomi.ui.recents.RecentsTab
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import kotlin.math.abs
 
 private fun getOffsetX(numOfTabs: Int): Float = (0.5f * numOfTabs) - 0.5f
 
@@ -83,7 +80,6 @@ fun NavigationPill(
     labelFade: Int,
     modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
     val tabNavigator = LocalTabNavigator.current
     val configuration = LocalConfiguration.current
 
@@ -114,6 +110,10 @@ fun NavigationPill(
         enabled = tabNavigator.current != LibraryTab,
         onBack = { updateTab(0) },
     )
+
+    LaunchedEffect(currentTabIndex) {
+        oldIndex = currentTabIndex
+    }
 
     Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
         var flickOffsetX by remember { mutableFloatStateOf(0f) }
@@ -169,72 +169,12 @@ fun NavigationPill(
                 pillOffsetX = navigationOffsetX,
                 cornerSizes = cornerSizes,
             )
-            Column(
+
+            Row(
                 modifier = Modifier.fillMaxWidth().windowInsetsPadding(NavigationBarDefaults.windowInsets),
-                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Row {
-                    tabs.fastForEach {
-                        NavigationPillItem(it, updateTab, pillItemWidth, pillItemHeight)
-                    }
-                }
-
-                val alpha = remember { Animatable(-1f) }
-
-                LaunchedEffect(currentTabIndex) {
-                    scope.launchUI {
-                        if (alpha.value == -1f) return@launchUI
-
-                        if (oldIndex < currentTabIndex) {
-                            alpha.animateTo(0.5f, animationSpec = tween(durationMillis = labelFade))
-                        } else {
-                            alpha.animateTo(-0.5f, animationSpec = tween(durationMillis = labelFade))
-                        }
-                    }
-                }
-
-                LaunchedEffect(alpha.value) {
-                    scope.launchUI {
-                        when (alpha.value) {
-                            -1f -> alpha.snapTo(0f)
-
-                            -0.5f -> {
-                                if (oldIndex > currentTabIndex) {
-                                    alpha.snapTo(0.5f)
-                                    oldIndex = currentTabIndex
-                                } else {
-                                    alpha.animateTo(0f, animationSpec = tween(durationMillis = labelFade))
-                                }
-                            }
-
-                            0.5f -> {
-                                if (oldIndex < currentTabIndex) {
-                                    alpha.snapTo(-0.5f)
-                                    oldIndex = currentTabIndex
-                                } else {
-                                    alpha.animateTo(0f, animationSpec = tween(durationMillis = labelFade))
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer {
-                            this.alpha = 1 - abs(alpha.value * 2)
-                        },
-                ) {
-                    Text(
-                        text = tabs[oldIndex].options.title,
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .graphicsLayer {
-                                translationX = navigationOffsetX.value.toPx()
-                            },
-                    )
+                tabs.fastForEach {
+                    NavigationPillItem(it, updateTab, pillItemWidth, pillItemHeight)
                 }
             }
         }
@@ -270,26 +210,35 @@ private fun NavigationPillItem(
     }
     // <-- AM (TAB_HOLD)
 
-    Box(
-        modifier = Modifier
-            .size(width = pillItemWidth, height = pillItemHeight)
-            .clip(MaterialTheme.shapes.extraLarge)
-            // AM (TAB_HOLD) -->
-            .combinedClickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                enabled = true,
-                role = Role.Tab,
-                onLongClick = onLongClick,
-                onClick = onClick,
-            )
-            .semantics {
-                this.selected = selected
-            },
-        // <-- AM (TAB_HOLD)
-        contentAlignment = Alignment.Center,
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        NavigationIconItem(tab)
+        Box(
+            modifier = Modifier
+                .size(width = pillItemWidth, height = pillItemHeight)
+                .clip(MaterialTheme.shapes.extraLarge)
+                // AM (TAB_HOLD) -->
+                .combinedClickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    enabled = true,
+                    role = Role.Tab,
+                    onLongClick = onLongClick,
+                    onClick = onClick,
+                )
+                .semantics {
+                    this.selected = selected
+                },
+            // <-- AM (TAB_HOLD)
+            contentAlignment = Alignment.Center,
+        ) {
+            NavigationIconItem(tab)
+        }
+
+        Text(
+            text = tab.options.title,
+            style = MaterialTheme.typography.labelLarge,
+        )
     }
 }
 
