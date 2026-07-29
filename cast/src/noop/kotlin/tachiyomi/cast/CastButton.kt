@@ -9,6 +9,8 @@ import tachiyomi.presentation.core.components.material.padding
 
 @Composable
 fun CastButton(
+    loading: Boolean,
+    error: Boolean,
     modifier: Modifier = Modifier,
     horizontalSpacing: Dp = MaterialTheme.padding.medium,
     verticalSpacing: Dp = MaterialTheme.padding.medium,

@@ -165,7 +165,7 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { AudioManager(app) }
         addSingletonFactory { BrightnessManager(app) }
         addSingletonFactory { VideoInformation(app, get()) }
-        addSingletonFactory<CastManager> { CastManagerImpl(get()) }
+        addSingletonFactory<CastManager> { CastManagerImpl() }
         // <-- AM
 
         // Asynchronously init expensive components for a faster cold start

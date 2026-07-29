@@ -74,7 +74,7 @@ class CastProxyServerService : Service() {
             setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher))
             setSmallIcon(R.drawable.ic_cast_24dp)
             addAction(
-                R.drawable.quantum_ic_stop_white_24,
+                R.drawable.ic_stop_circle_24dp,
                 "Stop",
                 pendingStopIntent,
             )

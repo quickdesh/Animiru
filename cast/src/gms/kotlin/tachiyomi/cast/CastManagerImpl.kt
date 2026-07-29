@@ -36,12 +36,14 @@ import tachiyomi.cast.domain.CodecInformation
 import tachiyomi.cast.domain.TrackInformation
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.model.Anime
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.milliseconds
 
 // Some code taken from https://github.com/MakD/AFinity/blob/master/app/src/main/java/com/makd/afinity/cast/CastManager.kt
 class CastManagerImpl(
-    private val gesturePreferences: GesturePreferences,
+    private val gesturePreferences: GesturePreferences = Injekt.get(),
 ) : CastManager {
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
