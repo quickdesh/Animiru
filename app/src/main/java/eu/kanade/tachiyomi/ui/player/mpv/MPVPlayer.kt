@@ -95,7 +95,7 @@ class MPVPlayer(
 
         mpv.setOptionString("vo", videoOutput)
         setSafeOptionString("profile", "fast")
-        mpv.setOptionString("hwdec", if (decoderPreferences.tryHWDecoding.get()) "auto" else "no")
+        mpv.setOptionString("hwdec", if (decoderPreferences.tryHWDecoding.get()) "mediacodec,mediacodec-copy" else "no")
         if (decoderPreferences.useYUV420P.get()) {
             mpv.setOptionString("vf", "format=yuv420p")
         }
