@@ -11,6 +11,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Fixed
+- Fix entering pip not working for extreme aspect ratios ([@Secozzi](https://github.com/Secozzi)) ([#176](https://github.com/quickdesh/Animiru/pull/176))
 
 ## [v0.19.7.9] - 2026-07-08
 ### Fixed
