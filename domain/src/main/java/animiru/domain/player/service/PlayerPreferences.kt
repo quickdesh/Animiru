@@ -70,6 +70,14 @@ class PlayerPreferences(
     val pipOnExit: Preference<Boolean> = preferenceStore.getBoolean("pref_pip_on_exit", false)
     val pipReplaceWithPrevious: Preference<Boolean> = preferenceStore.getBoolean("pip_replace_with_previous", false)
 
+    // AM (CAST) -->
+    // Cast
+
+    val enableCast: Preference<Boolean> = preferenceStore.getBoolean("pref_enable_cast", true)
+    val castProxy: Preference<Boolean> = preferenceStore.getBoolean("pref_enable_cast_proxy", true)
+    val castProxyPort: Preference<String> = preferenceStore.getString("pref_cast_proxy_port", "8091")
+    // <-- AM (CAST)
+
     // External player
 
     val alwaysUseExternalPlayer: Preference<Boolean> = preferenceStore.getBoolean(

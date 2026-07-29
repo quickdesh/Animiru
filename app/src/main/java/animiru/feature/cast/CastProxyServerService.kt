@@ -7,6 +7,7 @@ import android.content.pm.ServiceInfo
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.IBinder
+import animiru.domain.player.service.PlayerPreferences
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.notification.Notifications
@@ -26,6 +27,7 @@ class CastProxyServerService : Service() {
     private var server: CastProxyServer? = null
 
     private val networkHelper: NetworkHelper by injectLazy()
+    private val playerPreferences: PlayerPreferences by injectLazy()
 
     override fun onBind(p0: Intent?): IBinder? = null
 
@@ -45,7 +47,7 @@ class CastProxyServerService : Service() {
             baseClient = networkHelper.client,
             contentResolver = contentResolver,
             ipAddress = address,
-            port = 8091,
+            port = playerPreferences.castProxyPort.get().toInt(),
         )
 
         try {

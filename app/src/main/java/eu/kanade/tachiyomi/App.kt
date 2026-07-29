@@ -15,6 +15,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import animiru.domain.player.service.PlayerPreferences
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.memory.MemoryCache
@@ -80,6 +81,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     // AM (CAST) -->
     private val castManager: CastManager by injectLazy()
+    private val playerPreferences: PlayerPreferences by injectLazy()
     // <-- AM (CAST)
 
     private val disableIncognitoReceiver = DisableIncognitoReceiver()
@@ -151,7 +153,9 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         // <-- AM (SYNC)
 
         // AM --> (CAST)
-        castManager.initialize(this)
+        if (playerPreferences.enableCast.get()) {
+            castManager.initialize(this)
+        }
         // <-- AM (CAST)
 
         if (!LogcatLogger.isInstalled) {

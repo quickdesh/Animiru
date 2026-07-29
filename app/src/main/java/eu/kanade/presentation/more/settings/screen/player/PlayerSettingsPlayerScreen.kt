@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import animiru.domain.player.model.PlayerOrientation
 import animiru.domain.player.service.PlayerPreferences
 import eu.kanade.domain.base.BasePreferences
@@ -22,6 +23,8 @@ import eu.kanade.tachiyomi.ui.player.NEXT_PLAYER
 import eu.kanade.tachiyomi.ui.player.VLC_PLAYER
 import eu.kanade.tachiyomi.ui.player.WEB_VIDEO_CASTER
 import eu.kanade.tachiyomi.ui.player.X_PLAYER
+import eu.kanade.tachiyomi.util.system.castIncluded
+import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
@@ -80,6 +83,9 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
             getDisplayGroup(playerPreferences = playerPreferences),
             getIntroSkipGroup(playerPreferences = playerPreferences),
             if (deviceSupportsPip) getPipGroup(playerPreferences = playerPreferences) else null,
+            // AM (CAST) -->
+            if (castIncluded) getCastGroup(playerPreferences = playerPreferences) else null,
+            // <-- AM (CAST)
             getExternalPlayerGroup(
                 playerPreferences = playerPreferences,
                 basePreferences = basePreferences,
@@ -294,6 +300,60 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
             ),
         )
     }
+
+    // AM (CAST) -->
+    @Composable
+    private fun getCastGroup(
+        playerPreferences: PlayerPreferences,
+    ): Preference.PreferenceGroup {
+        val context = LocalContext.current
+
+        val enableCast = playerPreferences.enableCast
+        val castProxy = playerPreferences.castProxy
+        val castProxyPort = playerPreferences.castProxyPort
+
+        val enableCastValue by enableCast.collectAsState()
+        val enableCastProxyValue by castProxy.collectAsState()
+
+        return Preference.PreferenceGroup(
+            title = stringResource(AMMR.strings.pref_cast),
+            preferenceItems = persistentListOf(
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = enableCast,
+                    title = stringResource(AMMR.strings.pref_cast_enable),
+                    onValueChanged = {
+                        context.toast(MR.strings.requires_app_restart)
+                        true
+                    },
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = castProxy,
+                    title = stringResource(AMMR.strings.pref_cast_proxy),
+                    enabled = enableCastValue,
+                ),
+                Preference.PreferenceItem.EditTextInfoPreference(
+                    preference = castProxyPort,
+                    dialogSubtitle = stringResource(AMMR.strings.pref_cast_port_subtitle),
+                    title = stringResource(AMMR.strings.pref_cast_port),
+                    enabled = enableCastValue && enableCastProxyValue,
+                    validate = { pref ->
+                        val port = pref.toIntOrNull()
+                            ?: return@EditTextInfoPreference false
+
+                        if (port !in 1025..65535) {
+                            return@EditTextInfoPreference false
+                        }
+
+                        true
+                    },
+                    errorMessage = { _ ->
+                        stringResource(AMMR.strings.pref_cast_port_error)
+                    },
+                ),
+            ),
+        )
+    }
+    // <-- AM (CAST)
 
     @Composable
     private fun getExternalPlayerGroup(

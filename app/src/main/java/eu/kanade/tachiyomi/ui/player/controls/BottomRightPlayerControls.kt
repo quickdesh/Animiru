@@ -32,6 +32,7 @@ import tachiyomi.presentation.core.components.material.padding
 
 @Composable
 fun BottomRightPlayerControls(
+    castEnabled: Boolean,
     castLoading: Boolean,
     castError: Boolean,
     isPipAvailable: Boolean,
@@ -40,7 +41,7 @@ fun BottomRightPlayerControls(
     modifier: Modifier = Modifier,
 ) {
     Row(modifier) {
-        if (castIncluded) {
+        if (castIncluded && castEnabled) {
             CastButton(
                 loading = castLoading,
                 error = castError,

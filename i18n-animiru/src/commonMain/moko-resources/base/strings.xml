@@ -108,6 +108,12 @@
     <string name="video">Video</string>
 
     <!-- Casting -->
+    <string name="pref_cast">Chromecast</string>
+    <string name="pref_cast_enable">Enable chromecast</string>
+    <string name="pref_cast_proxy">Enable proxying</string>
+    <string name="pref_cast_port">Chromecast server port</string>
+    <string name="pref_cast_port_subtitle">Use a non-privileged port (1025-65535)</string>
+    <string name="pref_cast_port_error">Invalid format</string>
     <string name="pref_cast_server">Chromecast Server</string>
     <string name="cast_server_load_failed">Loading failed</string>
     <string name="cast_server_start_failed">Failed to start chromecast server</string>

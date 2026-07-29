@@ -207,6 +207,7 @@ class PlayerViewModel @JvmOverloads constructor(
     private val invertDuration = playerPreferences.invertDuration.get()
     private val smoothSeeking = gesturePreferences.playerSmoothSeek.get()
     private val showChapterIndicator = playerPreferences.showCurrentChapter.get()
+    private val enableCast = playerPreferences.enableCast.get()
 
     private val aniSkipEnabled = playerPreferences.aniSkipEnabled.get()
     private val disableAniSkipOnChapters = playerPreferences.disableAniSkipOnChapters.get()
@@ -223,6 +224,8 @@ class PlayerViewModel @JvmOverloads constructor(
     private val showStatusBar = playerPreferences.showSystemStatusBar.get()
     private val downloadAheadAmount = downloadPreferences.autoDownloadWhileWatching.get()
     private val progress = playerPreferences.progressPreference.get()
+    private val castProxy = playerPreferences.castProxy.get()
+    private val castProxyPort = playerPreferences.castProxyPort.get().toInt()
 
     private val fontExtensionRegex = Regex($$""".*\.[ot]tf$""")
     private val maxVolume = audioManager.getMaxVolume()
@@ -248,6 +251,7 @@ class PlayerViewModel @JvmOverloads constructor(
             invertDuration = invertDuration,
             smoothSeeking = smoothSeeking,
             showChapterIndicator = showChapterIndicator,
+            enableCast = enableCast,
         ),
     )
     val uiData = _uiData.asStateFlow()
@@ -939,9 +943,8 @@ class PlayerViewModel @JvmOverloads constructor(
 
     // === Casting ===
 
-    // TODO(cast): Port preference
     private fun getProxyUrl(address: String, url: String, headers: Headers): String {
-        return "http://$address:8091".toHttpUrl().newBuilder().apply {
+        return "http://$address:$castProxyPort".toHttpUrl().newBuilder().apply {
             addPathSegment("proxy")
             addQueryParameter("url", url)
             addQueryParameter("header", json.encodeToString(headers.toMap()))
@@ -949,7 +952,7 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     private fun getLocalUrl(address: String, url: String): String {
-        return "http://$address:8091".toHttpUrl().newBuilder().apply {
+        return "http://$address:$castProxyPort".toHttpUrl().newBuilder().apply {
             addPathSegment("local")
             addQueryParameter("url", url)
         }.build().toString()
@@ -979,19 +982,21 @@ class PlayerViewModel @JvmOverloads constructor(
 
         viewModelScope.launch {
             val address = context.getWanIp() ?: "127.0.0.1"
-            context.startService(
-                Intent(context, CastProxyServerService::class.java)
-                    .putExtra(CastProxyServerService.EXTRA_ADDRESS, address),
-            )
+            if (stateData.value.isEpisodeOnline && castProxy) {
+                context.startService(
+                    Intent(context, CastProxyServerService::class.java)
+                        .putExtra(CastProxyServerService.EXTRA_ADDRESS, address),
+                )
 
-            val isReady = withTimeoutOrNull(5.seconds) {
-                CastProxyServerService.isRunning.first { it }
-            }
+                val isReady = withTimeoutOrNull(5.seconds) {
+                    CastProxyServerService.isRunning.first { it }
+                }
 
-            if (isReady != true) {
-                _eventFlow.emit(Event.ToastResource(AMMR.strings.cast_server_start_failed))
-                stopCasting()
-                return@launch
+                if (isReady != true) {
+                    _eventFlow.emit(Event.ToastResource(AMMR.strings.cast_server_start_failed))
+                    stopCasting()
+                    return@launch
+                }
             }
 
             val headers = video.headers
@@ -1007,11 +1012,11 @@ class PlayerViewModel @JvmOverloads constructor(
 
             val videoHeaders = video.headers ?: Headers.EMPTY
 
-            val video = if (isEpisodeOnline(episode) == false) {
+            val video = if (!stateData.value.isEpisodeOnline) {
                 video.copy(
                     videoUrl = getLocalUrl(address, video.videoUrl),
                 )
-            } else {
+            } else if (castProxy) {
                 video.copy(
                     videoUrl = getProxyUrl(address, video.videoUrl, videoHeaders),
                     subtitleTracks = video.subtitleTracks.map {
@@ -1021,6 +1026,8 @@ class PlayerViewModel @JvmOverloads constructor(
                         it.copy(url = getProxyUrl(address, it.url, videoHeaders))
                     },
                 )
+            } else {
+                video
             }
 
             val maxIndex = codecInformation.tracks.maxByOrNull { it.index }?.index?.plus(1) ?: 1
@@ -3330,6 +3337,7 @@ class PlayerViewModel @JvmOverloads constructor(
         val autoPlayEnabled: Boolean = false,
         val showChapterIndicator: Boolean = true,
         val playerSpeedPref: Float = 1f,
+        val enableCast: Boolean = false,
     )
 
     @Stable

@@ -405,6 +405,7 @@ fun PlayerControls(
                 },
             ) {
                 BottomRightPlayerControls(
+                    castEnabled = uiData.enableCast,
                     castLoading = stateData.isLoadingCasting,
                     castError = stateData.isErrorCasting,
                     isPipAvailable = stateData.isPipAvailable,

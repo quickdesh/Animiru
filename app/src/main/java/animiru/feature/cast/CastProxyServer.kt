@@ -33,7 +33,7 @@ class CastProxyServer(
     private val port: Int,
     private val json: Json = Injekt.get(),
 ) : NanoHTTPD(port) {
-    fun OkHttpClient.Builder.ignoreAllSSLErrors(): OkHttpClient.Builder {
+    private fun OkHttpClient.Builder.ignoreAllSSLErrors(): OkHttpClient.Builder {
         val naiveTrustManager =
             @SuppressLint("CustomX509TrustManager")
             object : X509TrustManager {
@@ -196,15 +196,7 @@ class CastProxyServer(
         }
 
         val path = request.url.pathSegments.lastOrNull()
-        if (path?.endsWith(".m3u8") == true || path?.endsWith(".m3u") == true) {
-            return true
-        }
-
-        if (peekBody(7L).string() == "#EXTM3U") {
-            return true
-        }
-
-        return false
+        return path?.endsWith(".m3u8") == true || path?.endsWith(".m3u") == true
     }
 
     private fun proxyM3U8(playlist: String, baseUrl: String, headers: Map<String, String>): String {
@@ -252,15 +244,7 @@ class CastProxyServer(
         }
 
         val path = request.url.pathSegments.lastOrNull()
-        if (path?.endsWith(".mpd") == true) {
-            return true
-        }
-
-        if (peekBody(5L).string() == "<?xml") {
-            return true
-        }
-
-        return false
+        return path?.endsWith(".mpd") == true
     }
 
     private fun proxyDash(manifest: String, baseUrl: String, headers: Map<String, String>): String {
