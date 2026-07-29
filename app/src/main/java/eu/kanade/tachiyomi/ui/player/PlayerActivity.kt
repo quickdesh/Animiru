@@ -418,7 +418,9 @@ class PlayerActivity : BaseActivity() {
             } else {
                 Rational(16, 9)
             }
-            builder.setAspectRatio(rational)
+            if (rational.toDouble() in 0.42..2.38) {
+                builder.setAspectRatio(rational)
+            }
         }
         return builder.build()
     }
