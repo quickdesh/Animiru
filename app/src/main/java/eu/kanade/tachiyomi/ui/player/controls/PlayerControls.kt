@@ -410,7 +410,7 @@ fun PlayerControls(
                 BottomLeftPlayerControls(
                     playbackSpeed = playbackSpeed ?: uiData.playerSpeedPref,
                     showChapterIndicator = uiData.showChapterIndicator,
-                    currentChapter = stateData.chapters.getOrNull(currentChapter ?: 0),
+                    currentChapter = stateData.currentChapter,
                     onLockControls = { onPlayerEvent(PlayerEvent.LockControls(true)) },
                     onCycleRotation = { onPlayerEvent(PlayerEvent.CycleRotation) },
                     onPlaybackSpeedChange = { onPlayerEvent(PlayerEvent.ChangeSpeed(it)) },

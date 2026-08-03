@@ -2617,12 +2617,23 @@ class PlayerViewModel @JvmOverloads constructor(
     // === Skip intro ===
 
     fun onChapterChanged(chapterIndex: Int?) {
-        if (chapterIndex == null) return
+        if (chapterIndex == null) {
+            updateStateData { it.copy(currentChapter = null) }
+            return
+        }
         if (!introSkipEnabled) return
 
         val chapterList = mpv.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json)
             ?: emptyList()
-        val chapter = chapterList.getOrNull(chapterIndex) ?: return
+        val chapter = if (chapterIndex == -1) {
+            ChapterNode(
+                time = 0.0f,
+                "",
+            )
+        } else {
+            chapterList.getOrNull(chapterIndex) ?: return
+        }
+        updateStateData { it.copy(currentChapter = chapter.toSegment()) }
         val chapterType = chapter.chapterType
 
         if (chapterType == ChapterType.Other) {
@@ -2788,6 +2799,7 @@ class PlayerViewModel @JvmOverloads constructor(
         val hasLoadedSubs: Boolean = false,
         val hasLoadedAudio: Boolean = false,
         val chapters: List<Segment> = emptyList(),
+        val currentChapter: Segment? = null,
         val subtitleTracks: List<TrackNode> = emptyList(),
         val audioTracks: List<TrackNode> = emptyList(),
         val externalSubtitleTracks: List<VideoTrack.External> = emptyList(),

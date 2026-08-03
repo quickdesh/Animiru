@@ -14,6 +14,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 ### Fixed
 - Fix entering pip not working for extreme aspect ratios ([@Secozzi](https://github.com/Secozzi)) ([#176](https://github.com/quickdesh/Animiru/pull/176))
 - Fix hardware decoding not preferring HW+ ([@Secozzi](https://github.com/Secozzi)) ([#177](https://github.com/quickdesh/Animiru/pull/177))
+- Display current chapter indicator if position is before first chapter ([@Secozzi](https://github.com/Secozzi)) ([#183](https://github.com/quickdesh/Animiru/pull/183))
 
 ## [v0.19.7.9] - 2026-07-08
 ### Fixed
