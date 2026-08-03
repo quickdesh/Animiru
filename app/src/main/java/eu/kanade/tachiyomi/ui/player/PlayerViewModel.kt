@@ -1217,7 +1217,7 @@ class PlayerViewModel @JvmOverloads constructor(
         checkFileLoaded()
 
         // AniSkip stuff
-        val chapterCount = stateData.value.chapters.size
+        val chapterCount = mpv.getPropertyInt("chapter-list/count") ?: 0
         viewModelScope.launchIO {
             if (introSkipEnabled && aniSkipEnabled && !(disableAniSkipOnChapters && chapterCount > 0)) {
                 aniSkipResponse(playbackData.value.duration)?.let {
