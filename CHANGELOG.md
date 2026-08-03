@@ -16,6 +16,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - Fix hardware decoding not preferring HW+ ([@Secozzi](https://github.com/Secozzi)) ([#177](https://github.com/quickdesh/Animiru/pull/177))
 - Display current chapter indicator if position is before first chapter ([@Secozzi](https://github.com/Secozzi)) ([#183](https://github.com/quickdesh/Animiru/pull/183))
 - Fix audio selection not showing for external audio tracks ([@Secozzi](https://github.com/Secozzi)) ([#184](https://github.com/quickdesh/Animiru/pull/184))
+- Fix "Don't skip" skipping for netflix style skipping ([@Secozzi](https://github.com/Secozzi)) ([#185](https://github.com/quickdesh/Animiru/pull/185))
+- Fix aniskip running even if "Disable AniSkip if video already contains chapters" is on ([@Secozzi](https://github.com/Secozzi)) ([#185](https://github.com/quickdesh/Animiru/pull/185))
 
 ## [v0.19.7.9] - 2026-07-08
 ### Fixed
