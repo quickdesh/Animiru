@@ -2711,12 +2711,13 @@ class PlayerViewModel @JvmOverloads constructor(
             ?: emptyList()
         val chapter = chapterList.getOrNull(chapterIndex) ?: return
 
-        updatePlaybackData { it.copy(netflixTimeout = null) }
         if ((playbackData.value.netflixTimeout ?: 0) > 0 && netflixStyle) {
+            updatePlaybackData { it.copy(netflixTimeout = null) }
             updateSkipIntroButton(chapter.chapterType)
             return
         }
 
+        updatePlaybackData { it.copy(netflixTimeout = null) }
         skipIntro(chapter.chapterTitle)
     }
 
