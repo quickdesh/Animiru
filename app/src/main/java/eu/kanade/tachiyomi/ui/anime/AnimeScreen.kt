@@ -48,7 +48,9 @@ import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.ConfigurableAnimeSource
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
+import eu.kanade.tachiyomi.data.torrent.service.TorrentServerService
 import eu.kanade.tachiyomi.source.isLocalOrStub
+import eu.kanade.tachiyomi.source.isSourceForTorrents
 import eu.kanade.tachiyomi.ui.anime.notes.AnimeNotesScreen
 import eu.kanade.tachiyomi.ui.anime.track.TrackInfoDialogHomeScreen
 import eu.kanade.tachiyomi.ui.browse.extension.details.SourcePreferencesScreen
@@ -145,6 +147,9 @@ class AnimeScreen(
             onEpisodeClicked = { episode, /* AY --> */ alt /* <-- AY */ ->
                 // AY -->
                 scope.launchIO {
+                    if (screenModel.isTorrentEnabled() && successState.source.isSourceForTorrents()) {
+                        TorrentServerService.start()
+                    }
                     val extPlayer = screenModel.alwaysUseExternalPlayer != alt
                     openEpisode(context, episode, extPlayer)
                 }

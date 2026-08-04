@@ -8,6 +8,8 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
+import aniyomi.core.common.torrent.TorrentPreferences
+import aniyomi.core.common.torrent.TorrentServerUtils
 import aniyomi.domain.anime.SeasonAnime
 import aniyomi.domain.anime.SeasonDisplayMode
 import cafe.adriel.voyager.core.model.StateScreenModel
@@ -44,9 +46,11 @@ import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.model.Download
+import eu.kanade.tachiyomi.data.torrent.service.TorrentServerService
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.network.HttpException
+import eu.kanade.tachiyomi.source.isSourceForTorrents
 import eu.kanade.tachiyomi.ui.anime.track.TrackItem
 import eu.kanade.tachiyomi.ui.player.settings.GesturePreferences
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
@@ -132,6 +136,7 @@ class AnimeScreenModel(
     private val trackPreferences: TrackPreferences = Injekt.get(),
     // AY -->
     private val downloadPreferences: DownloadPreferences = Injekt.get(),
+    private val torrentPreferences: TorrentPreferences = Injekt.get(),
     internal val playerPreferences: PlayerPreferences = Injekt.get(),
     internal val gesturePreferences: GesturePreferences = Injekt.get(),
     internal val setAnimeViewerFlags: SetAnimeViewerFlags = Injekt.get(),
@@ -167,6 +172,7 @@ class AnimeScreenModel(
     private val animeRepository: AnimeRepository = Injekt.get(),
     // AY -->
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
+    private val torrentServerUtils: TorrentServerUtils = Injekt.get(),
     // <-- AY
     private val filterEpisodesForDownload: FilterEpisodesForDownload = Injekt.get(),
     // AM (FILE_SIZE) -->
@@ -418,6 +424,9 @@ class AnimeScreenModel(
         val state = successState ?: return
         try {
             withIOContext {
+                // AY -->
+                startTorrentServer(state.source)
+                // <-- AY
                 val networkAnime = state.source.getAnimeDetails(state.anime.toSAnime())
                 updateAnime.awaitUpdateFromSource(state.anime, networkAnime, manualFetch)
             }
@@ -862,11 +871,25 @@ class AnimeScreenModel(
         }
     }
 
+    fun isTorrentEnabled(): Boolean {
+        return torrentPreferences.torrServerEnable.get()
+    }
+
+    private suspend fun startTorrentServer(source: AnimeSource?) {
+        if (isTorrentEnabled() && source.isSourceForTorrents()) {
+            TorrentServerService.start()
+            TorrentServerService.wait(10)
+            torrentServerUtils.setTrackersList()
+        }
+    }
+
     /**
      * Requests an updated list of episodes and seasons from the source.
      */
     private suspend fun fetchEpisodesAndSeasonsFromSource(manualFetch: Boolean = false) {
         val state = successState ?: return
+
+        startTorrentServer(state.source)
 
         when (state.anime.fetchType) {
             FetchType.Seasons -> fetchSeasonsFromSource(manualFetch)

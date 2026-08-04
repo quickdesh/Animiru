@@ -9,6 +9,9 @@ import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import aniyomi.core.common.torrent.TorrentPreferences
+import aniyomi.core.common.torrent.TorrentServerApi
+import aniyomi.core.common.torrent.TorrentServerUtils
 import com.yubyf.truetypeparser.TTFFile
 import dev.icerock.moko.resources.StringResource
 import dev.vivvvek.seeker.Segment
@@ -35,6 +38,7 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.saver.Image
 import eu.kanade.tachiyomi.data.saver.ImageSaver
 import eu.kanade.tachiyomi.data.saver.Location
+import eu.kanade.tachiyomi.data.torrent.service.TorrentServerService
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
@@ -148,6 +152,10 @@ class PlayerViewModel @JvmOverloads constructor(
     private val sourceManager: SourceManager = Injekt.get(),
     private val storageManager: StorageManager = Injekt.get(),
     private val trackerManager: TrackerManager = Injekt.get(),
+
+    private val torrentServerApi: TorrentServerApi = Injekt.get(),
+    private val torrentServerUtils: TorrentServerUtils = Injekt.get(),
+    private val torrentPreferences: TorrentPreferences = Injekt.get(),
 
     private val basePreferences: BasePreferences = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
@@ -1059,13 +1067,74 @@ class PlayerViewModel @JvmOverloads constructor(
             "$option=\"$value\""
         }
 
+        if (torrentPreferences.torrServerEnable.get() && isTorrent(video)) {
+            launchIO {
+                TorrentServerService.start()
+                torrentLinkHandler(video.videoUrl, video.videoTitle, videoOptions)
+            }
+        } else {
+            mpvCommand(
+                "loadfile",
+                parseVideoUrl(video.videoUrl)!!,
+                "replace",
+                "0",
+                videoOptions,
+            )
+        }
+    }
+
+    private suspend fun torrentLinkHandler(videoUrl: String, title: String, videoOptions: String) {
+        var index = 0
+
+        // check if link is from localSource
+        if (videoUrl.startsWith("content://")) {
+            val videoInputStream = context.contentResolver.openInputStream(videoUrl.toUri())
+            val torrent = torrentServerApi.uploadTorrent(videoInputStream!!, title, false)
+            val torrentUrl = torrentServerUtils.getTorrentPlayLink(torrent, 0)
+
+            mpvCommand(
+                "loadfile",
+                torrentUrl,
+                "replace",
+                "0",
+                videoOptions,
+            )
+            return
+        }
+
+        // check if link is from magnet, in that check if index is present
+        if (videoUrl.startsWith("magnet")) {
+            if (videoUrl.contains("index=")) {
+                index = try {
+                    videoUrl.substringAfter("index=").substringBefore("&").toInt()
+                } catch (_: NumberFormatException) {
+                    0
+                }
+            }
+        }
+
+        val currentTorrent = torrentServerApi.addTorrent(videoUrl, title, "", "", false)
+        val videoTorrentUrl = torrentServerUtils.getTorrentPlayLink(currentTorrent, index)
+
         mpvCommand(
             "loadfile",
-            parseVideoUrl(video.videoUrl)!!,
+            videoTorrentUrl,
             "replace",
             "0",
             videoOptions,
         )
+    }
+
+    private fun isTorrent(video: Video): Boolean {
+        if (video.videoUrl.startsWith(torrentServerApi.hostUrl)) {
+            return true
+        }
+
+        if (video.videoUrl.startsWith("magnet")) {
+            return true
+        }
+
+        return video.videoUrl.endsWith("torrent")
     }
 
     private fun parseVideoUrl(videoUrl: String?): String? {

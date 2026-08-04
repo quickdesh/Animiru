@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.core.content.ContextCompat
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import animiru.feature.mpvfiles.MpvConfig
+import aniyomi.core.common.torrent.TorrentServerApi
+import aniyomi.core.common.torrent.TorrentServerUtils
 import app.cash.sqldelight.db.SqlDriver
 import com.eygraber.sqldelight.androidx.driver.AndroidxSqliteConfiguration
 import com.eygraber.sqldelight.androidx.driver.AndroidxSqliteDatabaseType
@@ -151,6 +153,9 @@ class AppModule(val app: Application) : InjektModule {
 
         // AY -->
         addSingletonFactory { ExternalIntents() }
+
+        addSingletonFactory { TorrentServerApi(get(), get()) }
+        addSingletonFactory { TorrentServerUtils(get(), get()) }
         // <-- AY
 
         // AM (SYNC_DRIVE) -->

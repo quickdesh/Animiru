@@ -261,6 +261,12 @@
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
 
+        <!-- AY -->
+        <service
+            android:name=".data.torrent.service.TorrentServerService"
+            android:foregroundServiceType="dataSync" />
+        <!-- AY -->
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

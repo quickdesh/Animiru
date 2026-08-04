@@ -11,6 +11,7 @@ import eu.kanade.tachiyomi.util.system.buildNotificationChannelGroup
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
+import tachiyomi.i18n.aniyomi.AYMR
 
 /**
  * Class to manage the basic information of all the notifications used in the app.
@@ -65,6 +66,15 @@ object Notifications {
      */
     const val CHANNEL_INCOGNITO_MODE = "incognito_mode_channel"
     const val ID_INCOGNITO_MODE = -701
+
+    // AY -->
+
+    /**
+     * Notification channel and ids used for torrent server
+     */
+    const val CHANNEL_TORRENT_SERVER = "torrent_server_channel"
+    const val ID_TORRENT_SERVER = -801
+    // <-- AY
 
     // AM (DISCORD_RPC) -->
 
@@ -178,6 +188,12 @@ object Notifications {
                     setName(context.stringResource(AMMR.strings.pref_discord_rpc))
                 },
                 // <-- AM (DISCORD_RPC)
+                // AY -->
+                buildNotificationChannel(CHANNEL_TORRENT_SERVER, IMPORTANCE_LOW) {
+                    setName(context.stringResource(AYMR.strings.pref_category_torrentserver))
+                    setShowBadge(false)
+                },
+                // <-- AY
                 buildNotificationChannel(CHANNEL_APP_UPDATE, IMPORTANCE_DEFAULT) {
                     setGroup(GROUP_APK_UPDATES)
                     setName(context.stringResource(MR.strings.channel_app_updates))
