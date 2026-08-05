@@ -2,9 +2,12 @@ package eu.kanade.tachiyomi.ui.player
 
 import android.app.Application
 import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
 import android.net.Uri
 import android.view.KeyEvent
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -26,6 +29,8 @@ import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.animesource.model.Hoster
 import eu.kanade.tachiyomi.animesource.model.SerializableHoster.Companion.toHosterList
+import eu.kanade.tachiyomi.animesource.model.ThumbnailInfo
+import eu.kanade.tachiyomi.animesource.model.TileInfo
 import eu.kanade.tachiyomi.animesource.model.TimeStamp
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
@@ -97,6 +102,7 @@ import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.lang.withIOContext
+import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.anime.model.Anime
@@ -261,6 +267,11 @@ class PlayerViewModel @JvmOverloads constructor(
     private var getHosterVideoLinksJob: Job? = null
     private var episodeToDownload: Download? = null
     private var currentHosterList: List<Hoster>? = null
+    private var thumbnailFetchJob: Job? = null
+    private val thumbnailTileCache =
+        object : LinkedHashMap<Int, Bitmap>(4, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, Bitmap>?) = size > 3
+        }
 
     init {
         viewModelScope.launchIO {
@@ -458,11 +469,11 @@ class PlayerViewModel @JvmOverloads constructor(
                 pauseUnpause()
             }
             is PlayerEvent.Seek -> {
-                updatePlaybackData { it.copy(isSeeking = true) }
-                seekTo(event.position)
+                updateSeekPos(event.position.toFloat())
             }
-            PlayerEvent.SeekFinished -> {
+            is PlayerEvent.SeekFinished -> {
                 updatePlaybackData { it.copy(isSeeking = false) }
+                seekTo(event.position)
             }
             is PlayerEvent.SetAutoPlay -> {
                 setAutoPlay(event.value)
@@ -1032,6 +1043,10 @@ class PlayerViewModel @JvmOverloads constructor(
             clearTracks()
         }
 
+        viewModelScope.launchIO {
+            loadThumbnails(resolvedVideo, source)
+        }
+
         qualityIndex = Pair(hosterIndex, videoIndex)
         setVideo(resolvedVideo)
         return true
@@ -1135,6 +1150,35 @@ class PlayerViewModel @JvmOverloads constructor(
         }
 
         return video.videoUrl.endsWith("torrent")
+    }
+
+    private suspend fun loadThumbnails(video: Video, source: AnimeSource?) {
+        if (source is AnimeHttpSource) {
+            try {
+                val thumbInfo = source.getVideoThumbnails(video)
+                if (thumbInfo != null) {
+                    updatePlaybackData {
+                        it.copy(
+                            thumbnailInfo = ThumbnailInfo(
+                                tileInfo = thumbInfo.tileInfo.sortedBy { it.timeMs },
+                                imageTileUrls = thumbInfo.imageTileUrls,
+                            ),
+                        )
+                    }
+
+                    // Preload first 2 tilemaps
+                    thumbInfo.imageTileUrls.take(2).forEachIndexed { index, tileUrl ->
+                        val bitmap = source.getImageTile(tileUrl)
+                        if (bitmap != null) {
+                            thumbnailTileCache[index] = bitmap
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                logcat(LogPriority.ERROR, e) { "Failed to fetch thumbnails" }
+            }
+        }
     }
 
     private fun parseVideoUrl(videoUrl: String?): String? {
@@ -1792,6 +1836,9 @@ class PlayerViewModel @JvmOverloads constructor(
             )
         }
         cancelHosterVideoLinksJob()
+        thumbnailTileCache.clear()
+        thumbnailFetchJob?.cancel()
+        lastThumbnailFetch = 0L
 
         viewModelScope.launch {
             val switchMethod = loadEpisode(episodeId)
@@ -2168,11 +2215,14 @@ class PlayerViewModel @JvmOverloads constructor(
     // === Seeking ===
 
     fun updateGestureSeekAmount(value: Pair<Int, Int>?) {
-        updatePlaybackData { it.copy(gestureSeekAmount = value) }
+        updatePlaybackData { it.copy(gestureSeekAmount = value, isGestureSeeking = value != null) }
     }
 
     fun updateIsSeeking(value: Boolean) {
         updatePlaybackData { it.copy(isSeeking = value) }
+        if (!value) {
+            updatePlaybackData { it.copy(thumbnailImage = null) }
+        }
     }
 
     fun updateSeekAmount(amount: Int) {
@@ -2305,6 +2355,51 @@ class PlayerViewModel @JvmOverloads constructor(
         setPropertyInt("chapter", index)
         dismissSheet()
         unpause()
+    }
+
+    private var lastThumbnailFetch = 0L
+
+    fun updateSeekPos(pos: Float) {
+        updatePlaybackData { it.copy(seekPosition = pos, isSeeking = true) }
+
+        val thumbInfo = playbackData.value.thumbnailInfo ?: return
+        val info = thumbInfo.tileInfo.lastOrNull { it.timeMs <= pos * 1000L }
+        if (info != null) {
+            val tileBitmap = thumbnailTileCache[info.imageIndex]
+            if (tileBitmap != null) {
+                createThumbnail(tileBitmap, info)
+            } else {
+                val now = System.currentTimeMillis()
+                if (now - lastThumbnailFetch < 2.seconds.inWholeMilliseconds) return
+                lastThumbnailFetch = now
+
+                thumbnailFetchJob?.cancel()
+                thumbnailFetchJob = viewModelScope.launchIO {
+                    val source = stateData.value.currentSource as? AnimeHttpSource ?: return@launchIO
+
+                    try {
+                        val tileUrl = thumbInfo.imageTileUrls[info.imageIndex]
+                        val bitmap = source.getImageTile(tileUrl)
+                        if (bitmap != null) {
+                            withUIContext {
+                                thumbnailTileCache[info.imageIndex] = bitmap
+                                createThumbnail(bitmap, info)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        if (e is CancellationException) throw e
+                        logcat(LogPriority.ERROR, e) { "Failed to fetch thumbnails tiles" }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun createThumbnail(tileBitmap: Bitmap, tileInfo: TileInfo) {
+        val thumbnail = Bitmap.createBitmap(tileBitmap, tileInfo.x, tileInfo.y, tileInfo.width, tileInfo.height)
+        updatePlaybackData {
+            it.copy(thumbnailImage = thumbnail.asImageBitmap())
+        }
     }
 
     // === Aniyomi ===
@@ -2950,6 +3045,10 @@ class PlayerViewModel @JvmOverloads constructor(
         val currentBrightness: Float,
         val currentOrientation: Int? = null,
         val isSeeking: Boolean = false,
+        val isGestureSeeking: Boolean = false,
+        val seekPosition: Float = 0f,
+        val thumbnailImage: ImageBitmap? = null,
+        val thumbnailInfo: ThumbnailInfo? = null,
         val seekText: String? = null,
         val doubleTapSeekAmount: Int = 0,
         val isSeekingForwards: Boolean = false,
@@ -2968,7 +3067,7 @@ class PlayerViewModel @JvmOverloads constructor(
         data class NextEpisode(val next: Boolean) : PlayerEvent
         data object PlayPause : PlayerEvent
         data class Seek(val position: Int) : PlayerEvent
-        data object SeekFinished : PlayerEvent
+        data class SeekFinished(val position: Int) : PlayerEvent
         data class SetAutoPlay(val value: Boolean) : PlayerEvent
         data class SetPanel(val panel: Panels) : PlayerEvent
         data class SetSheet(val sheet: Sheets) : PlayerEvent

@@ -14,6 +14,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -40,6 +41,7 @@ import eu.kanade.tachiyomi.ui.player.controls.components.BrightnessSlider
 import eu.kanade.tachiyomi.ui.player.controls.components.ControlsButton
 import eu.kanade.tachiyomi.ui.player.controls.components.SeekbarWithTimers
 import eu.kanade.tachiyomi.ui.player.controls.components.TextPlayerUpdate
+import eu.kanade.tachiyomi.ui.player.controls.components.ThumbnailPreview
 import eu.kanade.tachiyomi.ui.player.controls.components.VolumeSlider
 import kotlinx.coroutines.delay
 import tachiyomi.presentation.core.components.material.padding
@@ -93,6 +95,7 @@ fun PlayerControls(
             val unlockControlsButton = createRef()
             val (bottomRightControls, bottomLeftControls) = createRefs()
             val centerControls = createRef()
+            val thumbnail = createRef()
             val seekbar = createRef()
             val (playerUpdates) = createRefs()
 
@@ -280,12 +283,15 @@ fun PlayerControls(
                 },
             ) {
                 SeekbarWithTimers(
-                    position = playbackData.position.toFloat(),
+                    playerPosition = playbackData.position.toFloat(),
+                    seekPosition = playbackData.seekPosition,
+                    isGestureSeeking = playbackData.isGestureSeeking,
+                    isSeeking = playbackData.isSeeking,
                     duration = playbackData.duration.toFloat(),
                     remaining = remaining?.toFloat() ?: 0f,
                     readAheadValue = readAhead ?: 0f,
                     onValueChange = { onPlayerEvent(PlayerEvent.Seek(it.roundToInt())) },
-                    onValueChangeFinished = { onPlayerEvent(PlayerEvent.SeekFinished) },
+                    onValueChangeFinished = { onPlayerEvent(PlayerEvent.SeekFinished(it.roundToInt())) },
                     timersInverted = Pair(false, uiData.invertDuration),
                     durationTimerOnCLick = { onPlayerEvent(PlayerEvent.ToggleDurationTimer) },
                     positionTimerOnClick = { },
@@ -417,6 +423,17 @@ fun PlayerControls(
                     onOpenSheet = { onPlayerEvent(PlayerEvent.SetSheet(it)) },
                 )
             }
+
+            ThumbnailPreview(
+                visible = playbackData.isSeeking,
+                image = playbackData.thumbnailImage,
+                positionS = playbackData.seekPosition.toLong(),
+                durationS = playbackData.duration.toLong(),
+                chapters = stateData.chapters,
+                modifier = Modifier.fillMaxWidth().constrainAs(thumbnail) {
+                    bottom.linkTo(seekbar.top, MaterialTheme.padding.medium)
+                },
+            )
         }
     }
 }

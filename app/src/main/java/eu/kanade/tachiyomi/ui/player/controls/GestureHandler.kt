@@ -158,6 +158,8 @@ fun GestureHandler(
                 var startingX = 0f
 
                 fun dragEnd() {
+                    viewModel.updateIsSeeking(false)
+                    viewModel.seekTo(playbackData.seekPosition.toInt().coerceIn(0, duration ?: 0))
                     viewModel.updateGestureSeekAmount(null)
                     viewModel.hideSeekBar()
                 }
@@ -181,7 +183,7 @@ fun GestureHandler(
                                         .coerceIn(0 - startingPosition, ((duration ?: 0) - startingPosition)),
                                 ),
                             )
-                            viewModel.seekTo(it.coerceIn(0, (duration ?: 0)))
+                            viewModel.updateSeekPos(it.toFloat().coerceIn(0f, duration?.toFloat() ?: 0f))
                         }
 
                         if (showSeekbar) viewModel.showSeekBar()
