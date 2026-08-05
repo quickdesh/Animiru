@@ -39,6 +39,10 @@
     java.lang.Object readResolve();
 }
 
+# Provided by the OEM at runtime when supported
+-dontwarn androidx.window.extensions.**
+-dontwarn androidx.window.sidecar.**
+
 ##---------------Begin: proguard configuration for RxJava 1.x  ----------
 -dontwarn sun.misc.**
 
