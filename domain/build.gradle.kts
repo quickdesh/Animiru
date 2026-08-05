@@ -28,6 +28,10 @@ dependencies {
 
     implementation(libs.unifile)
 
+    // AM (CUSTOM_INFORMATION) -->
+    implementation(libs.injekt)
+    // <-- AM (CUSTOM_INFORMATIO)
+
     api(libs.sqldelight.androidxPaging)
 
     compileOnly(platform(libs.androidx.compose.bom))

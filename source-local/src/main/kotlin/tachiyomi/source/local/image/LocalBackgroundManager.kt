@@ -12,12 +12,12 @@ import java.io.InputStream
 
 private const val DEFAULT_BACKGROUND_NAME = "background.jpg"
 
-actual class LocalBackgroundManager(
+class LocalBackgroundManager(
     private val context: Context,
     private val fileSystem: LocalSourceFileSystem,
 ) {
 
-    actual fun find(animeUrl: String): UniFile? {
+    fun find(animeUrl: String): UniFile? {
         return fileSystem.getFilesInAnimeDirectory(animeUrl)
             // Get all file whose names start with 'background'
             .filter { it.isFile && it.nameWithoutExtension.equals("background", ignoreCase = true) }
@@ -25,7 +25,7 @@ actual class LocalBackgroundManager(
             .firstOrNull { ImageUtil.isImage(it.name) { it.openInputStream() } }
     }
 
-    actual fun update(anime: SAnime, inputStream: InputStream): UniFile? {
+    fun update(anime: SAnime, inputStream: InputStream): UniFile? {
         val directory = fileSystem.getAnimeDirectory(anime.url)
         if (directory == null) {
             inputStream.close()

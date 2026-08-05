@@ -47,7 +47,7 @@ import kotlin.math.abs
 import kotlin.time.Duration.Companion.days
 import tachiyomi.domain.source.model.Source as DomainSource
 
-actual class LocalSource(
+class LocalSource(
     private val context: Context,
     private val fileSystem: LocalSourceFileSystem,
     private val coverManager: LocalCoverManager,

@@ -1,4 +1,3 @@
-// AY -->
 package tachiyomi.source.local
 
 import android.content.Context
@@ -6,11 +5,11 @@ import eu.kanade.tachiyomi.animesource.model.FetchType
 import tachiyomi.source.local.io.Format
 import tachiyomi.source.local.io.LocalSourceFileSystem
 
-actual class LocalFetchTypeManager(
+class LocalFetchTypeManager(
     private val context: Context,
     private val fileSystem: LocalSourceFileSystem,
 ) {
-    actual fun find(animeUrl: String): FetchType {
+    fun find(animeUrl: String): FetchType {
         val files = fileSystem.getFilesInAnimeDirectory(animeUrl)
 
         return when {
@@ -20,4 +19,3 @@ actual class LocalFetchTypeManager(
         }
     }
 }
-// <-- AY
