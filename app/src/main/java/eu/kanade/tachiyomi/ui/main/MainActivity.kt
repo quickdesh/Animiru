@@ -282,7 +282,7 @@ class MainActivity : BaseActivity() {
                 HandleOnNewIntent(context = context, navigator = navigator)
 
                 if (!isBenchmarkBuildType) {
-                    CheckForUpdates()
+                    if (isLaunch) CheckForUpdates()
                     ShowOnboarding()
                 }
             }
