@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.ViewCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -69,7 +69,7 @@ object DownloadQueueScreen : Screen() {
         val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
         val viewModel = viewModel<DownloadQueueViewModel>()
-        val downloadList by viewModel.state.collectAsState()
+        val downloadList by viewModel.state.collectAsStateWithLifecycle()
         val downloadCount by remember {
             derivedStateOf { downloadList.sumOf { it.subItems.size } }
         }
@@ -206,7 +206,7 @@ object DownloadQueueScreen : Screen() {
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {
-                    val isRunning by viewModel.isDownloaderRunning.collectAsState()
+                    val isRunning by viewModel.isDownloaderRunning.collectAsStateWithLifecycle()
                     SmallExtendedFloatingActionButton(
                         text = {
                             // AY -->
