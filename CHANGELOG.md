@@ -11,6 +11,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Improved
+- Make some more mpv options overridable by mpv.conf ([@Secozzi](https://github.com/Secozzi)) ([#187](https://github.com/quickdesh/Animiru/pull/187))
 
 ## [v0.19.8.0] - 2026-08-03
 ### Improved
