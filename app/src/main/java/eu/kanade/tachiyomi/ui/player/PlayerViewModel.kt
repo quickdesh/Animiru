@@ -1390,7 +1390,7 @@ class PlayerViewModel @JvmOverloads constructor(
             }
 
             updateSubtitleTrackAt(idx) {
-                it.copy(id = track.id, state = TrackState.Loaded)
+                it.copy(id = track.id, state = TrackState.Loaded, language = track.getLanguage())
             }
             updateStateData { it.copy(hasLoadedSubs = true) }
             checkFileLoaded()
@@ -1407,7 +1407,7 @@ class PlayerViewModel @JvmOverloads constructor(
             }
 
             updateAudioTrackAt(idx) {
-                it.copy(id = track.id, state = TrackState.Loaded)
+                it.copy(id = track.id, state = TrackState.Loaded, language = track.getLanguage())
             }
             updateStateData { it.copy(hasLoadedAudio = true) }
             checkFileLoaded()

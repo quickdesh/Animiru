@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import eu.kanade.presentation.player.components.PlayerSheet
 import eu.kanade.tachiyomi.ui.player.mpv.VideoTrack
 import kotlinx.collections.immutable.ImmutableList
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
@@ -108,7 +109,20 @@ fun AddTrackRow(
 @Composable
 fun getTrackTitle(videoTrack: VideoTrack): String {
     return when (videoTrack) {
-        is VideoTrack.External -> videoTrack.title
+        is VideoTrack.External -> {
+            val title = videoTrack.title
+            val hasLang = !videoTrack.language.isNullOrBlank()
+
+            if (hasLang) {
+                stringResource(
+                    AMMR.strings.player_sheets_track_title_w_lang_no_id,
+                    title,
+                    videoTrack.language,
+                )
+            } else {
+                title
+            }
+        }
         is VideoTrack.Internal -> {
             val track = videoTrack.data
 

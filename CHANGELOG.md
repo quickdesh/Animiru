@@ -15,6 +15,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 ## [v0.19.8.1] - 2026-08-09
 ### Improved
 - Make some more mpv options overridable by mpv.conf ([@Secozzi](https://github.com/Secozzi)) ([#187](https://github.com/quickdesh/Animiru/pull/187))
+- Add language indicator for external tracks ([@Secozzi](https://github.com/Secozzi)) ([#189](https://github.com/quickdesh/Animiru/pull/189))
 
 ### Fixed
 - Fix current chapter not indicator sometimes not showing ([@Secozzi](https://github.com/Secozzi)) ([#188](https://github.com/quickdesh/Animiru/pull/188))
