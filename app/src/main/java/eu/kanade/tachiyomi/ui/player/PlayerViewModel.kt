@@ -2643,7 +2643,6 @@ class PlayerViewModel @JvmOverloads constructor(
             updateStateData { it.copy(currentChapter = null) }
             return
         }
-        if (!introSkipEnabled) return
 
         val chapterList = mpv.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json)
             ?: emptyList()
@@ -2656,6 +2655,8 @@ class PlayerViewModel @JvmOverloads constructor(
             chapterList.getOrNull(chapterIndex) ?: return
         }
         updateStateData { it.copy(currentChapter = chapter.toSegment()) }
+
+        if (!introSkipEnabled) return
         val chapterType = chapter.chapterType
 
         if (chapterType == ChapterType.Other) {

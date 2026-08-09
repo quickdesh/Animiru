@@ -14,6 +14,9 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 ### Improved
 - Make some more mpv options overridable by mpv.conf ([@Secozzi](https://github.com/Secozzi)) ([#187](https://github.com/quickdesh/Animiru/pull/187))
 
+### Fixed
+- Fix current chapter not indicator sometimes not showing ([@Secozzi](https://github.com/Secozzi)) ([#188](https://github.com/quickdesh/Animiru/pull/188))
+
 ## [v0.19.8.0] - 2026-08-03
 ### Improved
 - Always display navigation bar labels & implement rail in tablet mode ([@Secozzi](https://github.com/Secozzi)) ([#181](https://github.com/quickdesh/Animiru/pull/181))
