@@ -18,15 +18,10 @@ import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import eu.kanade.domain.anime.interactor.UpdateAnime
-import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.domain.connection.SyncPreferences
-import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.animesource.model.SAnime
-import eu.kanade.tachiyomi.data.cache.BackgroundCache
-import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncDataJob
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.notification.Notifications
@@ -49,6 +44,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import logcat.LogPriority
 import mihon.domain.episode.interactor.FilterEpisodesForDownload
+import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.getAndSet
 import tachiyomi.core.common.util.lang.withIOContext
@@ -97,22 +93,16 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     private val sourceManager: SourceManager = Injekt.get()
     private val libraryPreferences: LibraryPreferences = Injekt.get()
     private val downloadManager: DownloadManager = Injekt.get()
-    private val coverCache: CoverCache = Injekt.get()
-
-    // AY -->
-    private val backgroundCache: BackgroundCache = Injekt.get()
-
-    // <-- AY
     private val getLibraryAnime: GetLibraryAnime = Injekt.get()
     private val getAnime: GetAnime = Injekt.get()
-    private val updateAnime: UpdateAnime = Injekt.get()
-    private val syncEpisodesWithSource: SyncEpisodesWithSource = Injekt.get()
     private val fetchInterval: FetchInterval = Injekt.get()
     private val filterEpisodesForDownload: FilterEpisodesForDownload = Injekt.get()
 
     // AY -->
     private val getAnimeSeasonsByParentId: GetAnimeSeasonsByParentId = Injekt.get()
     // <-- AY
+
+    private val updateAnimeFromRemote: UpdateAnimeFromRemote = Injekt.get()
 
     // AM (GROUPING) -->
     private val getTracks: GetTracks = Injekt.get()
@@ -435,23 +425,16 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     private suspend fun updateAnime(anime: Anime, fetchWindow: Pair<Long, Long>): List<Episode> {
         val source = sourceManager.getOrStub(anime.source)
 
-        // Update anime metadata if needed
-        if (libraryPreferences.autoUpdateMetadata.get()) {
-            val networkAnime = source.getAnimeDetails(anime.toSAnime())
-            // AY -->
-            updateAnime.awaitUpdateFromSource(anime, networkAnime, manualFetch = false, coverCache, backgroundCache)
-            // <-- AY
-        }
+        val update = updateAnimeFromRemote.awaitEpisodesUpdate(
+            source = source,
+            anime = anime,
+            fetchDetails = libraryPreferences.autoUpdateMetadata.get(),
+            fetchEpisodes = true,
+            fetchWindow = fetchWindow,
+        )
+            .getOrThrow()
 
-        val episodes = source.getEpisodeList(anime.toSAnime())
-
-        // Get anime from database to account for if it was removed during the update and
-        // to get latest data so it doesn't get overwritten later on
-        // AY -->
-        val dbAnime = getAnime.await(anime.id)?.takeIf { it.parentId != null || it.favorite } ?: return emptyList()
-        // <-- AY
-
-        return syncEpisodesWithSource.await(episodes, dbAnime, source, false, fetchWindow)
+        return if (update.anime.favorite) update.newEpisodes else emptyList()
     }
 
     private suspend fun withUpdateNotification(

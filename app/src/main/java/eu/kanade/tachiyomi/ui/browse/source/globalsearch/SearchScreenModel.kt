@@ -7,7 +7,7 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.util.ioCoroutineScope
-import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.mutate
@@ -56,8 +56,8 @@ abstract class SearchScreenModel(
 
     protected var extensionFilter: String? = null
 
-    open val sortComparator = { map: Map<AnimeCatalogueSource, SearchItemResult> ->
-        compareBy<AnimeCatalogueSource>(
+    open val sortComparator = { map: Map<AnimeSource, SearchItemResult> ->
+        compareBy<AnimeSource>(
             { (map[it] as? SearchItemResult.Success)?.isEmpty ?: true },
             { "${it.id}" !in pinnedSources },
             { "${it.name.lowercase()} (${it.lang})" },
@@ -83,8 +83,8 @@ abstract class SearchScreenModel(
         }
     }
 
-    open fun getEnabledSources(): List<AnimeCatalogueSource> {
-        return sourceManager.getCatalogueSources()
+    open fun getEnabledSources(): List<AnimeSource> {
+        return sourceManager.getAll()
             .filter { it.lang in enabledLanguages && "${it.id}" !in disabledSources }
             .sortedWith(
                 compareBy(
@@ -94,7 +94,7 @@ abstract class SearchScreenModel(
             )
     }
 
-    private fun getSelectedSources(): List<AnimeCatalogueSource> {
+    private fun getSelectedSources(): List<AnimeSource> {
         val enabledSources = getEnabledSources()
 
         val filter = extensionFilter
@@ -105,7 +105,6 @@ abstract class SearchScreenModel(
         return extensionManager.installedExtensionsFlow.value
             .filter { it.pkgName == filter }
             .flatMap { it.sources }
-            .filterIsInstance<AnimeCatalogueSource>()
             .filter { it in enabledSources }
     }
 
@@ -185,7 +184,7 @@ abstract class SearchScreenModel(
         }
     }
 
-    private fun updateItems(items: PersistentMap<AnimeCatalogueSource, SearchItemResult>) {
+    private fun updateItems(items: PersistentMap<AnimeSource, SearchItemResult>) {
         mutableState.update {
             it.copy(
                 items = items
@@ -195,7 +194,7 @@ abstract class SearchScreenModel(
         }
     }
 
-    private fun updateItem(source: AnimeCatalogueSource, result: SearchItemResult) {
+    private fun updateItem(source: AnimeSource, result: SearchItemResult) {
         val newItems = state.value.items.mutate {
             it[source] = result
         }
@@ -225,7 +224,7 @@ abstract class SearchScreenModel(
         val searchQuery: String? = null,
         val sourceFilter: SourceFilter = SourceFilter.PinnedOnly,
         val onlyShowHasResults: Boolean = false,
-        val items: PersistentMap<AnimeCatalogueSource, SearchItemResult> = persistentMapOf(),
+        val items: PersistentMap<AnimeSource, SearchItemResult> = persistentMapOf(),
         val dialog: Dialog? = null,
     ) {
         val progress: Int = items.count { it.value !is SearchItemResult.Loading }

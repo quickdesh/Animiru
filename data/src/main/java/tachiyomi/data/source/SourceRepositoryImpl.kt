@@ -21,7 +21,7 @@ class SourceRepositoryImpl(
 ) : SourceRepository {
 
     override fun getSources(): Flow<List<DomainSource>> {
-        return sourceManager.catalogueSources.map { sources ->
+        return sourceManager.sources.map { sources ->
             sources.map {
                 mapSourceToDomainSource(it).copy(
                     supportsLatest = it.supportsLatest,
@@ -31,7 +31,7 @@ class SourceRepositoryImpl(
     }
 
     override fun getOnlineSources(): Flow<List<DomainSource>> {
-        return sourceManager.catalogueSources.map { sources ->
+        return sourceManager.sources.map { sources ->
             sources
                 .filterIsInstance<AnimeHttpSource>()
                 .map(::mapSourceToDomainSource)
@@ -43,7 +43,7 @@ class SourceRepositoryImpl(
             .getSourceIdWithFavoriteCount()
             .subscribeToList()
 
-        return combine(sourceIdWithFavoriteCountFlow, sourceManager.catalogueSources) { sourceIdWithFavoriteCount, _ ->
+        return combine(sourceIdWithFavoriteCountFlow, sourceManager.sources) { sourceIdWithFavoriteCount, _ ->
             sourceIdWithFavoriteCount
         }
             .map {
@@ -62,18 +62,15 @@ class SourceRepositoryImpl(
         query: String,
         filterList: AnimeFilterList,
     ): SourcePagingSource {
-        val source = sourceManager.get(sourceId) as AnimeCatalogueSource
-        return SourceSearchPagingSource(source, query, filterList)
+        return SourceSearchPagingSource(sourceManager.getOrStub(sourceId), query, filterList)
     }
 
     override fun getPopular(sourceId: Long): SourcePagingSource {
-        val source = sourceManager.get(sourceId) as AnimeCatalogueSource
-        return SourcePopularPagingSource(source)
+        return SourcePopularPagingSource(sourceManager.getOrStub(sourceId))
     }
 
     override fun getLatest(sourceId: Long): SourcePagingSource {
-        val source = sourceManager.get(sourceId) as AnimeCatalogueSource
-        return SourceLatestPagingSource(source)
+        return SourceLatestPagingSource(sourceManager.getOrStub(sourceId))
     }
 }
 

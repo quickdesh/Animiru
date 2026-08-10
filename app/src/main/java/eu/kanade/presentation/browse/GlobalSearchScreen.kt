@@ -10,7 +10,7 @@ import eu.kanade.presentation.browse.components.GlobalSearchErrorResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchLoadingResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchResultItem
 import eu.kanade.presentation.browse.components.GlobalSearchToolbar
-import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchItemResult
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchScreenModel
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SourceFilter
@@ -27,7 +27,7 @@ fun GlobalSearchScreen(
     onChangeSearchFilter: (SourceFilter) -> Unit,
     onToggleResults: () -> Unit,
     getAnime: @Composable (Anime) -> State<Anime>,
-    onClickSource: (AnimeCatalogueSource) -> Unit,
+    onClickSource: (AnimeSource) -> Unit,
     onClickItem: (Anime) -> Unit,
     onLongClickItem: (Anime) -> Unit,
 ) {
@@ -62,10 +62,10 @@ fun GlobalSearchScreen(
 
 @Composable
 internal fun GlobalSearchContent(
-    items: Map<AnimeCatalogueSource, SearchItemResult>,
+    items: Map<AnimeSource, SearchItemResult>,
     contentPadding: PaddingValues,
     getAnime: @Composable (Anime) -> State<Anime>,
-    onClickSource: (AnimeCatalogueSource) -> Unit,
+    onClickSource: (AnimeSource) -> Unit,
     onClickItem: (Anime) -> Unit,
     onLongClickItem: (Anime) -> Unit,
     fromSourceId: Long? = null,

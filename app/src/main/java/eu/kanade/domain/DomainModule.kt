@@ -39,6 +39,7 @@ import mihon.domain.extensionrepo.interactor.UpdateExtensionRepo
 import mihon.domain.extensionrepo.repository.ExtensionRepoRepository
 import mihon.domain.extensionrepo.service.ExtensionRepoService
 import mihon.domain.migration.usecases.MigrateAnimeUseCase
+import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import mihon.domain.upcoming.interactor.GetUpcomingAnime
 import tachiyomi.data.anime.AnimeRepositoryImpl
 import tachiyomi.data.anime.CustomAnimeRepositoryImpl
@@ -161,7 +162,7 @@ class DomainModule : InjektModule {
         addFactory { SetExcludedScanlators(get()) }
         addFactory {
             MigrateAnimeUseCase(
-                get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(),
+                get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(),
             )
         }
         // AY -->
@@ -252,5 +253,7 @@ class DomainModule : InjektModule {
         addFactory { GetCustomAnimeInfo(get()) }
         addFactory { SetCustomAnimeInfo(get()) }
         // <-- AM (CUSTOM_INFORMATION)
+
+        addFactory { UpdateAnimeFromRemote(get(), get(), get(), get(), get(), get(), get()) }
     }
 }

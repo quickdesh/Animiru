@@ -10,14 +10,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
-import eu.kanade.domain.anime.interactor.UpdateAnime
-import eu.kanade.domain.anime.model.copyFrom
-import eu.kanade.domain.anime.model.toSAnime
-import eu.kanade.tachiyomi.data.cache.BackgroundCache
-import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.util.prepUpdateBackground
-import eu.kanade.tachiyomi.util.prepUpdateCover
 import eu.kanade.tachiyomi.util.system.isRunning
 import eu.kanade.tachiyomi.util.system.setForegroundSafely
 import eu.kanade.tachiyomi.util.system.workManager
@@ -29,11 +22,11 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import logcat.LogPriority
+import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.interactor.GetLibraryAnime
 import tachiyomi.domain.anime.model.Anime
-import tachiyomi.domain.anime.model.toAnimeUpdate
 import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.source.service.SourceManager
 import uy.kohesive.injekt.Injekt
@@ -48,14 +41,8 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
     CoroutineWorker(context, workerParams) {
 
     private val sourceManager: SourceManager = Injekt.get()
-    private val coverCache: CoverCache = Injekt.get()
-
-    // AY -->
-    private val backgroundCache: BackgroundCache = Injekt.get()
-
-    // <-- AY
     private val getLibraryAnime: GetLibraryAnime = Injekt.get()
-    private val updateAnime: UpdateAnime = Injekt.get()
+    private val updateAnimeFromRemote: UpdateAnimeFromRemote = Injekt.get()
 
     private val notifier = LibraryUpdateNotifier(context)
 
@@ -127,18 +114,11 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
                                 ) {
                                     val source = sourceManager.get(anime.source) ?: return@withUpdateNotification
                                     try {
-                                        val networkAnime = source.getAnimeDetails(anime.toSAnime())
-                                        val updatedAnime = anime
-                                            .prepUpdateCover(coverCache, networkAnime, true)
-                                            // AY -->
-                                            .prepUpdateBackground(backgroundCache, networkAnime, true)
-                                            // <-- AY
-                                            .copyFrom(networkAnime)
-                                        try {
-                                            updateAnime.await(updatedAnime.toAnimeUpdate())
-                                        } catch (e: Exception) {
-                                            logcat(LogPriority.ERROR) { "Anime doesn't exist anymore" }
-                                        }
+                                        updateAnimeFromRemote.awaitEpisodesUpdate(
+                                            source = source,
+                                            anime = anime,
+                                            fetchDetails = true,
+                                        ).getOrThrow()
                                     } catch (e: Throwable) {
                                         // Ignore errors and continue
                                         logcat(LogPriority.ERROR, e)

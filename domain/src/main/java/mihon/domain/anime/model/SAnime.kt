@@ -24,6 +24,7 @@ fun SAnime.toDomainAnime(sourceId: Long): Anime {
         seasonNumber = season_number,
         // <-- AY
         initialized = initialized,
+        memo = memo,
         source = sourceId,
     )
 }

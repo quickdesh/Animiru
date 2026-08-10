@@ -9,6 +9,7 @@ import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.Database
 import tachiyomi.data.FetchTypeColumnAdapter
+import tachiyomi.data.MemoColumnAdapter
 import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
 import tachiyomi.data.subscribeToList
@@ -161,6 +162,7 @@ class AnimeRepositoryImpl(
                     seasonNumber = it.seasonNumber,
                     seasonSourceOrder = it.seasonSourceOrder,
                     // <-- AY
+                    memo = it.memo,
                     updateTitle = it.title.isNotBlank(),
                     updateCover = !it.thumbnailUrl.isNullOrBlank(),
                     updateDetails = it.initialized,
@@ -241,6 +243,7 @@ class AnimeRepositoryImpl(
                     seasonNumber = value.seasonNumber,
                     seasonSourceOrder = value.seasonSourceOrder,
                     // <-- AY
+                    memo = value.memo?.let(MemoColumnAdapter::encode),
                 )
             }
         }

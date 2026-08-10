@@ -4,6 +4,8 @@ import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
+import mihon.core.common.extensions.JsonObjectEmptyBytes
+import tachiyomi.data.MemoColumnAdapter
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.CustomAnimeInfo
 
@@ -43,6 +45,7 @@ data class BackupAnime(
     @ProtoNumber(109) var version: Long = 0,
     @ProtoNumber(110) var notes: String = "",
     @ProtoNumber(111) var initialized: Boolean = false,
+    @ProtoNumber(112) var memo: ByteArray = JsonObjectEmptyBytes,
 
     // AM (CUSTOM_INFORMATION) -->
     // Bump values by 200
@@ -103,6 +106,7 @@ data class BackupAnime(
             seasonNumber = this@BackupAnime.seasonNumber,
             seasonSourceOrder = this@BackupAnime.seasonSourceOrder,
             // <-- AY
+            memo = MemoColumnAdapter.decode(this@BackupAnime.memo),
         )
     }
 

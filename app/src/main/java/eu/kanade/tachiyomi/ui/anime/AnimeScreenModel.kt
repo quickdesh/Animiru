@@ -78,6 +78,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
 import mihon.domain.episode.interactor.FilterEpisodesForDownload
+import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.core.common.preference.TriState
@@ -125,6 +126,7 @@ import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.util.Calendar
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.floor
 
 class AnimeScreenModel(
@@ -161,10 +163,6 @@ class AnimeScreenModel(
     private val setSeenStatus: SetSeenStatus = Injekt.get(),
     private val updateEpisode: UpdateEpisode = Injekt.get(),
     private val updateAnime: UpdateAnime = Injekt.get(),
-    private val syncEpisodesWithSource: SyncEpisodesWithSource = Injekt.get(),
-    // AY -->
-    private val syncSeasonsWithSource: SyncSeasonsWithSource = Injekt.get(),
-    // <-- AY
     private val getCategories: GetCategories = Injekt.get(),
     private val getTracks: GetTracks = Injekt.get(),
     private val addTracks: AddTracks = Injekt.get(),
@@ -182,6 +180,7 @@ class AnimeScreenModel(
     private val sourceManager: SourceManager = Injekt.get(),
     private val setCustomAnimeInfo: SetCustomAnimeInfo = Injekt.get(),
     // <-- AM (CUSTOM_INFORMATION)
+    private val updateAnimeFromRemote: UpdateAnimeFromRemote = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
 ) : StateScreenModel<AnimeScreenModel.State>(State.Loading) {
 
@@ -345,11 +344,15 @@ class AnimeScreenModel(
                     // AM -->
                     async { syncTrackers() },
                     // <-- AM
-                    async { if (needRefreshInfo) fetchAnimeFromSource() },
                     async {
-                        // AY -->
-                        if (needRefreshEpisode || needRefreshSeason) fetchEpisodesAndSeasonsFromSource()
-                        // <-- AY
+                        if (needRefreshInfo || needRefreshEpisode || needRefreshSeason) {
+                            fetchAllFromSource(
+                                manualFetch = false,
+                                fetchDetails = needRefreshInfo,
+                                fetchEpisodes = needRefreshEpisode,
+                                fetchSeasons = needRefreshSeason,
+                            )
+                        }
                     },
                 )
                 fetchFromSourceTasks.awaitAll()
@@ -367,8 +370,14 @@ class AnimeScreenModel(
                 // AM -->
                 async { syncTrackers() },
                 // <-- AM
-                async { fetchAnimeFromSource(manualFetch) },
-                async { fetchEpisodesAndSeasonsFromSource(manualFetch) },
+                async {
+                    fetchAllFromSource(
+                        manualFetch = manualFetch,
+                        fetchDetails = true,
+                        fetchEpisodes = true,
+                        fetchSeasons = true,
+                    )
+                },
             )
             fetchFromSourceTasks.awaitAll()
             updateSuccessState { it.copy(isRefreshingData = false) }
@@ -415,31 +424,71 @@ class AnimeScreenModel(
     }
     // <-- AM
 
-    // Anime info - start
-
-    /**
-     * Fetch anime information from source.
-     */
-    private suspend fun fetchAnimeFromSource(manualFetch: Boolean = false) {
+    private suspend fun fetchAllFromSource(
+        manualFetch: Boolean,
+        fetchDetails: Boolean,
+        fetchEpisodes: Boolean,
+        fetchSeasons: Boolean,
+    ) {
         val state = successState ?: return
-        try {
-            withIOContext {
-                // AY -->
-                startTorrentServer(state.source)
-                // <-- AY
-                val networkAnime = state.source.getAnimeDetails(state.anime.toSAnime())
-                updateAnime.awaitUpdateFromSource(state.anime, networkAnime, manualFetch)
-            }
-        } catch (e: Throwable) {
-            // Ignore early hints "errors" that aren't handled by OkHttp
-            if (e is HttpException && e.code == 103) return
 
-            logcat(LogPriority.ERROR, e)
+        startTorrentServer(state.source)
+
+        try {
+            withUIContext {
+                when (state.anime.fetchType) {
+                    FetchType.Episodes -> {
+                        val update = updateAnimeFromRemote.awaitEpisodesUpdate(
+                            source = state.source,
+                            anime = state.anime,
+                            fetchDetails = fetchDetails,
+                            fetchEpisodes = fetchEpisodes,
+                            manualFetch = manualFetch,
+                        )
+                            .getOrThrow()
+
+                        if (manualFetch) {
+                            downloadNewEpisodes(update.newEpisodes)
+                        }
+                    }
+                    FetchType.Seasons -> {
+                        val update = updateAnimeFromRemote.awaitSeasonsUpdate(
+                            source = state.source,
+                            anime = state.anime,
+                            fetchDetails = fetchDetails,
+                            fetchSeasons = fetchSeasons,
+                            manualFetch = manualFetch,
+                        )
+                            .getOrThrow()
+
+                        if (libraryPreferences.updateSeasonOnRefresh.get()) {
+                            fetchEpisodesFromSeasons(update.newSeasons, manualFetch)
+                        }
+                    }
+                }
+            }
+        } catch (_: CancellationException) {
+            // ignore
+        } catch (e: Exception) {
+            val message = when (e) {
+                is NoEpisodesException -> {
+                    context.stringResource(AYMR.strings.no_episodes_error)
+                }
+                is NoSeasonsException -> {
+                    context.stringResource(AYMR.strings.no_seasons_error)
+                }
+                else -> {
+                    logcat(LogPriority.ERROR, e)
+                    with(context) { e.formattedMessage }
+                }
+            }
             screenModelScope.launch {
-                snackbarHostState.showSnackbar(message = with(context) { e.formattedMessage })
+                snackbarHostState.showSnackbar(message = message)
             }
         }
     }
+
+    // Anime info - start
 
     // AM (CUSTOM_INFORMATION) -->
     fun updateAnimeInfo(
@@ -795,81 +844,6 @@ class AnimeScreenModel(
             )
         }
     }
-    // <-- AY
-
-    private suspend fun fetchEpisodesFromSource(manualFetch: Boolean = false) {
-        val state = successState ?: return
-        try {
-            withIOContext {
-                updateEpisodesFromSource(state.anime, state.source, manualFetch)
-            }
-        } catch (e: Throwable) {
-            val message = if (e is NoEpisodesException) {
-                context.stringResource(AYMR.strings.no_episodes_error)
-            } else {
-                logcat(LogPriority.ERROR, e)
-                with(context) { e.formattedMessage }
-            }
-
-            screenModelScope.launch {
-                snackbarHostState.showSnackbar(message = message)
-            }
-            val newAnime = animeRepository.getAnimeById(animeId)
-            updateSuccessState { it.copy(anime = newAnime, isRefreshingData = false) }
-        }
-    }
-
-    // AY -->
-    private suspend fun updateEpisodesFromSource(
-        anime: Anime,
-        source: AnimeSource,
-        manualFetch: Boolean = false,
-    ) {
-        val episodes = source.getEpisodeList(anime.toSAnime())
-
-        val newEpisodes = syncEpisodesWithSource.await(
-            episodes,
-            anime,
-            source,
-            manualFetch,
-        )
-
-        if (manualFetch) {
-            downloadNewEpisodes(newEpisodes)
-        }
-    }
-
-    private suspend fun fetchSeasonsFromSource(manualFetch: Boolean = false) {
-        val state = successState ?: return
-        try {
-            withIOContext {
-                val seasons = state.source.getSeasonList(state.anime.toSAnime())
-
-                val newSeasons = syncSeasonsWithSource.await(
-                    seasons,
-                    state.anime,
-                    state.source,
-                )
-
-                if (libraryPreferences.updateSeasonOnRefresh.get()) {
-                    fetchEpisodesFromSeasons(newSeasons, manualFetch)
-                }
-            }
-        } catch (e: Throwable) {
-            val message = if (e is NoSeasonsException) {
-                context.stringResource(AYMR.strings.no_seasons_error)
-            } else {
-                logcat(LogPriority.ERROR, e)
-                with(context) { e.formattedMessage }
-            }
-
-            screenModelScope.launch {
-                snackbarHostState.showSnackbar(message = message)
-            }
-            val newAnime = animeRepository.getAnimeById(animeId)
-            updateSuccessState { it.copy(anime = newAnime, isRefreshingData = false) }
-        }
-    }
 
     fun isTorrentEnabled(): Boolean {
         return torrentPreferences.torrServerEnable.get()
@@ -884,20 +858,6 @@ class AnimeScreenModel(
     }
 
     /**
-     * Requests an updated list of episodes and seasons from the source.
-     */
-    private suspend fun fetchEpisodesAndSeasonsFromSource(manualFetch: Boolean = false) {
-        val state = successState ?: return
-
-        startTorrentServer(state.source)
-
-        when (state.anime.fetchType) {
-            FetchType.Seasons -> fetchSeasonsFromSource(manualFetch)
-            FetchType.Episodes -> fetchEpisodesFromSource(manualFetch)
-        }
-    }
-
-    /**
      * Fetch episodes from all seasons of an anime.
      */
     private suspend fun CoroutineScope.fetchEpisodesFromSeasons(seasons: List<Anime>, manualFetch: Boolean) {
@@ -908,7 +868,12 @@ class AnimeScreenModel(
             // haven't been fetched at all.
             if (s.fetchType === FetchType.Episodes && (s.lastUpdate == 0L || s.status.toInt() != SAnime.COMPLETED)) {
                 try {
-                    updateEpisodesFromSource(s, state.source, manualFetch)
+                    updateAnimeFromRemote.awaitEpisodesUpdate(
+                        source = state.source,
+                        anime = s,
+                        fetchEpisodes = true,
+                        manualFetch = manualFetch,
+                    )
                 } catch (e: Throwable) {
                     logcat(LogPriority.ERROR, e)
                 }

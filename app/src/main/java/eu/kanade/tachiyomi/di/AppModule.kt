@@ -37,8 +37,10 @@ import tachiyomi.core.common.storage.AndroidStorageFolderProvider
 import tachiyomi.data.Animes
 import tachiyomi.data.Database
 import tachiyomi.data.DateColumnAdapter
+import tachiyomi.data.Episodes
 import tachiyomi.data.FetchTypeColumnAdapter
 import tachiyomi.data.History
+import tachiyomi.data.MemoColumnAdapter
 import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
@@ -92,6 +94,10 @@ class AppModule(val app: Application) : InjektModule {
                     // AY -->
                     fetch_typeAdapter = FetchTypeColumnAdapter,
                     // <-- AY
+                    memoAdapter = MemoColumnAdapter,
+                ),
+                episodesAdapter = Episodes.Adapter(
+                    memoAdapter = MemoColumnAdapter,
                 ),
             )
         }

@@ -1,4 +1,5 @@
 import kotlin.Boolean;
+import kotlinx.serialization.json.JsonObject;
 
 CREATE TABLE episodes(
     _id INTEGER NOT NULL PRIMARY KEY,
@@ -26,6 +27,7 @@ CREATE TABLE episodes(
     summary TEXT,
     preview_url TEXT,
     -- <-- AY
+    memo BLOB AS JsonObject NOT NULL DEFAULT '{}',
     FOREIGN KEY(anime_id) REFERENCES animes (_id)
     ON DELETE CASCADE
 );
@@ -108,12 +110,12 @@ SET is_syncing = 0
 WHERE is_syncing = 1;
 
 insert:
-INSERT INTO episodes(anime_id, url, name, scanlator, seen, bookmark, fillermark, last_second_seen, total_seconds, episode_number, source_order, date_fetch, date_upload, last_modified_at, version, is_syncing, summary, preview_url)
-VALUES (:animeId, :url, :name, :scanlator, :seen, :bookmark, :fillermark, :lastSecondSeen, :totalSeconds, :episodeNumber, :sourceOrder, :dateFetch, :dateUpload, 0, :version, 0, :summary, :previewUrl);
+INSERT INTO episodes(anime_id, url, name, scanlator, seen, bookmark, fillermark, last_second_seen, total_seconds, episode_number, source_order, date_fetch, date_upload, last_modified_at, version, is_syncing, summary, preview_url, memo)
+VALUES (:animeId, :url, :name, :scanlator, :seen, :bookmark, :fillermark, :lastSecondSeen, :totalSeconds, :episodeNumber, :sourceOrder, :dateFetch, :dateUpload, 0, :version, 0, :summary, :previewUrl, :memo);
 
 insertReturningId:
-INSERT INTO episodes(anime_id, url, name, scanlator, seen, bookmark, fillermark, last_second_seen, total_seconds, episode_number, source_order, date_fetch, date_upload, last_modified_at, version, is_syncing, summary, preview_url)
-VALUES (:animeId, :url, :name, :scanlator, :seen, :bookmark, :fillermark, :lastSecondSeen, :totalSeconds, :episodeNumber, :sourceOrder, :dateFetch, :dateUpload, 0, :version, 0, :summary, :previewUrl)
+INSERT INTO episodes(anime_id, url, name, scanlator, seen, bookmark, fillermark, last_second_seen, total_seconds, episode_number, source_order, date_fetch, date_upload, last_modified_at, version, is_syncing, summary, preview_url, memo)
+VALUES (:animeId, :url, :name, :scanlator, :seen, :bookmark, :fillermark, :lastSecondSeen, :totalSeconds, :episodeNumber, :sourceOrder, :dateFetch, :dateUpload, 0, :version, 0, :summary, :previewUrl, :memo)
 RETURNING _id;
 
 update:
@@ -139,6 +141,7 @@ SET anime_id = coalesce(:animeId, anime_id),
     is_syncing = coalesce(:isSyncing, is_syncing),
     -- AY -->
     summary = coalesce(:summary, summary),
-    preview_url = coalesce(:previewUrl, preview_url)
+    preview_url = coalesce(:previewUrl, preview_url),
     -- <-- AY
+    memo = coalesce(:memo, memo)
 WHERE _id = :episodeId;

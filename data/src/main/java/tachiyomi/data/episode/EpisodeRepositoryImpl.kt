@@ -4,10 +4,12 @@ import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.JsonObject
 import logcat.LogPriority
 import tachiyomi.core.common.util.lang.toLong
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.Database
+import tachiyomi.data.MemoColumnAdapter
 import tachiyomi.data.subscribeToList
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.episode.model.EpisodeUpdate
@@ -44,6 +46,7 @@ class EpisodeRepositoryImpl(
                         episode.summary,
                         episode.previewUrl,
                         // <-- AY
+                        episode.memo,
                     )
                         .awaitAsOne()
                     episode.copy(id = episodeId)
@@ -91,6 +94,7 @@ class EpisodeRepositoryImpl(
                     summary = episodeUpdate.summary,
                     previewUrl = episodeUpdate.previewUrl,
                     // <-- AY
+                    memo = episodeUpdate.memo?.let(MemoColumnAdapter::encode),
                 )
             }
         }
@@ -174,6 +178,7 @@ class EpisodeRepositoryImpl(
         summary: String?,
         previewUrl: String?,
         // <-- AY
+        memo: JsonObject,
     ): Episode = Episode(
         id = id,
         animeId = animeId,
@@ -199,5 +204,6 @@ class EpisodeRepositoryImpl(
         // <-- AY
         lastModifiedAt = lastModifiedAt,
         version = version,
+        memo = memo,
     )
 }

@@ -2,7 +2,7 @@ package eu.kanade.tachiyomi.ui.browse.migration.search
 
 import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.domain.source.service.SourcePreferences
-import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchItemResult
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchScreenModel
 import kotlinx.coroutines.flow.update
@@ -21,8 +21,8 @@ class MigrateSearchScreenModel(
 
     private val migrationSources by lazy { sourcePreferences.migrationSources.get() }
 
-    override val sortComparator = { map: Map<AnimeCatalogueSource, SearchItemResult> ->
-        compareBy<AnimeCatalogueSource>(
+    override val sortComparator = { map: Map<AnimeSource, SearchItemResult> ->
+        compareBy<AnimeSource>(
             { (map[it] as? SearchItemResult.Success)?.isEmpty ?: true },
             { migrationSources.indexOf(it.id) },
         )
@@ -41,7 +41,7 @@ class MigrateSearchScreenModel(
         }
     }
 
-    override fun getEnabledSources(): List<AnimeCatalogueSource> {
-        return migrationSources.mapNotNull { sourceManager.get(it) as? AnimeCatalogueSource }
+    override fun getEnabledSources(): List<AnimeSource> {
+        return migrationSources.mapNotNull { sourceManager.get(it) }
     }
 }

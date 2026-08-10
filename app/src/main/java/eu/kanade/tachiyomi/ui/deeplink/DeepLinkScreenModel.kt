@@ -11,6 +11,7 @@ import eu.kanade.tachiyomi.animesource.online.ResolvableAnimeSource
 import eu.kanade.tachiyomi.animesource.online.UriType
 import kotlinx.coroutines.flow.update
 import mihon.domain.anime.model.toDomainAnime
+import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
 import tachiyomi.domain.anime.model.Anime
@@ -25,12 +26,12 @@ class DeepLinkScreenModel(
     private val sourceManager: SourceManager = Injekt.get(),
     private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
     private val getEpisodeByUrlAndAnimeId: GetEpisodeByUrlAndAnimeId = Injekt.get(),
-    private val syncEpisodesWithSource: SyncEpisodesWithSource = Injekt.get(),
+    private val updateAnimeFromRemote: UpdateAnimeFromRemote = Injekt.get(),
 ) : StateScreenModel<DeepLinkScreenModel.State>(State.Loading) {
 
     init {
         screenModelScope.launchIO {
-            val source = sourceManager.getCatalogueSources()
+            val source = sourceManager.getAll()
                 .filterIsInstance<ResolvableAnimeSource>()
                 .firstOrNull { it.getUriType(query) != UriType.Unknown }
 
@@ -61,13 +62,11 @@ class DeepLinkScreenModel(
     private suspend fun getEpisodeFromSEpisode(sEpisode: SEpisode, anime: Anime, source: AnimeSource): Episode? {
         val localEpisode = getEpisodeByUrlAndAnimeId.await(sEpisode.url, anime.id)
 
-        return if (localEpisode == null) {
-            val sourceEpisodes = source.getEpisodeList(anime.toSAnime())
-            val newEpisodes = syncEpisodesWithSource.await(sourceEpisodes, anime, source, false)
-            newEpisodes.find { it.url == sEpisode.url }
-        } else {
-            localEpisode
-        }
+        return localEpisode
+            ?: updateAnimeFromRemote.awaitEpisodesUpdate(anime, fetchEpisodes = true)
+                .getOrElse { return null }
+                .newEpisodes
+                .find { it.url == sEpisode.url }
     }
 
     sealed interface State {

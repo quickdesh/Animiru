@@ -61,5 +61,6 @@ fun Episode.toDomainEpisode(): DomainEpisode? {
         // <-- AY
         lastModifiedAt = last_modified,
         version = version,
+        memo = memo,
     )
 }

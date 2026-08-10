@@ -3,6 +3,7 @@ package tachiyomi.data.anime
 import aniyomi.domain.anime.SeasonAnime
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import eu.kanade.tachiyomi.animesource.model.FetchType
+import kotlinx.serialization.json.JsonObject
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeWithEpisodeCount
 import tachiyomi.domain.library.model.LibraryAnime
@@ -45,6 +46,7 @@ object AnimeMapper {
         backgroundUrl: String?,
         backgroundLastModified: Long,
         // <-- AY
+        memo: JsonObject,
     ): Anime = Anime(
         id = id,
         source = source,
@@ -85,6 +87,7 @@ object AnimeMapper {
         seasonNumber = seasonNumber,
         seasonSourceOrder = seasonSourceOrder,
         // <-- AY
+        memo = memo,
     )
 
     fun mapLibraryAnime(
@@ -122,6 +125,7 @@ object AnimeMapper {
         backgroundUrl: String?,
         backgroundLastModified: Long,
         // <-- AY
+        memo: JsonObject,
         totalCount: Long,
         seenCount: Double,
         latestUpload: Long,
@@ -168,6 +172,7 @@ object AnimeMapper {
             backgroundUrl,
             backgroundLastModified,
             // <-- AY
+            memo,
         ),
         categories = categories.split(",").map { it.toLong() },
         totalCount = totalCount,
@@ -216,6 +221,7 @@ object AnimeMapper {
         backgroundUrl: String?,
         backgroundLastModified: Long,
         // <-- AY
+        memo: JsonObject,
         totalCount: Long,
     ): AnimeWithEpisodeCount = AnimeWithEpisodeCount(
         anime = mapAnime(
@@ -253,6 +259,7 @@ object AnimeMapper {
             backgroundUrl,
             backgroundLastModified,
             // <-- AY
+            memo,
         ),
         episodeCount = totalCount,
     )
@@ -291,6 +298,7 @@ object AnimeMapper {
         seasonSourceOrder: Long,
         backgroundUrl: String?,
         backgroundLastModified: Long,
+        memo: JsonObject,
         totalCount: Long,
         seenCount: Double,
         latestUpload: Long,
@@ -332,6 +340,7 @@ object AnimeMapper {
             seasonSourceOrder,
             backgroundUrl,
             backgroundLastModified,
+            memo,
         ),
         totalCount = totalCount,
         seenCount = seenCount.toLong(),

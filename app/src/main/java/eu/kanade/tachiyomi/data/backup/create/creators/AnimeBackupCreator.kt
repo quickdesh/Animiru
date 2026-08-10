@@ -9,6 +9,7 @@ import eu.kanade.tachiyomi.data.backup.models.BackupHistory
 import eu.kanade.tachiyomi.data.backup.models.backupEpisodeMapper
 import eu.kanade.tachiyomi.data.backup.models.backupTrackMapper
 import tachiyomi.data.Database
+import tachiyomi.data.MemoColumnAdapter
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.CustomAnimeInfo
@@ -122,6 +123,7 @@ private fun Anime.toBackupAnime(
         seasonNumber = this.seasonNumber,
         seasonSourceOrder = this.seasonSourceOrder,
         // <-- AY
+        memo = MemoColumnAdapter.encode(this.memo),
     )
         // AM (CUSTOM_INFORMATION) -->
         .also { backupAnime ->
