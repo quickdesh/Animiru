@@ -23,6 +23,7 @@ import eu.kanade.tachiyomi.data.connection.discord.PlayerData
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.source.isNsfw
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.player.loader.EpisodeLoader
 import eu.kanade.tachiyomi.ui.player.loader.HosterLoader
 import eu.kanade.tachiyomi.ui.player.settings.PlayerPreferences
@@ -34,6 +35,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import logcat.LogPriority
 import tachiyomi.core.common.util.lang.launchIO
+import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
@@ -49,6 +51,7 @@ import tachiyomi.domain.history.model.HistoryUpdate
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
+import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -89,7 +92,19 @@ class ExternalIntents {
             ?: HosterLoader.getBestVideo(source, hosters)
             ?: throw Exception("Video list is empty")
 
-        val videoUrl = getVideoUrl(source, context, video) ?: return null
+        var videoUrl = getVideoUrl(source, context, video) ?: return null
+
+        if (video.usesHttpServer()) {
+            val (success, port) = MainActivity.startHttpServerService(context, source.id)
+            if (!success) {
+                launchUI {
+                    context.toast(AYMR.strings.http_server_start_failure)
+                }
+                return null
+            }
+
+            videoUrl = getVideoUrl(source, context, video.copyHttpServer(port)) ?: return null
+        }
 
         val pkgName = playerPreferences.externalPlayerPreference.get()
 

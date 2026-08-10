@@ -74,6 +74,12 @@ object Notifications {
      */
     const val CHANNEL_TORRENT_SERVER = "torrent_server_channel"
     const val ID_TORRENT_SERVER = -801
+
+    /**
+     * Notification channel and ids used for http server
+     */
+    const val CHANNEL_HTTP_SERVER = "http_server_channel"
+    const val ID_HTTP_SERVER = -901
     // <-- AY
 
     // AM (DISCORD_RPC) -->
@@ -191,6 +197,10 @@ object Notifications {
                 // AY -->
                 buildNotificationChannel(CHANNEL_TORRENT_SERVER, IMPORTANCE_LOW) {
                     setName(context.stringResource(AYMR.strings.pref_category_torrentserver))
+                    setShowBadge(false)
+                },
+                buildNotificationChannel(CHANNEL_HTTP_SERVER, IMPORTANCE_LOW) {
+                    setName(context.stringResource(AYMR.strings.pref_http_server_name))
                     setShowBadge(false)
                 },
                 // <-- AY

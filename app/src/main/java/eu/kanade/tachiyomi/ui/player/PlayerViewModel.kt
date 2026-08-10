@@ -47,6 +47,7 @@ import eu.kanade.tachiyomi.data.torrent.service.TorrentServerService
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.player.controls.components.IndexedSegment
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.getChangedAt
@@ -1088,13 +1089,33 @@ class PlayerViewModel @JvmOverloads constructor(
                 torrentLinkHandler(video.videoUrl, video.videoTitle, videoOptions)
             }
         } else {
-            mpvCommand(
-                "loadfile",
-                parseVideoUrl(video.videoUrl)!!,
-                "replace",
-                "0",
-                videoOptions,
-            )
+            launchIO {
+                val sourceId = stateData.value.currentSource?.id
+                var videoUrl: String = video.videoUrl
+                if (video.usesHttpServer() && sourceId != null) {
+                    val (success, port) = MainActivity.startHttpServerService(
+                        context = context,
+                        sourceId = sourceId,
+                    )
+
+                    val newVideo = video.copyHttpServer(port)
+                    videoUrl = newVideo.videoUrl
+                    updateStateData { it.copy(currentVideo = newVideo) }
+
+                    if (!success) {
+                        _eventFlow.emit(Event.ToastResource(AYMR.strings.http_server_start_failure))
+                        return@launchIO
+                    }
+                }
+
+                mpvCommand(
+                    "loadfile",
+                    parseVideoUrl(videoUrl)!!,
+                    "replace",
+                    "0",
+                    videoOptions,
+                )
+            }
         }
     }
 

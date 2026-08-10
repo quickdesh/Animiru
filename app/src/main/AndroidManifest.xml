@@ -265,6 +265,10 @@
         <service
             android:name=".data.torrent.service.TorrentServerService"
             android:foregroundServiceType="dataSync" />
+
+        <service
+            android:name=".data.player.service.HttpServerService"
+            android:foregroundServiceType="dataSync" />
         <!-- AY -->
 
         <provider

@@ -22,6 +22,9 @@ dependencies {
     implementation(libs.injekt)
     implementation(libs.rxJava)
     implementation(libs.jsoup)
+    // AY -->
+    api(aniyomilibs.nanohttpd)
+    // <-- AY
 
     implementation(libs.androidx.preference)
 
