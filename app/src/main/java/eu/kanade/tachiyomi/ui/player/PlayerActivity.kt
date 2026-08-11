@@ -279,6 +279,7 @@ class PlayerActivity : BaseActivity() {
 
     override fun onDestroy() {
         viewModel.player.release()
+        viewModel.stopHttpServer()
 
         mediaSession?.let {
             it.isActive = false

@@ -28,6 +28,7 @@ import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.animesource.model.Hoster
+import eu.kanade.tachiyomi.animesource.model.HttpServer
 import eu.kanade.tachiyomi.animesource.model.SerializableHoster.Companion.toHosterList
 import eu.kanade.tachiyomi.animesource.model.ThumbnailInfo
 import eu.kanade.tachiyomi.animesource.model.TileInfo
@@ -47,7 +48,6 @@ import eu.kanade.tachiyomi.data.torrent.service.TorrentServerService
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
-import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.player.controls.components.IndexedSegment
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.HosterState
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.getChangedAt
@@ -264,6 +264,7 @@ class PlayerViewModel @JvmOverloads constructor(
     private val _eventFlow = MutableSharedFlow<Event>()
     val eventFlow = _eventFlow.asSharedFlow()
 
+    private var httpServer: HttpServer? = null
     private var timerJob: Job? = null
     private var getHosterVideoLinksJob: Job? = null
     private var episodeToDownload: Download? = null
@@ -853,6 +854,11 @@ class PlayerViewModel @JvmOverloads constructor(
 
     // === Load ===
 
+    fun stopHttpServer() {
+        httpServer?.stop()
+        httpServer = null
+    }
+
     fun cancelHosterVideoLinksJob() {
         getHosterVideoLinksJob?.cancel()
     }
@@ -927,13 +933,19 @@ class PlayerViewModel @JvmOverloads constructor(
                     }.awaitAll()
 
                     if (hasFoundPreferredVideo.compareAndSet(false, true)) {
-                        val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(stateData.value.hosterState)
-                        if (hosterIdx == -1) {
-                            throw ExceptionWithStringResource("No available videos", AYMR.strings.no_available_videos)
-                        }
+                        if (uiData.value.selectedHosterVideoIndex == Pair(-1, -1)) {
+                            val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(stateData.value.hosterState)
+                            if (hosterIdx == -1) {
+                                throw ExceptionWithStringResource(
+                                    "No available videos",
+                                    AYMR.strings.no_available_videos,
+                                )
+                            }
 
-                        val video = (stateData.value.hosterState[hosterIdx] as HosterState.Ready).videoList[videoIdx]
-                        loadVideo(video, hosterIdx, videoIdx)
+                            val video = (stateData.value.hosterState[hosterIdx] as HosterState.Ready)
+                                .videoList[videoIdx]
+                            loadVideo(video, hosterIdx, videoIdx)
+                        }
                     }
                 }
             } catch (e: CancellationException) {
@@ -1056,6 +1068,7 @@ class PlayerViewModel @JvmOverloads constructor(
     private fun setVideo(video: Video?) {
         if (player.isExiting) return
         if (video == null) return
+        stopHttpServer()
 
         updateStateData { it.copy(isStopped = false) }
         setHttpOptions(video)
@@ -1090,22 +1103,22 @@ class PlayerViewModel @JvmOverloads constructor(
             }
         } else {
             launchIO {
-                val sourceId = stateData.value.currentSource?.id
+                val httpSource = stateData.value.currentSource as? AnimeHttpSource
                 var videoUrl: String = video.videoUrl
-                if (video.usesHttpServer() && sourceId != null) {
-                    val (success, port) = MainActivity.startHttpServerService(
-                        context = context,
-                        sourceId = sourceId,
-                    )
+                if (video.usesHttpServer() && httpSource != null) {
+                    val port = try {
+                        httpServer = httpSource.createHttpServer()
+                        httpServer?.start()
+                        httpServer?.listeningPort ?: 0
+                    } catch (e: Exception) {
+                        logcat(LogPriority.ERROR, e) { "Failed to start http server" }
+                        _eventFlow.emit(Event.ToastResource(AYMR.strings.http_server_start_failure))
+                        return@launchIO
+                    }
 
                     val newVideo = video.copyHttpServer(port)
                     videoUrl = newVideo.videoUrl
                     updateStateData { it.copy(currentVideo = newVideo) }
-
-                    if (!success) {
-                        _eventFlow.emit(Event.ToastResource(AYMR.strings.http_server_start_failure))
-                        return@launchIO
-                    }
                 }
 
                 mpvCommand(

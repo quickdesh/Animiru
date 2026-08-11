@@ -133,6 +133,7 @@ class SyncEpisodesWithSource(
                         summary = episode.summary,
                         // <-- AY
                         sourceOrder = episode.sourceOrder,
+                        memo = episode.memo,
                     )
 
                     if (episode.dateUpload != 0L) {

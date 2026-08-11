@@ -450,7 +450,6 @@ class Downloader(
         video.status = Video.State.LOAD_VIDEO
 
         var progressJob: Job? = null
-        var isExternal = false
         var httpServer: HttpServer? = null
 
         // Get filename from download info
@@ -490,10 +489,11 @@ class Downloader(
 
                         downloadVideo(download, tmpDir, filename)
                     } else {
-                        isExternal = true
-
-                        val (success, port) = MainActivity.startHttpServerService(context, download.source.id)
-                        if (!success) throw Exception("Failed to start server")
+                        if (download.video!!.usesHttpServer()) {
+                            val (success, port) = MainActivity.startHttpServerService(context, download.source.id)
+                            if (!success) throw Exception("Failed to start server")
+                            download.video = download.video!!.copyHttpServer(port)
+                        }
 
                         val betterFileName = DiskUtil.buildValidFilename(
                             // AM (CUSTOM_INFORMATION) -->
@@ -501,7 +501,7 @@ class Downloader(
                             // <-- AM (CUSTOM_INFORMATION)
                         )
                         downloadVideoExternal(
-                            video = download.video!!.copyHttpServer(port),
+                            video = download.video!!,
                             source = download.source,
                             tmpDir = tmpDir,
                             filename = betterFileName,
@@ -513,9 +513,7 @@ class Downloader(
             video.videoUrl = file.uri.path ?: ""
             download.progress = 100
             video.status = Video.State.READY
-            if (!isExternal) {
-                httpServer?.stop()
-            }
+            httpServer?.stop()
             progressJob?.cancel()
         } catch (e: Exception) {
             httpServer?.stop()
