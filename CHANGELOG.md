@@ -11,6 +11,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Other
+- Merge from aniyomi ([@Secozzi](https://github.com/Secozzi)) ([#191](https://github.com/quickdesh/Animiru/pull/191))
 
 ## [v0.19.8.0] - 2026-08-03
 ### Improved
