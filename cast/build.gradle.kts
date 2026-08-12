@@ -34,6 +34,7 @@ dependencies {
     implementation(aniyomilibs.mediarouter)
     implementation(aniyomilibs.ffmpeg.kit)
     implementation(libs.androidx.appCompat)
+    implementation(libs.injekt)
 
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.materialIcons)

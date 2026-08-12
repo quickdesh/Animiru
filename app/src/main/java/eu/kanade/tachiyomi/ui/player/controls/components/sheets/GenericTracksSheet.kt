@@ -110,13 +110,13 @@ fun getTrackTitle(mpvVideoTrack: MpvVideoTrack): String {
     return when (mpvVideoTrack) {
         is MpvVideoTrack.External -> {
             val title = mpvVideoTrack.title
-            val hasLang = !mpvVideoTrack.language.isNullOrBlank()
+            val hasLang = !mpvVideoTrack.lang.isNullOrBlank()
 
             if (hasLang) {
                 stringResource(
                     AMMR.strings.player_sheets_track_title_w_lang_no_id,
                     title,
-                    mpvVideoTrack.language,
+                    mpvVideoTrack.lang,
                 )
             } else {
                 title

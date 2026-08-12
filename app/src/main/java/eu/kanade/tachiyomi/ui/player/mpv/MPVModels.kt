@@ -118,7 +118,7 @@ sealed interface MpvVideoTrack : VideoTrack {
         val data: Track,
         val index: Int,
         val id: Int? = null,
-        val language: String? = null,
+        val lang: String? = null,
         val mainSelection: Int = -1,
         val state: TrackState = TrackState.Idle,
     ) : MpvVideoTrack
@@ -131,7 +131,7 @@ sealed interface MpvVideoTrack : VideoTrack {
 
     override val language: String
         get() = when (this) {
-            is External -> language.orEmpty()
+            is External -> lang.orEmpty()
             is Internal -> data.lang.orEmpty()
         }
 

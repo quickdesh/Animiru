@@ -8,10 +8,10 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
-import aniyomi.core.common.torrent.TorrentPreferences
-import aniyomi.core.common.torrent.TorrentServerUtils
 import animiru.domain.player.service.GesturePreferences
 import animiru.domain.player.service.PlayerPreferences
+import aniyomi.core.common.torrent.TorrentPreferences
+import aniyomi.core.common.torrent.TorrentServerUtils
 import aniyomi.domain.anime.SeasonAnime
 import aniyomi.domain.anime.SeasonDisplayMode
 import cafe.adriel.voyager.core.model.StateScreenModel

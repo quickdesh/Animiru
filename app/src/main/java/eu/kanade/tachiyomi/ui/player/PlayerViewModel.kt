@@ -13,9 +13,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import aniyomi.core.common.torrent.TorrentPreferences
-import aniyomi.core.common.torrent.TorrentServerApi
-import aniyomi.core.common.torrent.TorrentServerUtils
 import animiru.domain.player.interactor.TrackSelect
 import animiru.domain.player.model.ArtType
 import animiru.domain.player.model.CustomKeyCodes
@@ -29,6 +26,9 @@ import animiru.domain.player.service.GesturePreferences
 import animiru.domain.player.service.PlayerPreferences
 import animiru.domain.player.service.SubtitlePreferences
 import animiru.feature.cast.CastProxyServerService
+import aniyomi.core.common.torrent.TorrentPreferences
+import aniyomi.core.common.torrent.TorrentServerApi
+import aniyomi.core.common.torrent.TorrentServerUtils
 import com.yubyf.truetypeparser.TTFFile
 import dev.icerock.moko.resources.StringResource
 import dev.vivvvek.seeker.Segment
@@ -55,6 +55,7 @@ import eu.kanade.tachiyomi.data.database.models.isRecognizedNumber
 import eu.kanade.tachiyomi.data.database.models.toDomainEpisode
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.model.Download
+import eu.kanade.tachiyomi.data.player.service.HttpServerService
 import eu.kanade.tachiyomi.data.saver.Image
 import eu.kanade.tachiyomi.data.saver.ImageSaver
 import eu.kanade.tachiyomi.data.saver.Location
@@ -62,6 +63,7 @@ import eu.kanade.tachiyomi.data.torrent.service.TorrentServerService
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.player.cast.CastDialog
 import eu.kanade.tachiyomi.ui.player.cast.CastSheet
 import eu.kanade.tachiyomi.ui.player.cast.CastUiData
@@ -116,6 +118,7 @@ import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import tachiyomi.cast.CastEvent
 import tachiyomi.cast.CastManager
 import tachiyomi.cast.domain.TrackInformation
@@ -573,6 +576,7 @@ class PlayerViewModel @JvmOverloads constructor(
                         isErrorCasting = true,
                     )
                 }
+                stopHttpServerService()
             }
             CastEvent.ConnectionStart -> {
                 updateStateData {
@@ -607,6 +611,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 }
 
                 context.stopService(Intent(context, CastProxyServerService::class.java))
+                stopHttpServerService()
             }
             is CastEvent.NextEpisode -> {
                 nextEpisode(next = event.next)
@@ -968,7 +973,14 @@ class PlayerViewModel @JvmOverloads constructor(
 
     // === Casting ===
 
-    private fun getProxyUrl(address: String, url: String, headers: Headers): String {
+    private fun stopHttpServerService() {
+        context.stopService(Intent(context, HttpServerService::class.java))
+    }
+
+    private fun getProxyUrl(address: String, url: String, headers: Headers, isTorrent: Boolean): String {
+        if (isTorrent) return url
+        if (url.toHttpUrlOrNull()?.host?.startsWith(address) == true) return url
+
         return "http://$address:$castProxyPort".toHttpUrl().newBuilder().apply {
             addPathSegment("proxy")
             addQueryParameter("url", url)
@@ -983,8 +995,15 @@ class PlayerViewModel @JvmOverloads constructor(
         }.build().toString()
     }
 
+    private fun String.setToLocal(): String {
+        return toHttpUrl().newBuilder().apply {
+            host("localhost")
+            port(1)
+        }.build().toString()
+    }
+
     private fun startCasting(startPosition: Long = 0) {
-        val video = stateData.value.currentVideo ?: return
+        var video = stateData.value.currentVideo ?: return
         val source = stateData.value.currentSource ?: return
         val anime = stateData.value.currentAnime ?: return
         val episode = stateData.value.currentEpisode ?: return
@@ -1007,7 +1026,42 @@ class PlayerViewModel @JvmOverloads constructor(
 
         viewModelScope.launch {
             val address = context.getWanIp() ?: "127.0.0.1"
-            if (stateData.value.isEpisodeOnline && castProxy) {
+            val isTorrent = torrentPreferences.torrServerEnable.get() && isTorrent(video)
+
+            // If the video already requires a http server, we need to relaunch it with the service.
+            if (httpServer != null) {
+                stopHttpServer()
+                val (success, port) = MainActivity.startHttpServerService(context, source.id)
+                if (!success) {
+                    _eventFlow.emit(Event.ToastResource(AYMR.strings.http_server_start_failure))
+                    return@launch
+                }
+
+                video = video
+                    .copy(
+                        videoUrl = video.videoUrl.setToLocal(),
+                        subtitleTracks = video.subtitleTracks.map {
+                            it.copy(url = it.url.setToLocal())
+                        },
+                        audioTracks = video.audioTracks.map {
+                            it.copy(url = it.url.setToLocal())
+                        },
+                    )
+                    .copyHttpServer(port)
+            }
+
+            if (isTorrent) {
+                video = withIOContext {
+                    TorrentServerService.start()
+                    val videoUrl = getTorrentUrl(video.videoUrl, video.videoTitle).toHttpUrl().newBuilder()
+                        .host(address)
+                        .build()
+                        .toString()
+                    video.copy(
+                        videoUrl = videoUrl,
+                    )
+                }
+            } else if (stateData.value.isEpisodeOnline && castProxy) {
                 context.startService(
                     Intent(context, CastProxyServerService::class.java)
                         .putExtra(CastProxyServerService.EXTRA_ADDRESS, address),
@@ -1043,12 +1097,12 @@ class PlayerViewModel @JvmOverloads constructor(
                 )
             } else if (castProxy) {
                 video.copy(
-                    videoUrl = getProxyUrl(address, video.videoUrl, videoHeaders),
+                    videoUrl = getProxyUrl(address, video.videoUrl, videoHeaders, isTorrent),
                     subtitleTracks = video.subtitleTracks.map {
-                        it.copy(url = getProxyUrl(address, it.url, videoHeaders))
+                        it.copy(url = getProxyUrl(address, it.url, videoHeaders, isTorrent))
                     },
                     audioTracks = video.audioTracks.map {
-                        it.copy(url = getProxyUrl(address, it.url, videoHeaders))
+                        it.copy(url = getProxyUrl(address, it.url, videoHeaders, isTorrent))
                     },
                 )
             } else {
@@ -1589,22 +1643,24 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     private suspend fun torrentLinkHandler(videoUrl: String, title: String, videoOptions: String) {
+        val videoTorrentUrl = getTorrentUrl(videoUrl, title)
+        mpvCommand(
+            "loadfile",
+            videoTorrentUrl,
+            "replace",
+            "0",
+            videoOptions,
+        )
+    }
+
+    private suspend fun getTorrentUrl(videoUrl: String, title: String): String {
         var index = 0
 
         // check if link is from localSource
         if (videoUrl.startsWith("content://")) {
             val videoInputStream = context.contentResolver.openInputStream(videoUrl.toUri())
             val torrent = torrentServerApi.uploadTorrent(videoInputStream!!, title, false)
-            val torrentUrl = torrentServerUtils.getTorrentPlayLink(torrent, 0)
-
-            mpvCommand(
-                "loadfile",
-                torrentUrl,
-                "replace",
-                "0",
-                videoOptions,
-            )
-            return
+            return torrentServerUtils.getTorrentPlayLink(torrent, 0)
         }
 
         // check if link is from magnet, in that check if index is present
@@ -1619,15 +1675,7 @@ class PlayerViewModel @JvmOverloads constructor(
         }
 
         val currentTorrent = torrentServerApi.addTorrent(videoUrl, title, "", "", false)
-        val videoTorrentUrl = torrentServerUtils.getTorrentPlayLink(currentTorrent, index)
-
-        mpvCommand(
-            "loadfile",
-            videoTorrentUrl,
-            "replace",
-            "0",
-            videoOptions,
-        )
+        return torrentServerUtils.getTorrentPlayLink(currentTorrent, index)
     }
 
     private fun isTorrent(video: Video): Boolean {
@@ -2007,7 +2055,7 @@ class PlayerViewModel @JvmOverloads constructor(
             }
 
             updateSubtitleTrackAt(idx) {
-                it.copy(id = track.id, state = TrackState.Loaded, language = track.getLanguage())
+                it.copy(id = track.id, state = TrackState.Loaded, lang = track.getLanguage())
             }
             updateStateData { it.copy(hasLoadedSubs = true) }
             checkFileLoaded()
@@ -2024,7 +2072,7 @@ class PlayerViewModel @JvmOverloads constructor(
             }
 
             updateAudioTrackAt(idx) {
-                it.copy(id = track.id, state = TrackState.Loaded, language = track.getLanguage())
+                it.copy(id = track.id, state = TrackState.Loaded, lang = track.getLanguage())
             }
             updateStateData { it.copy(hasLoadedAudio = true) }
             checkFileLoaded()

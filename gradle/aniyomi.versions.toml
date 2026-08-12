@@ -34,5 +34,4 @@ google-api-client-oauth = { module = "com.google.oauth-client:google-oauth-clien
 # AM (CAST) -->
 gms-cast = { module = "com.google.android.gms:play-services-cast-framework", version.ref = "gms-cast" }
 mediarouter = { module = "androidx.mediarouter:mediarouter", version.ref = "mediarouter" }
-nanohttpd = { module = "org.nanohttpd:nanohttpd", version.ref = "nanohttpd" }
 # <-- AM (CAST)

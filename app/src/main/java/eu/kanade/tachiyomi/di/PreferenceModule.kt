@@ -1,13 +1,13 @@
 package eu.kanade.tachiyomi.di
 
 import android.app.Application
-import aniyomi.core.common.torrent.TorrentPreferences
 import animiru.domain.player.service.AdvancedPlayerPreferences
 import animiru.domain.player.service.AudioPreferences
 import animiru.domain.player.service.DecoderPreferences
 import animiru.domain.player.service.GesturePreferences
 import animiru.domain.player.service.PlayerPreferences
 import animiru.domain.player.service.SubtitlePreferences
+import aniyomi.core.common.torrent.TorrentPreferences
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.connection.SyncPreferences
 import eu.kanade.domain.connection.service.ConnectionPreferences
