@@ -222,7 +222,6 @@ fun PlayerScreen(
             val readAhead by viewModel.propFlow<Float>("demuxer-cache-time").collectAsStateWithLifecycle()
             val remaining by viewModel.propFlow<Int>("playtime-remaining").collectAsStateWithLifecycle()
             val playbackSpeed by viewModel.propFlow<Float>("speed").collectAsStateWithLifecycle()
-            val currentChapter by viewModel.propFlow<Int>("chapter").collectAsStateWithLifecycle()
 
             MpvSurface(
                 modifier = Modifier.fillMaxSize(),
@@ -285,7 +284,6 @@ fun PlayerScreen(
                     readAhead = readAhead,
                     remaining = remaining,
                     playbackSpeed = playbackSpeed,
-                    currentChapter = currentChapter,
                     modifier = Modifier.fillMaxSize(),
                 )
 

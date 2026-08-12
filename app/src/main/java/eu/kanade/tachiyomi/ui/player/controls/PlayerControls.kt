@@ -65,7 +65,6 @@ fun PlayerControls(
     readAhead: Float?,
     remaining: Int?,
     playbackSpeed: Float?,
-    currentChapter: Int?,
     modifier: Modifier = Modifier,
 ) {
     val transparentOverlay by animateFloatAsState(
@@ -365,13 +364,13 @@ fun PlayerControls(
             AnimatedVisibility(
                 visible = uiData.controlsShown && !uiData.isControlsLocked,
                 enter = if (!uiData.reduceMotion) {
-                    slideInHorizontally(playerControlsEnterAnimationSpec()) { -it } +
+                    slideInVertically(playerControlsEnterAnimationSpec()) { it } +
                         fadeIn(playerControlsEnterAnimationSpec())
                 } else {
                     fadeIn(playerControlsEnterAnimationSpec())
                 },
                 exit = if (!uiData.reduceMotion) {
-                    slideOutHorizontally(playerControlsExitAnimationSpec()) { -it } +
+                    slideOutVertically(playerControlsExitAnimationSpec()) { it } +
                         fadeOut(playerControlsExitAnimationSpec())
                 } else {
                     fadeOut(playerControlsExitAnimationSpec())
@@ -495,7 +494,6 @@ private fun PlayerControlsPreview() {
             readAhead = 0f,
             remaining = 0,
             playbackSpeed = 1f,
-            currentChapter = 0,
         )
     }
 }
