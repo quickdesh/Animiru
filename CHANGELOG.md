@@ -14,6 +14,29 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 ### Added
 - Added chromecast support ([@Secozzi](https://github.com/Secozzi)) ([#175](https://github.com/quickdesh/Animiru/pull/175))
 
+### Other
+- Merge from aniyomi ([@Secozzi](https://github.com/Secozzi)) ([#191](https://github.com/quickdesh/Animiru/pull/191))
+
+## [v0.19.8.1] - 2026-08-09
+### Improved
+- Make some more mpv options overridable by mpv.conf ([@Secozzi](https://github.com/Secozzi)) ([#187](https://github.com/quickdesh/Animiru/pull/187))
+- Add language indicator for external tracks ([@Secozzi](https://github.com/Secozzi)) ([#189](https://github.com/quickdesh/Animiru/pull/189))
+
+### Fixed
+- Fix current chapter not indicator sometimes not showing ([@Secozzi](https://github.com/Secozzi)) ([#188](https://github.com/quickdesh/Animiru/pull/188))
+
+## [v0.19.8.0] - 2026-08-03
+### Improved
+- Always display navigation bar labels & implement rail in tablet mode ([@Secozzi](https://github.com/Secozzi)) ([#181](https://github.com/quickdesh/Animiru/pull/181))
+
+### Fixed
+- Fix entering pip not working for extreme aspect ratios ([@Secozzi](https://github.com/Secozzi)) ([#176](https://github.com/quickdesh/Animiru/pull/176))
+- Fix hardware decoding not preferring HW+ ([@Secozzi](https://github.com/Secozzi)) ([#177](https://github.com/quickdesh/Animiru/pull/177))
+- Display current chapter indicator if position is before first chapter ([@Secozzi](https://github.com/Secozzi)) ([#183](https://github.com/quickdesh/Animiru/pull/183))
+- Fix audio selection not showing for external audio tracks ([@Secozzi](https://github.com/Secozzi)) ([#184](https://github.com/quickdesh/Animiru/pull/184))
+- Fix "Don't skip" skipping for netflix style skipping ([@Secozzi](https://github.com/Secozzi)) ([#185](https://github.com/quickdesh/Animiru/pull/185))
+- Fix aniskip running even if "Disable AniSkip if video already contains chapters" is on ([@Secozzi](https://github.com/Secozzi)) ([#185](https://github.com/quickdesh/Animiru/pull/185))
+
 ## [v0.19.7.9] - 2026-07-08
 ### Fixed
 - Fix player crash when opening player ([@Secozzi](https://github.com/Secozzi)) ([#170](https://github.com/quickdesh/Animiru/pull/170))

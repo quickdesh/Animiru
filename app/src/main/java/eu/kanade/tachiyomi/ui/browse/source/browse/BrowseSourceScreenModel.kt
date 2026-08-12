@@ -81,22 +81,20 @@ class BrowseSourceScreenModel(
     val source = sourceManager.getOrStub(sourceId)
 
     init {
-        if (source is AnimeCatalogueSource) {
-            mutableState.update {
-                var query: String? = null
-                var listing = it.listing
+        mutableState.update {
+            var query: String? = null
+            var listing = it.listing
 
-                if (listing is Listing.Search) {
-                    query = listing.query
-                    listing = Listing.Search(query, source.getFilterList())
-                }
-
-                it.copy(
-                    listing = listing,
-                    filters = source.getFilterList(),
-                    toolbarQuery = query,
-                )
+            if (listing is Listing.Search) {
+                query = listing.query
+                listing = Listing.Search(query, source.getFilterList())
             }
+
+            it.copy(
+                listing = listing,
+                filters = source.getFilterList(),
+                toolbarQuery = query,
+            )
         }
 
         if (!getIncognitoState.await(source.id)) {
@@ -148,8 +146,6 @@ class BrowseSourceScreenModel(
     // <-- AY
 
     fun resetFilters() {
-        if (source !is AnimeCatalogueSource) return
-
         mutableState.update { it.copy(filters = source.getFilterList()) }
     }
 
@@ -158,8 +154,6 @@ class BrowseSourceScreenModel(
     }
 
     fun setFilters(filters: AnimeFilterList) {
-        if (source !is AnimeCatalogueSource) return
-
         mutableState.update {
             it.copy(
                 filters = filters,
@@ -168,8 +162,6 @@ class BrowseSourceScreenModel(
     }
 
     fun search(query: String? = null, filters: AnimeFilterList? = null) {
-        if (source !is AnimeCatalogueSource) return
-
         val input = state.value.listing as? Listing.Search
             ?: Listing.Search(query = null, filters = source.getFilterList())
 
@@ -185,8 +177,6 @@ class BrowseSourceScreenModel(
     }
 
     fun searchGenre(genreName: String) {
-        if (source !is AnimeCatalogueSource) return
-
         val defaultFilters = source.getFilterList()
         var genreExists = false
 

@@ -5,6 +5,8 @@ import aniyomi.domain.anime.SeasonDisplayMode
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.animesource.model.SAnime
+import kotlinx.serialization.json.JsonObject
+import mihon.core.common.extensions.EMPTY
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import uy.kohesive.injekt.injectLazy
@@ -53,6 +55,7 @@ data class Anime(
     val seasonNumber: Double,
     val seasonSourceOrder: Long,
     // <-- AY
+    val memo: JsonObject,
 ) : Serializable {
 
     // AM (CUSTOM_INFORMATION) -->
@@ -400,6 +403,7 @@ data class Anime(
             seasonNumber = -1.0,
             seasonSourceOrder = 0L,
             // <-- AY
+            memo = JsonObject.EMPTY,
         )
 
         // AM (CUSTOM_INFORMATION) -->

@@ -1,5 +1,8 @@
 package tachiyomi.domain.episode.model
 
+import kotlinx.serialization.json.JsonObject
+import mihon.core.common.extensions.EMPTY
+
 data class Episode(
     val id: Long,
     val animeId: Long,
@@ -25,6 +28,7 @@ data class Episode(
     // <-- AY
     val lastModifiedAt: Long,
     val version: Long,
+    val memo: JsonObject,
 ) {
     val isRecognizedNumber: Boolean
         get() = episodeNumber >= 0f
@@ -72,6 +76,7 @@ data class Episode(
             // <-- AY
             lastModifiedAt = 0,
             version = 1,
+            memo = JsonObject.EMPTY,
         )
     }
 }

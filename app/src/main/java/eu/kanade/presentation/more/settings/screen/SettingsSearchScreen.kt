@@ -56,6 +56,7 @@ import eu.kanade.presentation.more.settings.screen.player.PlayerSettingsDecoderS
 import eu.kanade.presentation.more.settings.screen.player.PlayerSettingsGesturesScreen
 import eu.kanade.presentation.more.settings.screen.player.PlayerSettingsPlayerScreen
 import eu.kanade.presentation.more.settings.screen.player.PlayerSettingsSubtitleScreen
+import eu.kanade.presentation.more.settings.screen.player.PlayerSettingsTorrentScreen
 import eu.kanade.presentation.util.Screen
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
@@ -336,6 +337,7 @@ private val playerSettingScreens = listOf(
     PlayerSettingsDecoderScreen,
     PlayerSettingsSubtitleScreen,
     PlayerSettingsAudioScreen,
+    PlayerSettingsTorrentScreen,
     PlayerSettingsAdvancedScreen,
 )
 // <-- AY

@@ -1,7 +1,7 @@
 package tachiyomi.data.source
 
 import androidx.paging.PagingState
-import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 import eu.kanade.tachiyomi.animesource.model.AnimesPage
 import mihon.domain.anime.model.toDomainAnime
@@ -13,7 +13,7 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class SourceSearchPagingSource(
-    source: AnimeCatalogueSource,
+    source: AnimeSource,
     private val query: String,
     private val filters: AnimeFilterList,
 ) : BaseSourcePagingSource(source) {
@@ -22,20 +22,20 @@ class SourceSearchPagingSource(
     }
 }
 
-class SourcePopularPagingSource(source: AnimeCatalogueSource) : BaseSourcePagingSource(source) {
+class SourcePopularPagingSource(source: AnimeSource) : BaseSourcePagingSource(source) {
     override suspend fun requestNextPage(currentPage: Int): AnimesPage {
         return source.getPopularAnime(currentPage)
     }
 }
 
-class SourceLatestPagingSource(source: AnimeCatalogueSource) : BaseSourcePagingSource(source) {
+class SourceLatestPagingSource(source: AnimeSource) : BaseSourcePagingSource(source) {
     override suspend fun requestNextPage(currentPage: Int): AnimesPage {
         return source.getLatestUpdates(currentPage)
     }
 }
 
 abstract class BaseSourcePagingSource(
-    protected val source: AnimeCatalogueSource,
+    protected val source: AnimeSource,
     private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
 ) : SourcePagingSource() {
 

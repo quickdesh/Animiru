@@ -1,6 +1,6 @@
 package mihon.feature.migration.list.search
 
-import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import mihon.domain.anime.model.toDomainAnime
 import tachiyomi.domain.anime.model.Anime
@@ -9,19 +9,19 @@ class SmartSourceSearchEngine(extraSearchParams: String?) : BaseSmartSearchEngin
 
     override fun getTitle(result: SAnime) = result.title
 
-    suspend fun regularSearch(source: AnimeCatalogueSource, title: String): Anime? {
+    suspend fun regularSearch(source: AnimeSource, title: String): Anime? {
         return regularSearch(makeSearchAction(source), title).let {
             it?.toDomainAnime(source.id)
         }
     }
 
-    suspend fun deepSearch(source: AnimeCatalogueSource, title: String): Anime? {
+    suspend fun deepSearch(source: AnimeSource, title: String): Anime? {
         return deepSearch(makeSearchAction(source), title).let {
             it?.toDomainAnime(source.id)
         }
     }
 
-    private fun makeSearchAction(source: AnimeCatalogueSource): SearchAction<SAnime> = { query ->
+    private fun makeSearchAction(source: AnimeSource): SearchAction<SAnime> = { query ->
         source.getSearchAnime(1, query, source.getFilterList()).animes
     }
 }

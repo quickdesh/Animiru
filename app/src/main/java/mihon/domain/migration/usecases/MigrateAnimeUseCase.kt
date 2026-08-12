@@ -15,6 +15,7 @@ import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import kotlinx.coroutines.CancellationException
 import mihon.domain.migration.models.MigrationFlag
+import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.category.interactor.GetCategories
@@ -34,10 +35,6 @@ class MigrateAnimeUseCase(
     private val downloadManager: DownloadManager,
     private val updateAnime: UpdateAnime,
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
-    private val syncEpisodesWithSource: SyncEpisodesWithSource,
-    // AY -->
-    private val syncSeasonsWithSource: SyncSeasonsWithSource,
-    // <-- AY
     private val updateEpisode: UpdateEpisode,
     private val getCategories: GetCategories,
     private val setAnimeCategories: SetAnimeCategories,
@@ -47,6 +44,7 @@ class MigrateAnimeUseCase(
     // AY -->
     private val backgroundCache: BackgroundCache,
     // <-- AY
+    private val updateAnimeFromRemote: UpdateAnimeFromRemote,
 ) {
     private val enhancedServices by lazy { trackerManager.trackers.filterIsInstance<EnhancedTracker>() }
 
@@ -59,23 +57,11 @@ class MigrateAnimeUseCase(
             when (target.fetchType) {
                 // AY -->
                 FetchType.Seasons -> {
-                    val seasons = targetSource.getSeasonList(target.toSAnime())
-
-                    try {
-                        syncSeasonsWithSource.await(seasons, target, targetSource)
-                    } catch (_: Exception) {
-                        // Worst case, seasons won't be synced
-                    }
+                    updateAnimeFromRemote.awaitSeasonsUpdate(target, fetchSeasons = true).getOrThrow()
                 }
                 // <-- AY
                 FetchType.Episodes -> {
-                    val episodes = targetSource.getEpisodeList(target.toSAnime())
-
-                    try {
-                        syncEpisodesWithSource.await(episodes, target, targetSource)
-                    } catch (_: Exception) {
-                        // Worst case, episodes won't be synced
-                    }
+                    updateAnimeFromRemote.awaitEpisodesUpdate(target, fetchEpisodes = true).getOrThrow()
                 }
             }
 

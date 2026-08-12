@@ -123,6 +123,9 @@ internal class ExtensionApi {
                     libVersion = it.extractLibVersion(),
                     lang = it.lang,
                     isNsfw = it.nsfw == 1,
+                    // AY -->
+                    isTorrent = it.isTorrent == 1,
+                    // <-- AY
                     sources = it.sources?.map(extensionSourceMapper).orEmpty(),
                     apkName = it.apk,
                     iconUrl = "$repoUrl/icon/${it.pkg}.png",
@@ -149,6 +152,9 @@ private data class ExtensionJsonObject(
     val code: Long,
     val version: String,
     val nsfw: Int,
+    // AY -->
+    val isTorrent: Int = 0,
+    // <-- AY
     val sources: List<ExtensionSourceJsonObject>?,
 )
 

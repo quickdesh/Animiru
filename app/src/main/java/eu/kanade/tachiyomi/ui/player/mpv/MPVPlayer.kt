@@ -95,12 +95,12 @@ class MPVPlayer(
 
         mpv.setOptionString("vo", videoOutput)
         setSafeOptionString("profile", "fast")
-        mpv.setOptionString("hwdec", if (decoderPreferences.tryHWDecoding.get()) "auto" else "no")
+        setSafeOptionString("hwdec", if (decoderPreferences.tryHWDecoding.get()) "mediacodec,mediacodec-copy" else "no")
         if (decoderPreferences.useYUV420P.get()) {
             mpv.setOptionString("vf", "format=yuv420p")
         }
 
-        mpv.setOptionString("msg-level", "all=" + if (networkPreferences.verboseLogging.get()) "v" else "warn")
+        setSafeOptionString("msg-level", "all=" + if (networkPreferences.verboseLogging.get()) "v" else "warn")
         mpv.setPropertyBoolean("input-default-bindings", true)
         mpv.setOptionString("idle", "yes")
         mpv.setOptionString("ytdl", "no")
@@ -122,7 +122,7 @@ class MPVPlayer(
         mpv.setOptionString("screenshot-directory", screenshotDir.path)
 
         VideoFilters.entries.forEach {
-            mpv.setOptionString(it.mpvProperty, it.preference(decoderPreferences).get().toString())
+            setSafeOptionString(it.mpvProperty, it.preference(decoderPreferences).get().toString())
         }
 
         mpv.setOptionString("speed", playerPreferences.playerSpeed.get().toString())

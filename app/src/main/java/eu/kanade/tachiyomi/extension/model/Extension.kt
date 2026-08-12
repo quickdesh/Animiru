@@ -14,6 +14,10 @@ sealed class Extension {
     abstract val lang: String?
     abstract val isNsfw: Boolean
 
+    // AY -->
+    abstract val isTorrent: Boolean
+    // <-- AY
+
     data class Installed(
         override val name: String,
         override val pkgName: String,
@@ -22,6 +26,9 @@ sealed class Extension {
         override val libVersion: Double,
         override val lang: String,
         override val isNsfw: Boolean,
+        // AY -->
+        override val isTorrent: Boolean,
+        // <-- AY
         val pkgFactory: String?,
         val sources: List<AnimeSource>,
         val icon: Drawable?,
@@ -39,6 +46,9 @@ sealed class Extension {
         override val libVersion: Double,
         override val lang: String,
         override val isNsfw: Boolean,
+        // AY -->
+        override val isTorrent: Boolean,
+        // <-- AY
         val sources: List<Source>,
         val apkName: String,
         val iconUrl: String,
@@ -70,5 +80,8 @@ sealed class Extension {
         val signatureHash: String,
         override val lang: String? = null,
         override val isNsfw: Boolean = false,
+        // AY -->
+        override val isTorrent: Boolean = false,
+        // <-- AY
     ) : Extension()
 }

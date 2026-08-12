@@ -19,8 +19,8 @@ android {
     defaultConfig {
         applicationId = "xyz.Quickdev.Animiru.mi"
 
-        versionCode = 144
-        versionName = "0.19.7.9"
+        versionCode = 146
+        versionName = "0.19.8.1"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getLatestCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getLatestCommitSha()}\"")
@@ -112,6 +112,7 @@ android {
                 "libffmpegkit_abidetect",
                 "libffmpegkit",
                 "libimagedecoder",
+                "liblibrary",
                 "libmpv",
                 "libplayer",
                 "libpostproc",
@@ -119,6 +120,7 @@ android {
                 "libsqlite3x",
                 "libswresample",
                 "libswscale",
+                "libtorrserver",
                 "libxml2",
             )
                 .map { "**/$it.so" }
@@ -226,6 +228,7 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.constraintLayout)
     // AY -->
+    implementation(aniyomilibs.localbroadcastmanager)
     implementation(aniyomilibs.compose.constraintlayout)
     // <-- AY
     implementation(libs.androidx.core)
@@ -329,6 +332,9 @@ dependencies {
 
     // true type parser
     implementation(aniyomilibs.truetypeparser)
+
+    // torrserver
+    implementation(aniyomilibs.torrserver)
     // <-- AY
 
     // AM (SYNC_DRIVE) -->

@@ -220,6 +220,7 @@ internal fun PreferenceItem(
                     canBeBlank = true,
                     validate = item.validate,
                     errorMessage = item.errorMessage,
+                    keyboardOptions = item.keyboardOptions,
                 )
             }
             // <-- AY

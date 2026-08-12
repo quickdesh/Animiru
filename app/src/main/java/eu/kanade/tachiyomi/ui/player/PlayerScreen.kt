@@ -321,7 +321,7 @@ fun PlayerScreen(
                     onClickHoster = viewModel::onHosterClicked,
                     onClickVideo = viewModel::onVideoClicked,
                     displayHosters = Pair(showFailedHosters, emptyHosters),
-                    chapter = stateData.chapters.getOrNull(currentChapter ?: 0),
+                    chapter = stateData.currentChapter,
                     chapters = stateData.chapters,
                     onSeekToChapter = viewModel::selectChapter,
                     decoder = decoder,

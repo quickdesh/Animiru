@@ -20,6 +20,7 @@ fun Episode.toSEpisode(): SEpisode {
         it.summary = summary
         it.preview_url = previewUrl
         // <-- AY
+        it.memo = memo
     }
 }
 
@@ -37,6 +38,7 @@ fun Episode.copyFromSEpisode(sEpisode: SEpisode): Episode {
         summary = sEpisode.summary?.ifBlank { null },
         previewUrl = sEpisode.preview_url?.ifBlank { null },
         // <-- AY
+        memo = sEpisode.memo,
     )
 }
 
@@ -64,4 +66,5 @@ fun Episode.toDbEpisode(): DbEpisode = EpisodeImpl().also {
     it.last_modified = lastModifiedAt
     it.version = version
     // <-- AM (SYNC)
+    it.memo = memo
 }

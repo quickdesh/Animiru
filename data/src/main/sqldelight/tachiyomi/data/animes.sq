@@ -1,8 +1,9 @@
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy;
 import eu.kanade.tachiyomi.animesource.model.FetchType;
-import kotlin.collections.List;
 import kotlin.Boolean;
 import kotlin.String;
+import kotlin.collections.List;
+import kotlinx.serialization.json.JsonObject;
 
 CREATE TABLE animes(
     _id INTEGER NOT NULL PRIMARY KEY,
@@ -37,8 +38,9 @@ CREATE TABLE animes(
     season_number REAL NOT NULL,
     season_source_order INTEGER NOT NULL,
     background_url TEXT,
-    background_last_modified INTEGER NOT NULL
+    background_last_modified INTEGER NOT NULL,
     -- <-- AY
+    memo BLOB AS JsonObject NOT NULL DEFAULT '{}'
 );
 
 CREATE INDEX library_favorite_index ON animes(favorite) WHERE favorite = 1;
@@ -214,8 +216,8 @@ AND (
 );
 
 insertReturningId:
-INSERT INTO animes(source, url, artist, author, description, genre, title, status, thumbnail_url, favorite, last_update, next_update, initialized, viewer, episode_flags, cover_last_modified, date_added, update_strategy, calculate_interval, last_modified_at, version, notes, fetch_type, parent_id, season_flags, season_number, season_source_order, background_url, background_last_modified)
-VALUES (:source, :url, :artist, :author, :description, :genre, :title, :status, :thumbnailUrl, :favorite, :lastUpdate, :nextUpdate, :initialized, :viewerFlags, :episodeFlags, :coverLastModified, :dateAdded, :updateStrategy, :calculateInterval, 0, :version, :notes, :fetchType, :parentId, :seasonFlags, :seasonNumber, :seasonSourceOrder, :backgroundUrl, :backgroundLastModified)
+INSERT INTO animes(source, url, artist, author, description, genre, title, status, thumbnail_url, favorite, last_update, next_update, initialized, viewer, episode_flags, cover_last_modified, date_added, update_strategy, calculate_interval, last_modified_at, version, notes, fetch_type, parent_id, season_flags, season_number, season_source_order, background_url, background_last_modified, memo)
+VALUES (:source, :url, :artist, :author, :description, :genre, :title, :status, :thumbnailUrl, :favorite, :lastUpdate, :nextUpdate, :initialized, :viewerFlags, :episodeFlags, :coverLastModified, :dateAdded, :updateStrategy, :calculateInterval, 0, :version, :notes, :fetchType, :parentId, :seasonFlags, :seasonNumber, :seasonSourceOrder, :backgroundUrl, :backgroundLastModified, :memo)
 RETURNING _id;
 
 update:
@@ -249,8 +251,9 @@ UPDATE animes SET
     season_number = coalesce(:seasonNumber, season_number),
     season_source_order = coalesce(:seasonSourceOrder, season_source_order),
     background_url = coalesce(:backgroundUrl, background_url),
-    background_last_modified = coalesce(:backgroundLastModified, background_last_modified)
+    background_last_modified = coalesce(:backgroundLastModified, background_last_modified),
     -- <-- AY
+    memo = coalesce(:memo, memo)
 WHERE _id = :animeId;
 
 insertNetworkAnime {
@@ -259,13 +262,13 @@ insertNetworkAnime {
         source, url, artist, author, description, genre, title, status, thumbnail_url, favorite,
         last_update, next_update, initialized, viewer, episode_flags, cover_last_modified, date_added,
         update_strategy, calculate_interval, last_modified_at, version, fetch_type, parent_id, season_flags,
-        season_number, season_source_order, background_url, background_last_modified
+        season_number, season_source_order, background_url, background_last_modified, memo
     )
     SELECT
         :source, :url, :artist, :author, :description, :genre, :title, :status, :thumbnailUrl, :favorite,
         :lastUpdate, :nextUpdate, :initialized, :viewerFlags, :episodeFlags, :coverLastModified, :dateAdded,
         :updateStrategy, :calculateInterval, 0, :version, :fetchType, :parentId, :seasonFlags, :seasonNumber,
-        :seasonSourceOrder, :backgroundUrl, :backgroundLastModified
+        :seasonSourceOrder, :backgroundUrl, :backgroundLastModified, :memo
     WHERE NOT EXISTS(SELECT 0 FROM animes WHERE source = :source AND url = :url);
 
     -- Update the relevant details if applicable and not favorite
@@ -283,8 +286,9 @@ insertNetworkAnime {
         -- AY -->
         season_number = CASE WHEN :updateDetails THEN :seasonNumber ELSE season_number END,
         season_source_order = CASE WHEN :updateDetails THEN :seasonSourceOrder ELSE season_source_order END,
-        background_url = CASE WHEN :updateDetails THEN :backgroundUrl ELSE background_url END
+        background_url = CASE WHEN :updateDetails THEN :backgroundUrl ELSE background_url END,
         -- <-- AY
+        memo = :memo
     WHERE source = :source
     AND url = :url
     AND favorite = 0;

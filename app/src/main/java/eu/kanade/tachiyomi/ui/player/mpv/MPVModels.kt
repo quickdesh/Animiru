@@ -89,6 +89,8 @@ data class TrackNode(
 
     fun getMetadata(key: String): String? = metadata?.get(key)
     fun hasMetadata(): Boolean = !metadata.isNullOrEmpty()
+
+    fun getLanguage(): String? = (lang ?: metadata?.get("language"))?.takeUnless { it == "und" }
 }
 
 @Serializable
@@ -116,6 +118,7 @@ sealed interface MpvVideoTrack : VideoTrack {
         val data: Track,
         val index: Int,
         val id: Int? = null,
+        val language: String? = null,
         val mainSelection: Int = -1,
         val state: TrackState = TrackState.Idle,
     ) : MpvVideoTrack
@@ -128,7 +131,7 @@ sealed interface MpvVideoTrack : VideoTrack {
 
     override val language: String
         get() = when (this) {
-            is External -> data.lang
+            is External -> language.orEmpty()
             is Internal -> data.lang.orEmpty()
         }
 

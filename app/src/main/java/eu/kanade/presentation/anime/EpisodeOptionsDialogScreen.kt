@@ -235,18 +235,20 @@ class EpisodeOptionsDialogScreenModel(
                 }.awaitAll()
 
                 if (hasFoundPreferredVideo.compareAndSet(false, true)) {
-                    val hosterStateList = hosterState.value!!.getOrThrow()
-                    val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(hosterStateList)
-                    if (hosterIdx == -1) {
-                        _hosterState.update { _ ->
-                            Result.failure(NoSuchElementException("No available videos"))
+                    if (selectedHosterVideoIndex.value == Pair(-1, -1)) {
+                        val hosterStateList = hosterState.value!!.getOrThrow()
+                        val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(hosterStateList)
+                        if (hosterIdx == -1) {
+                            _hosterState.update { _ ->
+                                Result.failure(NoSuchElementException("No available videos"))
+                            }
+                            return@launchIO
                         }
-                        return@launchIO
+
+                        val video = (hosterStateList[hosterIdx] as HosterState.Ready).videoList[videoIdx]
+
+                        loadVideo(source, video, hosterIdx, videoIdx)
                     }
-
-                    val video = (hosterStateList[hosterIdx] as HosterState.Ready).videoList[videoIdx]
-
-                    loadVideo(source, video, hosterIdx, videoIdx)
                 }
             } catch (e: CancellationException) {
                 _hosterState.update { _ ->
@@ -519,7 +521,12 @@ private fun VideoList(
                     onExtDownloadClicked = { downloadEpisode(!useExternalDownloader) },
                     onCopyClicked = {
                         clipboardManager.setText(AnnotatedString(currentVideo.videoUrl))
-                        scope.launch { context.toast(copiedString) }
+                        scope.launch {
+                            if (currentVideo.usesHttpServer()) {
+                                MainActivity.startHttpServerService(context, anime.source)
+                            }
+                            context.toast(copiedString)
+                        }
                     },
                     onExtPlayerClicked = {
                         scope.launch {
@@ -528,6 +535,7 @@ private fun VideoList(
                                 anime.id,
                                 episode.id,
                                 true,
+                                anime.source,
                                 currentVideo,
                             )
                         }
@@ -539,6 +547,7 @@ private fun VideoList(
                                 anime.id,
                                 episode.id,
                                 false,
+                                anime.source,
                                 currentVideo,
                                 selectedHosterVideoIndex.first,
                                 selectedHosterVideoIndex.second,

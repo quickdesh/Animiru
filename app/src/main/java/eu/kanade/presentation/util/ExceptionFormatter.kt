@@ -1,18 +1,21 @@
 package eu.kanade.presentation.util
 
 import android.content.Context
+import aniyomi.core.common.torrent.DisabledTorrServerException
 import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.util.system.isOnline
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.data.source.NoResultsException
 import tachiyomi.domain.source.model.SourceNotInstalledException
 import tachiyomi.i18n.MR
+import tachiyomi.i18n.aniyomi.AYMR
 import java.net.UnknownHostException
 
 context(context: Context)
 val Throwable.formattedMessage: String
     get() {
         when (this) {
+            is DisabledTorrServerException -> return context.stringResource(AYMR.strings.torrserver_disabled)
             is HttpException -> return context.stringResource(MR.strings.exception_http, code)
             is UnknownHostException -> {
                 return if (!context.isOnline()) {

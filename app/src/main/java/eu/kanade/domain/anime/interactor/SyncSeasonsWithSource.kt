@@ -74,6 +74,7 @@ class SyncSeasonsWithSource(
                         // <-- AM (CUSTOM_INFORMATION)
                         seasonNumber = season.seasonNumber,
                         seasonSourceOrder = season.seasonSourceOrder,
+                        memo = season.memo,
                     )
                     updatedSeasons.add(toChangeSeason)
                 }

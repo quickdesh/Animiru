@@ -242,6 +242,9 @@
     <string name="player_sheets_subtitles_ass_force">Force</string>
     <string name="player_sheets_subtitles_ass_strip">Strip</string>
 
+    <!-- Player - sheets -->
+    <string name="player_sheets_track_title_w_lang_no_id" translatable="false">%s (%s)</string>
+
     <!-- Cast -->
     <string name="player_cast">Cast</string>
     <string name="player_cast_unknown_device">Unknown device</string>

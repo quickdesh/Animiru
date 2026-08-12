@@ -115,7 +115,7 @@ data class BrowseSourceScreen(
             val source = screenModel.source as? AnimeHttpSource ?: return@f
             navigator.push(
                 WebViewScreen(
-                    url = source.baseUrl,
+                    url = source.getHomeUrl(),
                     initialTitle = source.name,
                     sourceId = source.id,
                 ),
@@ -123,7 +123,7 @@ data class BrowseSourceScreen(
         }
 
         LaunchedEffect(screenModel.source) {
-            assistUrl = (screenModel.source as? AnimeHttpSource)?.baseUrl
+            assistUrl = (screenModel.source as? AnimeHttpSource)?.getHomeUrl()
         }
 
         // AY -->
@@ -176,7 +176,7 @@ data class BrowseSourceScreen(
                                 Text(text = stringResource(MR.strings.popular))
                             },
                         )
-                        if ((screenModel.source as AnimeCatalogueSource).supportsLatest) {
+                        if (screenModel.source.supportsLatest) {
                             FilterChip(
                                 selected = state.listing == Listing.Latest,
                                 onClick = {

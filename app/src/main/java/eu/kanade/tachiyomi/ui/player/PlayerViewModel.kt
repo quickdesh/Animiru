@@ -3,13 +3,19 @@ package eu.kanade.tachiyomi.ui.player
 import android.app.Application
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
 import android.net.Uri
 import android.view.KeyEvent
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import aniyomi.core.common.torrent.TorrentPreferences
+import aniyomi.core.common.torrent.TorrentServerApi
+import aniyomi.core.common.torrent.TorrentServerUtils
 import animiru.domain.player.interactor.TrackSelect
 import animiru.domain.player.model.ArtType
 import animiru.domain.player.model.CustomKeyCodes
@@ -36,7 +42,10 @@ import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.animesource.model.Hoster
+import eu.kanade.tachiyomi.animesource.model.HttpServer
 import eu.kanade.tachiyomi.animesource.model.SerializableHoster.Companion.toHosterList
+import eu.kanade.tachiyomi.animesource.model.ThumbnailInfo
+import eu.kanade.tachiyomi.animesource.model.TileInfo
 import eu.kanade.tachiyomi.animesource.model.TimeStamp
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
@@ -49,6 +58,7 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.saver.Image
 import eu.kanade.tachiyomi.data.saver.ImageSaver
 import eu.kanade.tachiyomi.data.saver.Location
+import eu.kanade.tachiyomi.data.torrent.service.TorrentServerService
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
@@ -114,6 +124,7 @@ import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.core.common.util.lang.withIOContext
+import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.anime.model.Anime
@@ -170,6 +181,10 @@ class PlayerViewModel @JvmOverloads constructor(
     private val sourceManager: SourceManager = Injekt.get(),
     private val storageManager: StorageManager = Injekt.get(),
     private val trackerManager: TrackerManager = Injekt.get(),
+
+    private val torrentServerApi: TorrentServerApi = Injekt.get(),
+    private val torrentServerUtils: TorrentServerUtils = Injekt.get(),
+    private val torrentPreferences: TorrentPreferences = Injekt.get(),
 
     private val basePreferences: BasePreferences = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
@@ -286,10 +301,16 @@ class PlayerViewModel @JvmOverloads constructor(
     private val _eventFlow = MutableSharedFlow<Event>()
     val eventFlow = _eventFlow.asSharedFlow()
 
+    private var httpServer: HttpServer? = null
     private var timerJob: Job? = null
     private var getHosterVideoLinksJob: Job? = null
     private var episodeToDownload: Download? = null
     private var currentHosterList: List<Hoster>? = null
+    private var thumbnailFetchJob: Job? = null
+    private val thumbnailTileCache =
+        object : LinkedHashMap<Int, Bitmap>(4, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, Bitmap>?) = size > 3
+        }
 
     init {
         viewModelScope.launchIO {
@@ -393,6 +414,10 @@ class PlayerViewModel @JvmOverloads constructor(
                 .onEach { onSubtitleTrackSelectChange() }
                 .launchIn(viewModelScope)
 
+            propFlow<MPVNode>("aid")
+                .onEach { onAudioTrackSelectChange() }
+                .launchIn(viewModelScope)
+
             propFlow<Long>("user-data/current-anime/intro-length")
                 .filterNotNull()
                 .onEach { setAnimeSkipIntroLength(it) }
@@ -491,11 +516,11 @@ class PlayerViewModel @JvmOverloads constructor(
                 pauseUnpause()
             }
             is PlayerEvent.Seek -> {
-                updatePlaybackData { it.copy(isSeeking = true) }
-                seekTo(event.position)
+                updateSeekPos(event.position.toFloat())
             }
-            PlayerEvent.SeekFinished -> {
+            is PlayerEvent.SeekFinished -> {
                 updatePlaybackData { it.copy(isSeeking = false) }
+                seekTo(event.position)
             }
             is PlayerEvent.SetAutoPlay -> {
                 setAutoPlay(event.value)
@@ -1269,6 +1294,11 @@ class PlayerViewModel @JvmOverloads constructor(
 
     // === Load ===
 
+    fun stopHttpServer() {
+        httpServer?.stop()
+        httpServer = null
+    }
+
     fun cancelHosterVideoLinksJob() {
         getHosterVideoLinksJob?.cancel()
     }
@@ -1343,13 +1373,19 @@ class PlayerViewModel @JvmOverloads constructor(
                     }.awaitAll()
 
                     if (hasFoundPreferredVideo.compareAndSet(false, true)) {
-                        val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(stateData.value.hosterState)
-                        if (hosterIdx == -1) {
-                            throw ExceptionWithStringResource("No available videos", AYMR.strings.no_available_videos)
-                        }
+                        if (uiData.value.selectedHosterVideoIndex == Pair(-1, -1)) {
+                            val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(stateData.value.hosterState)
+                            if (hosterIdx == -1) {
+                                throw ExceptionWithStringResource(
+                                    "No available videos",
+                                    AYMR.strings.no_available_videos,
+                                )
+                            }
 
-                        val video = (stateData.value.hosterState[hosterIdx] as HosterState.Ready).videoList[videoIdx]
-                        loadVideo(video, hosterIdx, videoIdx)
+                            val video = (stateData.value.hosterState[hosterIdx] as HosterState.Ready)
+                                .videoList[videoIdx]
+                            loadVideo(video, hosterIdx, videoIdx)
+                        }
                     }
                 }
             } catch (e: CancellationException) {
@@ -1460,6 +1496,10 @@ class PlayerViewModel @JvmOverloads constructor(
             clearTracks()
         }
 
+        viewModelScope.launchIO {
+            loadThumbnails(resolvedVideo, source)
+        }
+
         qualityIndex = Pair(hosterIndex, videoIndex)
         setVideo(resolvedVideo)
         return true
@@ -1468,6 +1508,7 @@ class PlayerViewModel @JvmOverloads constructor(
     private fun setVideo(video: Video?) {
         if (player.isExiting) return
         if (video == null) return
+        stopHttpServer()
 
         val castState = castManager.castState.value
         val isLoadingEpisode = if (castState.hasLoadedVideo) {
@@ -1511,13 +1552,123 @@ class PlayerViewModel @JvmOverloads constructor(
             "$option=\"$value\""
         }
 
+        if (torrentPreferences.torrServerEnable.get() && isTorrent(video)) {
+            launchIO {
+                TorrentServerService.start()
+                torrentLinkHandler(video.videoUrl, video.videoTitle, videoOptions)
+            }
+        } else {
+            launchIO {
+                val httpSource = stateData.value.currentSource as? AnimeHttpSource
+                var videoUrl: String = video.videoUrl
+                if (video.usesHttpServer() && httpSource != null) {
+                    val port = try {
+                        httpServer = httpSource.createHttpServer()
+                        httpServer?.start()
+                        httpServer?.listeningPort ?: 0
+                    } catch (e: Exception) {
+                        logcat(LogPriority.ERROR, e) { "Failed to start http server" }
+                        _eventFlow.emit(Event.ToastResource(AYMR.strings.http_server_start_failure))
+                        return@launchIO
+                    }
+
+                    val newVideo = video.copyHttpServer(port)
+                    videoUrl = newVideo.videoUrl
+                    updateStateData { it.copy(currentVideo = newVideo) }
+                }
+
+                mpvCommand(
+                    "loadfile",
+                    parseVideoUrl(videoUrl)!!,
+                    "replace",
+                    "0",
+                    videoOptions,
+                )
+            }
+        }
+    }
+
+    private suspend fun torrentLinkHandler(videoUrl: String, title: String, videoOptions: String) {
+        var index = 0
+
+        // check if link is from localSource
+        if (videoUrl.startsWith("content://")) {
+            val videoInputStream = context.contentResolver.openInputStream(videoUrl.toUri())
+            val torrent = torrentServerApi.uploadTorrent(videoInputStream!!, title, false)
+            val torrentUrl = torrentServerUtils.getTorrentPlayLink(torrent, 0)
+
+            mpvCommand(
+                "loadfile",
+                torrentUrl,
+                "replace",
+                "0",
+                videoOptions,
+            )
+            return
+        }
+
+        // check if link is from magnet, in that check if index is present
+        if (videoUrl.startsWith("magnet")) {
+            if (videoUrl.contains("index=")) {
+                index = try {
+                    videoUrl.substringAfter("index=").substringBefore("&").toInt()
+                } catch (_: NumberFormatException) {
+                    0
+                }
+            }
+        }
+
+        val currentTorrent = torrentServerApi.addTorrent(videoUrl, title, "", "", false)
+        val videoTorrentUrl = torrentServerUtils.getTorrentPlayLink(currentTorrent, index)
+
         mpvCommand(
             "loadfile",
-            parseVideoUrl(video.videoUrl)!!,
+            videoTorrentUrl,
             "replace",
             "0",
             videoOptions,
         )
+    }
+
+    private fun isTorrent(video: Video): Boolean {
+        if (video.videoUrl.startsWith(torrentServerApi.hostUrl)) {
+            return true
+        }
+
+        if (video.videoUrl.startsWith("magnet")) {
+            return true
+        }
+
+        return video.videoUrl.endsWith("torrent")
+    }
+
+    private suspend fun loadThumbnails(video: Video, source: AnimeSource?) {
+        if (source is AnimeHttpSource) {
+            try {
+                val thumbInfo = source.getVideoThumbnails(video)
+                if (thumbInfo != null) {
+                    updatePlaybackData {
+                        it.copy(
+                            thumbnailInfo = ThumbnailInfo(
+                                tileInfo = thumbInfo.tileInfo.sortedBy { it.timeMs },
+                                imageTileUrls = thumbInfo.imageTileUrls,
+                            ),
+                        )
+                    }
+
+                    // Preload first 2 tilemaps
+                    thumbInfo.imageTileUrls.take(2).forEachIndexed { index, tileUrl ->
+                        val bitmap = source.getImageTile(tileUrl)
+                        if (bitmap != null) {
+                            thumbnailTileCache[index] = bitmap
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                logcat(LogPriority.ERROR, e) { "Failed to fetch thumbnails" }
+            }
+        }
     }
 
     private fun parseVideoUrl(videoUrl: String?): String? {
@@ -1671,7 +1822,7 @@ class PlayerViewModel @JvmOverloads constructor(
         checkFileLoaded()
 
         // AniSkip stuff
-        val chapterCount = stateData.value.chapters.size
+        val chapterCount = mpv.getPropertyInt("chapter-list/count") ?: 0
         val duration = playbackData.value.duration
         loadAniSkip(chapterCount, duration)
     }
@@ -1856,7 +2007,7 @@ class PlayerViewModel @JvmOverloads constructor(
             }
 
             updateSubtitleTrackAt(idx) {
-                it.copy(id = track.id, state = TrackState.Loaded)
+                it.copy(id = track.id, state = TrackState.Loaded, language = track.getLanguage())
             }
             updateStateData { it.copy(hasLoadedSubs = true) }
             checkFileLoaded()
@@ -1873,7 +2024,7 @@ class PlayerViewModel @JvmOverloads constructor(
             }
 
             updateAudioTrackAt(idx) {
-                it.copy(id = track.id, state = TrackState.Loaded)
+                it.copy(id = track.id, state = TrackState.Loaded, language = track.getLanguage())
             }
             updateStateData { it.copy(hasLoadedAudio = true) }
             checkFileLoaded()
@@ -2066,6 +2217,24 @@ class PlayerViewModel @JvmOverloads constructor(
         }
     }
 
+    private fun onAudioTrackSelectChange() {
+        val id = mpv.getPropertyInt("aid")
+
+        updateStateData {
+            it.copy(
+                externalAudioTracks = it.externalAudioTracks.map { tracks ->
+                    tracks.copy(
+                        mainSelection = when (tracks.id) {
+                            null -> -1
+                            id -> 0
+                            else -> -1
+                        },
+                    )
+                },
+            )
+        }
+    }
+
     fun onTrackLoadedFailure(url: String) {
         val subtitleIdx = stateData.value.externalSubtitleTracks.indexOfFirst {
             it.data.url == url
@@ -2176,6 +2345,9 @@ class PlayerViewModel @JvmOverloads constructor(
             )
         }
         cancelHosterVideoLinksJob()
+        thumbnailTileCache.clear()
+        thumbnailFetchJob?.cancel()
+        lastThumbnailFetch = 0L
 
         viewModelScope.launch {
             val switchMethod = loadEpisode(episodeId)
@@ -2559,11 +2731,14 @@ class PlayerViewModel @JvmOverloads constructor(
     // === Seeking ===
 
     fun updateGestureSeekAmount(value: Pair<Int, Int>?) {
-        updatePlaybackData { it.copy(gestureSeekAmount = value) }
+        updatePlaybackData { it.copy(gestureSeekAmount = value, isGestureSeeking = value != null) }
     }
 
     fun updateIsSeeking(value: Boolean) {
         updatePlaybackData { it.copy(isSeeking = value) }
+        if (!value) {
+            updatePlaybackData { it.copy(thumbnailImage = null) }
+        }
     }
 
     fun updateSeekAmount(amount: Int) {
@@ -2696,6 +2871,51 @@ class PlayerViewModel @JvmOverloads constructor(
         setPropertyInt("chapter", index)
         dismissSheet()
         unpause()
+    }
+
+    private var lastThumbnailFetch = 0L
+
+    fun updateSeekPos(pos: Float) {
+        updatePlaybackData { it.copy(seekPosition = pos, isSeeking = true) }
+
+        val thumbInfo = playbackData.value.thumbnailInfo ?: return
+        val info = thumbInfo.tileInfo.lastOrNull { it.timeMs <= pos * 1000L }
+        if (info != null) {
+            val tileBitmap = thumbnailTileCache[info.imageIndex]
+            if (tileBitmap != null) {
+                createThumbnail(tileBitmap, info)
+            } else {
+                val now = System.currentTimeMillis()
+                if (now - lastThumbnailFetch < 2.seconds.inWholeMilliseconds) return
+                lastThumbnailFetch = now
+
+                thumbnailFetchJob?.cancel()
+                thumbnailFetchJob = viewModelScope.launchIO {
+                    val source = stateData.value.currentSource as? AnimeHttpSource ?: return@launchIO
+
+                    try {
+                        val tileUrl = thumbInfo.imageTileUrls[info.imageIndex]
+                        val bitmap = source.getImageTile(tileUrl)
+                        if (bitmap != null) {
+                            withUIContext {
+                                thumbnailTileCache[info.imageIndex] = bitmap
+                                createThumbnail(bitmap, info)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        if (e is CancellationException) throw e
+                        logcat(LogPriority.ERROR, e) { "Failed to fetch thumbnails tiles" }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun createThumbnail(tileBitmap: Bitmap, tileInfo: TileInfo) {
+        val thumbnail = Bitmap.createBitmap(tileBitmap, tileInfo.x, tileInfo.y, tileInfo.width, tileInfo.height)
+        updatePlaybackData {
+            it.copy(thumbnailImage = thumbnail.asImageBitmap())
+        }
     }
 
     // === Aniyomi ===
@@ -3116,12 +3336,24 @@ class PlayerViewModel @JvmOverloads constructor(
     // === Skip intro ===
 
     fun onChapterChanged(chapterIndex: Int?) {
-        if (chapterIndex == null) return
-        if (!introSkipEnabled) return
+        if (chapterIndex == null) {
+            updateStateData { it.copy(currentChapter = null) }
+            return
+        }
 
         val chapterList = mpv.getPropertyNode("chapter-list")?.toObject<List<ChapterNode>>(json)
             ?: emptyList()
-        val chapter = chapterList.getOrNull(chapterIndex) ?: return
+        val chapter = if (chapterIndex == -1) {
+            ChapterNode(
+                time = 0.0f,
+                "",
+            )
+        } else {
+            chapterList.getOrNull(chapterIndex) ?: return
+        }
+        updateStateData { it.copy(currentChapter = chapter.toSegment()) }
+
+        if (!introSkipEnabled) return
         val chapterType = chapter.chapterType
 
         if (chapterType == ChapterType.Other) {
@@ -3289,6 +3521,7 @@ class PlayerViewModel @JvmOverloads constructor(
         val hasLoadedSubs: Boolean = false,
         val hasLoadedAudio: Boolean = false,
         val chapters: List<Segment> = emptyList(),
+        val currentChapter: Segment? = null,
         val aniskipChapters: List<TimeStamp> = emptyList(),
         val subtitleTracks: List<TrackNode> = emptyList(),
         val audioTracks: List<TrackNode> = emptyList(),
@@ -3349,6 +3582,10 @@ class PlayerViewModel @JvmOverloads constructor(
         val currentBrightness: Float,
         val currentOrientation: Int? = null,
         val isSeeking: Boolean = false,
+        val isGestureSeeking: Boolean = false,
+        val seekPosition: Float = 0f,
+        val thumbnailImage: ImageBitmap? = null,
+        val thumbnailInfo: ThumbnailInfo? = null,
         val seekText: String? = null,
         val doubleTapSeekAmount: Int = 0,
         val isSeekingForwards: Boolean = false,
@@ -3367,7 +3604,7 @@ class PlayerViewModel @JvmOverloads constructor(
         data class NextEpisode(val next: Boolean) : PlayerEvent
         data object PlayPause : PlayerEvent
         data class Seek(val position: Int) : PlayerEvent
-        data object SeekFinished : PlayerEvent
+        data class SeekFinished(val position: Int) : PlayerEvent
         data class SetAutoPlay(val value: Boolean) : PlayerEvent
         data class SetPanel(val panel: Panels) : PlayerEvent
         data class SetSheet(val sheet: Sheets) : PlayerEvent

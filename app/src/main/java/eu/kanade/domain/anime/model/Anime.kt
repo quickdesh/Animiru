@@ -65,6 +65,7 @@ fun Anime.toSAnime(): SAnime = SAnime.create().also {
     it.season_number = seasonNumber
     // <-- AY
     it.initialized = initialized
+    it.memo = memo
 }
 
 fun Anime.copyFrom(other: SAnime): Anime {
@@ -102,6 +103,7 @@ fun Anime.copyFrom(other: SAnime): Anime {
         seasonNumber = other.season_number,
         // <-- AY
         initialized = other.initialized && initialized,
+        memo = other.memo,
     )
 }
 

@@ -32,5 +32,7 @@ dependencies {
     implementation(projects.domain)
     implementation(projects.core.common)
 
+    implementation(libs.injekt)
+
     api(libs.bundles.sqldelight)
 }

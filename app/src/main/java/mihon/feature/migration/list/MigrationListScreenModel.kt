@@ -9,6 +9,7 @@ import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.domain.episode.interactor.SyncEpisodesWithSource
 import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
+import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.source.getNameForAnimeInfo
 import kotlinx.collections.immutable.ImmutableList
@@ -30,6 +31,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import logcat.LogPriority
 import mihon.domain.migration.usecases.MigrateAnimeUseCase
+import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import mihon.feature.migration.list.models.MigratingAnime
 import mihon.feature.migration.list.models.MigratingAnime.SearchResult
 import mihon.feature.migration.list.search.SmartSourceSearchEngine
@@ -51,13 +53,13 @@ class MigrationListScreenModel(
     private val sourceManager: SourceManager = Injekt.get(),
     private val getAnime: GetAnime = Injekt.get(),
     private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
-    private val updateAnime: UpdateAnime = Injekt.get(),
     private val syncEpisodesWithSource: SyncEpisodesWithSource = Injekt.get(),
     // AY -->
     private val syncSeasonsWithSource: SyncSeasonsWithSource = Injekt.get(),
     // <-- AY
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
     private val migrateAnime: MigrateAnimeUseCase = Injekt.get(),
+    private val updateAnimeFromRemote: UpdateAnimeFromRemote = Injekt.get(),
 ) : StateScreenModel<MigrationListScreenModel.State>(State()) {
 
     private val smartSearchEngine = SmartSourceSearchEngine(extraSearchQuery)
@@ -131,7 +133,7 @@ class MigrationListScreenModel(
         val deepSearchMode = preferences.migrationDeepSearchMode.get()
 
         val sources = preferences.migrationSources.get()
-            .mapNotNull { sourceManager.get(it) as? AnimeCatalogueSource }
+            .mapNotNull { sourceManager.get(it) }
 
         for (anime in animes) {
             if (!currentCoroutineContext().isActive) break
@@ -169,8 +171,9 @@ class MigrationListScreenModel(
 
             if (result != null && result.first.thumbnailUrl == null) {
                 try {
-                    val newAnime = sourceManager.getOrStub(result.first.source).getAnimeDetails(result.first.toSAnime())
-                    updateAnime.awaitUpdateFromSource(result.first, newAnime, true)
+                    updateAnimeFromRemote.awaitEpisodesUpdate(result.first, fetchDetails = true, manualFetch = true)
+                        .getOrThrow()
+                        .anime
                 } catch (e: CancellationException) {
                     throw e
                 } catch (_: Exception) {
@@ -203,7 +206,7 @@ class MigrationListScreenModel(
 
     private suspend fun searchSource(
         anime: Anime,
-        source: AnimeCatalogueSource,
+        source: AnimeSource,
         deepSearchMode: Boolean,
     ): Pair<Anime, EpisodeInfo>? {
         return try {
@@ -217,8 +220,7 @@ class MigrationListScreenModel(
 
             val localAnime = networkToLocalAnime(searchResult)
             try {
-                val episodes = source.getEpisodeList(localAnime.toSAnime())
-                syncEpisodesWithSource.await(episodes, localAnime, source)
+                updateAnimeFromRemote.awaitEpisodesUpdate(localAnime, fetchEpisodes = true).getOrThrow()
             } catch (e: Exception) {
                 logcat(LogPriority.ERROR, e)
             }
@@ -268,19 +270,28 @@ class MigrationListScreenModel(
                     when (anime.fetchType) {
                         // AY -->
                         FetchType.Seasons -> {
-                            val seasons = source.getSeasonList(anime.toSAnime())
-                            syncSeasonsWithSource.await(seasons, anime, source)
+                            updateAnimeFromRemote.awaitSeasonsUpdate(
+                                source = source,
+                                anime = anime,
+                                fetchSeasons = true,
+                            )
+                                .getOrThrow()
+                                .anime
                         }
                         // <-- AY
                         FetchType.Episodes -> {
-                            val episodes = source.getEpisodeList(anime.toSAnime())
-                            syncEpisodesWithSource.await(episodes, anime, source)
+                            updateAnimeFromRemote.awaitEpisodesUpdate(
+                                source = source,
+                                anime = anime,
+                                fetchEpisodes = true,
+                            )
+                                .getOrThrow()
+                                .anime
                         }
                     }
                 } catch (_: Exception) {
-                    return@async MigrateSearchResult.Failure(anime.fetchType)
+                    MigrateSearchResult.Failure(anime.fetchType)
                 }
-                MigrateSearchResult.Success(anime)
             }
                 .await()
 
@@ -298,13 +309,6 @@ class MigrationListScreenModel(
             }
             // <-- AY
 
-            try {
-                val newAnime = sourceManager.getOrStub(resultAnime.source).getAnimeDetails(resultAnime.toSAnime())
-                updateAnime.awaitUpdateFromSource(resultAnime, newAnime, true)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (_: Exception) {
-            }
             migratingAnime.searchResult.value = resultAnime.toSuccessSearchResult()
             updateMigrationProgress()
         }
