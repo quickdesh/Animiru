@@ -79,6 +79,8 @@ import uy.kohesive.injekt.injectLazy
 import java.io.BufferedReader
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * This class is the one in charge of downloading episodes.
@@ -475,7 +477,7 @@ class Downloader(
                     if (downloadPreferences.useExternalDownloader.get() == download.changeDownloader) {
                         progressJob = scope.launch {
                             while (download.status == Download.State.DOWNLOADING) {
-                                delay(50)
+                                delay(50.milliseconds)
                                 notifier.onProgressChange(download)
                             }
                         }
@@ -555,7 +557,7 @@ class Downloader(
             // Retry 3 times, waiting 2, 4 and 8 seconds between attempts.
             .retryWhen { _, attempt ->
                 if (attempt < 3) {
-                    delay((2L shl attempt.toInt()) * 1000)
+                    delay((2L shl attempt.toInt()).seconds)
                     true
                 } else {
                     false

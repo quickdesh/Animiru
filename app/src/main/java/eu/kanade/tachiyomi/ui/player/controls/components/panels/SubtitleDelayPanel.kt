@@ -64,6 +64,7 @@ import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import kotlin.math.round
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SubtitleDelayPanel(
@@ -227,7 +228,7 @@ fun DelayCard(
                         val elapsed = System.currentTimeMillis() - timerStart!!
                         finalDelay = startingDelay + (if (isDirectionPositive!!) elapsed else -elapsed).toInt()
                         // Arbitrary delay of 20ms
-                        delay(20)
+                        delay(20.milliseconds)
                     }
                 }
                 Button(

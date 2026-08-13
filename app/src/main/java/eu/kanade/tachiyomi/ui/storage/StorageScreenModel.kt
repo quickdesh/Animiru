@@ -36,6 +36,7 @@ import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
 
 class StorageScreenModel(
     private val downloadCache: DownloadCache = Injekt.get(),
@@ -64,7 +65,7 @@ class StorageScreenModel(
             val hideHiddenCategories = libraryPreferences.hideHiddenCategoriesSettings.get()
 
             val downloadCacheFlow = downloadCache.changes
-                .debounce(500L)
+                .debounce(0.5.seconds)
                 .transformLatest {
                     if (skipDownloadChangeFlow.value) {
                         skipDownloadChangeFlow.value = false

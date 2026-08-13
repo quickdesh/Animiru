@@ -54,10 +54,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.sample
 import tachiyomi.presentation.core.components.Scroller.EXACT_HEIGHT_KEY_PREFIX
 import tachiyomi.presentation.core.components.Scroller.STICKY_HEADER_KEY_PREFIX
+import tachiyomi.presentation.core.util.ScrollBarVisibilityDuration
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Draws vertical fast scroller to a lazy list
@@ -176,11 +178,11 @@ fun VerticalFastScroller(
             val isThumbVisible = alpha.value > 0f
             LaunchedEffect(scrolled, alpha) {
                 scrolled
-                    .sample(100)
+                    .sample(0.1.seconds)
                     .collectLatest {
                         if (thumbAllowed()) {
                             alpha.snapTo(1f)
-                            delay(ScrollBarVisibilityDurationMillis)
+                            delay(ScrollBarVisibilityDuration)
                             alpha.animateTo(0f, animationSpec = ImmediateFadeOutAnimationSpec)
                         } else {
                             alpha.animateTo(0f, animationSpec = ImmediateFadeOutAnimationSpec)
@@ -366,11 +368,11 @@ fun VerticalGridFastScroller(
             val isThumbVisible = alpha.value > 0f
             LaunchedEffect(scrolled, alpha) {
                 scrolled
-                    .sample(100)
+                    .sample(0.1.seconds)
                     .collectLatest {
                         if (thumbAllowed()) {
                             alpha.snapTo(1f)
-                            delay(ScrollBarVisibilityDurationMillis)
+                            delay(ScrollBarVisibilityDuration)
                             alpha.animateTo(0f, animationSpec = ImmediateFadeOutAnimationSpec)
                         } else {
                             alpha.animateTo(0f, animationSpec = ImmediateFadeOutAnimationSpec)
@@ -591,7 +593,7 @@ fun IrregularVerticalGridFastScroller(
             val isThumbVisible = alpha.value > 0f
             LaunchedEffect(scrolled, alpha) {
                 scrolled
-                    .sample(100)
+                    .sample(0.1.seconds)
                     .collectLatest {
                         if (thumbAllowed()) {
                             alpha.snapTo(1f)

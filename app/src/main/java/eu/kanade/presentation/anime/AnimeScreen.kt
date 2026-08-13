@@ -99,6 +99,7 @@ import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.injectLazy
 import java.time.Instant
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun AnimeScreen(
@@ -645,7 +646,7 @@ private fun AnimeScreenSmallImpl(
                                     var timer by remember { mutableLongStateOf(state.airingTime) }
                                     LaunchedEffect(key1 = timer) {
                                         if (timer > 0L) {
-                                            delay(1000L)
+                                            delay(1.seconds)
                                             timer -= 1000L
                                         }
                                     }
@@ -1010,7 +1011,7 @@ fun AnimeScreenLargeImpl(
                                             var timer by remember { mutableLongStateOf(state.airingTime) }
                                             LaunchedEffect(key1 = timer) {
                                                 if (timer > 0L) {
-                                                    delay(1000L)
+                                                    delay(1.seconds)
                                                     timer -= 1000L
                                                 }
                                             }

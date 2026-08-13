@@ -31,6 +31,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -68,7 +69,7 @@ fun RepeatingIconButton(
 
         while (enabled && pressed) {
             currentClickListener()
-            delay(currentDelayMillis)
+            delay(currentDelayMillis.milliseconds)
             currentDelayMillis =
                 (currentDelayMillis - (currentDelayMillis * delayDecayFactor))
                     .toLong().coerceAtLeast(minDelayMillis)

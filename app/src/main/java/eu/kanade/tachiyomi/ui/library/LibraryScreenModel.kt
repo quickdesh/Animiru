@@ -13,7 +13,6 @@ import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.episode.interactor.SetSeenStatus
 import eu.kanade.presentation.anime.DownloadAction
-import eu.kanade.presentation.components.SEARCH_DEBOUNCE_MILLIS
 import eu.kanade.presentation.library.components.LibraryToolbarTitle
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
@@ -75,6 +74,7 @@ import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
 
 class LibraryScreenModel(
     private val getLibraryAnime: GetLibraryAnime = Injekt.get(),
@@ -109,7 +109,7 @@ class LibraryScreenModel(
         }
         screenModelScope.launchIO {
             combine(
-                state.map { it.searchQuery }.distinctUntilChanged().debounce(SEARCH_DEBOUNCE_MILLIS),
+                state.map { it.searchQuery }.distinctUntilChanged().debounce(0.25.seconds),
                 // AY -->
                 getVisibleCategories.subscribe(),
                 // <-- AY
