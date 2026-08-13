@@ -102,7 +102,7 @@ fun NetworkExtensionStore.ExtensionList.toAvailableExtensions(store: ExtensionSt
             versionCode = extension.versionCode,
             versionName = extension.versionName,
             lang = if (lang.size == 1) lang.first() else "all",
-            isNsfw = extension.contentWarning >= NetworkExtensionStore.ContentWarning.Mixed,
+            isNsfw = extension.contentWarning >= NetworkExtensionStore.ContentWarning.MIXED,
             isTorrent = extension.isTorrent,
             sources = extension.sources.map { source ->
                 AniyomiExtension.Available.Source(
