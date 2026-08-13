@@ -194,14 +194,14 @@ class PlayerViewModel @JvmOverloads constructor(
     private val downloadPreferences: DownloadPreferences = Injekt.get(),
     private val trackPreferences: TrackPreferences = Injekt.get(),
     private val playerPreferences: PlayerPreferences = Injekt.get(),
-    private val decoderPreferences: DecoderPreferences = Injekt.get(),
+    decoderPreferences: DecoderPreferences = Injekt.get(),
     private val gesturePreferences: GesturePreferences = Injekt.get(),
     private val audioPreferences: AudioPreferences = Injekt.get(),
     private val subtitlePreferences: SubtitlePreferences = Injekt.get(),
     private val getCustomButtons: GetCustomButtons = Injekt.get(),
     private val trackSelect: TrackSelect = Injekt.get(),
     private val audioManager: AudioManager = Injekt.get(),
-    private val brightnessManager: BrightnessManager = Injekt.get(),
+    brightnessManager: BrightnessManager = Injekt.get(),
     // AM (SYNC) -->
     private val syncPreferences: SyncPreferences = Injekt.get(),
     // <-- AM (SYNC)

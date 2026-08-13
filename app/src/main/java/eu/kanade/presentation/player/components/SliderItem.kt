@@ -125,9 +125,8 @@ fun SliderItem(
         Slider(
             value = value,
             onValueChange = {
-                val newValue = it
-                if (newValue != value) {
-                    onChange(newValue)
+                if (it != value) {
+                    onChange(it)
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 }
             },

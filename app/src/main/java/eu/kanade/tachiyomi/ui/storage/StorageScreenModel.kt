@@ -49,7 +49,7 @@ class StorageScreenModel(
     private val sourceFileSystem: LocalSourceFileSystem = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
 ) : StateScreenModel<StorageScreenState>(StorageScreenState.Loading(0)) {
-    private val _selectedCategory = MutableStateFlow<Category>(allCategory)
+    private val _selectedCategory = MutableStateFlow(allCategory)
     val selectedCategory = _selectedCategory.asStateFlow()
 
     private val skipDownloadChangeFlow = MutableStateFlow(false)

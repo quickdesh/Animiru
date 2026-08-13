@@ -18,7 +18,7 @@ import java.time.Instant
 fun Anime.removeCovers(coverCache: CoverCache = Injekt.get()): Anime {
     if (isLocal()) return this
     return if (coverCache.deleteFromCache(this, true) > 0) {
-        return copy(coverLastModified = Instant.now().toEpochMilli())
+        copy(coverLastModified = Instant.now().toEpochMilli())
     } else {
         this
     }
@@ -28,7 +28,7 @@ fun Anime.removeCovers(coverCache: CoverCache = Injekt.get()): Anime {
 fun Anime.removeBackgrounds(backgroundCache: BackgroundCache): Anime {
     if (isLocal()) return this
     return if (backgroundCache.deleteFromCache(this, true) > 0) {
-        return copy(backgroundLastModified = Instant.now().toEpochMilli())
+        copy(backgroundLastModified = Instant.now().toEpochMilli())
     } else {
         this
     }

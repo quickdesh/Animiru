@@ -284,7 +284,6 @@ object SettingsAdvancedScreen : SearchableSettings {
     private fun getLibraryGroup(
         libraryPreferences: LibraryPreferences,
     ): Preference.PreferenceGroup {
-        val scope = rememberCoroutineScope()
         val context = LocalContext.current
 
         return Preference.PreferenceGroup(

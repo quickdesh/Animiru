@@ -32,7 +32,7 @@ class TrackerManager {
     val jellyfin = Jellyfin(JELLYFIN)
     // <-- AY
 
-    val trackers = listOf<BaseTracker>(
+    val trackers = listOf(
         myAnimeList,
         aniList,
         kitsu,

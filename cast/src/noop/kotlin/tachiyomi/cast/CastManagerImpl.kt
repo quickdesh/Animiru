@@ -4,7 +4,6 @@ import android.content.Context
 import eu.kanade.tachiyomi.animesource.model.Video
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import tachiyomi.cast.domain.CodecInformation
 import tachiyomi.cast.domain.TrackInformation
 import tachiyomi.domain.anime.model.Anime

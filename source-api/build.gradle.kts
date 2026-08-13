@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-
 plugins {
     alias(mihonx.plugins.android.library)
     alias(mihonx.plugins.spotless)
