@@ -23,7 +23,6 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.allowRgb565
 import coil3.request.crossfade
 import coil3.util.DebugLogger
-import com.skydoves.compose.stability.runtime.ComposeStabilityAnalyzer
 import dev.mihon.injekt.patchInjekt
 import eu.kanade.domain.DomainModule
 import eu.kanade.domain.base.BasePreferences
@@ -169,10 +168,6 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         }
 
         initializeMigrator()
-
-        // AM -->
-        ComposeStabilityAnalyzer.setEnabled(BuildConfig.DEBUG)
-        // <-- AM
     }
 
     private fun initializeMigrator() {

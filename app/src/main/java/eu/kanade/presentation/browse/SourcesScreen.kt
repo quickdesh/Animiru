@@ -117,7 +117,7 @@ fun SourcesScreen(
                         val buttonIcon = if (updateCount != 0) Icons.Filled.Upload else Icons.Filled.Download
                         SmallExtendedFloatingActionButton(
                             text = { Text(text = stringResource(buttonText)) },
-                            icon = { Icon(imageVector = buttonIcon, contentDescription = null) },
+                            icon = { Icon(imageVector = buttonIcon, contentDescription = stringResource(buttonText)) },
                             onClick = { toExtensionsScreen() },
                             expanded = (extensionsListState.shouldExpandFAB()) || updateCount != 0,
                         )

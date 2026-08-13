@@ -48,10 +48,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
@@ -171,7 +173,8 @@ fun NavigationPill(
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth().windowInsetsPadding(NavigationBarDefaults.windowInsets),
+                modifier = Modifier.fillMaxWidth().windowInsetsPadding(NavigationBarDefaults.windowInsets)
+                    .semantics { testTagsAsResourceId = true },
             ) {
                 tabs.fastForEach {
                     NavigationPillItem(it, updateTab, pillItemWidth, pillItemHeight)
@@ -228,7 +231,8 @@ private fun NavigationPillItem(
                 )
                 .semantics {
                     this.selected = selected
-                },
+                }
+                .testTag("tab_${tab.options.title}"),
             // <-- AM (TAB_HOLD)
             contentAlignment = Alignment.Center,
         ) {
