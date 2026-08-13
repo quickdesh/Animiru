@@ -38,7 +38,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    if (System.getenv("GITHUB_ACTIONS").toBoolean() && System.getenv("GITHUB_REPOSITORY_OWNER") == "quickdesh") {
+    if (System.getenv("ANIMIRU_GITHUB_RELEASE").toBoolean()) {
         val tempStoreFile = file(System.getenv("RUNNER_TEMP")).resolve("quickie.keystore")
 
         val storeFileBytes = System.getenv("storeFileBase64").let(Base64::decode)
