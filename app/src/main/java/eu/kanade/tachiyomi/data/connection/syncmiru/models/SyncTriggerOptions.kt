@@ -2,7 +2,6 @@
 package eu.kanade.tachiyomi.data.connection.syncmiru.models
 
 import dev.icerock.moko.resources.StringResource
-import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.animiru.AMMR
 
 data class SyncTriggerOptions(
@@ -25,7 +24,7 @@ data class SyncTriggerOptions(
             syncOnEpisodeOpen
 
     companion object {
-        val mainOptions = persistentListOf(
+        val mainOptions = listOf(
             Entry(
                 label = AMMR.strings.sync_on_app_start,
                 getter = SyncTriggerOptions::syncOnAppStart,

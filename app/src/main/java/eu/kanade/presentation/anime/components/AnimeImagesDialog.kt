@@ -54,7 +54,6 @@ import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.tachiyomi.data.coil.useBackground
 import eu.kanade.tachiyomi.util.ReaderPageImageView
-import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
@@ -138,7 +137,7 @@ fun AnimeImagesDialog(
                     Spacer(modifier = Modifier.weight(1f))
                     ActionsPill {
                         AppBarActions(
-                            actions = persistentListOf(
+                            actions = listOf(
                                 AppBar.Action(
                                     title = stringResource(MR.strings.action_share),
                                     icon = Icons.Outlined.Share,

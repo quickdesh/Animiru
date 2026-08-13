@@ -16,7 +16,6 @@ import eu.kanade.presentation.more.settings.screen.player.custombutton.component
 import eu.kanade.presentation.more.settings.screen.player.custombutton.components.CustomButtonScreen
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import tachiyomi.domain.custombutton.model.CustomButtonUpdate
 import tachiyomi.presentation.core.screens.LoadingScreen
@@ -56,7 +55,7 @@ object PlayerSettingsCustomButtonScreen : Screen() {
                 CustomButtonCreateDialog(
                     onDismissRequest = screenModel::dismissDialog,
                     onCreate = screenModel::createCustomButton,
-                    buttonNames = successState.customButtons.fastMap { it.name }.toImmutableList(),
+                    buttonNames = successState.customButtons.fastMap { it.name },
                 )
             }
             is CustomButtonDialog.Delete -> {
@@ -83,7 +82,7 @@ object PlayerSettingsCustomButtonScreen : Screen() {
                     },
                     buttonNames = (successState.customButtons - dialog.customButton).fastMap {
                         it.name
-                    }.toImmutableList(),
+                    },
                     initialState = dialog.customButton,
                 )
             }

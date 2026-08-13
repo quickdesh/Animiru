@@ -60,8 +60,6 @@ import eu.kanade.tachiyomi.util.nullIfEmpty
 import eu.kanade.tachiyomi.util.removeCovers
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.trimOrNull
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -653,7 +651,7 @@ class AnimeScreenModel(
                 successState.copy(
                     dialog = Dialog.ChangeCategory(
                         anime = anime,
-                        initialSelection = categories.mapAsCheckboxState { it.id in selection }.toImmutableList(),
+                        initialSelection = categories.mapAsCheckboxState { it.id in selection },
                     ),
                 )
             }
@@ -1770,7 +1768,7 @@ class AnimeScreenModel(
     sealed interface Dialog {
         data class ChangeCategory(
             val anime: Anime,
-            val initialSelection: ImmutableList<CheckboxState<Category>>,
+            val initialSelection: List<CheckboxState<Category>>,
         ) : Dialog
         data class DeleteEpisodes(val episodes: List<Episode>) : Dialog
         data class DuplicateAnime(val anime: Anime, val duplicates: List<AnimeWithEpisodeCount>) : Dialog

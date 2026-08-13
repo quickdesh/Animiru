@@ -33,9 +33,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toImmutableList
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.ScrollbarLazyColumn
@@ -105,7 +102,7 @@ fun TrackEpisodeSelector(
         title = stringResource(AYMR.strings.episodes),
         content = {
             WheelNumberPicker(
-                items = range.toImmutableList(),
+                items = range.toList(),
                 modifier = Modifier.align(Alignment.Center),
                 startIndex = selection,
                 onSelectionChanged = { onSelectionChange(it) },
@@ -120,7 +117,7 @@ fun TrackEpisodeSelector(
 fun TrackScoreSelector(
     selection: String,
     onSelectionChange: (String) -> Unit,
-    selections: ImmutableList<String>,
+    selections: List<String>,
     onConfirm: () -> Unit,
     onDismissRequest: () -> Unit,
 ) {
@@ -233,7 +230,7 @@ private fun TrackStatusSelectorPreviews() {
             TrackStatusSelector(
                 selection = 1,
                 onSelectionChange = {},
-                selections = persistentMapOf(
+                selections = mapOf(
                     // Anilist values
                     1L to AYMR.strings.watching,
                     2L to AYMR.strings.plan_to_watch,

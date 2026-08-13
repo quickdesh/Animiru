@@ -18,13 +18,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import eu.kanade.presentation.more.settings.screen.player.editor.EditorListType
-import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun EditorTypeDropDown(
     type: EditorListType,
-    values: ImmutableList<EditorListType>,
+    values: List<EditorListType>,
     onSelect: (EditorListType) -> Unit,
 ) {
     val isDropDownExpanded = remember { mutableStateOf(false) }

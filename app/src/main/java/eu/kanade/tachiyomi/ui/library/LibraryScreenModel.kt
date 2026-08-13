@@ -26,8 +26,6 @@ import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.util.episode.getNextUnseen
 import eu.kanade.tachiyomi.util.removeBackgrounds
 import eu.kanade.tachiyomi.util.removeCovers
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -810,7 +808,7 @@ class LibraryScreenModel(
                         else -> CheckboxState.State.None(it)
                     }
                 }
-                .toImmutableList()
+
             mutableState.update { it.copy(dialog = Dialog.ChangeCategory(animeList, preselected)) }
         }
     }
@@ -927,7 +925,7 @@ class LibraryScreenModel(
         data object SettingsSheet : Dialog
         data class ChangeCategory(
             val anime: List<Anime>,
-            val initialSelection: ImmutableList<CheckboxState<Category>>,
+            val initialSelection: List<CheckboxState<Category>>,
         ) : Dialog
         data class DeleteAnime(val anime: List<Anime>) : Dialog
     }

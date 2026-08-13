@@ -12,10 +12,6 @@ import eu.kanade.tachiyomi.animesource.AnimeCatalogueSource
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.source.getNameForAnimeInfo
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
-import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -93,7 +89,7 @@ class MigrationListScreenModel(
                 }
                 .awaitAll()
                 .filterNotNull()
-            mutableState.update { it.copy(items = anime.toImmutableList()) }
+            mutableState.update { it.copy(items = anime) }
             runMigrations(anime)
         }
     }
@@ -386,7 +382,7 @@ class MigrationListScreenModel(
     }
 
     private fun removeAnime(item: MigratingAnime) {
-        mutableState.update { it.copy(items = items.toPersistentList().remove(item)) }
+        mutableState.update { it.copy(items = items.toMutableList().apply { remove(item) }) }
     }
 
     override fun onDispose() {
@@ -430,7 +426,7 @@ class MigrationListScreenModel(
     }
 
     data class State(
-        val items: ImmutableList<MigratingAnime> = persistentListOf(),
+        val items: List<MigratingAnime> = listOf(),
         val finishedCount: Int = 0,
         val migrationComplete: Boolean = false,
         val dialog: Dialog? = null,

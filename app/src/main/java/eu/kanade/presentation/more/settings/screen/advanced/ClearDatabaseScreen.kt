@@ -41,7 +41,6 @@ import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import tachiyomi.core.common.util.lang.launchIO
@@ -145,7 +144,7 @@ class ClearDatabaseScreen : Screen() {
                             actions = {
                                 if (s.items.isNotEmpty()) {
                                     AppBarActions(
-                                        actions = persistentListOf(
+                                        actions = listOf(
                                             AppBar.Action(
                                                 title = stringResource(MR.strings.action_select_all),
                                                 icon = Icons.Outlined.SelectAll,

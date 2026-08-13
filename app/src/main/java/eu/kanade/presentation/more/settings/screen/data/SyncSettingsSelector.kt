@@ -18,7 +18,6 @@ import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.data.backup.create.BackupOptions
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncDataJob
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.update
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
@@ -77,7 +76,7 @@ class SyncSettingsSelector : Screen() {
 
     @Composable
     private fun Options(
-        options: ImmutableList<BackupOptions.Entry>,
+        options: List<BackupOptions.Entry>,
         state: SyncSettingsSelectorModel.State,
         model: SyncSettingsSelectorModel,
     ) {

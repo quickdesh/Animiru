@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import kotlinx.collections.immutable.toImmutableList
 import tachiyomi.presentation.core.components.WheelTextPicker
 
 @Composable
@@ -21,7 +20,7 @@ fun IntegerPickerDialog(
 ) {
     var newValue = defaultValue
     val values = (minValue..maxValue step step).toList()
-    val items = values.map { String.format(nameFormat, it) }.toImmutableList()
+    val items = values.map { String.format(nameFormat, it) }
 
     PlayerDialog(
         title = title,

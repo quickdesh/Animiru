@@ -40,8 +40,6 @@ import eu.kanade.tachiyomi.data.connection.syncmiru.SyncDataJob
 import eu.kanade.tachiyomi.data.connection.syncmiru.service.GoogleDriveService
 import eu.kanade.tachiyomi.data.connection.syncmiru.service.GoogleDriveSyncService
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.launch
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
@@ -104,7 +102,7 @@ object SettingsSyncmiruScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(AMMR.strings.pref_sync_service_category),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 // AM (SYNC_DRIVE) -->
                 Preference.PreferenceItem.ConnectionPreference(
                     title = connectionManager.googleDrive.name,
@@ -202,7 +200,7 @@ object SettingsSyncmiruScreen : SearchableSettings {
         val navigator = LocalNavigator.currentOrThrow
         return Preference.PreferenceGroup(
             title = stringResource(AMMR.strings.pref_sync_now_group_title),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 getSyncOptionsPref(),
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(AMMR.strings.pref_sync_now),
@@ -233,11 +231,11 @@ object SettingsSyncmiruScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(AMMR.strings.pref_sync_automatic_category),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.ListPreference(
                     preference = syncIntervalPref,
                     title = stringResource(AMMR.strings.pref_sync_interval),
-                    entries = persistentMapOf(
+                    entries = mapOf(
                         0 to stringResource(MR.strings.off),
                         30 to stringResource(AMMR.strings.update_30min),
                         60 to stringResource(AMMR.strings.update_1hour),

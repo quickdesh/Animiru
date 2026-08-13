@@ -7,7 +7,6 @@ import animiru.domain.player.model.Debanding
 import animiru.domain.player.service.DecoderPreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.SearchableSettings
-import kotlinx.collections.immutable.toImmutableMap
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import uy.kohesive.injekt.Injekt
@@ -43,7 +42,7 @@ object PlayerSettingsDecoderScreen : SearchableSettings {
                 entries = Debanding.entries.associateWith {
                     it.name
                     // stringResource(it.)
-                }.toImmutableMap(),
+                },
                 title = stringResource(AYMR.strings.pref_debanding_title),
             ),
             Preference.PreferenceItem.SwitchPreference(

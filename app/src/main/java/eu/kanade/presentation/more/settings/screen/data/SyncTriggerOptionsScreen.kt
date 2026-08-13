@@ -13,7 +13,6 @@ import eu.kanade.domain.connection.SyncPreferences
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.data.connection.syncmiru.models.SyncTriggerOptions
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.update
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
@@ -61,7 +60,7 @@ class SyncTriggerOptionsScreen : Screen() {
 
     @Composable
     private fun Options(
-        options: ImmutableList<SyncTriggerOptions.Entry>,
+        options: List<SyncTriggerOptions.Entry>,
         state: SyncOptionsScreenModel.State,
         model: SyncOptionsScreenModel,
     ) {

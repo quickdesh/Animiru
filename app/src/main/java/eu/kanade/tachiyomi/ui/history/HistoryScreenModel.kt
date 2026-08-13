@@ -9,8 +9,6 @@ import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.track.interactor.AddTracks
 import eu.kanade.presentation.history.HistoryUiModel
 import eu.kanade.tachiyomi.util.lang.toLocalDate
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -234,7 +232,7 @@ class HistoryScreenModel(
                 currentState.copy(
                     dialog = Dialog.ChangeCategory(
                         anime = anime,
-                        initialSelection = categories.mapAsCheckboxState { it.id in selection }.toImmutableList(),
+                        initialSelection = categories.mapAsCheckboxState { it.id in selection },
                     ),
                 )
             }
@@ -254,7 +252,7 @@ class HistoryScreenModel(
         data class DuplicateAnime(val anime: Anime, val duplicates: List<AnimeWithEpisodeCount>) : Dialog
         data class ChangeCategory(
             val anime: Anime,
-            val initialSelection: ImmutableList<CheckboxState<Category>>,
+            val initialSelection: List<CheckboxState<Category>>,
         ) : Dialog
         data class Migrate(val target: Anime, val current: Anime) : Dialog
     }

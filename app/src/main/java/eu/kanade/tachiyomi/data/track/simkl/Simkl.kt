@@ -8,8 +8,6 @@ import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.Tracker
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.data.track.simkl.dto.SimklOAuth
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
@@ -27,7 +25,6 @@ class Simkl(id: Long) : BaseTracker(id, "Simkl"), Tracker {
 
         private val SCORE_LIST = IntRange(0, 10)
             .map(Int::toString)
-            .toImmutableList()
     }
 
     private val json: Json by injectLazy()
@@ -36,7 +33,7 @@ class Simkl(id: Long) : BaseTracker(id, "Simkl"), Tracker {
 
     private val api by lazy { SimklApi(client, interceptor) }
 
-    override fun getScoreList(): ImmutableList<String> = SCORE_LIST
+    override fun getScoreList(): List<String> = SCORE_LIST
 
     override fun displayScore(track: DomainTrack): String {
         return track.score.toInt().toString()

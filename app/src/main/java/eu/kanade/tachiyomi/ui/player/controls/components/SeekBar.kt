@@ -46,7 +46,6 @@ import dev.vivvvek.seeker.Segment
 import eu.kanade.tachiyomi.animesource.model.ChapterType
 import eu.kanade.tachiyomi.ui.player.controls.LocalPlayerButtonsClickEvent
 import `is`.xyz.mpv.Utils
-import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.presentation.core.components.material.padding
 
 @Immutable
@@ -120,7 +119,7 @@ fun SeekbarWithTimers(
                 .let {
                     // add an extra segment at 0 if it doesn't exist.
                     if (it.isNotEmpty() && it[0].start != 0f) {
-                        persistentListOf(Segment("", 0f)) + it
+                        listOf(Segment("", 0f)) + it
                     } else {
                         it
                     } + it
@@ -186,6 +185,6 @@ private fun PreviewSeekBar() {
         Pair(false, true),
         {},
         {},
-        persistentListOf(),
+        listOf(),
     )
 }

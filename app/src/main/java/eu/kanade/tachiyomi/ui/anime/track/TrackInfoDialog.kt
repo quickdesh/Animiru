@@ -60,7 +60,6 @@ import eu.kanade.tachiyomi.util.lang.toLocalDate
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -438,7 +437,7 @@ private data class TrackScoreSelectorScreen(
         private val tracker: Tracker,
     ) : StateScreenModel<Model.State>(State(tracker.displayScore(track))) {
 
-        fun getSelections(): ImmutableList<String> {
+        fun getSelections(): List<String> {
             return tracker.getScoreList()
         }
 

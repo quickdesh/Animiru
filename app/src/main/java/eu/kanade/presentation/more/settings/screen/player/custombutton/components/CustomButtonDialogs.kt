@@ -26,7 +26,6 @@ import dev.icerock.moko.resources.StringResource
 import eu.kanade.presentation.more.settings.screen.player.editor.codeeditor.githubTheme
 import eu.kanade.presentation.more.settings.screen.player.editor.codeeditor.luaHighlight
 import eu.kanade.presentation.more.settings.screen.player.editor.codeeditor.toAnnotatedString
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.delay
 import tachiyomi.domain.custombutton.model.CustomButton
 import tachiyomi.i18n.MR
@@ -42,7 +41,7 @@ fun CustomButtonButtonDialog(
     onAction: (String, String, String, String) -> Unit,
     titleRes: StringResource,
     actionRes: StringResource,
-    buttonNames: ImmutableList<String>,
+    buttonNames: List<String>,
     initialState: CustomButton?,
 ) {
     var title by remember { mutableStateOf(initialState?.name ?: "") }
@@ -185,7 +184,7 @@ fun CustomButtonButtonDialog(
 fun CustomButtonCreateDialog(
     onDismissRequest: () -> Unit,
     onCreate: (String, String, String, String) -> Unit,
-    buttonNames: ImmutableList<String>,
+    buttonNames: List<String>,
 ) {
     CustomButtonButtonDialog(
         onDismissRequest = onDismissRequest,
@@ -201,7 +200,7 @@ fun CustomButtonCreateDialog(
 fun CustomButtonEditDialog(
     onDismissRequest: () -> Unit,
     onEdit: (String, String, String, String) -> Unit,
-    buttonNames: ImmutableList<String>,
+    buttonNames: List<String>,
     initialState: CustomButton,
 ) {
     CustomButtonButtonDialog(

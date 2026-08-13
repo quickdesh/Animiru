@@ -38,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
-import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 fun ExposedTextDropDownMenu(

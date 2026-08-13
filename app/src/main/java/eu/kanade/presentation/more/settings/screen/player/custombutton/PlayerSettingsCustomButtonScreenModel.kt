@@ -5,8 +5,6 @@ import animiru.feature.mpvfiles.MpvConfig
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import dev.icerock.moko.resources.StringResource
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -47,7 +45,7 @@ class PlayerSettingsCustomButtonScreenModel(
                 .collectLatest { customButtons ->
                     mutableState.update {
                         CustomButtonScreenState.Success(
-                            customButtons = customButtons.toImmutableList(),
+                            customButtons = customButtons,
                         )
                     }
                 }
@@ -155,7 +153,7 @@ sealed interface CustomButtonScreenState {
 
     @Immutable
     data class Success(
-        val customButtons: ImmutableList<CustomButton>,
+        val customButtons: List<CustomButton>,
         val dialog: CustomButtonDialog? = null,
     ) : CustomButtonScreenState {
         val isEmpty: Boolean

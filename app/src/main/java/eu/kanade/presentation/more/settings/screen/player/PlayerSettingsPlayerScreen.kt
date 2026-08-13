@@ -25,9 +25,6 @@ import eu.kanade.tachiyomi.ui.player.WEB_VIDEO_CASTER
 import eu.kanade.tachiyomi.ui.player.X_PLAYER
 import eu.kanade.tachiyomi.util.system.castIncluded
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toPersistentMap
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
@@ -52,7 +49,7 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
         return listOfNotNull(
             Preference.PreferenceItem.ListPreference(
                 preference = playerPreferences.progressPreference,
-                entries = persistentMapOf(
+                entries = mapOf(
                     1.00F to stringResource(AYMR.strings.pref_progress_100),
                     0.95F to stringResource(AYMR.strings.pref_progress_95),
                     0.90F to stringResource(AYMR.strings.pref_progress_90),
@@ -75,7 +72,7 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
                 preference = playerPreferences.defaultPlayerOrientationType,
                 entries = PlayerOrientation.entries.associateWith {
                     stringResource(it.titleRes)
-                }.toPersistentMap(),
+                },
                 title = stringResource(AYMR.strings.pref_category_player_orientation),
             ),
             getControlsGroup(playerPreferences = playerPreferences),
@@ -103,7 +100,7 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(AYMR.strings.pref_category_controls),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = allowGestures,
                     title = stringResource(AYMR.strings.pref_controls_allow_gestures_in_panels),
@@ -136,7 +133,7 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(AYMR.strings.pref_hosters),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = showFailure,
                     title = stringResource(AYMR.strings.pref_hosters_show_failure),
@@ -164,7 +161,7 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_display),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = fullScreen,
                     title = stringResource(AYMR.strings.pref_player_fullscreen),
@@ -190,7 +187,7 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
                     preference = hideTime,
                     entries = listOf(500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000).associateWith {
                         stringResource(AYMR.strings.pref_player_time_to_disappear_summary, it)
-                    }.toPersistentMap(),
+                    },
                     title = stringResource(AYMR.strings.pref_player_time_to_disappear),
                 ),
                 Preference.PreferenceItem.SliderPreference(
@@ -220,7 +217,7 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(AYMR.strings.pref_category_intro_skip),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = enableSkipIntro,
                     title = stringResource(AYMR.strings.pref_enable_intro_skip),
@@ -237,7 +234,7 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
                 ),
                 Preference.PreferenceItem.ListPreference(
                     preference = waitingTimeAniSkip,
-                    entries = persistentMapOf(
+                    entries = mapOf(
                         5 to stringResource(AYMR.strings.pref_waiting_time_aniskip_5),
                         6 to stringResource(AYMR.strings.pref_waiting_time_aniskip_6),
                         7 to stringResource(AYMR.strings.pref_waiting_time_aniskip_7),
@@ -277,7 +274,7 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(AYMR.strings.pref_category_pip),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = enablePip,
                     title = stringResource(AYMR.strings.pref_enable_pip),
@@ -317,7 +314,7 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(AMMR.strings.pref_cast),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = enableCast,
                     title = stringResource(AMMR.strings.pref_cast_enable),
@@ -377,14 +374,14 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(AYMR.strings.pref_category_external_player),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = alwaysUseExternalPlayer,
                     title = stringResource(AYMR.strings.pref_always_use_external_player),
                 ),
                 Preference.PreferenceItem.ListPreference(
                     preference = externalPlayerPreference,
-                    entries = (mapOf("" to "None") + packageNamesMap).toPersistentMap(),
+                    entries = (mapOf("" to "None") + packageNamesMap),
                     title = stringResource(AYMR.strings.pref_external_player_preference),
                 ),
             ),

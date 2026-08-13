@@ -25,8 +25,6 @@ import eu.kanade.tachiyomi.data.cache.BackgroundCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.util.removeBackgrounds
 import eu.kanade.tachiyomi.util.removeCovers
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
@@ -275,7 +273,7 @@ class BrowseSourceScreenModel(
                     setDialog(
                         Dialog.ChangeAnimeCategory(
                             anime,
-                            categories.mapAsCheckboxState { it.id in preselectedIds }.toImmutableList(),
+                            categories.mapAsCheckboxState { it.id in preselectedIds },
                         ),
                     )
                 }
@@ -349,7 +347,7 @@ class BrowseSourceScreenModel(
         data class AddDuplicateAnime(val anime: Anime, val duplicates: List<AnimeWithEpisodeCount>) : Dialog
         data class ChangeAnimeCategory(
             val anime: Anime,
-            val initialSelection: ImmutableList<CheckboxState.State<Category>>,
+            val initialSelection: List<CheckboxState.State<Category>>,
         ) : Dialog
         data class Migrate(val target: Anime, val current: Anime) : Dialog
     }

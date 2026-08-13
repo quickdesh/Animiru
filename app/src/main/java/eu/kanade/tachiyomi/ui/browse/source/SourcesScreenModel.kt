@@ -10,9 +10,6 @@ import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.browse.SourceUiModel
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.model.Extension
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
@@ -88,8 +85,7 @@ class SourcesScreenModel(
                                 )
                             }.toTypedArray(),
                         )
-                    }
-                    .toImmutableList(),
+                    },
             )
         }
     }
@@ -142,7 +138,7 @@ class SourcesScreenModel(
     data class State(
         val dialog: Dialog? = null,
         val isLoading: Boolean = true,
-        val items: ImmutableList<SourceUiModel> = persistentListOf(),
+        val items: List<SourceUiModel> = listOf(),
     ) {
         val isEmpty = items.isEmpty()
     }

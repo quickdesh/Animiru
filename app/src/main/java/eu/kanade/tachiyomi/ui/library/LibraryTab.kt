@@ -46,7 +46,6 @@ import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -216,7 +215,7 @@ data object LibraryTab : Tab {
                     EmptyScreen(
                         stringRes = MR.strings.information_empty_library,
                         modifier = Modifier.padding(contentPadding),
-                        actions = persistentListOf(
+                        actions = listOf(
                             EmptyScreenAction(
                                 stringRes = MR.strings.getting_started_guide,
                                 icon = Icons.AutoMirrored.Outlined.HelpOutline,

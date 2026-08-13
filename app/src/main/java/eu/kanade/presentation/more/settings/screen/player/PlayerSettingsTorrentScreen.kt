@@ -21,7 +21,6 @@ import aniyomi.core.common.torrent.TorrentPreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.SearchableSettings
 import eu.kanade.tachiyomi.data.torrent.service.TorrentServerService
-import kotlinx.collections.immutable.toPersistentMap
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
@@ -142,7 +141,7 @@ object PlayerSettingsTorrentScreen : SearchableSettings {
                         ProxyMode.Full -> AYMR.strings.pref_player_torrents_proxy_mode_full
                     }
                     stringResource(titleRes)
-                }.toPersistentMap(),
+                },
                 title = stringResource(AYMR.strings.pref_player_torrents_proxy_mode),
                 enabled = torrentEnable,
             ),

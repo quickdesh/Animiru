@@ -36,7 +36,6 @@ import eu.kanade.tachiyomi.ui.player.controls.components.sheets.PlaybackSpeedShe
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.ScreenshotSheet
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.SubtitlesSheet
 import eu.kanade.tachiyomi.ui.player.mpv.MpvVideoTrack
-import kotlinx.collections.immutable.toImmutableList
 import tachiyomi.domain.custombutton.model.CustomButton
 import java.io.InputStream
 
@@ -119,7 +118,7 @@ fun PlayerSheets(
                 onAddSubtitle(it)
             }
             SubtitlesSheet(
-                tracks = subtitles.toImmutableList(),
+                tracks = subtitles,
                 onSelect = onSelectSubtitle,
                 onAddSubtitle = { subtitlesPicker.launch(arrayOf("*/*")) },
                 onOpenSubtitleSettings = { onOpenPanel(Panels.SubtitleSettings) },

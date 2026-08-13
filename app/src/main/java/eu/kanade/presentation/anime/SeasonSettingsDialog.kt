@@ -22,7 +22,6 @@ import eu.kanade.domain.anime.model.seasonDownloadedFilter
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.presentation.components.TabbedDialog
 import eu.kanade.presentation.components.TabbedDialogPaddings
-import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
@@ -81,7 +80,7 @@ fun SeasonSettingsDialog(
 
     TabbedDialog(
         onDismissRequest = onDismissRequest,
-        tabTitles = persistentListOf(
+        tabTitles = listOf(
             stringResource(MR.strings.action_filter),
             stringResource(MR.strings.action_sort),
             stringResource(MR.strings.action_display),

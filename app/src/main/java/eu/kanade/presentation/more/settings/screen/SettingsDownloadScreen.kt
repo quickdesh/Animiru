@@ -13,10 +13,6 @@ import eu.kanade.domain.base.BasePreferences
 import eu.kanade.presentation.category.visualName
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.widget.TriStateListDialog
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toImmutableMap
-import kotlinx.collections.immutable.toPersistentMap
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.download.service.DownloadPreferences
@@ -87,14 +83,14 @@ object SettingsDownloadScreen : SearchableSettings {
     ): Preference.PreferenceGroup {
         return Preference.PreferenceGroup(
             title = stringResource(AMMR.strings.am_pref_category_delete_episodes),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = downloadPreferences.removeAfterMarkedAsSeen,
                     title = stringResource(AMMR.strings.am_pref_remove_after_marked_as_seen),
                 ),
                 Preference.PreferenceItem.ListPreference(
                     preference = downloadPreferences.removeAfterSeenSlots,
-                    entries = persistentMapOf(
+                    entries = mapOf(
                         -1 to stringResource(MR.strings.disabled),
                         0 to stringResource(AMMR.strings.am_last_seen_episode),
                         1 to stringResource(AMMR.strings.am_second_to_last),
@@ -130,8 +126,7 @@ object SettingsDownloadScreen : SearchableSettings {
         return Preference.PreferenceItem.MultiSelectListPreference(
             preference = downloadPreferences.removeExcludeCategories,
             entries = categories()
-                .associate { it.id.toString() to it.visualName }
-                .toImmutableMap(),
+                .associate { it.id.toString() to it.visualName },
             title = stringResource(MR.strings.pref_remove_exclude_categories),
         )
     }
@@ -170,7 +165,7 @@ object SettingsDownloadScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_auto_download),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = downloadNewEpisodesPref,
                     title = stringResource(AYMR.strings.pref_download_new_episodes),
@@ -200,7 +195,7 @@ object SettingsDownloadScreen : SearchableSettings {
     ): Preference.PreferenceGroup {
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.download_ahead),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.ListPreference(
                     preference = downloadPreferences.autoDownloadWhileWatching,
                     entries = listOf(0, 2, 3, 5, 10)
@@ -210,8 +205,7 @@ object SettingsDownloadScreen : SearchableSettings {
                             } else {
                                 pluralStringResource(AYMR.plurals.next_unseen_episodes, count = it, it)
                             }
-                        }
-                        .toImmutableMap(),
+                        },
                     title = stringResource(AYMR.strings.auto_download_while_watching),
                 ),
                 Preference.PreferenceItem.InfoPreference(stringResource(AMMR.strings.am_download_ahead_info)),
@@ -248,14 +242,14 @@ object SettingsDownloadScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(AYMR.strings.pref_category_external_downloader),
-            preferenceItems = persistentListOf(
+            preferenceItems = listOf(
                 Preference.PreferenceItem.SwitchPreference(
                     preference = useExternalDownloader,
                     title = stringResource(AYMR.strings.pref_use_external_downloader),
                 ),
                 Preference.PreferenceItem.ListPreference(
                     preference = externalDownloaderPreference,
-                    entries = packageNamesMap.toPersistentMap(),
+                    entries = packageNamesMap,
                     title = stringResource(AYMR.strings.pref_external_downloader_selection),
                 ),
             ),

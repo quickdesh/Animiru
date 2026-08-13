@@ -24,7 +24,6 @@ import eu.kanade.tachiyomi.data.connection.Connection
 import eu.kanade.tachiyomi.data.connection.ConnectionManager
 import eu.kanade.tachiyomi.util.system.openDiscordLoginActivity
 import eu.kanade.tachiyomi.util.system.toast
-import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -46,7 +45,7 @@ object SettingsConnectionScreen : SearchableSettings {
         return listOf(
             Preference.PreferenceGroup(
                 title = stringResource(AMMR.strings.special_services),
-                preferenceItems = persistentListOf(
+                preferenceItems = listOf(
                     // AM (DISCORD_RPC) -->
                     Preference.PreferenceItem.ConnectionPreference(
                         title = connectionManager.discord.name,
