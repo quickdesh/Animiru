@@ -45,13 +45,13 @@ internal fun LibraryCompactGrid(
                     lastModified = anime.coverLastModified,
                 ),
                 coverBadgeStart = {
-                    DownloadsBadge(count = libraryItem.downloadCount)
-                    UnseenBadge(count = libraryItem.unseenCount)
+                    DownloadsBadge(count = libraryItem.badges.downloadCount)
+                    UnseenBadge(count = libraryItem.badges.unseenCount)
                 },
                 coverBadgeEnd = {
                     LanguageBadge(
-                        isLocal = libraryItem.isLocal,
-                        sourceLanguage = libraryItem.sourceLanguage,
+                        isLocal = libraryItem.badges.isLocal,
+                        sourceLanguage = libraryItem.badges.sourceLanguage,
                     )
                 },
                 onLongClick = { onLongClick(libraryItem.libraryAnime) },

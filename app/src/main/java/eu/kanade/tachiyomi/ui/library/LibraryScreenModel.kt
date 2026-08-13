@@ -120,7 +120,7 @@ class LibraryScreenModel(
                 val showSystemCategory = favorites.any { it.libraryAnime.categories.contains(0) }
                 val filteredFavorites = favorites
                     .applyFilters(tracksMap, trackingFilters, itemPreferences)
-                    .let { if (searchQuery == null) it else it.filter { m -> m.matches(searchQuery) } }
+                    .let { if (searchQuery == null) it else it.filter { m -> m.matches(searchQuery, sourceManager) } }
 
                 LibraryData(
                     isInitialized = true,
@@ -239,11 +239,7 @@ class LibraryScreenModel(
         val trackFiltersIsIgnored = includedTracks.isEmpty() && excludedTracks.isEmpty()
 
         val filterFnDownloaded: (LibraryItem) -> Boolean = {
-            applyFilter(filterDownloaded) {
-                it.libraryAnime.anime.isLocal() ||
-                    it.downloadCount > 0 ||
-                    downloadManager.getDownloadCount(it.libraryAnime.anime) > 0
-            }
+            applyFilter(filterDownloaded) { it.isLocal || it.downloadCount > 0 }
         }
 
         val filterFnUnseen: (LibraryItem) -> Boolean = {
@@ -477,26 +473,32 @@ class LibraryScreenModel(
             libraryAnime.map { anime ->
                 LibraryItem(
                     libraryAnime = anime,
-                    downloadCount = if (preferences.downloadBadge) {
-                        downloadManager.getDownloadCount(anime.anime).toLong()
-                    } else {
-                        0
-                    },
-                    unseenCount = if (preferences.unseenBadge) {
-                        anime.unseenCount
-                    } else {
-                        0
-                    },
-                    isLocal = if (preferences.localBadge) {
-                        anime.anime.isLocal()
-                    } else {
-                        false
-                    },
-                    sourceLanguage = if (preferences.languageBadge) {
-                        sourceManager.getOrStub(anime.anime.source).lang
-                    } else {
-                        ""
-                    },
+                    downloadCount = downloadManager.getDownloadCount(anime.anime),
+                    unseenCount = anime.unseenCount,
+                    isLocal = anime.anime.isLocal(),
+                    badges = LibraryItem.Badges(
+                        downloadCount = if (preferences.downloadBadge) {
+                            downloadManager.getDownloadCount(anime.anime)
+                        } else {
+                            0
+                        },
+                        unseenCount = if (preferences.unseenBadge) {
+                            anime.unseenCount
+                        } else {
+                            0
+                        },
+                        isLocal = if (preferences.localBadge) {
+                            anime.anime.isLocal()
+                        } else {
+                            false
+                        },
+                        sourceLanguage = if (preferences.languageBadge) {
+                            sourceManager.getOrStub(anime.anime.source).lang
+                        } else {
+                            ""
+                        },
+                    ),
+
                 )
             }
         }
