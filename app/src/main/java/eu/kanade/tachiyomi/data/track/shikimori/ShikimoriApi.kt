@@ -7,8 +7,10 @@ import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMAddAnimeResponse
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMAnime
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMOAuth
+import eu.kanade.tachiyomi.data.track.shikimori.dto.SMSearchResult
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUser
-import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUserListEntry
+import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUserListResult
+import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUserResult
 import eu.kanade.tachiyomi.network.DELETE
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.POST
@@ -77,58 +79,121 @@ class ShikimoriApi(
 
     suspend fun search(search: String): List<TrackSearch> {
         return withIOContext {
-            val url = "$API_URL/animes".toUri().buildUpon()
-                .appendQueryParameter("order", "popularity")
-                .appendQueryParameter("search", search)
-                .appendQueryParameter("limit", "20")
-                .build()
+            val query = $$"""
+            |query($query: String) {
+                |animes(search: $query, limit: 20) {
+                    |id
+                    |name
+                    |episodes
+                    |kind
+                    |poster {
+                        |mainUrl
+                    |}
+                    |score
+                    |url
+                    |status
+                    |airedOn {
+                        |date
+                    |}
+                    |description
+                    |studios {
+                        |name
+                    |}
+                |}
+            |}
+            """.trimMargin()
+            val payload = buildJsonObject {
+                put("query", query)
+                putJsonObject("variables") {
+                    put("query", search)
+                }
+            }
             with(json) {
-                authClient.newCall(GET(url.toString()))
+                authClient.newCall(
+                    POST(
+                        GRAPHQL_API_URL,
+                        body = payload.toString().toRequestBody(jsonMime),
+                    ),
+                )
                     .awaitSuccess()
-                    .parseAs<List<SMAnime>>()
+                    .parseAs<SMSearchResult>()
+                    .data.animes
                     .map { it.toTrack(trackId) }
             }
         }
     }
 
-    suspend fun findLibAnime(track: Track, userId: String): Track? {
+    suspend fun findLibAnime(track: Track, isRefresh: Boolean = false): Track? {
         return withIOContext {
-            val urlAnimes = "$API_URL/animes".toUri().buildUpon()
-                .appendPath(track.remote_id.toString())
-                .build()
-            val anime = with(json) {
-                authClient.newCall(GET(urlAnimes.toString()))
-                    .awaitSuccess()
-                    .parseAs<SMAnime>()
+            val query = $$"""
+                |query($id: String) {
+                    |animes(ids: $id, limit: 1) {
+                        |id
+                        |url
+                        |name
+                        |episodes
+                        |userRate {
+                            |id
+                            |episodes
+                            |status
+                            |score
+                        |}
+                    |}
+                |}
+            """.trimMargin()
+
+            val payload = buildJsonObject {
+                put("query", query)
+                putJsonObject("variables") {
+                    put("id", track.remote_id.toString())
+                }
             }
 
-            val url = "$API_URL/v2/user_rates".toUri().buildUpon()
-                .appendQueryParameter("user_id", userId)
-                .appendQueryParameter("target_id", track.remote_id.toString())
-                .appendQueryParameter("target_type", "Anime")
-                .build()
             with(json) {
-                authClient.newCall(GET(url.toString()))
+                val listResult = authClient.newCall(
+                    POST(
+                        GRAPHQL_API_URL,
+                        body = payload.toString().toRequestBody(jsonMime),
+                    ),
+                )
                     .awaitSuccess()
-                    .parseAs<List<SMUserListEntry>>()
-                    .let { entries ->
-                        if (entries.size > 1) {
-                            throw Exception("Too many anime in response")
-                        }
-                        entries
-                            .map { it.toTrack(trackId, anime) }
-                            .firstOrNull()
-                    }
+                    .parseAs<SMUserListResult>()
+                    .data.animes
+                    .firstOrNull()
+
+                // Shikimori has no user list query that allows query by ID, so we go via the "animes" query & include
+                // userRate data which will be null if the title is not in the user's list.
+                // If it was removed on Shikimori and is still linked in the app, notify user via returning null here
+                // which throws an exception at the Shikimori.refresh call
+                if (isRefresh && listResult?.userRate == null) return@with null
+
+                listResult?.toTrack(trackId)
             }
         }
     }
 
     suspend fun getCurrentUser(): Int {
         return with(json) {
-            authClient.newCall(GET("$API_URL/users/whoami"))
+            val query = """
+            |{
+                |currentUser {
+                    |id
+                |}
+            |}
+            """.trimMargin()
+            val payload = buildJsonObject {
+                put("query", query)
+            }
+            authClient.newCall(
+                POST(
+                    GRAPHQL_API_URL,
+                    body = payload.toString().toRequestBody(jsonMime),
+                ),
+            )
                 .awaitSuccess()
-                .parseAs<SMUser>()
-                .id
+                .parseAs<SMUserResult>()
+                .data.currentUser.id
+                .toInt()
         }
     }
 
@@ -154,8 +219,9 @@ class ShikimoriApi(
     )
 
     companion object {
-        const val BASE_URL = "https://shikimori.io"
+        private const val BASE_URL = "https://shikimori.io"
         private const val API_URL = "$BASE_URL/api"
+        private const val GRAPHQL_API_URL = "$BASE_URL/api/graphql"
         private const val OAUTH_URL = "$BASE_URL/oauth/token"
         private const val LOGIN_URL = "$BASE_URL/oauth/authorize"
 

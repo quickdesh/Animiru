@@ -53,7 +53,6 @@ internal object ExtensionLoader {
     private const val METADATA_NSFW = "tachiyomi.animeextension.nsfw"
     private const val METADATA_TORRENT = "tachiyomi.animeextension.torrent"
 
-
     private const val METADATA_NAME = "aniyomix.name"
     private const val METADATA_EXTENSION_LIB = "aniyomix.extensionLib"
     private const val METADATA_CONTENT_WARNING = "aniyomix.contentWarning"

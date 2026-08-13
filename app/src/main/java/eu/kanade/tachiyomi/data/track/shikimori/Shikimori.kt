@@ -62,7 +62,7 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
     }
 
     override suspend fun bind(track: Track, hasSeenEpisodes: Boolean): Track {
-        val remoteTrack = api.findLibAnime(track, getUsername())
+        val remoteTrack = api.findLibAnime(track)
         return if (remoteTrack != null) {
             track.copyPersonalFrom(remoteTrack)
             track.library_id = remoteTrack.library_id
@@ -86,7 +86,7 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
     }
 
     override suspend fun refresh(track: Track): Track {
-        api.findLibAnime(track, getUsername())?.let { remoteTrack ->
+        api.findLibAnime(track, isRefresh = true)?.let { remoteTrack ->
             track.library_id = remoteTrack.library_id
             track.copyPersonalFrom(remoteTrack)
             track.total_episodes = remoteTrack.total_episodes
