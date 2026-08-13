@@ -49,7 +49,7 @@ fun AnimeSeasonListItem(
                     lastModified = itemAnime.coverLastModified,
                 ),
                 coverBadgeStart = {
-                    DownloadsBadge(count = item.downloadCount)
+                    DownloadsBadge(count = item.downloadCount.toInt())
                     UnseenBadge(count = item.unseenCount)
                 },
                 coverBadgeEnd = {
@@ -78,7 +78,7 @@ fun AnimeSeasonListItem(
                     lastModified = itemAnime.coverLastModified,
                 ),
                 coverBadgeStart = {
-                    DownloadsBadge(count = item.downloadCount)
+                    DownloadsBadge(count = item.downloadCount.toInt())
                     UnseenBadge(count = item.unseenCount)
                 },
                 coverBadgeEnd = {
@@ -107,7 +107,7 @@ fun AnimeSeasonListItem(
                     lastModified = itemAnime.coverLastModified,
                 ),
                 badge = {
-                    DownloadsBadge(count = item.downloadCount)
+                    DownloadsBadge(count = item.downloadCount.toInt())
                     UnseenBadge(count = item.unseenCount)
                     LanguageBadge(
                         isLocal = item.isLocal,
