@@ -23,18 +23,27 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.createFileInCacheDir
+import tachiyomi.data.Database
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
 
+@OptIn(ExperimentalAtomicApi::class)
 class BackupRestorer(
     private val context: Context,
     private val notifier: BackupNotifier,
     private val isSync: Boolean,
 
+    private val database: Database = Injekt.get(),
     private val categoriesRestorer: CategoriesRestorer = CategoriesRestorer(),
     private val preferenceRestorer: PreferenceRestorer = PreferenceRestorer(context),
     private val extensionStoreRestorer: ExtensionStoreRestorer = ExtensionStoreRestorer(),
@@ -46,8 +55,8 @@ class BackupRestorer(
 ) {
 
     private var restoreAmount = 0
-    private var restoreProgress = 0
-    private val errors = mutableListOf<Pair<Date, String>>()
+    private val restoreProgress = AtomicInt(0)
+    private val errors = CopyOnWriteArrayList<Pair<Date, String>>()
 
     /**
      * Mapping of source ID to source name from backup data
@@ -136,10 +145,10 @@ class BackupRestorer(
         ensureActive()
         categoriesRestorer(backupCategories)
 
-        restoreProgress += 1
+        val progress = restoreProgress.incrementAndFetch()
         notifier.showRestoreProgress(
             context.stringResource(MR.strings.categories),
-            restoreProgress,
+            progress,
             restoreAmount,
             isSync,
         )
@@ -150,24 +159,30 @@ class BackupRestorer(
         backupCategories: List<BackupCategory>,
     ) = launch {
         animeRestorer.sortByNew(backupAnimes)
-            .forEach {
-                ensureActive()
+            .chunked(100)
+            .forEach { chunk ->
+                database.transaction {
+                    chunk.forEach {
+                        ensureActive()
 
-                // AY -->
-                val seasons = backupAnimes.filter { s -> s.parentId == it.id }
-                // <-- AY
-                try {
-                    // AM (CUSTOM_INFORMATION) -->
-                    val customInfo = it.getCustomAnimeInfo()
-                    // <-- AM (CUSTOM_INFORMATION)
-                    animeRestorer.restore(it, backupCategories, customInfo, seasons)
-                } catch (e: Exception) {
-                    val sourceName = sourceMapping[it.source] ?: it.source.toString()
-                    errors.add(Date() to "${it.title} [$sourceName]: ${e.message}")
+                        // AY -->
+                        val seasons = backupAnimes.filter { s -> s.parentId == it.id }
+                        // <-- AY
+                        try {
+                            // AM (CUSTOM_INFORMATION) -->
+                            val customInfo = it.getCustomAnimeInfo()
+                            // <-- AM (CUSTOM_INFORMATION)
+                            animeRestorer.restore(it, backupCategories, customInfo, seasons)
+                        } catch (e: Exception) {
+                            val sourceName = sourceMapping[it.source] ?: it.source.toString()
+                            errors.add(Date() to "${it.title} [$sourceName]: ${e.message}")
+                        }
+
+                        restoreProgress.incrementAndFetch()
+                    }
                 }
 
-                restoreProgress += 1
-                notifier.showRestoreProgress(it.title, restoreProgress, restoreAmount, isSync)
+                notifier.showRestoreProgress(chunk.last().title, restoreProgress.load(), restoreAmount, isSync)
             }
     }
 
@@ -181,10 +196,10 @@ class BackupRestorer(
             categories,
         )
 
-        restoreProgress += 1
+        val progress = restoreProgress.incrementAndFetch()
         notifier.showRestoreProgress(
             context.stringResource(MR.strings.app_settings),
-            restoreProgress,
+            progress,
             restoreAmount,
             isSync,
         )
@@ -194,10 +209,10 @@ class BackupRestorer(
         ensureActive()
         preferenceRestorer.restoreSource(preferences)
 
-        restoreProgress += 1
+        val progress = restoreProgress.incrementAndFetch()
         notifier.showRestoreProgress(
             context.stringResource(MR.strings.source_settings),
-            restoreProgress,
+            progress,
             restoreAmount,
             isSync,
         )
@@ -207,19 +222,25 @@ class BackupRestorer(
         backupExtensionStores: List<BackupExtensionStore>,
     ) = launch {
         backupExtensionStores
-            .forEach {
-                ensureActive()
+            .chunked(100)
+            .forEach { chunk ->
+                database.transaction {
+                    chunk.forEach {
+                        ensureActive()
 
-                try {
-                    extensionStoreRestorer(it)
-                } catch (e: Exception) {
-                    errors.add(Date() to "Error Adding Repo: ${it.name} : ${e.message}")
+                        try {
+                            extensionStoreRestorer(it)
+                        } catch (e: Exception) {
+                            errors.add(Date() to "Error Adding Repo: ${it.name} : ${e.message}")
+                        }
+
+                        restoreProgress.incrementAndFetch()
+                    }
                 }
 
-                restoreProgress += 1
                 notifier.showRestoreProgress(
                     context.stringResource(MR.strings.extensionStores),
-                    restoreProgress,
+                    restoreProgress.load(),
                     restoreAmount,
                     isSync,
                 )
@@ -231,10 +252,10 @@ class BackupRestorer(
         ensureActive()
         customButtonRestorer(customButtons)
 
-        restoreProgress += 1
+        val progress = restoreProgress.incrementAndFetch()
         notifier.showRestoreProgress(
             context.stringResource(AYMR.strings.custom_button_settings),
-            restoreProgress,
+            progress,
             restoreAmount,
             isSync,
         )
@@ -244,10 +265,10 @@ class BackupRestorer(
         ensureActive()
         extensionsRestorer.restoreExtensions(extensions)
 
-        restoreProgress += 1
+        val progress = restoreProgress.incrementAndFetch()
         notifier.showRestoreProgress(
             context.stringResource(MR.strings.source_settings),
-            restoreProgress,
+            progress,
             restoreAmount,
             isSync,
         )
@@ -267,7 +288,7 @@ class BackupRestorer(
                 }
                 return file
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Empty
         }
         return File("")
