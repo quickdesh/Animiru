@@ -179,7 +179,7 @@ class SyncManager(
                     appSettings = true,
                     sourceSettings = true,
                     libraryEntries = true,
-                    extensionRepoSettings = true,
+                    extensionStores = true,
                 ),
             )
 

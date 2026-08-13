@@ -1,5 +1,3 @@
-@file:JvmName("ExtensionReposScreenKt")
-
 package eu.kanade.presentation.more.settings.screen.browse.components
 
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,8 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import eu.kanade.presentation.category.components.CategoryFloatingActionButton
 import eu.kanade.presentation.components.AppBar
-import eu.kanade.presentation.more.settings.screen.browse.RepoScreenState
-import mihon.domain.extensionrepo.model.ExtensionRepo
+import eu.kanade.presentation.more.settings.screen.browse.ExtensionStoreScreenState
+import mihon.domain.extension.model.ExtensionStore
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
@@ -25,11 +23,13 @@ import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.util.plus
 
 @Composable
-fun ExtensionReposScreen(
-    state: RepoScreenState.Success,
+fun ExtensionStoresScreen(
+    state: ExtensionStoreScreenState.Success,
     onClickCreate: () -> Unit,
-    onOpenWebsite: (ExtensionRepo) -> Unit,
-    onClickDelete: (String) -> Unit,
+    onCopy: (ExtensionStore) -> Unit,
+    onOpenWebsite: (ExtensionStore) -> Unit,
+    onOpenDiscord: (ExtensionStore) -> Unit,
+    onClickDelete: (ExtensionStore) -> Unit,
     onClickRefresh: () -> Unit,
     navigateUp: () -> Unit,
 ) {
@@ -38,7 +38,7 @@ fun ExtensionReposScreen(
         topBar = { scrollBehavior ->
             AppBar(
                 navigateUp = navigateUp,
-                title = stringResource(MR.strings.label_extension_repos),
+                title = stringResource(MR.strings.extensionStores),
                 scrollBehavior = scrollBehavior,
                 actions = {
                     IconButton(onClick = onClickRefresh) {
@@ -59,18 +59,20 @@ fun ExtensionReposScreen(
     ) { paddingValues ->
         if (state.isEmpty) {
             EmptyScreen(
-                MR.strings.information_empty_repos,
+                MR.strings.extensionStoresScreen_emptyLabel,
                 modifier = Modifier.padding(paddingValues),
             )
             return@Scaffold
         }
 
-        ExtensionReposContent(
-            repos = state.repos,
+        ExtensionStoresContent(
+            repos = state.stores,
             lazyListState = lazyListState,
             paddingValues = paddingValues + topSmallPaddingValues +
                 PaddingValues(horizontal = MaterialTheme.padding.medium),
+            onCopy = onCopy,
             onOpenWebsite = onOpenWebsite,
+            onOpenDiscord = onOpenDiscord,
             onClickDelete = onClickDelete,
         )
     }

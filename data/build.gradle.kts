@@ -23,7 +23,7 @@ android {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.add("-opt-in=kotlinx.serialization.ExperimentalSerializationApi")
+        optIn.add("kotlinx.serialization.ExperimentalSerializationApi")
     }
 }
 
@@ -33,6 +33,9 @@ dependencies {
     implementation(projects.core.common)
 
     implementation(libs.injekt)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization.jsonOkio)
+    implementation(libs.kotlinx.serialization.protobuf)
 
     api(libs.bundles.sqldelight)
 }

@@ -66,7 +66,7 @@ import eu.kanade.presentation.components.AppStateBanners
 import eu.kanade.presentation.components.DownloadedOnlyBannerBackgroundColor
 import eu.kanade.presentation.components.IncognitoModeBannerBackgroundColor
 import eu.kanade.presentation.components.IndexingBannerBackgroundColor
-import eu.kanade.presentation.more.settings.screen.browse.ExtensionReposScreen
+import eu.kanade.presentation.more.settings.screen.browse.ExtensionStoresScreen
 import eu.kanade.presentation.more.settings.screen.data.RestoreBackupScreen
 import eu.kanade.presentation.util.AssistContentScreen
 import eu.kanade.presentation.util.DefaultNavigatorScreenTransition
@@ -497,11 +497,11 @@ class MainActivity : BaseActivity() {
                     navigator.popUntilRoot()
                     navigator.push(RestoreBackupScreen(intent.data.toString()))
                 }
-                // Deep link to add extension repo
-                else if (intent.scheme == "aniyomi" && intent.data?.host == "add-repo") {
+                // Deep link to add extension store
+                else if (intent.isAddExtensionStoreIntent()) {
                     intent.data?.getQueryParameter("url")?.let { repoUrl ->
                         navigator.popUntilRoot()
-                        navigator.push(ExtensionReposScreen(repoUrl))
+                        navigator.push(ExtensionStoresScreen(repoUrl))
                     }
                 }
                 null
@@ -538,6 +538,10 @@ class MainActivity : BaseActivity() {
         mpvConfig.copyFiles()
     }
     // <-- AM
+
+    private fun Intent.isAddExtensionStoreIntent(): Boolean {
+        return scheme == "aniyomi" && (data?.host == "add-repo" || data?.host == "extension-store")
+    }
 
     companion object {
         const val INTENT_SEARCH = "eu.kanade.tachiyomi.SEARCH"

@@ -52,7 +52,7 @@ import eu.kanade.presentation.browse.components.ExtensionIcon
 import eu.kanade.presentation.components.AppBarTitle
 import eu.kanade.presentation.components.SearchToolbar
 import eu.kanade.presentation.components.WarningBanner
-import eu.kanade.presentation.more.settings.screen.browse.ExtensionReposScreen
+import eu.kanade.presentation.more.settings.screen.browse.ExtensionStoresScreen
 import eu.kanade.presentation.util.animateItemFastScroll
 import eu.kanade.presentation.util.rememberRequestPackageInstallsPermissionState
 import eu.kanade.tachiyomi.extension.model.Extension
@@ -114,10 +114,10 @@ fun ExtensionScreen(
                             contentDescription = stringResource(MR.strings.action_filter),
                         )
                     }
-                    IconButton(onClick = { navigator.push(ExtensionReposScreen()) }) {
+                    IconButton(onClick = { navigator.push(ExtensionStoresScreen()) }) {
                         Icon(
                             Icons.Outlined.MoreVert,
-                            contentDescription = stringResource(MR.strings.label_extension_repos),
+                            contentDescription = stringResource(MR.strings.extensionStores),
                         )
                     }
                 },
@@ -152,9 +152,9 @@ fun ExtensionScreen(
                         modifier = Modifier.padding(contentPadding),
                         actions = persistentListOf(
                             EmptyScreenAction(
-                                stringRes = MR.strings.label_extension_repos,
+                                stringRes = MR.strings.extensionStores,
                                 icon = Icons.Outlined.Settings,
-                                onClick = { navigator.push(ExtensionReposScreen()) },
+                                onClick = { navigator.push(ExtensionStoresScreen()) },
                             ),
                         ),
                     )

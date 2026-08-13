@@ -13,7 +13,7 @@ data class LegacyBackup(
     @ProtoNumber(104) var backupPreferences: List<BackupPreference> = emptyList(),
     @ProtoNumber(105) var backupSourcePreferences: List<BackupSourcePreferences> = emptyList(),
     @ProtoNumber(106) var backupExtensions: List<BackupExtension> = emptyList(),
-    @ProtoNumber(107) var backupExtensionRepo: List<BackupExtensionRepos> = emptyList(),
+    @ProtoNumber(107) var backupExtensionStores: List<BackupExtensionStore> = emptyList(),
     @ProtoNumber(109) var backupCustomButton: List<BackupCustomButtons> = emptyList(),
 ) {
     fun toBackup(): Backup {
@@ -25,7 +25,7 @@ data class LegacyBackup(
             backupPreferences = backupPreferences,
             backupSourcePreferences = backupSourcePreferences,
             backupExtensions = backupExtensions,
-            backupExtensionRepo = backupExtensionRepo,
+            backupExtensionStores = backupExtensionStores,
             backupCustomButton = backupCustomButton,
         )
     }
@@ -44,7 +44,7 @@ data class Backup(
     @ProtoNumber(502) var backupCategories: List<BackupCategory> = emptyList(),
     @ProtoNumber(503) var backupSources: List<BackupSource> = emptyList(),
     @ProtoNumber(504) var backupExtensions: List<BackupExtension> = emptyList(),
-    @ProtoNumber(505) var backupExtensionRepo: List<BackupExtensionRepos> = emptyList(),
+    @ProtoNumber(505) var backupExtensionStores: List<BackupExtensionStore> = emptyList(),
     @ProtoNumber(506) var backupCustomButton: List<BackupCustomButtons> = emptyList(),
     // <-- AY
 )
