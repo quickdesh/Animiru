@@ -34,8 +34,9 @@ data class NetworkExtensionStore(
         @ProtoNumber(4) val extensionLib: String,
         @ProtoNumber(5) val versionCode: Long,
         @ProtoNumber(6) val versionName: String,
-        @ProtoNumber(7) val isTorrent: Boolean = false,
-        @ProtoNumber(8) val sources: List<Source>,
+        @ProtoNumber(7) val contentWarning: ContentWarning,
+        @ProtoNumber(8) val isTorrent: Boolean = false,
+        @ProtoNumber(9) val sources: List<Source>,
     )
 
     @Serializable
@@ -51,27 +52,22 @@ data class NetworkExtensionStore(
         @ProtoNumber(3) val language: String,
         @ProtoNumber(4) val homeUrl: String = "",
         @ProtoNumber(5) val mirrorUrls: List<String> = emptyList(),
-        @ProtoNumber(6) val contentRating: ContentRating = ContentRating.SAFE,
-        @ProtoNumber(7) val message: String? = null,
+        @ProtoNumber(6) val message: String? = null,
     )
 
     @Suppress("Unused")
-    enum class ContentRating {
+    enum class ContentWarning {
         @ProtoNumber(0)
-        @JsonNames("CONTENT_RATING_SAFE")
+        @JsonNames("CONTENT_WARNING_SAFE")
         SAFE,
 
         @ProtoNumber(1)
-        @JsonNames("CONTENT_RATING_SUGGESTIVE")
-        SUGGESTIVE,
+        @JsonNames("CONTENT_WARNING_MIXED")
+        Mixed,
 
         @ProtoNumber(2)
-        @JsonNames("CONTENT_RATING_EROTICA")
-        EROTICA,
-
-        @ProtoNumber(3)
-        @JsonNames("CONTENT_RATING_PORNOGRAPHIC")
-        PORNOGRAPHIC,
+        @JsonNames("CONTENT_WARNING_NSFW")
+        NSFW,
     }
 
     override fun toExtensionStore(indexUrl: String): ExtensionStore {
@@ -102,7 +98,7 @@ fun NetworkExtensionStore.ExtensionList.toAvailableExtensions(store: ExtensionSt
             versionCode = extension.versionCode,
             versionName = extension.versionName,
             lang = if (lang.size == 1) lang.first() else "all",
-            isNsfw = extension.sources.maxOfOrNull { it.contentRating } == NetworkExtensionStore.ContentRating.PORNOGRAPHIC,
+            isNsfw = extension.contentWarning >= NetworkExtensionStore.ContentWarning.Mixed,
             isTorrent = extension.isTorrent,
             sources = extension.sources.map { source ->
                 AniyomiExtension.Available.Source(
