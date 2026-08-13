@@ -1,19 +1,25 @@
 package tachiyomi.domain.anime.model
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Immutable
 import aniyomi.domain.anime.SeasonDisplayMode
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.animesource.model.SAnime
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import mihon.core.common.extensions.EMPTY
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import uy.kohesive.injekt.injectLazy
-import java.io.Serializable
+import java.io.ObjectStreamException
 import java.time.Instant
+import java.io.Serializable as JavaSerializable
 import kotlin.math.pow
 
+@SuppressLint("UnsafeOptInUsageError")
+@Serializable
 @Immutable
 data class Anime(
     val id: Long,
@@ -56,7 +62,7 @@ data class Anime(
     val seasonSourceOrder: Long,
     // <-- AY
     val memo: JsonObject,
-) : Serializable {
+) : JavaSerializable {
 
     // AM (CUSTOM_INFORMATION) -->
     private val customAnimeInfo = if (favorite) {
@@ -409,5 +415,18 @@ data class Anime(
         // AM (CUSTOM_INFORMATION) -->
         private val getCustomAnimeInfo: GetCustomAnimeInfo by injectLazy()
         // <-- AM (CUSTOM_INFORMATION)
+    }
+
+    @Throws(ObjectStreamException::class)
+    private fun writeReplace(): Any {
+        return JavaToKotlinXSerializable(Json.encodeToString<Anime>(this))
+    }
+
+    class JavaToKotlinXSerializable(private val data: String) : JavaSerializable {
+
+        @Throws(ObjectStreamException::class)
+        private fun readResolve(): Any {
+            return Json.decodeFromString<Anime>(data)
+        }
     }
 }

@@ -1,6 +1,9 @@
 // AM (CUSTOM_INFORMATION) -->
 package tachiyomi.domain.anime.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class CustomAnimeInfo(
     val id: Long,
     val title: String?,
