@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames
 import kotlinx.serialization.protobuf.ProtoNumber
 import mihon.domain.extension.model.ExtensionStore
+import eu.kanade.tachiyomi.extension.model.Extension as AniyomiExtension
 
 @SuppressLint("UnsafeOptInUsageError")
 @Serializable
@@ -13,13 +14,17 @@ data class NetworkExtensionStore(
     @ProtoNumber(2) val badgeLabel: String,
     @ProtoNumber(3) val signingKey: String,
     @ProtoNumber(4) val contact: Contact,
-    @ProtoNumber(5) val extensions: List<Extension>,
+    @ProtoNumber(101) val extensionList: ExtensionList?,
+    @ProtoNumber(102) val extensionListUrl: String?,
 ) : BaseNetworkExtensionStore {
     @Serializable
     data class Contact(
         @ProtoNumber(1) val website: String,
         @ProtoNumber(2) val discord: String?,
     )
+
+    @Serializable
+    data class ExtensionList(@ProtoNumber(1) val extensions: List<Extension>)
 
     @Serializable
     data class Extension(
@@ -80,33 +85,34 @@ data class NetworkExtensionStore(
                 discord = contact.discord,
             ),
             isLegacy = false,
+            extensionListUrl = extensionListUrl,
         )
     }
+}
 
-    fun toAvailableExtensions(store: ExtensionStore): List<eu.kanade.tachiyomi.extension.model.Extension.Available> {
-        return extensions.map { extension ->
-            val lang = extension.sources.map { it.language }.toSet()
-            eu.kanade.tachiyomi.extension.model.Extension.Available(
-                name = extension.name,
-                pkgName = extension.packageName,
-                apkUrl = extension.resources.apkUrl,
-                iconUrl = extension.resources.iconUrl,
-                libVersion = extension.extensionLib.toDouble(),
-                versionCode = extension.versionCode,
-                versionName = extension.versionName,
-                lang = if (lang.size == 1) lang.first() else "all",
-                isNsfw = extension.sources.maxOfOrNull { it.contentRating } == ContentRating.PORNOGRAPHIC,
-                isTorrent = extension.isTorrent,
-                sources = extension.sources.map { source ->
-                    eu.kanade.tachiyomi.extension.model.Extension.Available.Source(
-                        id = source.id,
-                        name = source.name,
-                        lang = source.language,
-                        baseUrl = source.homeUrl,
-                    )
-                },
-                store = store,
-            )
-        }
+fun NetworkExtensionStore.ExtensionList.toAvailableExtensions(store: ExtensionStore): List<AniyomiExtension.Available> {
+    return extensions.map { extension ->
+        val lang = extension.sources.map { it.language }.toSet()
+        AniyomiExtension.Available(
+            name = extension.name,
+            pkgName = extension.packageName,
+            apkUrl = extension.resources.apkUrl,
+            iconUrl = extension.resources.iconUrl,
+            libVersion = extension.extensionLib.toDouble(),
+            versionCode = extension.versionCode,
+            versionName = extension.versionName,
+            lang = if (lang.size == 1) lang.first() else "all",
+            isNsfw = extension.sources.maxOfOrNull { it.contentRating } == NetworkExtensionStore.ContentRating.PORNOGRAPHIC,
+            isTorrent = extension.isTorrent,
+            sources = extension.sources.map { source ->
+                AniyomiExtension.Available.Source(
+                    id = source.id,
+                    name = source.name,
+                    lang = source.language,
+                    baseUrl = source.homeUrl,
+                )
+            },
+            store = store,
+        )
     }
 }
