@@ -89,6 +89,7 @@ class SyncEpisodesWithSource(
             // Update metadata from source if necessary.
             if (source is AnimeHttpSource) {
                 val sEpisode = episode.toSEpisode()
+                @Suppress("DEPRECATION")
                 source.prepareNewEpisode(sEpisode, anime.toSAnime())
                 episode = episode.copyFromSEpisode(sEpisode)
             }
