@@ -46,7 +46,7 @@ data class HKAnime(
             score = this@HKAnime.score
             tracking_url = "${HikkaApi.BASE_URL}/anime/${this@HKAnime.slug}"
             publishing_status = this@HKAnime.status ?: "finished"
-            publishing_type = this@HKAnime.mediaType ?: "tv"
+            publishing_type = this@HKAnime.mediaType?.replace("_", " ").orEmpty()
             authors = studios.map { it.name }
 
             startDate?.takeIf { it != 0L }?.let {
