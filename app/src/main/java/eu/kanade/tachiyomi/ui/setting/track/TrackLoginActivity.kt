@@ -29,6 +29,7 @@ class TrackLoginActivity : BaseOAuthLoginActivity() {
                 // AY -->
                 "simkl-auth" -> handleSimkl(data["code"])
                 // <-- AY
+                "hikka-auth" -> handleHikka(data["reference"])
             }
             returnToSettings()
         }
@@ -75,4 +76,12 @@ class TrackLoginActivity : BaseOAuthLoginActivity() {
         }
     }
     // <-- AY
+
+    private suspend fun handleHikka(reference: String?) {
+        if (reference != null) {
+            trackerManager.hikka.login(reference)
+        } else {
+            trackerManager.hikka.logout()
+        }
+    }
 }

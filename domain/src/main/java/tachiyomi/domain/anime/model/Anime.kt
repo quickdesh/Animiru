@@ -15,8 +15,8 @@ import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import uy.kohesive.injekt.injectLazy
 import java.io.ObjectStreamException
 import java.time.Instant
-import java.io.Serializable as JavaSerializable
 import kotlin.math.pow
+import java.io.Serializable as JavaSerializable
 
 @SuppressLint("UnsafeOptInUsageError")
 @Serializable

@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.data.track
 
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.bangumi.Bangumi
+import eu.kanade.tachiyomi.data.track.hikka.Hikka
 import eu.kanade.tachiyomi.data.track.jellyfin.Jellyfin
 import eu.kanade.tachiyomi.data.track.kitsu.Kitsu
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
@@ -32,6 +33,8 @@ class TrackerManager {
     val jellyfin = Jellyfin(JELLYFIN)
     // <-- AY
 
+    val hikka = Hikka(6L)
+
     val trackers = listOf(
         myAnimeList,
         aniList,
@@ -42,6 +45,7 @@ class TrackerManager {
         simkl,
         jellyfin,
         // <-- AY
+        hikka,
     )
 
     fun loggedInTrackers() = trackers.filter { it.isLoggedIn }

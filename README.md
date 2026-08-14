@@ -8,7 +8,7 @@
 Animiru is a fork of [Aniyomi](https://github.com/aniyomiorg/aniyomi)
 
 ### Full-featured video player
-Discover and watch anime, donghua, eries, and more – easier than ever on your Android device.
+Discover and watch anime, donghua, series, and more – easier than ever on your Android device.
 
 [![Discord server](https://img.shields.io/discord/1009125884491468861.svg?label=&labelColor=6A7EC2&color=7389D8&logo=discord&logoColor=FFFFFF)](https://discord.gg/yDuHDMwxhv)
 [![GitHub downloads](https://img.shields.io/github/downloads/quickdesh/Animiru/total?label=downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&style=flat)](https://github.com/quickdesh/Animiru/releases/latest)
@@ -31,7 +31,7 @@ Features include:
 * Watch videos
 * Local watching of downloaded content
 * A configurable player built on mpv-android with multiple options and settings
-* Tracker support: [MyAnimeList](https://myanimelist.net/), [AniList](https://anilist.co/), [Kitsu](https://kitsu.app/), [Shikimori](https://shikimori.io), and [Bangumi](https://bgm.tv/)
+* Tracker support: [MyAnimeList](https://myanimelist.net/), [AniList](https://anilist.co/), [Kitsu](https://kitsu.app/), [Shikimori](https://shikimori.io), [Simkl](https://simkl.com/), [Bangumi](https://bgm.tv/), and [Hikka](https://hikka.io/) support.
 * Categories to organize your library
 * Light and dark themes
 * Create backups locally to watch offline or to your desired cloud service
