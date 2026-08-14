@@ -123,14 +123,13 @@ class Hikka(id: Long) : BaseTracker(id, "Hikka"), DeletableTracker {
         track.copyPersonalFrom(remoteTrack)
         track.total_episodes = remoteTrack.total_episodes
 
-        val seenContent = api.getSeen(track)
-        if (seenContent != null) {
-            track.score = seenContent.score.toDouble()
-            track.last_episode_seen = seenContent.episodes.toDouble()
-            track.status = toTrackStatus(seenContent.status)
-            track.started_watching_date = (seenContent.startDate ?: 0L) * 1000
-            track.finished_watching_date = (seenContent.endDate ?: 0L) * 1000
-        }
+        val seenContent = api.getSeen(track) ?: throw Exception("Could not find anime")
+
+        track.score = seenContent.score.toDouble()
+        track.last_episode_seen = seenContent.episodes.toDouble()
+        track.status = toTrackStatus(seenContent.status)
+        track.started_watching_date = (seenContent.startDate ?: 0L) * 1000
+        track.finished_watching_date = (seenContent.endDate ?: 0L) * 1000
 
         return track
     }
