@@ -22,8 +22,8 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
+import androidx.lifecycle.viewmodel.compose.viewModel
 import animiru.domain.player.service.PlayerPreferences
-import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -102,9 +102,9 @@ data object LibraryTab : Tab {
         val scope = rememberCoroutineScope()
         val haptic = LocalHapticFeedback.current
 
-        val screenModel = rememberScreenModel { LibraryScreenModel() }
-        val settingsScreenModel = rememberScreenModel { LibrarySettingsScreenModel() }
-        val state by screenModel.state.collectAsState()
+        val viewModel = viewModel<LibraryViewModel>()
+        val settingsViewModel = viewModel<LibrarySettingsViewModel>()
+        val state by viewModel.state.collectAsState()
 
         val snackbarHostState = remember { SnackbarHostState() }
 
@@ -150,7 +150,7 @@ data object LibraryTab : Tab {
         // AM (TAB_HOLD) -->
         fun openRandomAnime() {
             scope.launch {
-                val randomItem = screenModel.getRandomLibraryItemForCurrentCategory()
+                val randomItem = viewModel.getRandomLibraryItemForCurrentCategory()
                 if (randomItem != null) {
                     navigator.push(AnimeScreen(randomItem.libraryAnime.anime.id))
                 } else {
@@ -173,17 +173,17 @@ data object LibraryTab : Tab {
                     hasActiveFilters = state.hasActiveFilters,
                     selectedCount = state.selection.size,
                     title = title,
-                    onClickUnselectAll = screenModel::clearSelection,
-                    onClickSelectAll = screenModel::selectAll,
-                    onClickInvertSelection = screenModel::invertSelection,
-                    onClickFilter = screenModel::showSettingsDialog,
+                    onClickUnselectAll = viewModel::clearSelection,
+                    onClickSelectAll = viewModel::selectAll,
+                    onClickInvertSelection = viewModel::invertSelection,
+                    onClickFilter = viewModel::showSettingsDialog,
                     onClickRefresh = { onClickRefresh(state.activeCategory) },
                     onClickGlobalUpdate = { onClickRefresh(null) },
                     // AM (TAB_HOLD) -->
                     onClickOpenRandomAnime = ::openRandomAnime,
                     // <-- AM (TAB_HOLD)
                     searchQuery = state.searchQuery,
-                    onSearchQueryChange = screenModel::search,
+                    onSearchQueryChange = viewModel::search,
                     // For scroll overlay when no tab
                     scrollBehavior = scrollBehavior.takeIf { !state.showCategoryTabs },
                 )
@@ -191,15 +191,15 @@ data object LibraryTab : Tab {
             bottomBar = {
                 LibraryBottomActionMenu(
                     visible = state.selectionMode,
-                    onChangeCategoryClicked = screenModel::openChangeCategoryDialog,
-                    onMarkAsSeenClicked = { screenModel.markSeenSelection(true) },
-                    onMarkAsUnseenClicked = { screenModel.markSeenSelection(false) },
-                    onDownloadClicked = screenModel::performDownloadAction
+                    onChangeCategoryClicked = viewModel::openChangeCategoryDialog,
+                    onMarkAsSeenClicked = { viewModel.markSeenSelection(true) },
+                    onMarkAsUnseenClicked = { viewModel.markSeenSelection(false) },
+                    onDownloadClicked = viewModel::performDownloadAction
                         .takeIf { state.selectedAnime.fastAll { !it.isLocal() } },
-                    onDeleteClicked = screenModel::openDeleteAnimeDialog,
+                    onDeleteClicked = viewModel::openDeleteAnimeDialog,
                     onMigrateClicked = {
                         val selection = state.selection
-                        screenModel.clearSelection()
+                        viewModel.clearSelection()
                         navigator.push(MigrationConfigScreen(selection))
                     },
                 )
@@ -233,68 +233,68 @@ data object LibraryTab : Tab {
                         currentPage = state.coercedActiveCategoryIndex,
                         hasActiveFilters = state.hasActiveFilters,
                         showPageTabs = state.showCategoryTabs || !state.searchQuery.isNullOrEmpty(),
-                        onChangeCurrentPage = screenModel::updateActiveCategoryIndex,
+                        onChangeCurrentPage = viewModel::updateActiveCategoryIndex,
                         onClickAnime = { navigator.push(AnimeScreen(it)) },
                         onContinueWatchingClicked = { it: LibraryAnime ->
                             scope.launchIO {
-                                val episode = screenModel.getNextUnseenEpisode(it.anime)
+                                val episode = viewModel.getNextUnseenEpisode(it.anime)
                                 // AY -->
                                 if (episode != null) openEpisode(episode)
                                 // <-- AY
                             }
                             Unit
                         }.takeIf { state.showAnimeContinueButton },
-                        onToggleSelection = screenModel::toggleSelection,
+                        onToggleSelection = viewModel::toggleSelection,
                         onToggleRangeSelection = { category, anime ->
-                            screenModel.toggleRangeSelection(category, anime)
+                            viewModel.toggleRangeSelection(category, anime)
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         },
                         onRefresh = { onClickRefresh(state.activeCategory) },
                         onGlobalSearchClicked = {
-                            navigator.push(GlobalSearchScreen(screenModel.state.value.searchQuery ?: ""))
+                            navigator.push(GlobalSearchScreen(viewModel.state.value.searchQuery ?: ""))
                         },
                         getItemCountForCategory = { state.getItemCountForCategory(it) },
-                        getDisplayMode = { screenModel.getDisplayMode() },
-                        getColumnsForOrientation = { screenModel.getColumnsForOrientation(it) },
+                        getDisplayMode = { viewModel.getDisplayMode() },
+                        getColumnsForOrientation = { viewModel.getColumnsForOrientation(it) },
                         getItemsForCategory = { state.getItemsForCategory(it) },
                     )
                 }
             }
         }
 
-        val onDismissRequest = screenModel::closeDialog
+        val onDismissRequest = viewModel::closeDialog
         when (val dialog = state.dialog) {
-            is LibraryScreenModel.Dialog.SettingsSheet -> run {
+            is LibraryViewModel.Dialog.SettingsSheet -> run {
                 LibrarySettingsDialog(
                     onDismissRequest = onDismissRequest,
-                    screenModel = settingsScreenModel,
+                    viewModel = settingsViewModel,
                     category = state.activeCategory,
                     // AM (GROUPING) -->
                     hasCategories = allCategories.fastAny { !it.isSystemCategory },
                     // <-- AM (GROUPING)
                 )
             }
-            is LibraryScreenModel.Dialog.ChangeCategory -> {
+            is LibraryViewModel.Dialog.ChangeCategory -> {
                 ChangeCategoryDialog(
                     initialSelection = dialog.initialSelection,
                     onDismissRequest = onDismissRequest,
                     onEditCategories = {
-                        screenModel.clearSelection()
+                        viewModel.clearSelection()
                         navigator.push(CategoryScreen())
                     },
                     onConfirm = { include, exclude ->
-                        screenModel.clearSelection()
-                        screenModel.setAnimeCategories(dialog.anime, include, exclude)
+                        viewModel.clearSelection()
+                        viewModel.setAnimeCategories(dialog.anime, include, exclude)
                     },
                 )
             }
-            is LibraryScreenModel.Dialog.DeleteAnime -> {
+            is LibraryViewModel.Dialog.DeleteAnime -> {
                 DeleteLibraryAnimeDialog(
                     containsLocalAnime = dialog.anime.any(Anime::isLocal),
                     onDismissRequest = onDismissRequest,
                     onConfirm = { deleteAnime, deleteEpisode ->
-                        screenModel.removeAnimes(dialog.anime, deleteAnime, deleteEpisode)
-                        screenModel.clearSelection()
+                        viewModel.removeAnimes(dialog.anime, deleteAnime, deleteEpisode)
+                        viewModel.clearSelection()
                     },
                 )
             }
@@ -303,8 +303,8 @@ data object LibraryTab : Tab {
 
         BackHandler(enabled = state.selectionMode || state.searchQuery != null) {
             when {
-                state.selectionMode -> screenModel.clearSelection()
-                state.searchQuery != null -> screenModel.search(null)
+                state.selectionMode -> viewModel.clearSelection()
+                state.searchQuery != null -> viewModel.search(null)
             }
         }
 
@@ -324,8 +324,8 @@ data object LibraryTab : Tab {
                 discordScope.launchIO { setScreen(context.applicationContext, DiscordScreen.LIBRARY) }
             }
             // <-- AM (DISCORD_RPC)
-            launch { queryEvent.receiveAsFlow().collect(screenModel::search) }
-            launch { requestSettingsSheetEvent.receiveAsFlow().collectLatest { screenModel.showSettingsDialog() } }
+            launch { queryEvent.receiveAsFlow().collect(viewModel::search) }
+            launch { requestSettingsSheetEvent.receiveAsFlow().collectLatest { viewModel.showSettingsDialog() } }
             // AM (TAB_HOLD) -->
             launch { requestOpenRandomAnimeEvent.receiveAsFlow().collectLatest { openRandomAnime() } }
             // <-- AM (TAB_HOLD)

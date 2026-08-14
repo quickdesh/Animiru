@@ -8,7 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
-import cafe.adriel.voyager.core.model.rememberScreenModel
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.core.util.ifSourcesLoaded
@@ -43,8 +44,14 @@ data class MigrateSeasonSelectScreen(
         val uriHandler = LocalUriHandler.current
         val navigator = LocalNavigator.currentOrThrow
 
-        val screenModel = rememberScreenModel { MigrateSeasonSelectScreenModel(anime) }
-        val state by screenModel.state.collectAsState()
+        val viewModel = viewModel<MigrateSeasonSelectViewModel>(
+            factory = MigrateSeasonSelectViewModel.Factory,
+            extras = CreationExtras {
+                set(MigrateSeasonSelectViewModel.ANIME_ID_KEY, anime.id)
+                set(MigrateSeasonSelectViewModel.SOURCE_ID_KEY, anime.source)
+            },
+        )
+        val state by viewModel.state.collectAsState()
 
         val snackbarHostState = remember { SnackbarHostState() }
 
@@ -59,21 +66,21 @@ data class MigrateSeasonSelectScreen(
         ) { paddingValues ->
             val openDialog: (Anime) -> Unit = {
                 val dialog = if (isFromList) {
-                    MigrateSeasonSelectScreenModel.Dialog.Select(anime = it)
+                    MigrateSeasonSelectViewModel.Dialog.Select(anime = it)
                 } else {
-                    MigrateSeasonSelectScreenModel.Dialog.Migrate(newAnime = it, oldAnime = oldAnime)
+                    MigrateSeasonSelectViewModel.Dialog.Migrate(newAnime = it, oldAnime = oldAnime)
                 }
-                screenModel.setDialog(dialog)
+                viewModel.setDialog(dialog)
             }
             BrowseSourceContent(
-                source = screenModel.source,
-                animeList = screenModel.seasonPagerFlowFlow.collectAsLazyPagingItems(),
-                columns = screenModel.getColumnsPreference(LocalConfiguration.current.orientation),
-                displayMode = screenModel.displayMode,
+                source = viewModel.source,
+                animeList = viewModel.seasonPagerFlowFlow.collectAsLazyPagingItems(),
+                columns = viewModel.getColumnsPreference(LocalConfiguration.current.orientation),
+                displayMode = viewModel.displayMode,
                 snackbarHostState = snackbarHostState,
                 contentPadding = paddingValues,
                 onWebViewClick = {
-                    val source = screenModel.source as? AnimeHttpSource ?: return@BrowseSourceContent
+                    val source = viewModel.source as? AnimeHttpSource ?: return@BrowseSourceContent
                     navigator.push(
                         WebViewScreen(
                             url = source.getHomeUrl(),
@@ -89,9 +96,9 @@ data class MigrateSeasonSelectScreen(
             )
         }
 
-        val onDismissRequest = { screenModel.setDialog(null) }
+        val onDismissRequest = { viewModel.setDialog(null) }
         when (val dialog = state.dialog) {
-            is MigrateSeasonSelectScreenModel.Dialog.Migrate -> {
+            is MigrateSeasonSelectViewModel.Dialog.Migrate -> {
                 MigrateAnimeDialog(
                     current = dialog.oldAnime,
                     target = dialog.newAnime,
@@ -110,7 +117,7 @@ data class MigrateSeasonSelectScreen(
                     },
                 )
             }
-            is MigrateSeasonSelectScreenModel.Dialog.Select -> {
+            is MigrateSeasonSelectViewModel.Dialog.Select -> {
                 SelectAnimeDialog(
                     selected = dialog.anime,
                     onDismissRequest = onDismissRequest,

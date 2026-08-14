@@ -3,7 +3,8 @@ package eu.kanade.tachiyomi.ui.browse.migration.search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import cafe.adriel.voyager.core.model.rememberScreenModel
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.browse.MigrateSearchScreen
@@ -11,7 +12,7 @@ import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.browse.migration.season.MigrateSeasonSelectScreen
-import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchScreenModel
+import eu.kanade.tachiyomi.ui.browse.source.globalsearch.SearchViewModel
 import mihon.feature.migration.dialog.MigrateAnimeDialog
 import mihon.feature.migration.dialog.SelectAnimeDialog
 import mihon.feature.migration.list.MigrationListScreen
@@ -23,8 +24,13 @@ class MigrateSearchScreen(private val animeId: Long) : Screen() {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
 
-        val screenModel = rememberScreenModel { MigrateSearchScreenModel(animeId = animeId) }
-        val state by screenModel.state.collectAsState()
+        val viewModel = viewModel<MigrateSearchViewModel>(
+            factory = MigrateSearchViewModel.Factory,
+            extras = CreationExtras {
+                set(MigrateSearchViewModel.ANIME_ID_KEY, animeId)
+            },
+        )
+        val state by viewModel.state.collectAsState()
 
         // AY -->
         val onSelectAnime: (Anime) -> Unit = {
@@ -33,7 +39,7 @@ class MigrateSearchScreen(private val animeId: Long) : Screen() {
                 .lastOrNull()
 
             if (migrateListScreen == null) {
-                screenModel.setMigrateDialog(animeId, it)
+                viewModel.setMigrateDialog(animeId, it)
             } else {
                 migrateListScreen.addMatchOverride(current = animeId, target = it.id)
                 navigator.popUntil { screen -> screen is MigrationListScreen }
@@ -45,16 +51,16 @@ class MigrateSearchScreen(private val animeId: Long) : Screen() {
             state = state,
             fromSourceId = state.from?.source,
             navigateUp = navigator::pop,
-            onChangeSearchQuery = screenModel::updateSearchQuery,
-            onSearch = { screenModel.search() },
-            getAnime = { screenModel.getAnime(it) },
-            onChangeSearchFilter = screenModel::setSourceFilter,
-            onToggleResults = screenModel::toggleFilterResults,
+            onChangeSearchQuery = viewModel::updateSearchQuery,
+            onSearch = { viewModel.search() },
+            getAnime = { viewModel.getAnime(it) },
+            onChangeSearchFilter = viewModel::setSourceFilter,
+            onToggleResults = viewModel::toggleFilterResults,
             onClickSource = { navigator.push(MigrateSourceSearchScreen(state.from!!, it.id, state.searchQuery)) },
             onClickItem = {
                 if (it.fetchType == FetchType.Seasons) {
                     // AY -->
-                    screenModel.setSelectDialog(it)
+                    viewModel.setSelectDialog(it)
                     // <-- AY
                 } else {
                     onSelectAnime(it)
@@ -64,7 +70,7 @@ class MigrateSearchScreen(private val animeId: Long) : Screen() {
         )
 
         when (val dialog = state.dialog) {
-            is SearchScreenModel.Dialog.Migrate -> {
+            is SearchViewModel.Dialog.Migrate -> {
                 MigrateAnimeDialog(
                     current = dialog.current,
                     target = dialog.target,
@@ -73,7 +79,7 @@ class MigrateSearchScreen(private val animeId: Long) : Screen() {
                     // AY -->
                     onClickSeasons = { navigator.push(MigrateSeasonSelectScreen(dialog.current, dialog.target)) },
                     // <-- AY
-                    onDismissRequest = { screenModel.clearDialog() },
+                    onDismissRequest = { viewModel.clearDialog() },
                     onComplete = {
                         if (navigator.lastItem is AnimeScreen) {
                             val lastItem = navigator.lastItem
@@ -85,10 +91,10 @@ class MigrateSearchScreen(private val animeId: Long) : Screen() {
                     },
                 )
             }
-            is SearchScreenModel.Dialog.Select -> {
+            is SearchViewModel.Dialog.Select -> {
                 SelectAnimeDialog(
                     selected = dialog.anime,
-                    onDismissRequest = { screenModel.clearDialog() },
+                    onDismissRequest = { viewModel.clearDialog() },
                     onClickTitle = { navigator.push(AnimeScreen(dialog.anime.id)) },
                     onClickSeasons = {
                         val isFromList = navigator.items.any { it is MigrationListScreen }

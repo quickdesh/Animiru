@@ -75,8 +75,8 @@ import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.getNameForAnimeInfo
-import eu.kanade.tachiyomi.ui.anime.AnimeScreenModel
 import eu.kanade.tachiyomi.ui.anime.AnimeSeasonItem
+import eu.kanade.tachiyomi.ui.anime.AnimeViewModel
 import eu.kanade.tachiyomi.ui.anime.EpisodeList
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import kotlinx.coroutines.delay
@@ -103,7 +103,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun AnimeScreen(
-    state: AnimeScreenModel.State.Success,
+    state: AnimeViewModel.State.Success,
     snackbarHostState: SnackbarHostState,
     nextUpdate: Instant?,
     isTabletUi: Boolean,
@@ -303,7 +303,7 @@ fun AnimeScreen(
 
 @Composable
 private fun AnimeScreenSmallImpl(
-    state: AnimeScreenModel.State.Success,
+    state: AnimeViewModel.State.Success,
     snackbarHostState: SnackbarHostState,
     nextUpdate: Instant?,
     episodeSwipeStartAction: LibraryPreferences.EpisodeSwipeAction,
@@ -697,7 +697,7 @@ private fun AnimeScreenSmallImpl(
 
 @Composable
 fun AnimeScreenLargeImpl(
-    state: AnimeScreenModel.State.Success,
+    state: AnimeViewModel.State.Success,
     snackbarHostState: SnackbarHostState,
     nextUpdate: Instant?,
     episodeSwipeStartAction: LibraryPreferences.EpisodeSwipeAction,

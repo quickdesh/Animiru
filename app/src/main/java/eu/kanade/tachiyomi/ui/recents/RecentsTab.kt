@@ -33,8 +33,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import animiru.domain.player.service.PlayerPreferences
-import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -49,12 +49,12 @@ import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
 import eu.kanade.tachiyomi.data.connection.discord.DiscordScreen
 import eu.kanade.tachiyomi.ui.download.DownloadQueueScreen
 import eu.kanade.tachiyomi.ui.history.HistoryHalfTab
-import eu.kanade.tachiyomi.ui.history.HistoryScreenModel
+import eu.kanade.tachiyomi.ui.history.HistoryViewModel
 import eu.kanade.tachiyomi.ui.history.resumeLastEpisodeSeenEvent
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.updates.AnimeUpdatesHalfTab
-import eu.kanade.tachiyomi.ui.updates.UpdatesScreenModel
-import eu.kanade.tachiyomi.ui.updates.UpdatesSettingsScreenModel
+import eu.kanade.tachiyomi.ui.updates.UpdatesSettingsViewModel
+import eu.kanade.tachiyomi.ui.updates.UpdatesViewModel
 import eu.kanade.tachiyomi.ui.updates.openEpisode
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -104,10 +104,10 @@ data object RecentsTab : Tab {
     override fun Content() {
         val context = LocalContext.current
 
-        val historyScreenModel = rememberScreenModel { HistoryScreenModel() }
+        val historyViewModel = viewModel<HistoryViewModel>()
         // AM (RECENTS_FILTER_CHIP) -->
-        val updatesScreenModel = rememberScreenModel { UpdatesScreenModel() }
-        val updatesSettingsScreenModel = rememberScreenModel { UpdatesSettingsScreenModel() }
+        val updatesViewModel = viewModel<UpdatesViewModel>()
+        val updatesSettingsViewModel = viewModel<UpdatesSettingsViewModel>()
         // AM (TAB_HOLD) -->
         val snackbarHostState = SnackbarHostState()
         // <-- AM (TAB_HOLD)
@@ -116,15 +116,15 @@ data object RecentsTab : Tab {
         RecentsScaffold(
             showHistoryScreen = showHistoryScreen,
             shouldShowHistoryScreen = { showHistoryScreen = it },
-            updatesScreenModel = updatesScreenModel,
-            historyScreenModel = historyScreenModel,
+            updatesViewModel = updatesViewModel,
+            historyViewModel = historyViewModel,
             snackbarHostState = snackbarHostState,
         ) { contentPadding ->
             Crossfade(targetState = showHistoryScreen, label = "recents_crossfade") { showHistory ->
                 if (!showHistory) {
-                    AnimeUpdatesHalfTab(updatesScreenModel, updatesSettingsScreenModel, contentPadding)
+                    AnimeUpdatesHalfTab(updatesViewModel, updatesSettingsViewModel, contentPadding)
                 } else {
-                    HistoryHalfTab(historyScreenModel, snackbarHostState, contentPadding)
+                    HistoryHalfTab(historyViewModel, snackbarHostState, contentPadding)
                 }
             }
         }
@@ -143,7 +143,7 @@ data object RecentsTab : Tab {
             (context as? MainActivity)?.ready = true
             // AM (TAB_HOLD) -->
             resumeLastEpisodeSeenEvent.receiveAsFlow().collectLatest {
-                openEpisode(context, historyScreenModel.getNextEpisode(), snackbarHostState)
+                openEpisode(context, historyViewModel.getNextEpisode(), snackbarHostState)
             }
         }
     }
@@ -166,16 +166,16 @@ fun RecentsScaffold(
     showHistoryScreen: Boolean,
     shouldShowHistoryScreen: (Boolean) -> Unit,
     snackbarHostState: SnackbarHostState,
-    updatesScreenModel: UpdatesScreenModel,
-    historyScreenModel: HistoryScreenModel,
+    updatesViewModel: UpdatesViewModel,
+    historyViewModel: HistoryViewModel,
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val context = LocalContext.current
     val navigator = LocalNavigator.currentOrThrow
     val scope = rememberCoroutineScope()
 
-    val updatesState by updatesScreenModel.state.collectAsState()
-    val historyState by historyScreenModel.state.collectAsState()
+    val updatesState by updatesViewModel.state.collectAsState()
+    val historyState by historyViewModel.state.collectAsState()
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -184,20 +184,20 @@ fun RecentsScaffold(
                 if (!showHistoryScreen) {
                     UpdatesTopBar(
                         onCalendarClicked = { navigator.push(UpcomingScreen()) },
-                        onFilterClicked = updatesScreenModel::showFilterDialog,
+                        onFilterClicked = updatesViewModel::showFilterDialog,
                         hasFilters = updatesState.hasActiveFilters,
-                        onUpdateLibrary = updatesScreenModel::updateLibrary,
+                        onUpdateLibrary = updatesViewModel::updateLibrary,
                         actionModeCounter = updatesState.selected.size,
-                        onSelectAll = { updatesScreenModel.toggleAllSelection(true) },
-                        onInvertSelection = updatesScreenModel::invertSelection,
-                        onCancelActionMode = { updatesScreenModel.toggleAllSelection(false) },
+                        onSelectAll = { updatesViewModel.toggleAllSelection(true) },
+                        onInvertSelection = updatesViewModel::invertSelection,
+                        onCancelActionMode = { updatesViewModel.toggleAllSelection(false) },
                         scrollBehavior = scrollBehavior,
                     )
                 } else {
                     HistoryTopBar(
                         state = historyState,
-                        onSearchQueryChange = historyScreenModel::updateSearchQuery,
-                        onDialogChange = historyScreenModel::setDialog,
+                        onSearchQueryChange = historyViewModel::updateSearchQuery,
+                        onDialogChange = historyViewModel::setDialog,
                         scrollBehavior = scrollBehavior,
                     )
                 }
@@ -238,11 +238,11 @@ fun RecentsScaffold(
             if (!showHistoryScreen) {
                 UpdatesBottomBar(
                     selected = updatesState.selected,
-                    onDownloadEpisode = updatesScreenModel::downloadEpisodes,
-                    onMultiBookmarkClicked = updatesScreenModel::bookmarkUpdates,
-                    onMultiFillermarkClicked = updatesScreenModel::fillermarkUpdates,
-                    onMultiMarkAsSeenClicked = updatesScreenModel::markUpdatesSeen,
-                    onMultiDeleteClicked = updatesScreenModel::showConfirmDeleteEpisodes,
+                    onDownloadEpisode = updatesViewModel::downloadEpisodes,
+                    onMultiBookmarkClicked = updatesViewModel::bookmarkUpdates,
+                    onMultiFillermarkClicked = updatesViewModel::fillermarkUpdates,
+                    onMultiMarkAsSeenClicked = updatesViewModel::markUpdatesSeen,
+                    onMultiDeleteClicked = updatesViewModel::showConfirmDeleteEpisodes,
                     onOpenEpisode = { updateItem, altPlayer ->
                         scope.launchIO {
                             openEpisode(context, updateItem, altPlayer)

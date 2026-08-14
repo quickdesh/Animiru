@@ -22,7 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
-import cafe.adriel.voyager.core.model.rememberScreenModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -36,10 +36,10 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
 import eu.kanade.tachiyomi.data.connection.discord.DiscordScreen
 import eu.kanade.tachiyomi.extension.model.Extension
-import eu.kanade.tachiyomi.ui.browse.extension.ExtensionsScreenModel
+import eu.kanade.tachiyomi.ui.browse.extension.ExtensionsViewModel
 import eu.kanade.tachiyomi.ui.browse.extension.details.ExtensionDetailsScreen
 import eu.kanade.tachiyomi.ui.browse.migration.sources.MigrateSourceScreen
-import eu.kanade.tachiyomi.ui.browse.source.SourcesScreenModel
+import eu.kanade.tachiyomi.ui.browse.source.SourcesViewModel
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
@@ -95,12 +95,12 @@ data object BrowseTab : Tab {
 
         // AM (BROWSE) -->
         val navigator = LocalNavigator.currentOrThrow
-        val sourcesScreenModel = rememberScreenModel { SourcesScreenModel() }
-        val sourcesState by sourcesScreenModel.state.collectAsState()
-        val updateCount by sourcesScreenModel.sourcePreferences.extensionUpdatesCount.collectAsState()
+        val sourcesViewModel = viewModel<SourcesViewModel>()
+        val sourcesState by sourcesViewModel.state.collectAsState()
+        val updateCount by sourcesViewModel.sourcePreferences.extensionUpdatesCount.collectAsState()
 
-        val extensionScreenModel = rememberScreenModel { ExtensionsScreenModel() }
-        val extensionsState by extensionScreenModel.state.collectAsState()
+        val extensionViewModel = viewModel<ExtensionsViewModel>()
+        val extensionsState by extensionViewModel.state.collectAsState()
 
         var inExtensionsScreen by remember { mutableStateOf(goToExtensions) }
         val animationDuration = 300
@@ -132,8 +132,8 @@ data object BrowseTab : Tab {
                     onClickItem = { source, listing ->
                         navigator.push(BrowseSourceScreen(source.id, listing.query))
                     },
-                    onClickPin = sourcesScreenModel::togglePin,
-                    onLongClickItem = sourcesScreenModel::showSourceDialog,
+                    onClickPin = sourcesViewModel::togglePin,
+                    onLongClickItem = sourcesViewModel::showSourceDialog,
                     toExtensionsScreen = { inExtensionsScreen = true },
                     updateCount = updateCount,
                     modifier = Modifier.alpha(alpha.coerceAtLeast(0f)),
@@ -159,25 +159,25 @@ data object BrowseTab : Tab {
 
                     onLongClickItem = { extension ->
                         when (extension) {
-                            is Extension.Available -> extensionScreenModel.installExtension(extension)
-                            else -> extensionScreenModel.uninstallExtension(extension)
+                            is Extension.Available -> extensionViewModel.installExtension(extension)
+                            else -> extensionViewModel.uninstallExtension(extension)
                         }
                     },
-                    onClickItemCancel = extensionScreenModel::cancelInstallUpdateExtension,
-                    onClickUpdateAll = extensionScreenModel::updateAllExtensions,
+                    onClickItemCancel = extensionViewModel::cancelInstallUpdateExtension,
+                    onClickUpdateAll = extensionViewModel::updateAllExtensions,
                     onOpenWebView = { extension ->
                         extension.sources.getOrNull(0)?.let {
                             navigator.push(WebViewScreen(url = it.baseUrl, initialTitle = it.name, sourceId = it.id))
                         }
                     },
-                    onInstallExtension = extensionScreenModel::installExtension,
+                    onInstallExtension = extensionViewModel::installExtension,
                     onOpenExtension = { navigator.push(ExtensionDetailsScreen(it.pkgName)) },
-                    onTrustExtension = extensionScreenModel::trustExtension,
-                    onUninstallExtension = extensionScreenModel::uninstallExtension,
-                    onUpdateExtension = extensionScreenModel::updateExtension,
-                    onRefresh = extensionScreenModel::findAvailableExtensions,
+                    onTrustExtension = extensionViewModel::trustExtension,
+                    onUninstallExtension = extensionViewModel::uninstallExtension,
+                    onUpdateExtension = extensionViewModel::updateExtension,
+                    onRefresh = extensionViewModel::findAvailableExtensions,
                     toSourcesScreen = { inExtensionsScreen = false },
-                    onChangeSearchQuery = extensionScreenModel::search,
+                    onChangeSearchQuery = extensionViewModel::search,
                     modifier = Modifier.alpha(abs(alpha.coerceAtMost(0f))),
                 )
             }
@@ -188,19 +188,19 @@ data object BrowseTab : Tab {
             SourceOptionsDialog(
                 source = source,
                 onClickPin = {
-                    sourcesScreenModel.togglePin(source)
-                    sourcesScreenModel.closeDialog()
+                    sourcesViewModel.togglePin(source)
+                    sourcesViewModel.closeDialog()
                 },
                 onClickDisable = {
-                    sourcesScreenModel.toggleSource(source)
-                    sourcesScreenModel.closeDialog()
+                    sourcesViewModel.toggleSource(source)
+                    sourcesViewModel.closeDialog()
                 },
                 onClickUninstall = {
                     val ext = dialog.extension ?: return@SourceOptionsDialog
-                    sourcesScreenModel.uninstallExtension(ext)
-                    sourcesScreenModel.closeDialog()
+                    sourcesViewModel.uninstallExtension(ext)
+                    sourcesViewModel.closeDialog()
                 },
-                onDismiss = sourcesScreenModel::closeDialog,
+                onDismiss = sourcesViewModel::closeDialog,
             )
         }
 

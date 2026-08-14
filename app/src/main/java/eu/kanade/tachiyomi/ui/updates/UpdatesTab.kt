@@ -20,7 +20,7 @@ import eu.kanade.presentation.updates.UpdatesFilterDialog
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
 import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
-import eu.kanade.tachiyomi.ui.updates.UpdatesScreenModel.Event
+import eu.kanade.tachiyomi.ui.updates.UpdatesViewModel.Event
 import kotlinx.coroutines.flow.collectLatest
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
@@ -30,22 +30,22 @@ import uy.kohesive.injekt.injectLazy
 // AM (RECENTS_FILTER_CHIP) -->
 @Composable
 fun AnimeUpdatesHalfTab(
-    screenModel: UpdatesScreenModel,
-    settingsScreenModel: UpdatesSettingsScreenModel,
+    viewModel: UpdatesViewModel,
+    settingsViewModel: UpdatesSettingsViewModel,
     contentPadding: PaddingValues,
 ) {
     val context = LocalContext.current
     val navigator = LocalNavigator.currentOrThrow
     val scope = rememberCoroutineScope()
-    val state by screenModel.state.collectAsState()
+    val state by viewModel.state.collectAsState()
 
     UpdateScreen(
         state = state,
-        lastUpdated = screenModel.lastUpdated,
+        lastUpdated = viewModel.lastUpdated,
         onClickCover = { item -> navigator.push(AnimeScreen(item.update.animeId)) },
-        onUpdateLibrary = screenModel::updateLibrary,
-        onDownloadEpisode = screenModel::downloadEpisodes,
-        onUpdateSelected = screenModel::toggleSelection,
+        onUpdateLibrary = viewModel::updateLibrary,
+        onDownloadEpisode = viewModel::downloadEpisodes,
+        onUpdateSelected = viewModel::toggleSelection,
         onOpenEpisode = { updateItem: UpdatesItem, altPlayer: Boolean ->
             scope.launchIO {
                 openEpisode(context, updateItem, altPlayer)
@@ -56,25 +56,25 @@ fun AnimeUpdatesHalfTab(
     )
     // <-- AM (RECENTS_FILTER_CHIP)
 
-    val onDismissDialog = { screenModel.setDialog(null) }
+    val onDismissDialog = { viewModel.setDialog(null) }
     when (val dialog = state.dialog) {
-        is UpdatesScreenModel.Dialog.DeleteConfirmation -> {
+        is UpdatesViewModel.Dialog.DeleteConfirmation -> {
             UpdatesDeleteConfirmationDialog(
                 onDismissRequest = onDismissDialog,
-                onConfirm = { screenModel.deleteEpisodes(dialog.toDelete) },
+                onConfirm = { viewModel.deleteEpisodes(dialog.toDelete) },
             )
         }
-        is UpdatesScreenModel.Dialog.FilterSheet -> {
+        is UpdatesViewModel.Dialog.FilterSheet -> {
             UpdatesFilterDialog(
                 onDismissRequest = onDismissDialog,
-                screenModel = settingsScreenModel,
+                viewModel = settingsViewModel,
             )
         }
-        is UpdatesScreenModel.Dialog.ShowQualities -> {
+        is UpdatesViewModel.Dialog.ShowQualities -> {
             EpisodeOptionsDialogScreen.onDismissDialog = onDismissDialog
             NavigatorAdaptiveSheet(
                 screen = EpisodeOptionsDialogScreen(
-                    useExternalDownloader = screenModel.useExternalDownloader,
+                    useExternalDownloader = viewModel.useExternalDownloader,
                     episodeTitle = dialog.episodeTitle,
                     episodeId = dialog.episodeId,
                     animeId = dialog.animeId,
@@ -87,9 +87,9 @@ fun AnimeUpdatesHalfTab(
     }
 
     LaunchedEffect(Unit) {
-        screenModel.events.collectLatest { event ->
+        viewModel.events.collectLatest { event ->
             when (event) {
-                Event.InternalError -> screenModel.snackbarHostState.showSnackbar(
+                Event.InternalError -> viewModel.snackbarHostState.showSnackbar(
                     context.stringResource(MR.strings.internal_error),
                 )
                 is Event.LibraryUpdateTriggered -> {
@@ -98,7 +98,7 @@ fun AnimeUpdatesHalfTab(
                     } else {
                         MR.strings.update_already_running
                     }
-                    screenModel.snackbarHostState.showSnackbar(context.stringResource(msg))
+                    viewModel.snackbarHostState.showSnackbar(context.stringResource(msg))
                 }
             }
         }
@@ -114,10 +114,10 @@ fun AnimeUpdatesHalfTab(
         }
     }
     DisposableEffect(Unit) {
-        screenModel.resetNewUpdatesCount()
+        viewModel.resetNewUpdatesCount()
 
         onDispose {
-            screenModel.resetNewUpdatesCount()
+            viewModel.resetNewUpdatesCount()
         }
     }
 }

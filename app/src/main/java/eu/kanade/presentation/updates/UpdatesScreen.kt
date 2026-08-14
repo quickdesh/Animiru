@@ -28,7 +28,7 @@ import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.ui.updates.UpdatesItem
-import eu.kanade.tachiyomi.ui.updates.UpdatesScreenModel
+import eu.kanade.tachiyomi.ui.updates.UpdatesViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tachiyomi.i18n.MR
@@ -46,7 +46,7 @@ import kotlin.time.Duration.Companion.seconds
 // AM (RECENTS_FILTER_CHIP) -->
 @Composable
 fun UpdateScreen(
-    state: UpdatesScreenModel.State,
+    state: UpdatesViewModel.State,
     lastUpdated: Long,
     onClickCover: (UpdatesItem) -> Unit,
     onUpdateLibrary: () -> Boolean,

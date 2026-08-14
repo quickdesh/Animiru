@@ -36,7 +36,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cafe.adriel.voyager.core.model.rememberScreenModel
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.components.AppBar
@@ -56,21 +57,26 @@ class CodeEditScreen(private val filePath: String) : Screen() {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
-        val screenModel = rememberScreenModel { CodeEditScreenModel(context, filePath) }
+        val viewModel = viewModel<CodeEditViewModel>(
+            factory = CodeEditViewModel.Factory,
+            extras = CreationExtras {
+                set(CodeEditViewModel.FILE_PATH_KEY, filePath)
+            },
+        )
 
-        val state by screenModel.state.collectAsState()
-        val dialogShown by screenModel.dialogShown.collectAsState()
-        val hasModified by screenModel.hasModified.collectAsState()
+        val state by viewModel.state.collectAsState()
+        val dialogShown by viewModel.dialogShown.collectAsState()
+        val hasModified by viewModel.hasModified.collectAsState()
 
         BackHandler(enabled = hasModified) {
-            screenModel.showDialog(CodeEditDialogs.GoBack)
+            viewModel.showDialog(CodeEditDialogs.GoBack)
         }
 
         when (dialogShown) {
             null -> {}
             CodeEditDialogs.GoBack -> {
                 UnsavedChangesDialog(
-                    onDismissRequest = screenModel::dismissDialog,
+                    onDismissRequest = viewModel::dismissDialog,
                     onConfirm = { navigator.pop() },
                 )
             }
@@ -81,7 +87,7 @@ class CodeEditScreen(private val filePath: String) : Screen() {
                 AppBar(
                     navigateUp = {
                         if (hasModified) {
-                            screenModel.showDialog(CodeEditDialogs.GoBack)
+                            viewModel.showDialog(CodeEditDialogs.GoBack)
                         } else {
                             navigator.pop()
                         }
@@ -95,7 +101,7 @@ class CodeEditScreen(private val filePath: String) : Screen() {
                                 AppBar.Action(
                                     title = stringResource(MR.strings.action_save),
                                     icon = Icons.Outlined.Save,
-                                    onClick = screenModel::save,
+                                    onClick = viewModel::save,
                                     enabled = hasModified,
                                 ),
                             ),
@@ -118,7 +124,7 @@ class CodeEditScreen(private val filePath: String) : Screen() {
                     CodeEditorContent(
                         state = state as CodeEditScreenState.Success,
                         contentPadding = contentPadding,
-                        onEdit = screenModel::onEdit,
+                        onEdit = viewModel::onEdit,
                     )
                 }
             }

@@ -4,7 +4,7 @@ package eu.kanade.presentation.more.storage.components
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import eu.kanade.tachiyomi.ui.storage.StorageScreenModel
+import eu.kanade.tachiyomi.ui.storage.StorageViewModel
 import tachiyomi.domain.category.model.Category
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
@@ -23,7 +23,7 @@ fun SelectStorageCategory(
     val mappedCategories = remember(categories) {
         categories.map {
             when (it.id) {
-                StorageScreenModel.ALL_CATEGORY_ID -> it.copy(name = all)
+                StorageViewModel.ALL_CATEGORY_ID -> it.copy(name = all)
                 Category.UNCATEGORIZED_ID -> it.copy(name = default)
                 else -> it
             }

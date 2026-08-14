@@ -45,9 +45,12 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.model.ScreenModel
-import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import cafe.adriel.voyager.core.screen.Screen
 import eu.kanade.presentation.components.TabbedDialogPaddings
 import eu.kanade.tachiyomi.animesource.AnimeSource
@@ -98,21 +101,22 @@ class EpisodeOptionsDialogScreen(
 
     @Composable
     override fun Content() {
-        val sm = rememberScreenModel {
-            EpisodeOptionsDialogScreenModel(
-                episodeId = episodeId,
-                animeId = animeId,
-                sourceId = sourceId,
-            )
-        }
+        val vm = viewModel<EpisodeOptionsDialogViewModel>(
+            factory = EpisodeOptionsDialogViewModel.Factory,
+            extras = CreationExtras {
+                set(EpisodeOptionsDialogViewModel.EPISODE_ID_KEY, episodeId)
+                set(EpisodeOptionsDialogViewModel.ANIME_ID_KEY, animeId)
+                set(EpisodeOptionsDialogViewModel.SOURCE_ID_KEY, sourceId)
+            },
+        )
 
-        val episode by sm.episode.collectAsState()
-        val anime by sm.anime.collectAsState()
-        val hosterState by sm.hosterState.collectAsState()
-        val hosterExpandedList by sm.hosterExpandedList.collectAsState()
-        val selectedHosterVideoIndex by sm.selectedHosterVideoIndex.collectAsState()
-        val currentVideo by sm.currentVideo.collectAsState()
-        val showAllQualities by sm.showAllQualities.collectAsState()
+        val episode by vm.episode.collectAsState()
+        val anime by vm.anime.collectAsState()
+        val hosterState by vm.hosterState.collectAsState()
+        val hosterExpandedList by vm.hosterExpandedList.collectAsState()
+        val selectedHosterVideoIndex by vm.selectedHosterVideoIndex.collectAsState()
+        val currentVideo by vm.currentVideo.collectAsState()
+        val showAllQualities by vm.showAllQualities.collectAsState()
 
         EpisodeOptionsDialog(
             useExternalDownloader = useExternalDownloader,
@@ -124,10 +128,10 @@ class EpisodeOptionsDialogScreen(
             expandedList = hosterExpandedList,
             currentVideo = currentVideo,
             selectedHosterVideoIndex = selectedHosterVideoIndex,
-            onShowAllQualities = sm::onShowAllQualities,
-            onClickHoster = sm::onClickHoster,
-            onClickVideo = sm::onClickVideo,
-            getHosterList = sm::getHosterList,
+            onShowAllQualities = vm::onShowAllQualities,
+            onClickHoster = vm::onClickHoster,
+            onClickVideo = vm::onClickVideo,
+            getHosterList = vm::getHosterList,
         )
     }
 
@@ -136,11 +140,28 @@ class EpisodeOptionsDialogScreen(
     }
 }
 
-class EpisodeOptionsDialogScreenModel(
+class EpisodeOptionsDialogViewModel(
     episodeId: Long,
     animeId: Long,
     sourceId: Long,
-) : ScreenModel {
+) : ViewModel() {
+
+    companion object {
+        val EPISODE_ID_KEY = CreationExtras.Key<Long>()
+        val ANIME_ID_KEY = CreationExtras.Key<Long>()
+        val SOURCE_ID_KEY = CreationExtras.Key<Long>()
+
+        val Factory = viewModelFactory {
+            initializer {
+                EpisodeOptionsDialogViewModel(
+                    episodeId = get(EPISODE_ID_KEY)!!,
+                    animeId = get(ANIME_ID_KEY)!!,
+                    sourceId = get(SOURCE_ID_KEY)!!,
+                )
+            }
+        }
+    }
+
     private val sourceManager: SourceManager = Injekt.get()
 
     private val _hosterState = MutableStateFlow<Result<List<HosterState>>?>(null)
@@ -169,7 +190,7 @@ class EpisodeOptionsDialogScreenModel(
     init {
         val hasFoundPreferredVideo = AtomicBoolean(false)
 
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             val episode = Injekt.get<GetEpisode>().await(episodeId)!!
             val anime = Injekt.get<GetAnime>().await(animeId)!!
             val source = sourceManager.getOrStub(sourceId)
@@ -347,7 +368,7 @@ class EpisodeOptionsDialogScreenModel(
                 val hosterName = hosterState.name
                 _hosterState.updateAt(hosterIndex, HosterState.Loading(hosterName))
 
-                screenModelScope.launchIO {
+                viewModelScope.launchIO {
                     val newHosterState = EpisodeLoader.loadHosterVideos(
                         _source.value!!,
                         _hosterList.value[hosterIndex],
@@ -365,7 +386,7 @@ class EpisodeOptionsDialogScreenModel(
             ?.getOrNull(videoIndex)
             ?: return
 
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             val success = loadVideo(_source.value!!, video, hosterIndex, videoIndex)
             if (success) {
                 _showAllQualities.update { _ -> false }

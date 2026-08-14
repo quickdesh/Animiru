@@ -11,8 +11,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import cafe.adriel.voyager.core.model.StateScreenModel
-import cafe.adriel.voyager.core.model.rememberScreenModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.components.AppBar
@@ -24,6 +23,7 @@ import eu.kanade.tachiyomi.data.backup.create.BackupOptions
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.update
+import mihon.core.viewmodel.StateViewModel
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import tachiyomi.presentation.core.components.LazyColumnWithAction
@@ -37,7 +37,7 @@ class CreateBackupScreen : Screen() {
     override fun Content() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val model = rememberScreenModel { CreateBackupScreenModel() }
+        val model = viewModel<CreateBackupViewModel>()
         val state by model.state.collectAsState()
 
         val chooseBackupDir = rememberLauncherForActivityResult(
@@ -111,8 +111,8 @@ class CreateBackupScreen : Screen() {
     @Composable
     private fun Options(
         options: List<BackupOptions.Entry>,
-        state: CreateBackupScreenModel.State,
-        model: CreateBackupScreenModel,
+        state: CreateBackupViewModel.State,
+        model: CreateBackupViewModel,
     ) {
         options.forEach { option ->
             LabeledCheckbox(
@@ -127,7 +127,7 @@ class CreateBackupScreen : Screen() {
     }
 }
 
-private class CreateBackupScreenModel : StateScreenModel<CreateBackupScreenModel.State>(State()) {
+private class CreateBackupViewModel : StateViewModel<CreateBackupViewModel.State>(State()) {
 
     fun toggle(setter: (BackupOptions, Boolean) -> BackupOptions, enabled: Boolean) {
         mutableState.update {

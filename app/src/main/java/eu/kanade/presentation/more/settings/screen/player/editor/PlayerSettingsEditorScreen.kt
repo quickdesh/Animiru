@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import cafe.adriel.voyager.core.model.rememberScreenModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.more.settings.screen.player.editor.codeeditor.CodeEditScreen
@@ -19,11 +19,13 @@ object PlayerSettingsEditorScreen : Screen() {
     override fun Content() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val screenModel = rememberScreenModel { PlayerSettingsEditorScreenModel(context) }
+        val viewModel = viewModel<PlayerSettingsEditorViewModel>(
+            factory = PlayerSettingsEditorViewModel.Factory,
+        )
 
-        val state by screenModel.state.collectAsState()
-        val dialog by screenModel.dialogShown.collectAsState()
-        val selectedType by screenModel.selectedType.collectAsState()
+        val state by viewModel.state.collectAsState()
+        val dialog by viewModel.dialogShown.collectAsState()
+        val selectedType by viewModel.selectedType.collectAsState()
 
         when (dialog) {
             null -> {}
@@ -31,9 +33,9 @@ object PlayerSettingsEditorScreen : Screen() {
                 FileCreateDialog(
                     initialName = null,
                     fileExtension = selectedType.fileExtension,
-                    onDismissRequest = screenModel::dismissDialog,
-                    isValid = screenModel::isValidName,
-                    onConfirm = screenModel::createFile,
+                    onDismissRequest = viewModel::dismissDialog,
+                    isValid = viewModel::isValidName,
+                    onConfirm = viewModel::createFile,
                 )
             }
             is EditorFileDialog.Edit -> {
@@ -41,17 +43,17 @@ object PlayerSettingsEditorScreen : Screen() {
                 FileCreateDialog(
                     initialName = name,
                     fileExtension = selectedType.fileExtension,
-                    onDismissRequest = screenModel::dismissDialog,
-                    isValid = screenModel::isValidName,
-                    onConfirm = { screenModel.editFile(name, it) },
+                    onDismissRequest = viewModel::dismissDialog,
+                    isValid = viewModel::isValidName,
+                    onConfirm = { viewModel.editFile(name, it) },
                 )
             }
             is EditorFileDialog.Delete -> {
                 val name = (dialog as EditorFileDialog.Delete).item.name
                 FileDeleteDialog(
                     name = name,
-                    onDismissRequest = screenModel::dismissDialog,
-                    onDelete = { screenModel.deleteFile(name) },
+                    onDismissRequest = viewModel::dismissDialog,
+                    onDelete = { viewModel.deleteFile(name) },
                 )
             }
         }
@@ -59,15 +61,15 @@ object PlayerSettingsEditorScreen : Screen() {
         EditorScreen(
             state = state,
             selectedType = selectedType,
-            onSelectType = screenModel::onSelectType,
+            onSelectType = viewModel::onSelectType,
             onClickItem = {
-                screenModel.getFilePath(it.name).let { filePath ->
+                viewModel.getFilePath(it.name).let { filePath ->
                     navigator.push(CodeEditScreen(filePath))
                 }
             },
-            onRenameItem = { screenModel.showDialog(EditorFileDialog.Edit(it)) },
-            onDeleteItem = { screenModel.showDialog(EditorFileDialog.Delete(it)) },
-            onClickAdd = { screenModel.showDialog(EditorFileDialog.Create) },
+            onRenameItem = { viewModel.showDialog(EditorFileDialog.Edit(it)) },
+            onDeleteItem = { viewModel.showDialog(EditorFileDialog.Delete(it)) },
+            onClickAdd = { viewModel.showDialog(EditorFileDialog.Create) },
             navigateUp = navigator::pop,
         )
     }

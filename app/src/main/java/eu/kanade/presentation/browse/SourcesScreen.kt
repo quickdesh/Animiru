@@ -38,8 +38,8 @@ import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.ui.browse.extension.details.ExtensionDetailsScreen
 import eu.kanade.tachiyomi.ui.browse.migration.sources.MigrateSourceScreen
 import eu.kanade.tachiyomi.ui.browse.source.SourcesFilterScreen
-import eu.kanade.tachiyomi.ui.browse.source.SourcesScreenModel
-import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel.Listing
+import eu.kanade.tachiyomi.ui.browse.source.SourcesViewModel
+import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceViewModel.Listing
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import tachiyomi.domain.source.model.Pin
@@ -60,7 +60,7 @@ import tachiyomi.source.local.isLocal
 
 @Composable
 fun SourcesScreen(
-    state: SourcesScreenModel.State,
+    state: SourcesViewModel.State,
     onClickItem: (Source, Listing) -> Unit,
     onClickPin: (Source) -> Unit,
     onLongClickItem: (Source) -> Unit,

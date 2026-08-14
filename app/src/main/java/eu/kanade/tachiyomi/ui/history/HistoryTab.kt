@@ -35,65 +35,65 @@ val resumeLastEpisodeSeenEvent = Channel<Unit>()
 // AM (RECENTS_FILTER_CHIP) -->
 @Composable
 fun Screen.HistoryHalfTab(
-    screenModel: HistoryScreenModel,
+    viewModel: HistoryViewModel,
     snackbarHostState: SnackbarHostState,
     contentPadding: PaddingValues,
 ) {
     val context = LocalContext.current
     val navigator = LocalNavigator.currentOrThrow
-    val state by screenModel.state.collectAsState()
+    val state by viewModel.state.collectAsState()
 
     HistoryScreen(
         state = state,
-        onSearchQueryChange = screenModel::updateSearchQuery,
+        onSearchQueryChange = viewModel::updateSearchQuery,
         onClickCover = { navigator.push(AnimeScreen(it)) },
-        onClickResume = screenModel::getNextEpisodeForAnime,
-        onDialogChange = screenModel::setDialog,
-        onClickFavorite = screenModel::addFavorite,
+        onClickResume = viewModel::getNextEpisodeForAnime,
+        onDialogChange = viewModel::setDialog,
+        onClickFavorite = viewModel::addFavorite,
         contentPadding = contentPadding,
     )
     // <-- AM (RECENTS_FILTER_CHIP)
 
-    val onDismissRequest = { screenModel.setDialog(null) }
+    val onDismissRequest = { viewModel.setDialog(null) }
     when (val dialog = state.dialog) {
-        is HistoryScreenModel.Dialog.Delete -> {
+        is HistoryViewModel.Dialog.Delete -> {
             HistoryDeleteDialog(
                 onDismissRequest = onDismissRequest,
                 onDelete = { all ->
                     if (all) {
-                        screenModel.removeAllFromHistory(dialog.history.animeId)
+                        viewModel.removeAllFromHistory(dialog.history.animeId)
                     } else {
-                        screenModel.removeFromHistory(dialog.history)
+                        viewModel.removeFromHistory(dialog.history)
                     }
                 },
             )
         }
-        is HistoryScreenModel.Dialog.DeleteAll -> {
+        is HistoryViewModel.Dialog.DeleteAll -> {
             HistoryDeleteAllDialog(
                 onDismissRequest = onDismissRequest,
-                onDelete = screenModel::removeAllHistory,
+                onDelete = viewModel::removeAllHistory,
             )
         }
-        is HistoryScreenModel.Dialog.DuplicateAnime -> {
+        is HistoryViewModel.Dialog.DuplicateAnime -> {
             DuplicateAnimeDialog(
                 duplicates = dialog.duplicates,
                 onDismissRequest = onDismissRequest,
-                onConfirm = { screenModel.addFavorite(dialog.anime) },
+                onConfirm = { viewModel.addFavorite(dialog.anime) },
                 onOpenAnime = { navigator.push(AnimeScreen(it.id)) },
-                onMigrate = { screenModel.showMigrateDialog(dialog.anime, it) },
+                onMigrate = { viewModel.showMigrateDialog(dialog.anime, it) },
             )
         }
-        is HistoryScreenModel.Dialog.ChangeCategory -> {
+        is HistoryViewModel.Dialog.ChangeCategory -> {
             ChangeCategoryDialog(
                 initialSelection = dialog.initialSelection,
                 onDismissRequest = onDismissRequest,
                 onEditCategories = { navigator.push(CategoryScreen()) },
                 onConfirm = { include, _ ->
-                    screenModel.moveAnimeToCategoriesAndAddToLibrary(dialog.anime, include)
+                    viewModel.moveAnimeToCategoriesAndAddToLibrary(dialog.anime, include)
                 },
             )
         }
-        is HistoryScreenModel.Dialog.Migrate -> {
+        is HistoryViewModel.Dialog.Migrate -> {
             MigrateAnimeDialog(
                 current = dialog.current,
                 target = dialog.target,
@@ -115,13 +115,13 @@ fun Screen.HistoryHalfTab(
     }
 
     LaunchedEffect(Unit) {
-        screenModel.events.collectLatest { e ->
+        viewModel.events.collectLatest { e ->
             when (e) {
-                HistoryScreenModel.Event.InternalError ->
+                HistoryViewModel.Event.InternalError ->
                     snackbarHostState.showSnackbar(context.stringResource(MR.strings.internal_error))
-                HistoryScreenModel.Event.HistoryCleared ->
+                HistoryViewModel.Event.HistoryCleared ->
                     snackbarHostState.showSnackbar(context.stringResource(MR.strings.clear_history_completed))
-                is HistoryScreenModel.Event.OpenEpisode -> openEpisode(context, e.episode, snackbarHostState)
+                is HistoryViewModel.Event.OpenEpisode -> openEpisode(context, e.episode, snackbarHostState)
             }
         }
     }
