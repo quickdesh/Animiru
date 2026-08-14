@@ -5,7 +5,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SimklUser(
+    val user: SimklUserData,
     val account: SimklUserAccount,
+)
+
+@Serializable
+data class SimklUserData(
+    val name: String,
 )
 
 @Serializable

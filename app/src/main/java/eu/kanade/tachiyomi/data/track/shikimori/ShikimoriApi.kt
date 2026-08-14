@@ -172,12 +172,13 @@ class ShikimoriApi(
         }
     }
 
-    suspend fun getCurrentUser(): Int {
+    suspend fun getCurrentUser(): SMUser {
         return with(json) {
             val query = """
             |{
                 |currentUser {
                     |id
+                    |nickname
                 |}
             |}
             """.trimMargin()
@@ -192,8 +193,7 @@ class ShikimoriApi(
             )
                 .awaitSuccess()
                 .parseAs<SMUserResult>()
-                .data.currentUser.id
-                .toInt()
+                .data.currentUser
         }
     }
 

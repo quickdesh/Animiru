@@ -118,7 +118,8 @@ class Simkl(id: Long) : BaseTracker(id, "Simkl"), Tracker {
             val oauth = api.accessToken(code)
             interceptor.newAuth(oauth)
             val user = api.getCurrentUser()
-            saveCredentials(user.toString(), oauth.accessToken)
+            saveDisplayUsername(user.user.name)
+            saveCredentials(user.account.id.toString(), oauth.accessToken)
         } catch (e: Throwable) {
             logout()
         }

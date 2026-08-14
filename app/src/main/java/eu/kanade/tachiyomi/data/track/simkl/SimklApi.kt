@@ -202,13 +202,12 @@ class SimklApi(private val client: OkHttpClient, interceptor: SimklInterceptor) 
         }
     }
 
-    fun getCurrentUser(): Int {
+    fun getCurrentUser(): SimklUser {
         return runBlocking {
             with(json) {
                 authClient.newCall(GET("$API_URL/users/settings"))
                     .awaitSuccess()
                     .parseAs<SimklUser>()
-                    .account.id
             }
         }
     }
