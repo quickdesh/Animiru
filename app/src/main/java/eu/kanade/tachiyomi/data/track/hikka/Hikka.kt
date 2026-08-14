@@ -110,6 +110,7 @@ class Hikka(id: Long) : BaseTracker(id, "Hikka"), DeletableTracker {
             track.finished_watching_date = (seenContent.endDate ?: 0L) * 1000
             update(track)
         } else {
+            track.status = if (hasSeenEpisodes) WATCHING else PLAN_TO_WATCH
             track.score = 0.0
             update(track)
         }
