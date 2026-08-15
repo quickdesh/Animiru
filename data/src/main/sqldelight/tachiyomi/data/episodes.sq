@@ -98,7 +98,8 @@ getEpisodeByUrlAndAnimeId:
 SELECT *
 FROM episodes
 WHERE url = :episodeUrl
-AND anime_id = :animeId;
+AND anime_id = :animeId
+LIMIT 1;
 
 removeEpisodesWithIds:
 DELETE FROM episodes

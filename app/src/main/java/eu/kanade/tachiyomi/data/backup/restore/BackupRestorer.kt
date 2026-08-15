@@ -173,7 +173,29 @@ class BackupRestorer(
         animeRestorer.sortByNew(backupAnimes)
             .chunked(100)
             .forEach { chunk ->
-                database.transaction {
+                val restoredAsBatch = try {
+                    database.transaction {
+                        chunk.forEach {
+                            ensureActive()
+                            // AY -->
+                            val seasons = backupAnimes.filter { s -> s.parentId == it.id }
+                            // <-- AY
+                            // AM (CUSTOM_INFORMATION) -->
+                            val customInfo = it.getCustomAnimeInfo()
+                            // <-- AM (CUSTOM_INFORMATION)
+                            animeRestorer.restore(it, backupCategories, customInfo, seasons)
+                        }
+                    }
+                    true
+                } catch (e: Exception) {
+                    ensureActive()
+                    logcat(LogPriority.WARN, e) { "Batch restore failed, retrying entry by entry" }
+                    false
+                }
+
+                if (restoredAsBatch) {
+                    restoreProgress.addAndFetch(chunk.size)
+                } else {
                     chunk.forEach {
                         ensureActive()
 
@@ -186,6 +208,7 @@ class BackupRestorer(
                             // <-- AM (CUSTOM_INFORMATION)
                             animeRestorer.restore(it, backupCategories, customInfo, seasons)
                         } catch (e: Exception) {
+                            ensureActive()
                             val sourceName = sourceMapping[it.source] ?: it.source.toString()
                             errors.add(Date() to "${it.title} [$sourceName]: ${e.message}")
                         }

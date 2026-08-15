@@ -366,7 +366,7 @@ class AnimeRestorer(
         restoreCategories(anime, categories, backupCategories)
         restoreEpisodes(anime, episodes)
         restoreTracking(anime, tracks)
-        restoreHistory(history)
+        restoreHistory(anime, history)
         restoreExcludedScanlators(anime, excludedScanlators)
         // AM (CUSTOM_INFORMATION) -->
         restoreEditedInfo(customInfo?.copy(id = anime.id))
@@ -409,13 +409,17 @@ class AnimeRestorer(
         }
     }
 
-    private suspend fun restoreHistory(backupHistory: List<BackupHistory>) {
+    private suspend fun restoreHistory(anime: Anime, backupHistory: List<BackupHistory>) {
         val toUpdate = backupHistory.mapNotNull { history ->
-            val dbHistory = database.historyQueries.getHistoryByEpisodeUrl(history.url).awaitAsOneOrNull()
+            val dbHistory = database.historyQueries
+                .getHistoryByEpisodeUrlAndAnimeId(history.url, anime.id)
+                .awaitAsOneOrNull()
             val item = history.getHistoryImpl()
 
             if (dbHistory == null) {
-                val episode = database.episodesQueries.getEpisodeByUrl(history.url).awaitAsOneOrNull()
+                val episode = database.episodesQueries
+                    .getEpisodeByUrlAndAnimeId(history.url, anime.id)
+                    .awaitAsOneOrNull()
                 return@mapNotNull if (episode == null) {
                     // Episode doesn't exist; skip
                     null
