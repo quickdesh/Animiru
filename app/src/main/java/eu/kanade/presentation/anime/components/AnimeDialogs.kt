@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import eu.kanade.tachiyomi.util.system.isReleaseBuildType
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.daysUntil
 import tachiyomi.domain.anime.interactor.FetchInterval
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
@@ -27,9 +29,9 @@ import tachiyomi.presentation.core.components.WheelTextPicker
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.i18n.stringResource
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import kotlin.math.absoluteValue
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Composable
 fun DeleteEpisodesDialog(
@@ -73,8 +75,8 @@ fun SetIntervalDialog(
 
     val nextUpdateDays = remember(nextUpdate) {
         return@remember if (nextUpdate != null) {
-            val now = Instant.now()
-            now.until(nextUpdate, ChronoUnit.DAYS).toInt().coerceAtLeast(0)
+            val now = Clock.System.now()
+            now.daysUntil(nextUpdate, TimeZone.currentSystemDefault()).coerceAtLeast(0)
         } else {
             null
         }

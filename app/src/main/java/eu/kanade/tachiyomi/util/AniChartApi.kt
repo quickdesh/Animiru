@@ -15,8 +15,8 @@ import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.anime.model.Anime
-import java.time.OffsetDateTime
 import java.util.Calendar
+import kotlin.time.Instant
 
 class AniChartApi {
     private val client = OkHttpClient()
@@ -160,9 +160,8 @@ class AniChartApi {
     }
 
     private fun toUnixTimestamp(dateFormat: String): Long {
-        val offsetDateTime = OffsetDateTime.parse(dateFormat)
-        val instant = offsetDateTime.toInstant()
-        return instant.epochSecond
+        val instant = Instant.parse(dateFormat)
+        return instant.epochSeconds
     }
 }
 // <-- AY

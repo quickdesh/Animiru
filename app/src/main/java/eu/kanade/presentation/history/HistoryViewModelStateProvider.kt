@@ -2,13 +2,16 @@ package eu.kanade.presentation.history
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import eu.kanade.tachiyomi.ui.history.HistoryViewModel
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import tachiyomi.domain.anime.model.AnimeCover
 import tachiyomi.domain.history.model.HistoryWithRelations
-import java.time.Instant
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import java.util.Date
 import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 class HistoryViewModelStateProvider : PreviewParameterProvider<HistoryViewModel.State> {
 
@@ -18,9 +21,9 @@ class HistoryViewModelStateProvider : PreviewParameterProvider<HistoryViewModel.
         listOf(HistoryUiModelExamples.headerToday)
             .asSequence()
             .plus(HistoryUiModelExamples.items().take(3))
-            .plus(HistoryUiModelExamples.header { it.minus(1, ChronoUnit.DAYS) })
+            .plus(HistoryUiModelExamples.header { it.minus(1.days) })
             .plus(HistoryUiModelExamples.items().take(1))
-            .plus(HistoryUiModelExamples.header { it.minus(2, ChronoUnit.DAYS) })
+            .plus(HistoryUiModelExamples.header { it.minus(2.days) })
             .plus(HistoryUiModelExamples.items().take(7))
             .toList(),
         dialog = null,
@@ -72,10 +75,12 @@ class HistoryViewModelStateProvider : PreviewParameterProvider<HistoryViewModel.
     private object HistoryUiModelExamples {
         val headerToday = header()
         val headerTomorrow =
-            HistoryUiModel.Header(LocalDate.now().plusDays(1))
+            HistoryUiModel.Header(Clock.System.now().plus(1.days).toLocalDateTime(TimeZone.currentSystemDefault()).date)
 
         fun header(instantBuilder: (Instant) -> Instant = { it }) =
-            HistoryUiModel.Header(LocalDate.from(instantBuilder(Instant.now())))
+            HistoryUiModel.Header(
+                instantBuilder(Clock.System.now()).toLocalDateTime(TimeZone.currentSystemDefault()).date,
+            )
 
         fun items() = sequence {
             var count = 1
@@ -98,7 +103,7 @@ class HistoryViewModelStateProvider : PreviewParameterProvider<HistoryViewModel.
                         ogTitle = "Test Title",
                         // <-- AM (CUSTOM_INFORMATION)
                         episodeNumber = Random.nextDouble(),
-                        seenAt = Date.from(Instant.now()),
+                        seenAt = Date.from(Clock.System.now().toJavaInstant()),
                         coverData = AnimeCover(
                             animeId = Random.nextLong(),
                             sourceId = Random.nextLong(),

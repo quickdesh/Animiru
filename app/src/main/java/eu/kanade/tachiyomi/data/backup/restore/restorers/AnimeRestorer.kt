@@ -9,6 +9,8 @@ import eu.kanade.tachiyomi.data.backup.models.BackupCategory
 import eu.kanade.tachiyomi.data.backup.models.BackupEpisode
 import eu.kanade.tachiyomi.data.backup.models.BackupHistory
 import eu.kanade.tachiyomi.data.backup.models.BackupTracking
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import tachiyomi.data.Database
 import tachiyomi.data.FetchTypeColumnAdapter
 import tachiyomi.data.MemoColumnAdapter
@@ -26,9 +28,9 @@ import tachiyomi.domain.track.interactor.InsertTrack
 import tachiyomi.domain.track.model.Track
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.time.ZonedDateTime
 import java.util.Date
 import kotlin.math.max
+import kotlin.time.Clock
 
 class AnimeRestorer(
     private val database: Database = Injekt.get(),
@@ -44,13 +46,9 @@ class AnimeRestorer(
     fetchInterval: FetchInterval = Injekt.get(),
 ) {
 
-    private var now = ZonedDateTime.now()
-    private var currentFetchWindow = fetchInterval.getWindow(now)
-
-    init {
-        now = ZonedDateTime.now()
-        currentFetchWindow = fetchInterval.getWindow(now)
-    }
+    private val timeZone = TimeZone.currentSystemDefault()
+    private val now = Clock.System.now().toLocalDateTime(timeZone)
+    private val currentFetchWindow = fetchInterval.getWindow(now.date, timeZone)
 
     suspend fun sortByNew(backupAnimes: List<BackupAnime>): List<BackupAnime> {
         val urlsBySource = database.animesQueries.getAllAnimeSourceAndUrl()
@@ -371,7 +369,7 @@ class AnimeRestorer(
         // AM (CUSTOM_INFORMATION) -->
         restoreEditedInfo(customInfo?.copy(id = anime.id))
         // <-- AM (CUSTOM_INFORMATION)
-        updateAnime.awaitUpdateFetchInterval(anime, now, currentFetchWindow)
+        updateAnime.awaitUpdateFetchInterval(anime, timeZone, now, currentFetchWindow)
         return anime
     }
 

@@ -41,6 +41,8 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import logcat.LogPriority
 import mihon.domain.episode.interactor.FilterEpisodesForDownload
 import mihon.domain.source.interactor.UpdateAnimeFromRemote
@@ -77,14 +79,13 @@ import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
-import java.time.Instant
-import java.time.ZonedDateTime
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.incrementAndFetch
+import kotlin.time.Clock
 
 @OptIn(ExperimentalAtomicApi::class)
 class LibraryUpdateJob(private val context: Context, workerParams: WorkerParameters) :
@@ -131,7 +132,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
 
         setForegroundSafely()
 
-        libraryPreferences.lastUpdatedTimestamp.set(Instant.now().toEpochMilli())
+        libraryPreferences.lastUpdatedTimestamp.set(Clock.System.now().toEpochMilliseconds())
 
         val categoryId = inputData.getLong(KEY_CATEGORY, -1L)
         // AM (GROUPING) -->
@@ -260,7 +261,11 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
 
         val restrictions = libraryPreferences.autoUpdateAnimeRestrictions.get()
         val skippedUpdates = mutableListOf<Pair<Anime, String?>>()
-        val (_, fetchWindowUpperBound) = fetchInterval.getWindow(ZonedDateTime.now())
+        val timeZone = TimeZone.currentSystemDefault()
+        val (_, fetchWindowUpperBound) = fetchInterval.getWindow(
+            Clock.System.now().toLocalDateTime(timeZone).date,
+            timeZone,
+        )
 
         animeToUpdate = lastToUpdateWithSeasons
             .filter {
@@ -331,7 +336,8 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         val newUpdates = CopyOnWriteArrayList<Pair<Anime, Array<Episode>>>()
         val failedUpdates = CopyOnWriteArrayList<Pair<Anime, String?>>()
         val hasDownloads = AtomicBoolean(false)
-        val fetchWindow = fetchInterval.getWindow(ZonedDateTime.now())
+        val timeZone = TimeZone.currentSystemDefault()
+        val fetchWindow = fetchInterval.getWindow(Clock.System.now().toLocalDateTime(timeZone).date, timeZone)
 
         coroutineScope {
             animeToUpdate.groupBy { it.anime.source }.values

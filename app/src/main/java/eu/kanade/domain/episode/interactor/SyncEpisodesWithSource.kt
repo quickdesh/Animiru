@@ -10,6 +10,9 @@ import eu.kanade.tachiyomi.animesource.model.SEpisode
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.DownloadProvider
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import tachiyomi.data.episode.EpisodeSanitizer
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
@@ -23,8 +26,8 @@ import tachiyomi.domain.episode.service.EpisodeRecognition
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.source.local.isLocal
 import java.lang.Long.max
-import java.time.ZonedDateTime
 import java.util.TreeSet
+import kotlin.time.Clock
 
 class SyncEpisodesWithSource(
     private val downloadManager: DownloadManager,
@@ -57,8 +60,9 @@ class SyncEpisodesWithSource(
             throw NoEpisodesException()
         }
 
-        val now = ZonedDateTime.now()
-        val nowMillis = now.toInstant().toEpochMilli()
+        val timeZone = TimeZone.currentSystemDefault()
+        val now = Clock.System.now().toLocalDateTime(timeZone)
+        val nowMillis = now.toInstant(timeZone).toEpochMilliseconds()
 
         val sourceEpisodes = rawSourceEpisodes
             .distinctBy { it.url }
@@ -164,6 +168,7 @@ class SyncEpisodesWithSource(
             if (manualFetch || anime.fetchInterval == 0 || anime.nextUpdate < fetchWindow.first) {
                 updateAnime.awaitUpdateFetchInterval(
                     anime,
+                    timeZone,
                     now,
                     fetchWindow,
                 )
@@ -236,7 +241,7 @@ class SyncEpisodesWithSource(
             val episodeUpdates = updatedEpisodes.map { it.toEpisodeUpdate() }
             updateEpisode.awaitAll(episodeUpdates)
         }
-        updateAnime.awaitUpdateFetchInterval(anime, now, fetchWindow)
+        updateAnime.awaitUpdateFetchInterval(anime, timeZone, now, fetchWindow)
 
         // Set this anime as updated since episodes were changed
         // Note that last_update actually represents last time the episode list changed at all

@@ -34,7 +34,6 @@ internal fun LibraryTabs(
                 },
                 unselectedContentColor = MaterialTheme.colorScheme.onSurface,
             )
-
         }
     }
 }

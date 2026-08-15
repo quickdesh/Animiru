@@ -97,9 +97,9 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.shouldExpandFAB
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.injectLazy
-import java.time.Instant
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 @Composable
 fun AnimeScreen(
@@ -1320,33 +1320,20 @@ private data class StateUIData(
 )
 
 private fun formatTime(milliseconds: Long, useDayFormat: Boolean = false): String {
+    val dur = milliseconds.milliseconds
+
     return if (useDayFormat) {
-        String.format(
-            "Airing in %02dd %02dh %02dm %02ds",
-            TimeUnit.MILLISECONDS.toDays(milliseconds),
-            TimeUnit.MILLISECONDS.toHours(milliseconds) -
-                TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(milliseconds)),
-            TimeUnit.MILLISECONDS.toMinutes(milliseconds) -
-                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(milliseconds)),
-            TimeUnit.MILLISECONDS.toSeconds(milliseconds) -
-                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(milliseconds)),
-        )
+        dur.toComponents { days, hours, minutes, seconds, _ ->
+            "Airing in %02dd %02dh %02dm %02ds".format(days, hours, minutes, seconds)
+        }
     } else if (milliseconds > 3600000L) {
-        String.format(
-            "%d:%02d:%02d",
-            TimeUnit.MILLISECONDS.toHours(milliseconds),
-            TimeUnit.MILLISECONDS.toMinutes(milliseconds) -
-                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(milliseconds)),
-            TimeUnit.MILLISECONDS.toSeconds(milliseconds) -
-                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(milliseconds)),
-        )
+        dur.toComponents { _, hours, minutes, seconds, _ ->
+            "%d:%02d:%02d".format(hours, minutes, seconds)
+        }
     } else {
-        String.format(
-            "%d:%02d",
-            TimeUnit.MILLISECONDS.toMinutes(milliseconds),
-            TimeUnit.MILLISECONDS.toSeconds(milliseconds) -
-                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(milliseconds)),
-        )
+        dur.toComponents { _, _, minutes, seconds, _ ->
+            "%d:%02d".format(minutes, seconds)
+        }
     }
 }
 

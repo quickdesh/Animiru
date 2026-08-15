@@ -2,12 +2,13 @@ package tachiyomi.domain.anime.interactor
 
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import tachiyomi.domain.episode.model.Episode
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -18,11 +19,11 @@ import kotlin.time.toJavaDuration
 @Execution(ExecutionMode.CONCURRENT)
 class FetchIntervalTest {
 
-    private val testTime = ZonedDateTime.parse("2020-01-01T00:00:00Z")
-    private val testZoneId = ZoneOffset.UTC
+    private val testTime = LocalDateTime.parse("2020-01-01T00:00:00")
+    private val testTimeZone = TimeZone.UTC
     private var episode = Episode.create().copy(
-        dateFetch = testTime.toEpochSecond() * 1000,
-        dateUpload = testTime.toEpochSecond() * 1000,
+        dateFetch = testTime.toInstant(testTimeZone).toEpochMilliseconds(),
+        dateUpload = testTime.toInstant(testTimeZone).toEpochMilliseconds(),
     )
 
     private val fetchInterval = FetchInterval(mockk())
@@ -32,12 +33,12 @@ class FetchIntervalTest {
         val episodesWithUploadDate = (1..50).map {
             episodeWithTime(episode, 1.days)
         }
-        fetchInterval.calculateInterval(episodesWithUploadDate, testZoneId) shouldBe 7
+        fetchInterval.calculateInterval(episodesWithUploadDate, testTimeZone) shouldBe 7
 
         val episodesWithoutUploadDate = episodesWithUploadDate.map {
             it.copy(dateUpload = 0L)
         }
-        fetchInterval.calculateInterval(episodesWithoutUploadDate, testZoneId) shouldBe 7
+        fetchInterval.calculateInterval(episodesWithoutUploadDate, testTimeZone) shouldBe 7
     }
 
     @Test
@@ -51,7 +52,7 @@ class FetchIntervalTest {
 
         val episodes = oldEpisodes + newEpisodes
 
-        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 1
+        fetchInterval.calculateInterval(episodes, testTimeZone) shouldBe 1
     }
 
     @Test
@@ -66,7 +67,7 @@ class FetchIntervalTest {
 
         val episodes = oldEpisodes + newEpisodes
 
-        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 7
+        fetchInterval.calculateInterval(episodes, testTimeZone) shouldBe 7
     }
 
     @Test
@@ -74,7 +75,7 @@ class FetchIntervalTest {
         val episodes = (1..10).map {
             episodeWithTime(episode, 10.hours)
         }
-        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 7
+        fetchInterval.calculateInterval(episodes, testTimeZone) shouldBe 7
     }
 
     @Test
@@ -84,7 +85,7 @@ class FetchIntervalTest {
         } + (1..5).map {
             episodeWithTime(episode, 2.days)
         }
-        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 7
+        fetchInterval.calculateInterval(episodes, testTimeZone) shouldBe 7
     }
 
     @Test
@@ -92,7 +93,7 @@ class FetchIntervalTest {
         val episodes = (1..20).map {
             episodeWithTime(episode, it.days)
         }
-        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 1
+        fetchInterval.calculateInterval(episodes, testTimeZone) shouldBe 1
     }
 
     @Test
@@ -100,7 +101,7 @@ class FetchIntervalTest {
         val episodes = (1..20).map {
             episodeWithTime(episode, (15 * it).hours)
         }
-        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 1
+        fetchInterval.calculateInterval(episodes, testTimeZone) shouldBe 1
     }
 
     @Test
@@ -108,7 +109,7 @@ class FetchIntervalTest {
         val episodes = (1..20).map {
             episodeWithTime(episode, (2 * it).days)
         }
-        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 2
+        fetchInterval.calculateInterval(episodes, testTimeZone) shouldBe 2
     }
 
     @Test
@@ -116,12 +117,12 @@ class FetchIntervalTest {
         val episodesWithUploadDate = (1..5).map {
             episodeWithTime(episode, (25 * it).hours)
         }
-        fetchInterval.calculateInterval(episodesWithUploadDate, testZoneId) shouldBe 1
+        fetchInterval.calculateInterval(episodesWithUploadDate, testTimeZone) shouldBe 1
 
         val episodesWithoutUploadDate = episodesWithUploadDate.map {
             it.copy(dateUpload = 0L)
         }
-        fetchInterval.calculateInterval(episodesWithoutUploadDate, testZoneId) shouldBe 1
+        fetchInterval.calculateInterval(episodesWithoutUploadDate, testTimeZone) shouldBe 1
     }
 
     @Test
@@ -129,11 +130,11 @@ class FetchIntervalTest {
         val episodes = (1..20).map {
             episodeWithTime(episode, (43 * it).hours)
         }
-        fetchInterval.calculateInterval(episodes, testZoneId) shouldBe 2
+        fetchInterval.calculateInterval(episodes, testTimeZone) shouldBe 2
     }
 
     private fun episodeWithTime(episode: Episode, duration: Duration): Episode {
-        val newTime = testTime.plus(duration.toJavaDuration()).toEpochSecond() * 1000
+        val newTime = testTime.toInstant(testTimeZone).plus(duration).toEpochMilliseconds()
         return episode.copy(dateFetch = newTime, dateUpload = newTime)
     }
 

@@ -3,6 +3,8 @@ package eu.kanade.domain.anime.interactor
 
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.SAnime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import mihon.domain.anime.model.toDomainAnime
 import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
 import tachiyomi.domain.anime.model.Anime
@@ -13,7 +15,7 @@ import tachiyomi.domain.season.interactor.GetAnimeSeasonsByParentId
 import tachiyomi.domain.season.interactor.ShouldUpdateDbSeason
 import tachiyomi.domain.season.service.SeasonRecognition
 import tachiyomi.source.local.isLocal
-import java.time.ZonedDateTime
+import kotlin.time.Clock
 
 class SyncSeasonsWithSource(
     private val updateAnime: UpdateAnime,
@@ -33,7 +35,8 @@ class SyncSeasonsWithSource(
             throw NoSeasonsException()
         }
 
-        val now = ZonedDateTime.now()
+        val timeZone = TimeZone.currentSystemDefault()
+        val now = Clock.System.now().toLocalDateTime(timeZone)
 
         val sourceSeasons = rawSourceSeasons
             .distinctBy { it.url }
@@ -86,6 +89,7 @@ class SyncSeasonsWithSource(
             if (manualFetch || anime.fetchInterval == 0 || anime.nextUpdate < fetchWindow.first) {
                 updateAnime.awaitUpdateFetchInterval(
                     anime,
+                    timeZone,
                     now,
                     fetchWindow,
                 )

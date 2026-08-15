@@ -14,8 +14,8 @@ import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import uy.kohesive.injekt.injectLazy
 import java.io.ObjectStreamException
-import java.time.Instant
 import kotlin.math.pow
+import kotlin.time.Instant
 import java.io.Serializable as JavaSerializable
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -93,7 +93,7 @@ data class Anime(
     val expectedNextUpdate: Instant?
         get() = nextUpdate
             .takeIf { status != SAnime.COMPLETED.toLong() }
-            ?.let { Instant.ofEpochMilli(it) }
+            ?.let { Instant.fromEpochMilliseconds(it) }
 
     val sorting: Long
         get() = episodeFlags and EPISODE_SORTING_MASK

@@ -91,6 +91,9 @@
 # XmlUtil
 -keep public enum nl.adaptivity.xmlutil.EventType { *; }
 
+# KotlinX Datetime
+-keep,allowoptimization class kotlinx.datetime.** { public protected *; }
+
 # AM (SYNC_DRIVE) -->
 # Google Drive
 -keep class com.google.api.services.** { *; }

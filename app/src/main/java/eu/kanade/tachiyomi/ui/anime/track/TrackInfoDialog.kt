@@ -68,6 +68,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import logcat.LogPriority
 import mihon.core.viewmodel.StateViewModel
 import tachiyomi.core.common.i18n.stringResource
@@ -87,9 +89,8 @@ import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneOffset
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 data class TrackInfoDialogHomeScreen(
     private val animeId: Long,
@@ -545,20 +546,20 @@ private data class TrackDateSelectorScreen(
     @Transient
     private val selectableDates = object : SelectableDates {
         override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-            val targetDate = Instant.ofEpochMilli(utcTimeMillis).toLocalDate(ZoneOffset.UTC)
+            val targetDate = Instant.fromEpochMilliseconds(utcTimeMillis).toLocalDateTime(TimeZone.UTC)
 
             // Disallow future dates
-            if (targetDate > LocalDate.now(ZoneOffset.UTC)) return false
+            if (targetDate > Clock.System.now().toLocalDateTime(TimeZone.UTC)) return false
 
             return when {
                 // Disallow setting start date after finish date
                 start && track.finishDate > 0 -> {
-                    val finishDate = Instant.ofEpochMilli(track.finishDate).toLocalDate(ZoneOffset.UTC)
+                    val finishDate = Instant.fromEpochMilliseconds(track.finishDate).toLocalDateTime(TimeZone.UTC)
                     targetDate <= finishDate
                 }
                 // Disallow setting finish date before start date
                 !start && track.startDate > 0 -> {
-                    val startDate = Instant.ofEpochMilli(track.startDate).toLocalDate(ZoneOffset.UTC)
+                    val startDate = Instant.fromEpochMilliseconds(track.startDate).toLocalDateTime(TimeZone.UTC)
                     startDate <= targetDate
                 }
                 else -> {
@@ -569,17 +570,17 @@ private data class TrackDateSelectorScreen(
 
         override fun isSelectableYear(year: Int): Boolean {
             // Disallow future years
-            if (year > LocalDate.now(ZoneOffset.UTC).year) return false
+            if (year > Clock.System.now().toLocalDateTime(TimeZone.UTC).year) return false
 
             return when {
                 // Disallow setting start year after finish year
                 start && track.finishDate > 0 -> {
-                    val finishDate = Instant.ofEpochMilli(track.finishDate).toLocalDate(ZoneOffset.UTC)
+                    val finishDate = Instant.fromEpochMilliseconds(track.finishDate).toLocalDateTime(TimeZone.UTC)
                     year <= finishDate.year
                 }
                 // Disallow setting finish year before start year
                 !start && track.startDate > 0 -> {
-                    val startDate = Instant.ofEpochMilli(track.startDate).toLocalDate(ZoneOffset.UTC)
+                    val startDate = Instant.fromEpochMilliseconds(track.startDate).toLocalDateTime(TimeZone.UTC)
                     startDate.year <= year
                 }
                 else -> {
@@ -650,14 +651,14 @@ private data class TrackDateSelectorScreen(
             get() {
                 val millis = (if (start) track.startDate else track.finishDate)
                     .takeIf { it != 0L }
-                    ?: Instant.now().toEpochMilli()
-                return millis.convertEpochMillisZone(ZoneOffset.systemDefault(), ZoneOffset.UTC)
+                    ?: Clock.System.now().toEpochMilliseconds()
+                return millis.convertEpochMillisZone(TimeZone.currentSystemDefault(), TimeZone.UTC)
             }
 
         // In UTC
         fun setDate(millis: Long) {
             // Convert to local time
-            val localMillis = millis.convertEpochMillisZone(ZoneOffset.UTC, ZoneOffset.systemDefault())
+            val localMillis = millis.convertEpochMillisZone(TimeZone.UTC, TimeZone.currentSystemDefault())
             viewModelScope.launchNonCancellable {
                 if (start) {
                     tracker.setRemoteStartDate(track.toDbTrack(), localMillis)

@@ -14,12 +14,12 @@ import eu.kanade.tachiyomi.ui.player.components.EpisodeListItem
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.GenericTracksSheet
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.TrackSheetTitle
 import eu.kanade.tachiyomi.util.lang.toRelativeString
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
+import kotlin.time.Instant
 
 @Composable
 fun CastPlaylistSheet(
@@ -56,14 +56,14 @@ fun CastPlaylistSheet(
             val date = episode.date_upload
                 .takeIf { it > 0L }
                 ?.let {
-                    LocalDate.ofInstant(
-                        Instant.ofEpochMilli(it),
-                        ZoneId.systemDefault(),
-                    ).toRelativeString(
-                        context = context,
-                        relative = dateRelativeFormat,
-                        dateFormat = dateFormatter,
-                    )
+                    Instant.fromEpochMilliseconds(it)
+                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                        .date
+                        .toRelativeString(
+                            context = context,
+                            relative = dateRelativeFormat,
+                            dateFormat = dateFormatter,
+                        )
                 } ?: ""
 
             EpisodeListItem(

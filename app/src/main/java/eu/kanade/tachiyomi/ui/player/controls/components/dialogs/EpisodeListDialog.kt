@@ -14,13 +14,13 @@ import eu.kanade.presentation.util.formatEpisodeNumber
 import eu.kanade.tachiyomi.data.database.models.Episode
 import eu.kanade.tachiyomi.ui.player.components.EpisodeListItem
 import eu.kanade.tachiyomi.util.lang.toRelativeString
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.VerticalFastScroller
 import tachiyomi.presentation.core.i18n.stringResource
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
+import kotlin.time.Instant
 
 @Composable
 fun EpisodeListDialog(
@@ -72,14 +72,14 @@ fun EpisodeListDialog(
                     val date = episode.date_upload
                         .takeIf { it > 0L }
                         ?.let {
-                            LocalDate.ofInstant(
-                                Instant.ofEpochMilli(it),
-                                ZoneId.systemDefault(),
-                            ).toRelativeString(
-                                context = context,
-                                relative = dateRelativeTime,
-                                dateFormat = dateFormatter,
-                            )
+                            Instant.fromEpochMilliseconds(it)
+                                .toLocalDateTime(TimeZone.currentSystemDefault())
+                                .date
+                                .toRelativeString(
+                                    context = context,
+                                    relative = dateRelativeTime,
+                                    dateFormat = dateFormatter,
+                                )
                         } ?: ""
 
                     EpisodeListItem(

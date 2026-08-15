@@ -23,7 +23,7 @@ import tachiyomi.domain.episode.model.toEpisodeUpdate
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
-import java.time.Instant
+import kotlin.time.Clock
 
 class MigrateAnimeUseCase(
     private val sourcePreferences: SourcePreferences,
@@ -153,7 +153,7 @@ class MigrateAnimeUseCase(
                 favorite = true,
                 episodeFlags = current.episodeFlags,
                 viewerFlags = current.viewerFlags,
-                dateAdded = if (replace) current.dateAdded else Instant.now().toEpochMilli(),
+                dateAdded = if (replace) current.dateAdded else Clock.System.now().toEpochMilliseconds(),
                 notes = if (MigrationFlag.NOTES in flags) current.notes else null,
             )
 
