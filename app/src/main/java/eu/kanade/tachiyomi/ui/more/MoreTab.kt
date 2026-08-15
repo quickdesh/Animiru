@@ -101,7 +101,7 @@ data object MoreTab : Tab {
     }
 }
 
-private class MoreViewModel(
+class MoreViewModel(
     private val downloadManager: DownloadManager = Injekt.get(),
     preferences: BasePreferences = Injekt.get(),
 ) : ViewModel() {

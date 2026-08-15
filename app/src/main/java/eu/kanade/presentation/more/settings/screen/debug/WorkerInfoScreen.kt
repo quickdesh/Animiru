@@ -120,7 +120,7 @@ class WorkerInfoScreen : Screen() {
         )
     }
 
-    private class WorkerInfoViewModel(context: Context) : ViewModel() {
+    class WorkerInfoViewModel(context: Context) : ViewModel() {
 
         companion object {
             val Factory = viewModelFactory {

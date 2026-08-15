@@ -187,7 +187,7 @@ internal fun Screen.MigrateAnimeDialog(
     )
 }
 
-private class MigrateDialogViewModel(
+class MigrateDialogViewModel(
     private val sourcePreference: SourcePreferences = Injekt.get(),
     private val coverCache: CoverCache = Injekt.get(),
     // AY -->

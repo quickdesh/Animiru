@@ -43,7 +43,7 @@ class AnimeNotesScreen(
         )
     }
 
-    private class Model(
+    class Model(
         private val anime: Anime,
         private val updateAnimeNotes: UpdateAnimeNotes = Injekt.get(),
     ) : StateViewModel<State>(State(anime, anime.notes)) {

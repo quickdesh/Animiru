@@ -77,7 +77,7 @@ class SyncTriggerOptionsScreen : Screen() {
     }
 }
 
-private class SyncOptionsViewModel(
+class SyncOptionsViewModel(
     val syncPreferences: SyncPreferences = Injekt.get(),
 ) : StateViewModel<SyncOptionsViewModel.State>(
     State(

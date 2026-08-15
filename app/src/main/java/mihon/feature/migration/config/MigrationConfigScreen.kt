@@ -306,7 +306,7 @@ class MigrationConfigScreen(private val animeIds: Collection<Long>) : Screen() {
         }
     }
 
-    private class ViewModel(
+    class ViewModel(
         val sourcePreferences: SourcePreferences = Injekt.get(),
         private val sourceManager: SourceManager = Injekt.get(),
     ) : StateViewModel<ViewModel.State>(State()) {
