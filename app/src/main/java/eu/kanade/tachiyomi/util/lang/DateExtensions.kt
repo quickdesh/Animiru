@@ -4,7 +4,7 @@ import android.content.Context
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.minus
+import kotlinx.datetime.daysUntil
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaLocalDateTime
@@ -59,7 +59,7 @@ fun LocalDate.toRelativeString(
         return dateFormat.format(this.toJavaLocalDate())
     }
     val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-    val difference = (today - this).days
+    val difference = this.daysUntil(today)
     return when {
         difference < -7 -> dateFormat.format(this.toJavaLocalDate())
         difference < 0 -> context.pluralStringResource(
@@ -93,7 +93,7 @@ fun LocalDateTime.toRelativeString(
 
     val difference = now.toInstant(timeZone) - this.toInstant(timeZone)
     val timeDifference = difference.inWholeDays
-    val dateDifference = (now.date - this.date).days
+    val dateDifference = this.date.daysUntil(now.date)
 
     return when {
         timeDifference < -7 -> dateFormat.format(this.toJavaLocalDateTime())
