@@ -55,7 +55,7 @@ class ExtensionStoresViewModel(
      * @param baseUrl The baseUrl of the repo to create.
      */
     fun createRepo(baseUrl: String) {
-        viewModelScope.launch {
+        viewModelScope.launchIO {
             updateSuccessState {
                 it.copy(
                     dialog = when (it.dialog) {
