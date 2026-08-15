@@ -155,7 +155,7 @@ class PlayerActivity : BaseActivity() {
 
         viewModel.saveCurrentEpisodeWatchingProgress()
 
-        lifecycleScope.launchNonCancellable {
+        lifecycleScope.launch {
             viewModel.updateIsLoadingEpisode(true)
             viewModel.updateIsLoadingHosters(true)
             viewModel.updateHasPip(
