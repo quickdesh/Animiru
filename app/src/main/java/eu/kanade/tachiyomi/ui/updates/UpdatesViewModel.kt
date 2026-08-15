@@ -102,6 +102,8 @@ class UpdatesViewModel(
                             bookmarked = it.filterBookmarked.toBooleanOrNull(),
                             fillermarked = it.filterFillermarked.toBooleanOrNull(),
                             hideExcludedScanlators = it.filterExcludedScanlators,
+                            includedCategories = it.filterIncludedCategories,
+                            excludedCategories = it.filterExcludedCategories,
                         ).distinctUntilChanged()
                     },
                 downloadCache.changes,
@@ -468,21 +470,28 @@ class UpdatesViewModel(
     }
 
     private fun getUpdatesItemPreferenceFlow(): Flow<ItemPreferences> {
-        return eu.kanade.core.util.combine(
+        return combine(
             updatesPreferences.filterDownloaded.changes(),
             updatesPreferences.filterUnseen.changes(),
             updatesPreferences.filterStarted.changes(),
             updatesPreferences.filterBookmarked.changes(),
             updatesPreferences.filterFillermarked.changes(),
             updatesPreferences.filterExcludedScanlators.changes(),
-        ) { downloaded, unseen, started, bookmarked, fillermarked, excludedScanlators ->
+            updatesPreferences.filterIncludedCategories.changes(),
+            updatesPreferences.filterExcludedCategories.changes(),
+        ) {
+            @Suppress("UNCHECKED_CAST")
             ItemPreferences(
-                filterDownloaded = downloaded,
-                filterUnseen = unseen,
-                filterStarted = started,
-                filterBookmarked = bookmarked,
-                filterFillermarked = fillermarked,
-                filterExcludedScanlators = excludedScanlators,
+                filterDownloaded = it[0] as TriState,
+                filterUnseen = it[1] as TriState,
+                filterStarted = it[2] as TriState,
+                filterBookmarked = it[3] as TriState,
+                // AY -->
+                filterFillermarked = it[4] as TriState,
+                // <-- AY
+                filterExcludedScanlators = it[5] as Boolean,
+                filterIncludedCategories = it[6] as List<Long>,
+                filterExcludedCategories = it[7] as List<Long>,
             )
         }
     }
@@ -499,6 +508,8 @@ class UpdatesViewModel(
         val filterBookmarked: TriState,
         val filterFillermarked: TriState,
         val filterExcludedScanlators: Boolean,
+        val filterIncludedCategories: List<Long>,
+        val filterExcludedCategories: List<Long>,
     )
 
     @Immutable

@@ -53,6 +53,33 @@ AND (:fillermarked IS NULL OR fillermark = :fillermarked)
 AND (
     (excludedScanlator IS NULL OR :hideExcludedScanlators = 0)
 )
+AND (
+    -- includedEmpty being true expresses "don't care" state and bypasses the membership filter
+    :includedEmpty
+    OR EXISTS (
+        SELECT 1 FROM animes_categories
+        WHERE animes_categories.anime_id = animeId
+        AND COALESCE(animes_categories.category_id, 0) IN :includedCategories
+    )
+    OR (0 IN :includedCategories AND NOT EXISTS (
+        SELECT 1 FROM animes_categories ac WHERE ac.anime_id = animeId)
+    )
+)
+AND (
+    -- excludedEmpty being true expresses "don't care" state and bypasses the membership filter
+    :excludedEmpty
+    OR (
+        NOT EXISTS (
+            SELECT 1 FROM animes_categories
+            WHERE animes_categories.anime_id = animeId
+            AND COALESCE(animes_categories.category_id, 0) IN :excludedCategories
+        )
+        AND (
+            0 NOT IN :excludedCategories
+            OR EXISTS (SELECT 1 FROM animes_categories WHERE animes_categories.anime_id = animeId)
+        )
+    )
+)
 LIMIT :limit;
 
 getUpdatesBySeenStatus:
