@@ -33,8 +33,6 @@ import logcat.LogPriority
 import logcat.logcat
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import kotlin.collections.component1
-import kotlin.collections.component2
 
 class MPVPlayer(
     context: Context,

@@ -1,8 +1,6 @@
 package eu.kanade.tachiyomi.data.track.shikimori.dto
 
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
-import eu.kanade.tachiyomi.data.track.shikimori.ShikimoriApi
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable

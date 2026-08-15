@@ -4,7 +4,6 @@ import aniyomi.core.common.torrent.model.Torrent
 import xyz.secozzi.torrserver.TorrServer
 import java.io.File
 import java.net.URLEncoder
-import kotlin.text.split
 
 class TorrentServerUtils(
     preferences: TorrentPreferences,
