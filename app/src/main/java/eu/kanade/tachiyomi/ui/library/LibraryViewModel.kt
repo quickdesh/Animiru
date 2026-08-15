@@ -40,6 +40,8 @@ import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.runBlocking
 import mihon.core.common.utils.mutate
 import mihon.core.viewmodel.StateViewModel
+import mihon.domain.library.model.search.QueryNode
+import mihon.feature.library.matches
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.core.common.preference.TriState
@@ -120,7 +122,14 @@ class LibraryViewModel(
                 val showSystemCategory = favorites.any { it.libraryAnime.categories.contains(0) }
                 val filteredFavorites = favorites
                     .applyFilters(tracksMap, trackingFilters, itemPreferences)
-                    .let { if (searchQuery == null) it else it.filter { m -> m.matches(searchQuery, sourceManager) } }
+                    .let { libraryItems ->
+                        if (searchQuery.isNullOrEmpty()) {
+                            libraryItems
+                        } else {
+                            val queryNode = QueryNode.from(searchQuery)
+                            libraryItems.filter { queryNode.matches(it) }
+                        }
+                    }
 
                 LibraryData(
                     isInitialized = true,
@@ -476,6 +485,8 @@ class LibraryViewModel(
                     downloadCount = downloadManager.getDownloadCount(anime.anime),
                     unseenCount = anime.unseenCount,
                     isLocal = anime.anime.isLocal(),
+                    sourceName = sourceManager.getOrStub(anime.anime.source).name.lowercase(),
+                    sourceLanguage = sourceManager.getOrStub(anime.anime.source).lang,
                     badges = LibraryItem.Badges(
                         downloadCount = if (preferences.downloadBadge) {
                             downloadManager.getDownloadCount(anime.anime)
