@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import tachiyomi.data.Database
 import tachiyomi.data.subscribeToList
 import tachiyomi.domain.category.model.Category
-import tachiyomi.domain.category.model.CategoryUpdate
 import tachiyomi.domain.category.repository.CategoryRepository
 
 class CategoryRepositoryImpl(
@@ -59,26 +58,30 @@ class CategoryRepositoryImpl(
         )
     }
 
-    override suspend fun updatePartial(update: CategoryUpdate) {
-        database.categoriesQueries.update(
-            name = update.name,
-            order = update.order,
-            flags = update.flags,
-            // AY -->
-            hidden = update.hidden?.let { if (it) 1L else 0L },
-            // <-- AY
-            categoryId = update.id,
-        )
+    override suspend fun updateName(categoryId: Long, name: String) {
+        database.categoriesQueries.updateName(name = name, categoryId = categoryId)
     }
 
-    override suspend fun updatePartial(updates: List<CategoryUpdate>) {
-        database.transaction {
-            updates.forEach { updatePartial(it) }
-        }
+    override suspend fun updateFlags(categoryId: Long, flags: Long) {
+        database.categoriesQueries.updateFlags(flags = flags, categoryId = categoryId)
     }
+
+    // AY -->
+    override suspend fun updateHidden(categoryId: Long, hidden: Boolean) {
+        database.categoriesQueries.updateHidden(hidden = if (hidden) 1 else 0, categoryId = categoryId)
+    }
+    // <-- AY
 
     override suspend fun updateAllFlags(flags: Long?) {
-        database.categoriesQueries.updateAllFlags(flags)
+        database.categoriesQueries.updateAllFlags(flags = flags)
+    }
+
+    override suspend fun updateAllOrders(orderedIds: List<Long>) {
+        database.transaction {
+            orderedIds.forEachIndexed { index, categoryId ->
+                database.categoriesQueries.updateOrder(order = index.toLong(), categoryId = categoryId)
+            }
+        }
     }
 
     override suspend fun delete(categoryId: Long) {
