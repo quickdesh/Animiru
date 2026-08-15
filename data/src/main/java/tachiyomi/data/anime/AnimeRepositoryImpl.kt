@@ -82,11 +82,24 @@ class AnimeRepositoryImpl(
         ).awaitAsList()
     }
 
-    override suspend fun getUpcomingAnime(statuses: Set<Long>): Flow<List<Anime>> {
+    override suspend fun getUpcomingAnime(
+        statuses: Set<Long>,
+        excludedCategories: List<Long>,
+        includedCategories: List<Long>,
+    ): Flow<List<Anime>> {
         val timeZone = TimeZone.currentSystemDefault()
         val epochMillis =
             Clock.System.now().toLocalDateTime(timeZone).date.atStartOfDayIn(timeZone).toEpochMilliseconds()
-        return database.animesQueries.getUpcomingAnime(epochMillis, statuses, AnimeMapper::mapAnime)
+        return database.animesQueries
+            .getUpcomingAnime(
+                startOfDay = epochMillis,
+                statuses = statuses,
+                includedEmpty = includedCategories.isEmpty(),
+                includedCategories = includedCategories,
+                excludedEmpty = excludedCategories.isEmpty(),
+                excludedCategories = excludedCategories,
+                AnimeMapper::mapAnime,
+            )
             .subscribeToList()
     }
 

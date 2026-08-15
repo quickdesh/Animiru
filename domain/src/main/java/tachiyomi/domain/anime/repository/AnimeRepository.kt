@@ -30,7 +30,11 @@ interface AnimeRepository {
 
     suspend fun getDuplicateLibraryAnime(id: Long, title: String): List<AnimeWithEpisodeCount>
 
-    suspend fun getUpcomingAnime(statuses: Set<Long>): Flow<List<Anime>>
+    suspend fun getUpcomingAnime(
+        statuses: Set<Long>,
+        excludedCategories: List<Long>,
+        includedCategories: List<Long>,
+    ): Flow<List<Anime>>
 
     suspend fun resetViewerFlags(): Boolean
 
