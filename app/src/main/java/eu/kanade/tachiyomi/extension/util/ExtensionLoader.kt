@@ -16,6 +16,7 @@ import eu.kanade.tachiyomi.extension.model.LoadResult
 import eu.kanade.tachiyomi.util.lang.Hash
 import eu.kanade.tachiyomi.util.storage.copyAndSetReadOnlyTo
 import eu.kanade.tachiyomi.util.system.ChildFirstPathClassLoader
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
@@ -168,7 +169,7 @@ internal object ExtensionLoader {
         if (extPkgs.isEmpty()) return emptyList()
 
         // Load each extension concurrently and wait for completion
-        return runBlocking {
+        return runBlocking(Dispatchers.IO) {
             val deferred = extPkgs.map {
                 async { loadExtension(context, it) }
             }
