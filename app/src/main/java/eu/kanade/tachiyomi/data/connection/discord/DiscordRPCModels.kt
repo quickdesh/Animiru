@@ -149,6 +149,7 @@ enum class OpCode(val value: Int) {
 
 data class PlayerData(
     val incognitoMode: Boolean = false,
+    val paused: Boolean? = null,
     val animeId: Long? = null,
     val animeTitle: String? = null,
     val episodeNumber: String? = null,

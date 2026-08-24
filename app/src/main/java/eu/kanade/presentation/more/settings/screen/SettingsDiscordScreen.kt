@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,7 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -217,19 +217,15 @@ object SettingsDiscordScreen : SearchableSettings {
                         OutlinedTextField(
                             value = tempCustomMessage,
                             onValueChange = { tempCustomMessage = it },
-                            label = { Text(stringResource(AMMR.strings.pref_discord_custom_message_summary)) },
+                            label = { Text(stringResource(AMMR.strings.pref_discord_custom_message_label)) },
                             modifier = Modifier.fillMaxWidth(),
+                            trailingIcon = {
+                                IconButton(onClick = { tempCustomMessage = "" }) {
+                                    Icon(imageVector = Icons.Filled.Cancel, contentDescription = null)
+                                }
+                            },
                             singleLine = true,
                         )
-                        TextButton(
-                            onClick = {
-                                customMessagePref.delete()
-                                tempCustomMessage = ""
-                            },
-                            modifier = Modifier.align(Alignment.End),
-                        ) {
-                            Text(stringResource(MR.strings.action_reset))
-                        }
                     }
                 },
                 confirmButton = {
@@ -273,6 +269,7 @@ object SettingsDiscordScreen : SearchableSettings {
                     preference = showEpisodeTitlePref,
                     title = stringResource(AMMR.strings.pref_discord_show_episode_title),
                     subtitle = stringResource(AMMR.strings.pref_discord_show_episode_title_summary),
+                    enabled = showProgress,
                 ),
                 Preference.PreferenceItem.SwitchPreference(
                     preference = showTimestampPref,

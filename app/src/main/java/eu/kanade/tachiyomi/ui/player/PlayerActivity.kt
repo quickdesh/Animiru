@@ -745,12 +745,11 @@ class PlayerActivity : BaseActivity() {
                         context = this@PlayerActivity,
                         PlayerData(
                             incognitoMode = stateData.currentSource?.isNsfw() == true || stateData.incognitoMode,
+                            paused = paused,
                             animeId = anime.id,
                             animeTitle = anime.ogTitle,
                             thumbnailUrl = anime.thumbnailUrl ?: "",
-                            episodeNumber = if (paused) {
-                                this@PlayerActivity.stringResource(MR.strings.paused)
-                            } else if (connectionPreferences.discordShowEpisodeTitle.get()) {
+                            episodeNumber = if (connectionPreferences.discordShowEpisodeTitle.get()) {
                                 episode.name
                             } else {
                                 episode.episode_number.toString()

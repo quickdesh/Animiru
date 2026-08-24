@@ -102,11 +102,12 @@
     <string name="pref_discord_incognito_categories_details">Entries in included categories will not be displayed in Discord</string>
     <string name="pref_category_discord_customization">Discord customization</string>
     <string name="pref_discord_custom_message">Custom message</string>
+    <string name="pref_discord_custom_message_label">Message</string>
     <string name="pref_discord_custom_message_summary">Custom message that will be displayed on Discord</string>
     <string name="pref_discord_show_progress">Show progress</string>
     <string name="pref_discord_show_progress_summary">Display the current episode progress</string>
     <string name="pref_discord_show_episode_title">Show episode title</string>
-    <string name="pref_discord_show_episode_title_summary">Show the title of the chapter you are reading</string>
+    <string name="pref_discord_show_episode_title_summary">Show the title of the episode you are watching</string>
     <string name="pref_discord_show_timestamp">Show time</string>
     <string name="pref_discord_show_timestamp_summary">Display activity time</string>
     <string name="pref_discord_show_buttons">Show buttons</string>

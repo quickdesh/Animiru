@@ -307,6 +307,7 @@ class DiscordRPCService : Service() {
             }
 
             val state = when {
+                playerData.paused == true -> context.stringResource(MR.strings.paused)
                 !showProgress -> null
                 playerData.episodeNumber != null -> playerData.episodeNumber
                 else -> context.stringResource(discordScreen.text)
@@ -383,6 +384,7 @@ class DiscordRPCService : Service() {
                         context = context,
                         discordScreen = DiscordScreen.VIDEO,
                         playerData = PlayerData(
+                            paused = playerData.paused,
                             animeTitle = animeTitle,
                             episodeNumber = episodeNumber,
                             thumbnailUrl = animeThumbnail,
