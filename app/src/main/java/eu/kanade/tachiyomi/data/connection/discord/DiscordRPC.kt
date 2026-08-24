@@ -27,7 +27,7 @@ class DiscordRPC(val token: String, val status: String) {
     ) {
         rpc = Presence(
             activities = listOf(activity),
-            afk = true,
+            afk = status != "online",
             since = since,
             status = status,
         )

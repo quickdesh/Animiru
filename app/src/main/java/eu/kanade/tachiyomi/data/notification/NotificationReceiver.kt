@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.core.net.toUri
 import eu.kanade.tachiyomi.data.backup.restore.BackupRestoreJob
+import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncDataJob
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
@@ -74,6 +75,10 @@ class NotificationReceiver : BroadcastReceiver() {
             // AM (SYNC) -->
             ACTION_CANCEL_SYNC -> cancelSync(context)
             // <-- AM (SYNC)
+            // AM (DISCORD_RPC) -->
+            // Stop Discord RPC service
+            ACTION_STOP_DISCORD_RPC -> stopDiscordRPC(context)
+            // <-- AM (DISCORD_RPC)
             // Cancel library update and dismiss notification
             ACTION_CANCEL_LIBRARY_UPDATE -> cancelLibraryUpdate(context)
             // Open player activity
@@ -227,6 +232,20 @@ class NotificationReceiver : BroadcastReceiver() {
         }
     }
 
+    // AM (DISCORD_RPC) -->
+
+    /**
+     * Stop the Discord RPC service
+     *
+     * @param context context of application
+     */
+    private fun stopDiscordRPC(context: Context) {
+        val serviceIntent = Intent(context, DiscordRPCService::class.java)
+        context.stopService(serviceIntent)
+        context.cancelNotification(Notifications.ID_DISCORD_RPC)
+    }
+    // <-- AM (DISCORD_RPC)
+
     companion object {
         private const val NAME = "NotificationReceiver"
 
@@ -239,6 +258,11 @@ class NotificationReceiver : BroadcastReceiver() {
         // AM (SYNC) -->
         private const val ACTION_CANCEL_SYNC = "$ID.$NAME.CANCEL_SYNC"
         // <-- AM (SYNC)
+
+        // AM (DISCORD_RPC) -->
+        // Stop Discord RPC service
+        private const val ACTION_STOP_DISCORD_RPC = "$ID.$NAME.STOP_DISCORD_RPC"
+        // <-- AM (DISCORD_RPC)
 
         private const val ACTION_CANCEL_LIBRARY_UPDATE = "$ID.$NAME.CANCEL_LIBRARY_UPDATE"
 
@@ -610,5 +634,19 @@ class NotificationReceiver : BroadcastReceiver() {
             )
         }
         // <-- AM (SYNC)
+
+        // AM (DISCORD_RPC) -->
+        internal fun stopDiscordRPCService(context: Context): PendingIntent {
+            val intent = Intent(context, NotificationReceiver::class.java).apply {
+                action = ACTION_STOP_DISCORD_RPC
+            }
+            return PendingIntent.getBroadcast(
+                context,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+        }
+        // <-- AM (DISCORD_RPC)
     }
 }

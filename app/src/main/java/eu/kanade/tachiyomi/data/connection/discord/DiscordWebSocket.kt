@@ -1,26 +1,34 @@
 // AM (DISCORD_RPC) -->
 package eu.kanade.tachiyomi.data.connection.discord
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
+import logcat.LogPriority
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import tachiyomi.core.common.util.system.logcat
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 sealed interface DiscordWebSocket : CoroutineScope {
     suspend fun sendActivity(presence: Presence)
@@ -51,6 +59,8 @@ open class DiscordWebSocketImpl(
 
     private var connected = false
 
+    private val connectionState = MutableStateFlow(false)
+
     override val coroutineContext: CoroutineContext
         get() = SupervisorJob() + Dispatchers.Default
 
@@ -75,26 +85,33 @@ open class DiscordWebSocketImpl(
         webSocket?.send(
             json.encodeToString(
                 Presence.Response(
-                    op = 3,
+                    op = OpCode.DISPATCH.value.toLong(),
                     d = Presence(status = "offline"),
                 ),
             ),
         )
         webSocket?.close(4000, "Interrupt")
         connected = false
+        connectionState.update { false }
     }
 
     override suspend fun sendActivity(presence: Presence) {
-        // TODO : Figure out a better way to wait for socket to be connected to account
-        while (!connected) {
-            delay(10.milliseconds)
+        try {
+            // Wait for connection with a 30-second timeout
+            withTimeout(30.seconds) {
+                connectionState.filter { it }.first()
+            }
+            val response = Presence.Response(
+                op = OpCode.PRESENCE_UPDATE.value.toLong(),
+                d = presence,
+            )
+            val message = json.encodeToString(response)
+            val rtn = webSocket?.send(message)
+        } catch (e: TimeoutCancellationException) {
+            logcat(LogPriority.ERROR, e) { "Timeout waiting for Discord connection - skipping activity update" }
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e) { "Error sending Discord activity" }
         }
-        log("Sending ${OpCode.PRESENCE_UPDATE}")
-        val response = Presence.Response(
-            op = OpCode.PRESENCE_UPDATE.value.toLong(),
-            d = presence,
-        )
-        webSocket?.send(json.encodeToString(response))
     }
 
     inner class Listener : WebSocketListener() {
@@ -114,7 +131,7 @@ open class DiscordWebSocketImpl(
         }
 
         override fun onMessage(webSocket: WebSocket, text: String) {
-            log("Message : $text")
+            logcat(LogPriority.DEBUG) { "Discord ws - Message: $text" }
 
             val map = json.decodeFromString<Res>(text)
             seq = map.s
@@ -127,6 +144,7 @@ open class DiscordWebSocketImpl(
                 }
                 OpCode.DISPATCH.value -> if (map.t == "READY") {
                     connected = true
+                    connectionState.update { true }
                 }
                 OpCode.HEARTBEAT.value -> {
                     if (scope.isActive) scope.cancel()
@@ -140,22 +158,18 @@ open class DiscordWebSocketImpl(
         }
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-            log("Server Closed : $code $reason")
+            logcat(LogPriority.DEBUG) { "Discord ws server closed : $code $reason" }
             if (code == 4000) {
                 scope.cancel()
             }
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-            log("Failure : ${t.message}")
+            logcat(LogPriority.VERBOSE, t) { "Discord ws failure" }
             if (t.message != "Interrupt") {
                 this@DiscordWebSocketImpl.webSocket = client.newWebSocket(request, Listener())
             }
         }
-    }
-
-    private fun log(message: String) {
-        Log.i("discord_rpc_animiru", message)
     }
 }
 // <-- AM (DISCORD_RPC)

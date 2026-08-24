@@ -36,6 +36,20 @@ class ConnectionPreferences(
         "discord_rpc_incognito_categories",
         emptySet(),
     )
+
+    val discordCustomMessage = preferenceStore.getString("pref_discord_custom_message", "")
+
+    val discordShowProgress = preferenceStore.getBoolean("pref_discord_show_progress", true)
+
+    val discordShowEpisodeTitle = preferenceStore.getBoolean("pref_discord_show_episode_title", true)
+
+    val discordShowTimestamp = preferenceStore.getBoolean("pref_discord_show_timestamp", true)
+
+    val discordShowButtons = preferenceStore.getBoolean("pref_discord_show_buttons", true)
+
+    val discordShowDownloadButton = preferenceStore.getBoolean("pref_discord_show_download_button", true)
+
+    val discordShowDiscordButton = preferenceStore.getBoolean("pref_discord_show_discord_button", true)
     // <-- AM (DISCORD_RPC)
 
     companion object {

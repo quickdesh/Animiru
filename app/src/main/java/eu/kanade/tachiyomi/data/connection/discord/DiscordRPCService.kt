@@ -12,19 +12,22 @@ import android.os.IBinder
 import android.os.Looper
 import androidx.compose.ui.util.fastAny
 import eu.kanade.domain.connection.service.ConnectionPreferences
+import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.connection.ConnectionManager
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.serialization.json.Json
+import logcat.LogPriority
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
+import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.Category.Companion.UNCATEGORIZED_ID
 import tachiyomi.i18n.MR
@@ -41,20 +44,34 @@ class DiscordRPCService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+
         val token = connectionPreferences.connectionToken(connectionManager.discord).get()
+        if (token.isBlank()) {
+            connectionPreferences.enableDiscordRPC.set(false)
+            stopSelf()
+            return
+        }
+
+        notification(this)
+
         val status = when (connectionPreferences.discordRPCStatus.get()) {
             -1 -> "dnd"
             0 -> "idle"
             else -> "online"
         }
-        rpc = if (token.isNotBlank()) DiscordRPC(token, status) else null
-        if (rpc != null) {
-            with(DiscordRPCService) {
-                discordScope.launchIO { setScreen(this@DiscordRPCService.applicationContext, lastUsedScreen) }
+
+        try {
+            rpc = if (token.isNotBlank()) DiscordRPC(token, status) else null
+            try {
+                discordScope.launchIO { setScreen(this@DiscordRPCService) }
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR, e) { "Failed to set initial screen" }
+                stopSelf()
             }
-            notification(this)
-        } else {
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e) { "Failed to initialize discord rpc" }
             connectionPreferences.enableDiscordRPC.set(false)
+            stopSelf()
         }
     }
 
@@ -69,11 +86,55 @@ class DiscordRPCService : Service() {
         return null
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            ACTION_RESTART -> restartRPC()
+            STOP_SERVICE -> {
+                stopSelf()
+                return START_NOT_STICKY
+            }
+        }
+        return START_STICKY
+    }
+
+    private fun restartRPC() {
+        try {
+            // Close existing RPC connection
+            rpc?.closeRPC()
+            rpc = null
+
+            // Get fresh token and status
+            val token = connectionPreferences.connectionToken(connectionManager.discord).get()
+            if (token.isBlank()) {
+                stopSelf()
+                return
+            }
+
+            val status = when (connectionPreferences.discordRPCStatus.get()) {
+                -1 -> "dnd"
+                0 -> "idle"
+                else -> "online"
+            }
+
+            // Reinitialize RPC
+            rpc = DiscordRPC(token, status)
+            discordScope.launchIO {
+                setScreen(this@DiscordRPCService)
+            }
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e) { "Failed to restart discord rpc" }
+            stopSelf()
+        }
+    }
+
     private fun notification(context: Context) {
+        val stopIntent = NotificationReceiver.stopDiscordRPCService(context)
         val builder = context.notificationBuilder(Notifications.CHANNEL_DISCORD_RPC) {
             setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
             setSmallIcon(R.drawable.ic_discord_24dp)
             setContentText(context.stringResource(AMMR.strings.pref_discord_rpc))
+            setContentTitle(context.getString(R.string.app_name))
+            addAction(R.drawable.ic_close_24dp, context.getString(R.string.action_stop), stopIntent)
             setAutoCancel(false)
             setOngoing(true)
             setUsesChronometer(true)
@@ -94,39 +155,93 @@ class DiscordRPCService : Service() {
 
         private val connectionPreferences: ConnectionPreferences by injectLazy()
 
-        internal var rpc: DiscordRPC? = null
-
+        private var rpc: DiscordRPC? = null
         private val handler = Handler(Looper.getMainLooper())
-
         private val job = SupervisorJob()
         internal val discordScope = CoroutineScope(Dispatchers.IO + job)
 
-        fun start(context: Context) {
+        private const val ACTION_RESTART = "${BuildConfig.APPLICATION_ID}.DISCORD_RPC_RESTART"
+        private const val STOP_SERVICE = "${BuildConfig.APPLICATION_ID}.DISCORD_RPC_STOP"
+
+        fun start(context: Context, connectionManager: ConnectionManager = Injekt.get()) {
             handler.removeCallbacksAndMessages(null)
-            if (rpc == null && connectionPreferences.enableDiscordRPC.get()) {
-                since = System.currentTimeMillis()
-                context.startService(Intent(context, DiscordRPCService::class.java))
+            val token = connectionPreferences.connectionToken(connectionManager.discord).get()
+            if (connectionPreferences.enableDiscordRPC.get()) {
+                if (token.isBlank()) {
+                    connectionPreferences.enableDiscordRPC.set(false)
+                } else if (rpc == null) {
+                    since = System.currentTimeMillis()
+                    context.startForegroundService(Intent(context, DiscordRPCService::class.java))
+                }
             }
         }
 
         fun stop(context: Context, delay: Long = 30000L) {
             handler.removeCallbacksAndMessages(null)
-            handler.postDelayed(
-                { context.stopService(Intent(context, DiscordRPCService::class.java)) },
-                delay,
-            )
+            if (delay > 0) {
+                handler.postDelayed({
+                    val stopIntent = Intent(context, DiscordRPCService::class.java).apply {
+                        action = STOP_SERVICE
+                    }
+                    try {
+                        context.startService(stopIntent)
+                    } catch (e: Exception) {
+                        logcat(LogPriority.ERROR, e) { "Failed to stop discord rpc service" }
+                    }
+                }, delay)
+            } else {
+                val stopIntent = Intent(context, DiscordRPCService::class.java).apply {
+                    action = STOP_SERVICE
+                }
+                try {
+                    context.startService(stopIntent)
+                } catch (e: Exception) {
+                    logcat(LogPriority.ERROR, e) { "Failed to stop discord rpc service" }
+                }
+            }
+        }
+
+        fun restart(context: Context, connectionManager: ConnectionManager = Injekt.get()) {
+            val token = connectionPreferences.connectionToken(connectionManager.discord).get()
+            if (connectionPreferences.enableDiscordRPC.get() && token.isNotBlank()) {
+                val restartIntent = Intent(context, DiscordRPCService::class.java).apply {
+                    action = ACTION_RESTART
+                }
+                try {
+                    context.startForegroundService(restartIntent)
+                } catch (_: Exception) {
+                    // Fallback to stop/start if service isn't running
+                    stop(context, 0L)
+                    handler.postDelayed({ start(context, connectionManager) }, 1000L)
+                }
+            } else if (token.isBlank()) {
+                connectionPreferences.enableDiscordRPC.set(false)
+            }
         }
 
         private var since = 0L
 
         internal var lastUsedScreen = DiscordScreen.APP
             set(value) {
-                field = if (value == DiscordScreen.VIDEO || value == DiscordScreen.WEBVIEW) field else value
+                // Only update if the new screen is not a media/webview screen
+                if (value !in listOf(DiscordScreen.VIDEO, DiscordScreen.WEBVIEW)) {
+                    field = value
+                }
             }
+
+        private const val MP_PREFIX = "mp:"
+        private const val EXTERNAL_PREFIX = "external/"
+        private val json = Json {
+            encodeDefaults = true
+            allowStructuredMapKeys = true
+            ignoreUnknownKeys = true
+        }
+
+        private const val TAG = "DiscordRPCService"
 
         internal suspend fun setScreen(
             context: Context,
-            discordScreen: DiscordScreen,
+            discordScreen: DiscordScreen = lastUsedScreen,
             playerData: PlayerData = PlayerData(),
         ) {
             handler.removeCallbacksAndMessages(null)
@@ -136,11 +251,8 @@ class DiscordRPCService : Service() {
             if (rpc == null) return
 
             val name = playerData.animeTitle ?: context.stringResource(MR.strings.app_name)
-
             val details = playerData.animeTitle ?: context.stringResource(discordScreen.details)
-
             val state = playerData.episodeNumber ?: context.stringResource(discordScreen.text)
-
             val imageUrl = playerData.thumbnailUrl ?: discordScreen.imageUrl
 
             rpc!!.updateRPC(
@@ -160,68 +272,180 @@ class DiscordRPCService : Service() {
             )
         }
 
-        internal suspend fun setPlayerActivity(context: Context, playerData: PlayerData = PlayerData()) {
-            if (rpc == null || playerData.thumbnailUrl == null || playerData.animeId == null) return
+        private suspend fun updateDiscordRPC(
+            context: Context,
+            playerData: PlayerData,
+            discordScreen: DiscordScreen,
+            sinceTime: Long = since,
+        ) {
+            val appName = context.stringResource(MR.strings.app_name)
 
-            val animeCategoryIds = Injekt.get<GetCategories>()
-                .await(playerData.animeId)
-                .map { it.id.toString() }
-                .run { ifEmpty { plus(UNCATEGORIZED_ID.toString()) } }
+            val customMessage = connectionPreferences.discordCustomMessage.get()
+            val showProgress = connectionPreferences.discordShowProgress.get()
+            val showTimestamp = connectionPreferences.discordShowTimestamp.get()
+            val showButtons = connectionPreferences.discordShowButtons.get()
+            val showDownloadButton = connectionPreferences.discordShowDownloadButton.get()
+            val showDiscordButton = connectionPreferences.discordShowDiscordButton.get()
 
-            val discordIncognitoMode = connectionPreferences.discordRPCIncognito.get()
-            val incognitoCategories = connectionPreferences.discordRPCIncognitoCategories.get()
-
-            val incognitoCategory = animeCategoryIds.fastAny {
-                it in incognitoCategories
+            val name = playerData.animeTitle ?: appName
+            val details = when {
+                customMessage.isNotBlank() -> customMessage
+                playerData.animeTitle != null -> playerData.animeTitle
+                else -> context.stringResource(discordScreen.details)
             }
 
-            val discordIncognito = discordIncognitoMode || playerData.incognitoMode || incognitoCategory
+            val state = when {
+                !showProgress -> null
+                playerData.episodeNumber != null -> playerData.episodeNumber
+                else -> context.stringResource(discordScreen.text)
+            }
 
-            val animeTitle = playerData.animeTitle.takeUnless { discordIncognito }
+            val imageUrl = playerData.thumbnailUrl ?: discordScreen.imageUrl
 
-            val episodeNumber = playerData.episodeNumber?.toFloatOrNull()?.let {
+            val timestamps = if (showTimestamp) {
+                DiscordActivity.Timestamps(
+                    start = playerData.startTimestamp ?: since,
+                    end = playerData.endTimestamp,
+                )
+            } else {
+                null
+            }
+
+            val buttons = if (showButtons) {
+                buildList {
+                    if (showDownloadButton) add(DOWNLOAD_BUTTON_LABEL)
+                    if (showDiscordButton) add(DISCORD_BUTTON_LABEL)
+                }.takeIf { it.isNotEmpty() }
+            } else {
+                null
+            }
+
+            val metadata = buttons?.let {
+                DiscordActivity.Metadata(
+                    buttonUrls = buildList {
+                        if (showDownloadButton) add(DOWNLOAD_BUTTON_URL)
+                        if (showDiscordButton) add(DISCORD_BUTTON_URL)
+                    },
+                )
+            }
+
+            rpc!!.updateRPC(
+                activity = DiscordActivity(
+                    name = name,
+                    details = details,
+                    state = state,
+                    type = 3,
+                    timestamps = timestamps,
+                    assets = DiscordActivity.Assets(
+                        largeImage = "$MP_PREFIX$imageUrl",
+                        smallImage = "$MP_PREFIX${DiscordScreen.APP.imageUrl}",
+                        smallText = context.stringResource(DiscordScreen.APP.text),
+                    ),
+                    buttons = buttons,
+                    metadata = metadata,
+                ),
+                since = sinceTime,
+            )
+        }
+
+        internal suspend fun setPlayerActivity(
+            context: Context,
+            playerData: PlayerData = PlayerData(),
+        ) {
+            if (rpc == null || playerData.thumbnailUrl == null || playerData.animeId == null) return
+
+            try {
+                val categories = getCategories(playerData.animeId)
+                val discordIncognito = isIncognito(categories, playerData.incognitoMode)
+
+                val animeTitle = playerData.animeTitle.takeUnless { discordIncognito }
+                val episodeNumber = getFormattedEpisodeNumber(playerData, discordIncognito)
+                val (startTime, end) = getTimestamps(playerData)
+
+                withIOContext {
+                    val rpcExternalAsset = getRPCExternalAsset()
+                    val animeThumbnail =
+                        getDiscordThumbnail(rpcExternalAsset, playerData.thumbnailUrl, discordIncognito)
+
+                    setScreen(
+                        context = context,
+                        discordScreen = DiscordScreen.VIDEO,
+                        playerData = PlayerData(
+                            animeTitle = animeTitle,
+                            episodeNumber = episodeNumber,
+                            thumbnailUrl = animeThumbnail,
+                            startTimestamp = startTime,
+                            endTimestamp = end,
+                        ),
+                    )
+                }
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR, e) { "Error setting player activity" }
+            }
+        }
+
+        // Helper functions
+
+        private suspend fun getCategories(id: Long?): List<String> {
+            return Injekt.get<GetCategories>()
+                .await(id!!)
+                .map { it.id.toString() }
+                .run { ifEmpty { plus(UNCATEGORIZED_ID.toString()) } }
+        }
+
+        private fun isIncognito(categories: List<String>, incognitoMode: Boolean): Boolean {
+            val discordIncognitoMode = connectionPreferences.discordRPCIncognito.get()
+            val incognitoCategories = connectionPreferences.discordRPCIncognitoCategories.get()
+            val incognitoCategory = categories.fastAny { it in incognitoCategories }
+            return discordIncognitoMode || incognitoMode || incognitoCategory
+        }
+
+        private fun getFormattedEpisodeNumber(playerData: PlayerData, discordIncognito: Boolean): String? {
+            return playerData.episodeNumber?.let {
                 when {
                     discordIncognito -> null
-                    ceil(it) == floor(it) -> "Episode ${it.toInt()}"
+                    connectionPreferences.discordShowEpisodeTitle.get() -> it
+                    ceil(it.toDouble()) == floor(it.toDouble()) -> "Episode ${it.toInt()}"
                     else -> "Episode $it"
                 }
             }
+        }
 
-            withIOContext {
-                val networkService: NetworkHelper by injectLazy()
-                val client = networkService.client
-                val response = if (!discordIncognito) {
-                    try {
-                        // Thanks to https://github.com/dead8309/Kizzy
-                        client.newCall(
-                            GET("https://kizzy-api.vercel.app/image?url=${playerData.thumbnailUrl}"),
-                        ).execute()
-                    } catch (e: Throwable) {
-                        null
-                    }
-                } else {
-                    null
-                }
+        private fun getTimestamps(playerData: PlayerData): Pair<Long?, Long?> {
+            val startTime = playerData.startTimestamp ?: System.currentTimeMillis()
+            val end = playerData.endTimestamp
+            return Pair(startTime, end)
+        }
 
-                val animeThumbnail = response?.body?.string()
+        private suspend fun getRPCExternalAsset(): DiscordRPCExternalAsset {
+            val connectionManager: ConnectionManager by injectLazy()
+            val networkService: NetworkHelper by injectLazy()
+            val client = networkService.client
+            return DiscordRPCExternalAsset(
+                applicationId = RICH_PRESENCE_APPLICATION_ID,
+                token = connectionPreferences.connectionToken(connectionManager.discord).get(),
+                client = client,
+                json = json,
+            )
+        }
+        private suspend fun getDiscordThumbnail(
+            discordRpcExternalAsset: DiscordRPCExternalAsset,
+            thumbnailUrl: String?,
+            incognito: Boolean,
+        ): String? {
+            if (incognito || thumbnailUrl == null) return null
+
+            return try {
+                discordRpcExternalAsset.getDiscordUri(thumbnailUrl)
                     ?.takeIf { !it.contains("external/Not Found") }
-                    ?.substringAfter("\"id\": \"")?.substringBefore("\"}")
-                    ?.split("external/")?.getOrNull(1)?.let { "external/$it" }
-
-                // AM (DISCORD_RPC) -->
-                with(DiscordRPCService) {
-                    discordScope.launchIO {
-                        setScreen(
-                            context = context.applicationContext,
-                            discordScreen = DiscordScreen.VIDEO,
-                            playerData = PlayerData(
-                                animeTitle = animeTitle,
-                                episodeNumber = episodeNumber,
-                                thumbnailUrl = animeThumbnail,
-                            ),
-                        )
-                    }
-                }
+                    ?.substringAfter("\"id\": \"")
+                    ?.substringBefore("\"}")
+                    ?.split(EXTERNAL_PREFIX)
+                    ?.getOrNull(1)
+                    ?.let { "$EXTERNAL_PREFIX$it" }
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR, e) { "Error getting Discord URI" }
+                null
             }
         }
     }

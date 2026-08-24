@@ -13,18 +13,13 @@ import tachiyomi.i18n.aniyomi.AYMR
 const val RICH_PRESENCE_TAG = "discord_rpc"
 
 // Constant for application id
-private const val RICH_PRESENCE_APPLICATION_ID = "952899285983326208"
+const val RICH_PRESENCE_APPLICATION_ID = "952899285983326208"
 
 // Constant for buttons list
-private val RICH_PRESENCE_BUTTONS = listOf("Get the app!", "Join the Discord!")
-
-// Constant for metadata list
-private val RICH_PRESENCE_METADATA = DiscordActivity.Metadata(
-    listOf(
-        "https://github.com/Quickdesh/Animiru",
-        "https://discord.gg/yDuHDMwxhv",
-    ),
-)
+const val DOWNLOAD_BUTTON_LABEL = "Download"
+const val DOWNLOAD_BUTTON_URL = "https://github.com/Quickdesh/Animiru"
+const val DISCORD_BUTTON_LABEL = "Discord"
+const val DISCORD_BUTTON_URL = "https://discord.gg/yDuHDMwxhv"
 
 @Serializable
 data class DiscordActivity(
@@ -36,8 +31,8 @@ data class DiscordActivity(
     val type: Int? = null,
     val timestamps: Timestamps? = null,
     val assets: Assets? = null,
-    val buttons: List<String>? = RICH_PRESENCE_BUTTONS,
-    val metadata: Metadata? = RICH_PRESENCE_METADATA,
+    val buttons: List<String>? = null,
+    val metadata: Metadata? = null,
 ) {
     @Serializable
     data class Assets(
@@ -60,6 +55,7 @@ data class DiscordActivity(
     @Serializable
     data class Timestamps(
         val start: Long? = null,
+        val end: Long? = null,
         val stop: Long? = null,
     )
 }
@@ -157,6 +153,8 @@ data class PlayerData(
     val animeTitle: String? = null,
     val episodeNumber: String? = null,
     val thumbnailUrl: String? = null,
+    val startTimestamp: Long? = null,
+    val endTimestamp: Long? = null,
 )
 
 // Enum class for standard Rich Presence in-app screens

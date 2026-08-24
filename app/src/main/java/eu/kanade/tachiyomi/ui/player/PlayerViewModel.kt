@@ -397,6 +397,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 .filterNotNull()
                 .onEach { v ->
                     updatePlaybackData { it.copy(paused = v) }
+                    _eventFlow.emit(Event.UpdateDiscordRPC)
                 }
                 .launchIn(viewModelScope)
 
@@ -1170,6 +1171,8 @@ class PlayerViewModel @JvmOverloads constructor(
                 startPosition = startPosition,
                 playbackRate = mpv.getPropertyDouble("speed") ?: 1.0,
             )
+
+            _eventFlow.emit(Event.UpdateDiscordRPC)
         }
     }
 
@@ -1637,6 +1640,10 @@ class PlayerViewModel @JvmOverloads constructor(
                     videoOptions,
                 )
             }
+        }
+
+        viewModelScope.launch {
+            _eventFlow.emit(Event.UpdateDiscordRPC)
         }
     }
 
@@ -3674,5 +3681,6 @@ class PlayerViewModel @JvmOverloads constructor(
         data class ToastResource(val stringRes: StringResource) : Event
         data class ToastString(val string: String) : Event
         data object ToggleKeyboard : Event
+        data object UpdateDiscordRPC : Event
     }
 }
