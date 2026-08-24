@@ -17,6 +17,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 ### Fixed
 - Fix discord rpc ([@Secozzi](https://github.com/Secozzi)) ([#196](https://github.com/quickdesh/Animiru/pull/196))
 - Fix search intent using manga instead of anime ([@Secozzi](https://github.com/Secozzi)) ([#197](https://github.com/quickdesh/Animiru/pull/197))
+- Fix simkl not fetching last watched time ([@Secozzi](https://github.com/Secozzi)) ([#198](https://github.com/quickdesh/Animiru/pull/198))
 
 ### Other
 - Merge from aniyomi ([@Secozzi](https://github.com/Secozzi)) ([#191](https://github.com/quickdesh/Animiru/pull/191))
