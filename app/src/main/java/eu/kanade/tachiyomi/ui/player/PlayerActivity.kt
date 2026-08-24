@@ -54,7 +54,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import animiru.domain.player.model.ArtType
 import animiru.domain.player.model.CustomKeyCodes
 import animiru.domain.player.model.SetAsArt
@@ -88,9 +87,7 @@ import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 class PlayerActivity : BaseActivity() {
     private val viewModel by viewModels<PlayerViewModel>()
@@ -256,8 +253,8 @@ class PlayerActivity : BaseActivity() {
                     PlayerViewModel.Event.ToggleKeyboard -> {
                         toggleShowSoftwareKeyboard()
                     }
-                    PlayerViewModel.Event.UpdateDiscordRPC -> {
-                        updateDiscordRPC(exitingPlayer = false)
+                    is PlayerViewModel.Event.UpdateDiscordRPC -> {
+                        updateDiscordRPC(exitingPlayer = false, paused = event.paused, position = event.position)
                     }
                 }
             }
@@ -297,7 +294,6 @@ class PlayerActivity : BaseActivity() {
     override fun onDestroy() {
         viewModel.player.release()
         viewModel.stopHttpServer()
-        updateDiscordRPC(exitingPlayer = true)
 
         mediaSession?.let {
             it.isActive = false
@@ -335,6 +331,8 @@ class PlayerActivity : BaseActivity() {
     override fun onStop() {
         if (isInPictureInPictureMode && powerManager.isInteractive) {
             viewModel.deletePendingEpisodes()
+        } else if (!isInPictureInPictureMode) {
+            updateDiscordRPC(exitingPlayer = true)
         }
 
         super.onStop()
@@ -724,17 +722,17 @@ class PlayerActivity : BaseActivity() {
     }
 
     // AM (DISCORD_RPC) -->
-    private fun updateDiscordRPC(exitingPlayer: Boolean) {
+    private fun updateDiscordRPC(exitingPlayer: Boolean, paused: Boolean = false, position: Int? = null) {
         if (!connectionPreferences.enableDiscordRPC.get()) return
 
-        viewModel.viewModelScope.launchIO {
+        lifecycleScope.launchIO {
             try {
                 if (!exitingPlayer) {
                     val playbackData = viewModel.playbackData.value
                     val stateData = viewModel.stateData.value
                     if (playbackData.duration == 0) return@launchIO
 
-                    val timePos = playbackData.position.seconds
+                    val timePos = position?.seconds ?: playbackData.position.seconds
                     val duration = playbackData.duration.seconds
 
                     val startTimestamp = Clock.System.now() - timePos
@@ -750,13 +748,15 @@ class PlayerActivity : BaseActivity() {
                             animeId = anime.id,
                             animeTitle = anime.ogTitle,
                             thumbnailUrl = anime.thumbnailUrl ?: "",
-                            episodeNumber = if (connectionPreferences.discordShowEpisodeTitle.get()) {
+                            episodeNumber = if (paused) {
+                                this@PlayerActivity.stringResource(MR.strings.paused)
+                            } else if (connectionPreferences.discordShowEpisodeTitle.get()) {
                                 episode.name
                             } else {
                                 episode.episode_number.toString()
                             },
-                            startTimestamp = startTimestamp.toEpochMilliseconds(),
-                            endTimestamp = endTimestamp.toEpochMilliseconds(),
+                            startTimestamp = startTimestamp.toEpochMilliseconds().takeUnless { paused },
+                            endTimestamp = endTimestamp.toEpochMilliseconds().takeUnless { paused },
                         ),
                     )
                 } else {

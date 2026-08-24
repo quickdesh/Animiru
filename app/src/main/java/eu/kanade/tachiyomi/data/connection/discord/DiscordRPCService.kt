@@ -239,6 +239,18 @@ class DiscordRPCService : Service() {
 
         private const val TAG = "DiscordRPCService"
 
+        internal suspend fun setAnimeScreen(
+            context: Context,
+            discordScreen: DiscordScreen,
+            playerData: PlayerData = PlayerData(),
+        ) {
+            if (discordScreen != DiscordScreen.VIDEO) return
+            lastUsedScreen = discordScreen
+
+            if (rpc == null) return
+            updateDiscordRPC(context, playerData, discordScreen)
+        }
+
         internal suspend fun setScreen(
             context: Context,
             discordScreen: DiscordScreen = lastUsedScreen,
@@ -367,7 +379,7 @@ class DiscordRPCService : Service() {
                     val animeThumbnail =
                         getDiscordThumbnail(rpcExternalAsset, playerData.thumbnailUrl, discordIncognito)
 
-                    setScreen(
+                    setAnimeScreen(
                         context = context,
                         discordScreen = DiscordScreen.VIDEO,
                         playerData = PlayerData(

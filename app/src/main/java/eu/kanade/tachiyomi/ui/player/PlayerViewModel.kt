@@ -397,7 +397,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 .filterNotNull()
                 .onEach { v ->
                     updatePlaybackData { it.copy(paused = v) }
-                    _eventFlow.emit(Event.UpdateDiscordRPC)
+                    _eventFlow.emit(Event.UpdateDiscordRPC(v))
                 }
                 .launchIn(viewModelScope)
 
@@ -1172,7 +1172,7 @@ class PlayerViewModel @JvmOverloads constructor(
                 playbackRate = mpv.getPropertyDouble("speed") ?: 1.0,
             )
 
-            _eventFlow.emit(Event.UpdateDiscordRPC)
+            _eventFlow.emit(Event.UpdateDiscordRPC(false))
         }
     }
 
@@ -1643,7 +1643,7 @@ class PlayerViewModel @JvmOverloads constructor(
         }
 
         viewModelScope.launch {
-            _eventFlow.emit(Event.UpdateDiscordRPC)
+            _eventFlow.emit(Event.UpdateDiscordRPC(false))
         }
     }
 
@@ -2918,6 +2918,12 @@ class PlayerViewModel @JvmOverloads constructor(
     fun seekTo(position: Int) {
         if (position !in 0..playbackData.value.duration) return
         mpvCommand("seek", position.toString(), if (smoothSeeking) "absolute" else "absolute+keyframes")
+
+        viewModelScope.launch {
+            if (!playbackData.value.paused) {
+                _eventFlow.emit(Event.UpdateDiscordRPC(false, position))
+            }
+        }
     }
 
     fun selectChapter(index: Int) {
@@ -3681,6 +3687,6 @@ class PlayerViewModel @JvmOverloads constructor(
         data class ToastResource(val stringRes: StringResource) : Event
         data class ToastString(val string: String) : Event
         data object ToggleKeyboard : Event
-        data object UpdateDiscordRPC : Event
+        data class UpdateDiscordRPC(val paused: Boolean, val position: Int? = null) : Event
     }
 }
