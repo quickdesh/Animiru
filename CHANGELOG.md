@@ -14,6 +14,9 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 ### Added
 - Added chromecast support ([@Secozzi](https://github.com/Secozzi)) ([#175](https://github.com/quickdesh/Animiru/pull/175))
 
+### Fixed
+- Fix discord rpc ([@Secozzi](https://github.com/Secozzi)) ([#196](https://github.com/quickdesh/Animiru/pull/196))
+
 ### Other
 - Merge from aniyomi ([@Secozzi](https://github.com/Secozzi)) ([#191](https://github.com/quickdesh/Animiru/pull/191))
 - Merge from mihon and aniyomi ([@Secozzi](https://github.com/Secozzi)) ([#192](https://github.com/quickdesh/Animiru/pull/192))
