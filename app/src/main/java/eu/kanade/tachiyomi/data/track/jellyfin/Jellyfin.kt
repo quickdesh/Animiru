@@ -8,15 +8,12 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class Jellyfin(id: Long) : BaseTracker(id, "Jellyfin"), EnhancedTracker {
@@ -106,7 +103,6 @@ class Jellyfin(id: Long) : BaseTracker(id, "Jellyfin"), EnhancedTracker {
             }.build().toString()
         }
 
-        val json = Injekt.get<Json>()
         return try {
             api.getTrackSearch(url)
         } catch (_: Exception) {
