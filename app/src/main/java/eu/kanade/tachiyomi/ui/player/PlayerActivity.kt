@@ -273,17 +273,19 @@ class PlayerActivity : BaseActivity() {
                             finish()
                         }
                     },
-                    modifier = Modifier.fillMaxSize().onGloballyPositioned {
-                        pipRect = run {
-                            val boundsInWindow = it.boundsInWindow()
-                            Rect(
-                                boundsInWindow.left.toInt(),
-                                boundsInWindow.top.toInt(),
-                                boundsInWindow.right.toInt(),
-                                boundsInWindow.bottom.toInt(),
-                            )
-                        }
-                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .onGloballyPositioned {
+                            pipRect = run {
+                                val boundsInWindow = it.boundsInWindow()
+                                Rect(
+                                    boundsInWindow.left.toInt(),
+                                    boundsInWindow.top.toInt(),
+                                    boundsInWindow.right.toInt(),
+                                    boundsInWindow.bottom.toInt(),
+                                )
+                            }
+                        },
                 )
             }
         }

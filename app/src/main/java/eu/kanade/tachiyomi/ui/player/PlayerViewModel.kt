@@ -6,6 +6,7 @@ import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.net.Uri
 import android.view.KeyEvent
+import android.view.WindowManager
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -68,6 +69,8 @@ import eu.kanade.tachiyomi.ui.player.cast.CastDialog
 import eu.kanade.tachiyomi.ui.player.cast.CastSheet
 import eu.kanade.tachiyomi.ui.player.cast.CastUiData
 import eu.kanade.tachiyomi.ui.player.components.HosterState
+import eu.kanade.tachiyomi.ui.player.components.MAX_BRIGHTNESS
+import eu.kanade.tachiyomi.ui.player.components.MIN_BRIGHTNESS
 import eu.kanade.tachiyomi.ui.player.components.getChangedAt
 import eu.kanade.tachiyomi.ui.player.controls.components.IndexedSegment
 import eu.kanade.tachiyomi.ui.player.domain.AudioManager
@@ -280,10 +283,9 @@ class PlayerViewModel @JvmOverloads constructor(
                 audioManager.getVolume()
             },
             currentBrightness = if (playerPreferences.rememberPlayerBrightness.get()) {
-                playerPreferences.playerBrightnessValue.get().takeUnless { it == -1f }
-                    ?: brightnessManager.getCurrentBrightness()
+                playerPreferences.playerBrightnessValue.get()
             } else {
-                brightnessManager.getCurrentBrightness()
+                WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
             },
         ),
     )
@@ -2559,7 +2561,7 @@ class PlayerViewModel @JvmOverloads constructor(
     }
 
     fun changeBrightnessTo(brightness: Float) {
-        updatePlaybackData { it.copy(currentBrightness = brightness.coerceIn(-0.75f, 1f)) }
+        updatePlaybackData { it.copy(currentBrightness = brightness.coerceIn(MIN_BRIGHTNESS, MAX_BRIGHTNESS)) }
     }
 
     fun displayBrightnessSlider(show: Boolean) {

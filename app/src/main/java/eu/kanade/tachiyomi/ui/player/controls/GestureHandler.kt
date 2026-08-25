@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.ui.player.controls
 
+import android.view.WindowManager
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -46,6 +47,7 @@ import eu.kanade.tachiyomi.ui.player.Panels
 import eu.kanade.tachiyomi.ui.player.PlayerViewModel
 import eu.kanade.tachiyomi.ui.player.Sheets
 import eu.kanade.tachiyomi.ui.player.controls.components.DoubleTapSeekTriangles
+import eu.kanade.tachiyomi.ui.player.domain.BrightnessManager
 import kotlinx.coroutines.delay
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
@@ -64,6 +66,7 @@ fun GestureHandler(
     val playerPreferences = remember { Injekt.get<PlayerPreferences>() }
     val gesturePreferences = remember { Injekt.get<GesturePreferences>() }
     val audioPreferences = remember { Injekt.get<AudioPreferences>() }
+    val brightnessManager = remember { Injekt.get<BrightnessManager>() }
 
     val allowGesturesInPanels by playerPreferences.allowGestures.collectAsState()
     val horizontalGesture by gesturePreferences.gestureHorizontalSeek.collectAsState()
@@ -225,6 +228,8 @@ fun GestureHandler(
                         originalVolume = playbackData.currentVolume
                         originalMPVVolume = currentMPVVolume
                         originalBrightness = playbackData.currentBrightness
+                            .takeUnless { it == WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE }
+                            ?: brightnessManager.getCurrentBrightness()
                     },
                 ) { change, amount ->
                     val changeVolume: () -> Unit = {
