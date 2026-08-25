@@ -8,10 +8,15 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Dns
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class Jellyfin(id: Long) : BaseTracker(id, "Jellyfin"), EnhancedTracker {
@@ -80,12 +85,34 @@ class Jellyfin(id: Long) : BaseTracker(id, "Jellyfin"), EnhancedTracker {
 
     override fun getAcceptedSources() = listOf("eu.kanade.tachiyomi.animeextension.all.jellyfin.Jellyfin")
 
-    override suspend fun match(anime: Anime): TrackSearch? =
-        try {
-            api.getTrackSearch(anime.url)
+    override suspend fun match(anime: Anime): TrackSearch? {
+        val url = when {
+            anime.url.startsWith("http") -> anime.url
+            else -> anime.memo.get("baseUrl")!!.jsonPrimitive.content.toHttpUrl().newBuilder().apply {
+                val type = anime.memo.get("type")!!.jsonPrimitive.content
+                addPathSegment("Users")
+                addPathSegment(anime.memo.get("userId")!!.jsonPrimitive.content)
+                addPathSegment("Items")
+                addPathSegment(anime.url)
+                fragment(
+                    when (type) {
+                        "BoxSet" -> "boxset"
+                        "Movie" -> "movie"
+                        "Series" -> "series"
+                        "Season" -> "season,${anime.memo.get("seriesId")!!.jsonPrimitive.content}"
+                        else -> return null
+                    },
+                )
+            }.build().toString()
+        }
+
+        val json = Injekt.get<Json>()
+        return try {
+            api.getTrackSearch(url)
         } catch (_: Exception) {
             null
         }
+    }
 
     // AM -->
     override suspend fun matchSeason(anime: Anime): TrackSearch {

@@ -42,8 +42,8 @@ class JellyfinInterceptor : Interceptor {
         return chain.proceed(authRequest)
     }
 
-    private fun getId(suffix: Int): Long {
-        val key = "jellyfin ($suffix)/all/$JELLYFIN_VERSION_ID"
+    private fun getId(suffix: Int, versionId: Int): Long {
+        val key = "jellyfin ($suffix)/all/$versionId"
         val bytes = MessageDigest.getInstance("MD5").digest(key.toByteArray())
         return (0..7).map { bytes[it].toLong() and 0xff shl 8 * (7 - it) }
             .reduce(Long::or) and Long.MAX_VALUE
@@ -51,8 +51,8 @@ class JellyfinInterceptor : Interceptor {
 
     private fun getApiKey(userId: String): String? {
         for (i in 1..MAX_JELLYFIN_SOURCES) {
-            val sourceId = getId(i)
-            val preferences = (sourceManager.get(sourceId) as ConfigurableAnimeSource).sourcePreferences()
+            val source = sourceManager.get(getId(i, 2)) ?: sourceManager.get(getId(i, 3))
+            val preferences = (source as ConfigurableAnimeSource).sourcePreferences()
             val sourceUserId = preferences.getString("user_id", "")
 
             if (sourceUserId.isNullOrEmpty()) {
@@ -68,7 +68,6 @@ class JellyfinInterceptor : Interceptor {
     }
 
     companion object {
-        private const val JELLYFIN_VERSION_ID = 2
         private const val MAX_JELLYFIN_SOURCES = 10
     }
 }
