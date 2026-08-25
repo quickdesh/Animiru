@@ -98,7 +98,10 @@ fun GestureHandler(
             .windowInsetsPadding(WindowInsets.safeGestures)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { if (uiData.controlsShown) viewModel.hideControls() else viewModel.showControls() },
+                    onTap = {
+                        if (isDoubleTapSeeking) return@detectTapGestures
+                        if (uiData.controlsShown) viewModel.hideControls() else viewModel.showControls()
+                    },
                     onDoubleTap = {
                         if (uiData.isControlsLocked || isDoubleTapSeeking) return@detectTapGestures
                         if (it.x > size.width * 3 / 5) {
