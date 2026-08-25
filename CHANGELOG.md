@@ -13,11 +13,17 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 ## [Unreleased]
 ### Added
 - Added chromecast support ([@Secozzi](https://github.com/Secozzi)) ([#175](https://github.com/quickdesh/Animiru/pull/175))
+- Add support for memo-based jellyfin ext ([@Secozzi](https://github.com/Secozzi)) ([#199](https://github.com/quickdesh/Animiru/pull/199))
+
+### Improved
+- Don't toggle controls visibility when double tap seeking ([@Secozzi](https://github.com/Secozzi)) ([#199](https://github.com/quickdesh/Animiru/pull/199))
+- Brightness can be changed from quick settings before any drag gestures ([@Secozzi](https://github.com/Secozzi)) ([#199](https://github.com/quickdesh/Animiru/pull/199))
 
 ### Fixed
 - Fix discord rpc ([@Secozzi](https://github.com/Secozzi)) ([#196](https://github.com/quickdesh/Animiru/pull/196))
 - Fix search intent using manga instead of anime ([@Secozzi](https://github.com/Secozzi)) ([#197](https://github.com/quickdesh/Animiru/pull/197))
 - Fix simkl not fetching last watched time ([@Secozzi](https://github.com/Secozzi)) ([#198](https://github.com/quickdesh/Animiru/pull/198))
+- Fix track sync breaking if source isn't loaded ([@Secozzi](https://github.com/Secozzi)) ([#199](https://github.com/quickdesh/Animiru/pull/199))
 
 ### Other
 - Merge from aniyomi ([@Secozzi](https://github.com/Secozzi)) ([#191](https://github.com/quickdesh/Animiru/pull/191))
