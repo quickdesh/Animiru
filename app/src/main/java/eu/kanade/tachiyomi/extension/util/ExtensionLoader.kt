@@ -248,8 +248,8 @@ internal object ExtensionLoader {
         }
 
         // Validate lib version
-        val libVersion = appInfo.metaData.getFloat(METADATA_EXTENSION_LIB)
-            .takeUnless { it == 0.0f }
+        val libVersion = appInfo.metaData.getInt(METADATA_EXTENSION_LIB)
+            .takeUnless { it == 0 }
             ?.toString()
             ?.toDouble()
             ?: versionName.substringBeforeLast('.').toDoubleOrNull()
