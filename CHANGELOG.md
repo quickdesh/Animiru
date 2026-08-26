@@ -26,7 +26,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - Fix track sync breaking if source isn't loaded ([@Secozzi](https://github.com/Secozzi)) ([#199](https://github.com/quickdesh/Animiru/pull/199))
 
 ### Other
-- Merge from aniyomi ([@Secozzi](https://github.com/Secozzi)) ([#191](https://github.com/quickdesh/Animiru/pull/191))
+- Merge from aniyomi ([@Secozzi](https://github.com/Secozzi)) ([#191](https://github.com/quickdesh/Animiru/pull/191), [#200](https://github.com/quickdesh/Animiru/pull/200))
 - Merge from mihon and aniyomi ([@Secozzi](https://github.com/Secozzi)) ([#192](https://github.com/quickdesh/Animiru/pull/192))
 
 ## [v0.19.8.1] - 2026-08-09
