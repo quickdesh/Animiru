@@ -402,13 +402,11 @@ class EpisodeOptionsDialogViewModel(
                     hosterName = h.hosterName,
                     hosterUrl = h.hosterUrl,
                     videoList = (hosterStateList[index] as HosterState.Ready).videoList,
+                    internalData = h.internalData,
+                    memo = h.memo,
                 )
             } else {
-                Hoster(
-                    hosterName = h.hosterName,
-                    hosterUrl = h.hosterUrl,
-                    videoList = h.videoList,
-                )
+                h
             }
         }
     }
