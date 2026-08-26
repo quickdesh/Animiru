@@ -7,6 +7,7 @@ import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.UnmeteredSource
 import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
+import eu.kanade.tachiyomi.animesource.model.AnimeRelation
 import eu.kanade.tachiyomi.animesource.model.AnimesPage
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.animesource.model.SAnimeEpisodeUpdate
@@ -154,6 +155,10 @@ class LocalSource(
             }
         }
     }
+
+    override val supportsRelatedAnime = false
+
+    override suspend fun getRelatedAnimeList(anime: SAnime): List<AnimeRelation> = emptyList()
     // <-- AY
 
     override suspend fun getAnimeSeasonUpdate(

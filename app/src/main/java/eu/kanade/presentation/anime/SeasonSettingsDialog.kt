@@ -17,7 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import aniyomi.domain.anime.SeasonDisplayMode
+import aniyomi.domain.anime.model.SeasonDisplayMode
 import eu.kanade.domain.anime.model.seasonDownloadedFilter
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.presentation.components.TabbedDialog

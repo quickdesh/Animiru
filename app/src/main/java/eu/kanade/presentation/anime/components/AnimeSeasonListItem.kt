@@ -3,8 +3,8 @@ package eu.kanade.presentation.anime.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import aniyomi.domain.anime.SeasonAnime
-import aniyomi.domain.anime.SeasonDisplayMode
+import aniyomi.domain.anime.model.SeasonAnime
+import aniyomi.domain.anime.model.SeasonDisplayMode
 import eu.kanade.presentation.library.components.AnimeComfortableGridItem
 import eu.kanade.presentation.library.components.AnimeCompactGridItem
 import eu.kanade.presentation.library.components.AnimeListItem

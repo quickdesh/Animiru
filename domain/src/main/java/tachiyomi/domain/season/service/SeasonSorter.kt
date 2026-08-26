@@ -1,7 +1,7 @@
 // AY -->
 package tachiyomi.domain.season.service
 
-import aniyomi.domain.anime.SeasonAnime
+import aniyomi.domain.anime.model.SeasonAnime
 import tachiyomi.core.common.util.lang.compareToWithCollator
 import tachiyomi.domain.anime.model.Anime
 

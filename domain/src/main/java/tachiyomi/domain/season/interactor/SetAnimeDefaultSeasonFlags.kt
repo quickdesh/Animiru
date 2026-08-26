@@ -1,7 +1,7 @@
 // AY -->
 package tachiyomi.domain.season.interactor
 
-import aniyomi.domain.anime.SeasonDisplayMode
+import aniyomi.domain.anime.model.SeasonDisplayMode
 import tachiyomi.core.common.util.lang.withNonCancellableContext
 import tachiyomi.domain.anime.interactor.GetFavorites
 import tachiyomi.domain.anime.interactor.SetAnimeSeasonFlags

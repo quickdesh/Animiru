@@ -81,6 +81,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import aniyomi.domain.anime.model.AnimeRelationGroup
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -99,6 +100,7 @@ import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.findChildOfType
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.TextButton
@@ -284,6 +286,12 @@ fun ExpandableAnimeDescription(
     onTagSearch: (String) -> Unit,
     onCopyTagToClipboard: (tag: String) -> Unit,
     onEditNotes: () -> Unit,
+    // AY -->
+    relations: List<AnimeRelationGroup>,
+    onRelatedClick: (Anime) -> Unit,
+    onRelatedLongClick: (Anime) -> Unit,
+    relatedDisplayMode: LibraryDisplayMode,
+    // <-- AY
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
@@ -297,7 +305,13 @@ fun ExpandableAnimeDescription(
             description = desc,
             expanded = expanded,
             notes = notes,
+            // AY -->
             onEditNotesClicked = onEditNotes,
+            relations = relations,
+            onRelatedClick = onRelatedClick,
+            onRelatedLongClick = onRelatedLongClick,
+            relatedDisplayMode = relatedDisplayMode,
+            // <-- AY
             modifier = Modifier
                 .padding(top = 8.dp)
                 .padding(horizontal = 16.dp)
@@ -646,6 +660,12 @@ private fun AnimeSummary(
     notes: String,
     expanded: Boolean,
     onEditNotesClicked: () -> Unit,
+    // AY -->
+    relations: List<AnimeRelationGroup>,
+    onRelatedClick: (Anime) -> Unit,
+    onRelatedLongClick: (Anime) -> Unit,
+    relatedDisplayMode: LibraryDisplayMode,
+    // <-- AY
     modifier: Modifier = Modifier,
 ) {
     val preferences = remember { Injekt.get<UiPreferences>() }
@@ -690,6 +710,20 @@ private fun AnimeSummary(
                     }
                 }
             },
+            // AY -->
+            {
+                Column {
+                    if (relations.isNotEmpty()) {
+                        RelatedAnimeRows(
+                            relations = relations,
+                            onRelatedClick = onRelatedClick,
+                            onRelatedLongClick = onRelatedLongClick,
+                            displayMode = relatedDisplayMode,
+                        )
+                    }
+                }
+            },
+            // <-- AY
             {
                 val colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background)
                 Box(
@@ -708,7 +742,7 @@ private fun AnimeSummary(
                 }
             },
         ),
-    ) { (shrunk, actual, scrim), constraints ->
+    ) { (shrunk, actual, related, scrim), constraints ->
         val shrunkHeight = shrunk.single()
             .measure(constraints)
             .height
@@ -717,16 +751,30 @@ private fun AnimeSummary(
 
         val actualPlaceable = actual.single()
             .measure(constraints)
+        // AY -->
+        val relatedPlaceable = related.single()
+            .measure(constraints)
+        // <-- AY
         val scrimPlaceable = scrim.single()
             .measure(Constraints.fixed(width = constraints.maxWidth, height = scrimHeight))
 
-        val currentHeight = shrunkHeight + ((heightDelta + scrimHeight) * animProgress).roundToInt()
-        layout(constraints.maxWidth, currentHeight) {
-            actualPlaceable.place(0, 0)
+        // AY -->
+        val descriptionHeight = shrunkHeight + ((heightDelta + scrimHeight) * animProgress).roundToInt()
+        val relatedHeight = (relatedPlaceable.height * animProgress).roundToInt()
+        val bottomPadding = if (relatedPlaceable.height > 0) {
+            (16.dp.roundToPx() * animProgress).roundToInt()
+        } else {
+            0
+        }
 
-            val scrimY = currentHeight - scrimHeight
+        layout(constraints.maxWidth, descriptionHeight + relatedHeight + bottomPadding) {
+            actualPlaceable.place(0, 0)
+            relatedPlaceable.place(0, descriptionHeight)
+
+            val scrimY = descriptionHeight + relatedHeight + bottomPadding - scrimHeight
             scrimPlaceable.place(0, scrimY)
         }
+        // <-- AY
     }
 }
 

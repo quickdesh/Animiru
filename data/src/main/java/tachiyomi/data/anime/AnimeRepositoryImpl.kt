@@ -1,6 +1,6 @@
 package tachiyomi.data.anime
 
-import aniyomi.domain.anime.SeasonAnime
+import aniyomi.domain.anime.model.SeasonAnime
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull

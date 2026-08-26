@@ -54,8 +54,8 @@ import androidx.compose.ui.unit.offset
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastMap
-import aniyomi.domain.anime.SeasonAnime
-import aniyomi.domain.anime.SeasonDisplayMode
+import aniyomi.domain.anime.model.SeasonAnime
+import aniyomi.domain.anime.model.SeasonDisplayMode
 import eu.kanade.presentation.anime.components.AnimeActionRow
 import eu.kanade.presentation.anime.components.AnimeBottomActionMenu
 import eu.kanade.presentation.anime.components.AnimeEpisodeListItem
@@ -84,6 +84,7 @@ import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.episode.service.missingEntriesCount
+import tachiyomi.domain.library.model.LibraryDisplayMode
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
@@ -175,6 +176,11 @@ fun AnimeScreen(
     // Season clicked
     onSeasonClicked: (SeasonAnime) -> Unit,
     onContinueWatchingClicked: ((SeasonAnime) -> Unit)?,
+
+    // Related anime clicked
+    onRelatedAnimeClicked: (Anime) -> Unit,
+    onRelatedAnimeLongClicked: (Anime) -> Unit,
+    relatedAnimeDisplayMode: LibraryDisplayMode,
     // <-- AY
 ) {
     val context = LocalContext.current
@@ -239,6 +245,9 @@ fun AnimeScreen(
             // AY -->
             onSeasonClicked = onSeasonClicked,
             onClickContinueWatching = onContinueWatchingClicked,
+            onRelatedAnimeClicked = onRelatedAnimeClicked,
+            onRelatedAnimeLongClicked = onRelatedAnimeLongClicked,
+            relatedAnimeDisplayMode = relatedAnimeDisplayMode,
             // <-- AY
         )
     } else {
@@ -296,6 +305,9 @@ fun AnimeScreen(
             // AY -->
             onSeasonClicked = onSeasonClicked,
             onClickContinueWatching = onContinueWatchingClicked,
+            onRelatedAnimeClicked = onRelatedAnimeClicked,
+            onRelatedAnimeLongClicked = onRelatedAnimeLongClicked,
+            relatedAnimeDisplayMode = relatedAnimeDisplayMode,
             // <-- AY
         )
     }
@@ -375,6 +387,11 @@ private fun AnimeScreenSmallImpl(
     // Season clicked
     onSeasonClicked: (SeasonAnime) -> Unit,
     onClickContinueWatching: ((SeasonAnime) -> Unit)?,
+
+    // Related anime clicked
+    onRelatedAnimeClicked: (Anime) -> Unit,
+    onRelatedAnimeLongClicked: (Anime) -> Unit,
+    relatedAnimeDisplayMode: LibraryDisplayMode,
     // <-- AY
 ) {
     // AY -->
@@ -585,6 +602,12 @@ private fun AnimeScreenSmallImpl(
                             onCopyTagToClipboard = onCopyTagToClipboard,
                             onEditNotes = onEditNotesClicked,
                             // AY -->
+                            relations = state.relatedAnime,
+                            onRelatedClick = onRelatedAnimeClicked,
+                            onRelatedLongClick = onRelatedAnimeLongClicked,
+                            relatedDisplayMode = relatedAnimeDisplayMode,
+                            // <-- AY
+                            // AY -->
                             modifier = Modifier.ignorePadding(offsetGridPaddingPx),
                             // <-- AY
                         )
@@ -769,6 +792,11 @@ fun AnimeScreenLargeImpl(
     // Season clicked
     onSeasonClicked: (SeasonAnime) -> Unit,
     onClickContinueWatching: ((SeasonAnime) -> Unit)?,
+
+    // Related anime clicked
+    onRelatedAnimeClicked: (Anime) -> Unit,
+    onRelatedAnimeLongClicked: (Anime) -> Unit,
+    relatedAnimeDisplayMode: LibraryDisplayMode,
     // <-- AY
 ) {
     val layoutDirection = LocalLayoutDirection.current
@@ -938,6 +966,12 @@ fun AnimeScreenLargeImpl(
                                 onTagSearch = onTagSearch,
                                 onCopyTagToClipboard = onCopyTagToClipboard,
                                 onEditNotes = onEditNotesClicked,
+                                // AY -->
+                                relations = state.relatedAnime,
+                                onRelatedClick = onRelatedAnimeClicked,
+                                onRelatedLongClick = onRelatedAnimeLongClicked,
+                                relatedDisplayMode = relatedAnimeDisplayMode,
+                                // <-- AY
                             )
                         }
                     },

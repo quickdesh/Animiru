@@ -1,4 +1,4 @@
-package aniyomi.domain.anime
+package aniyomi.domain.anime.model
 
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.library.model.LibraryAnime
