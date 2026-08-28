@@ -34,7 +34,7 @@ class AnimeRepositoryImpl(
         return database.animesQueries.getAnimeById(id, AnimeMapper::mapAnime).awaitAsOne()
     }
 
-    override suspend fun getAnimeByIdAsFlow(id: Long): Flow<Anime> {
+    override fun getAnimeByIdAsFlow(id: Long): Flow<Anime> {
         return database.animesQueries.getAnimeById(id, AnimeMapper::mapAnime).subscribeToOne()
     }
 

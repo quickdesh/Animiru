@@ -19,7 +19,7 @@ class GetAnime(
         }
     }
 
-    suspend fun subscribe(id: Long): Flow<Anime> {
+    fun subscribe(id: Long): Flow<Anime> {
         return animeRepository.getAnimeByIdAsFlow(id)
     }
 

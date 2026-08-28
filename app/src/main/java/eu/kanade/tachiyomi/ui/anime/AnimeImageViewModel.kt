@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.SnackbarHostState
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
@@ -22,10 +23,14 @@ import eu.kanade.tachiyomi.util.editBackground
 import eu.kanade.tachiyomi.util.editCover
 import eu.kanade.tachiyomi.util.system.getBitmapOrNull
 import eu.kanade.tachiyomi.util.system.toShareIntent
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import logcat.LogPriority
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
@@ -37,6 +42,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import kotlin.time.Duration.Companion.seconds
 
 class AnimeImageViewModel(
     private val animeId: Long,
@@ -52,7 +58,7 @@ class AnimeImageViewModel(
     // AY -->
     val pagerState: PagerState = PagerState(pageCount = { 2 }),
     // <-- AY
-) : StateViewModel<Anime?>(null) {
+) : ViewModel() {
 
     companion object {
         val ANIME_ID_KEY = CreationExtras.Key<Long>()
@@ -71,12 +77,9 @@ class AnimeImageViewModel(
         get() = pagerState.currentPage != 1
     // <-- AY
 
-    init {
-        viewModelScope.launchIO {
-            getAnime.subscribe(animeId)
-                .collect { newAnime -> mutableState.update { newAnime } }
-        }
-    }
+    val state: StateFlow<Anime?> = getAnime.subscribe(animeId)
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), null)
 
     fun saveImage(context: Context) {
         // AY -->
@@ -189,7 +192,6 @@ class AnimeImageViewModel(
     }
 
     fun deleteCustomImage(context: Context) {
-        val animeId = state.value?.id ?: return
         viewModelScope.launchIO {
             try {
                 if (isCover) {
