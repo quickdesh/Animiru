@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
@@ -96,7 +97,7 @@ data object BrowseTab : Tab {
         // AM (BROWSE) -->
         val navigator = LocalNavigator.currentOrThrow
         val sourcesViewModel = viewModel<SourcesViewModel>()
-        val sourcesState by sourcesViewModel.state.collectAsState()
+        val sourcesState by sourcesViewModel.state.collectAsStateWithLifecycle()
         val updateCount by sourcesViewModel.sourcePreferences.extensionUpdatesCount.collectAsState()
 
         val extensionViewModel = viewModel<ExtensionsViewModel>()
