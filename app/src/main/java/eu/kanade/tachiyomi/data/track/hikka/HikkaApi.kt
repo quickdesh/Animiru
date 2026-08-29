@@ -14,6 +14,7 @@ import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.PUT
+import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.jsonMime
 import eu.kanade.tachiyomi.network.parseAs
@@ -110,6 +111,25 @@ class HikkaApi(
                     } else {
                         throw e
                     }
+                }
+            }
+        }
+    }
+
+    suspend fun getAnimeDetails(slug: String): TrackSearch? {
+        return withIOContext {
+            val url = "$BASE_API_URL/anime/$slug"
+
+            with(json) {
+                val response = authClient.newCall(GET(url))
+                    .await()
+
+                if (response.code == 404) {
+                    null
+                } else {
+                    response
+                        .parseAs<HKAnime>()
+                        .toTrack(trackId)
                 }
             }
         }

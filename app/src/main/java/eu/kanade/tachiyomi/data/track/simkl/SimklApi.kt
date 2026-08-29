@@ -5,17 +5,20 @@ import android.net.Uri
 import androidx.core.net.toUri
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import eu.kanade.tachiyomi.data.track.simkl.dto.SimklDetails
 import eu.kanade.tachiyomi.data.track.simkl.dto.SimklOAuth
 import eu.kanade.tachiyomi.data.track.simkl.dto.SimklSearchResult
 import eu.kanade.tachiyomi.data.track.simkl.dto.SimklSyncResult
 import eu.kanade.tachiyomi.data.track.simkl.dto.SimklSyncWatched
 import eu.kanade.tachiyomi.data.track.simkl.dto.SimklUser
 import eu.kanade.tachiyomi.network.GET
+import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.jsonMime
 import eu.kanade.tachiyomi.network.parseAs
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonArray
@@ -23,6 +26,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.lang.withIOContext
@@ -137,6 +141,39 @@ class SimklApi(private val client: OkHttpClient, interceptor: SimklInterceptor) 
             updateRating(track, mediaType)
 
             track
+        }
+    }
+
+    suspend fun getAnimeDetails(id: Int): List<TrackSearch> {
+        return listOfNotNull(
+            getEntryDetails("anime", id),
+            getEntryDetails("shows", id),
+            getEntryDetails("movie", id),
+        )
+    }
+
+    private suspend fun getEntryDetails(type: String, id: Int): TrackSearch? {
+        return withIOContext {
+            try {
+                with(json) {
+                    val url = API_URL.toHttpUrl().newBuilder().apply {
+                        addPathSegment(type)
+                        addPathSegment(id.toString())
+                        addQueryParameter("client_id", CLIENT_ID)
+                    }.build()
+                    client.newCall(GET(url))
+                        .awaitSuccess()
+                        .parseAs<SimklDetails>()
+                        .toTrackSearch(type)
+                }
+            } catch (_: MissingFieldException) {
+                null
+            } catch (e: HttpException) {
+                if (e.code == 404 || e.code == 302) {
+                    return@withIOContext null
+                }
+                throw e
+            }
         }
     }
 

@@ -121,6 +121,54 @@ class ShikimoriApi(
         }
     }
 
+    suspend fun getAnimeDetails(id: Int): TrackSearch? {
+        return withIOContext {
+            val query = $$"""
+            |query($query: String) {
+                |animes(ids: $query, limit: 1) {
+                    |id
+                    |name
+                    |episodes
+                    |kind
+                    |poster {
+                        |mainUrl
+                    |}
+                    |score
+                    |url
+                    |status
+                    |airedOn {
+                        |date
+                    |}
+                    |description
+                    |studios {
+                        |name
+                    |}
+                |}
+            |}
+            """.trimMargin()
+            val payload = buildJsonObject {
+                put("query", query)
+                putJsonObject("variables") {
+                    put("query", "$id")
+                }
+            }
+
+            with(json) {
+                authClient.newCall(
+                    POST(
+                        GRAPHQL_API_URL,
+                        body = payload.toString().toRequestBody(jsonMime),
+                    ),
+                )
+                    .awaitSuccess()
+                    .parseAs<SMSearchResult>()
+                    .data.animes
+                    .firstOrNull()
+                    ?.toTrack(trackId)
+            }
+        }
+    }
+
     suspend fun findLibAnime(track: Track, isRefresh: Boolean = false): Track? {
         return withIOContext {
             val query = $$"""

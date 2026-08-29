@@ -25,6 +25,8 @@ class Simkl(id: Long) : BaseTracker(id, "Simkl"), Tracker {
 
         private val SCORE_LIST = IntRange(0, 10)
             .map(Int::toString)
+
+        private const val SEARCH_ID_PREFIX = "id:"
     }
 
     private val json: Json by injectLazy()
@@ -77,6 +79,12 @@ class Simkl(id: Long) : BaseTracker(id, "Simkl"), Tracker {
     }
 
     override suspend fun search(query: String): List<TrackSearch> {
+        if (query.startsWith(SEARCH_ID_PREFIX)) {
+            query.substringAfter(SEARCH_ID_PREFIX).trim().toIntOrNull()?.let { id ->
+                return api.getAnimeDetails(id)
+            }
+        }
+
         return api.searchAnime(query, "anime") +
             api.searchAnime(query, "tv") +
             api.searchAnime(query, "movie")
