@@ -1,6 +1,7 @@
 package mihon.feature.migration.list
 
 import androidx.annotation.FloatRange
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
@@ -19,13 +20,14 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import logcat.LogPriority
-import mihon.core.viewmodel.StateViewModel
 import mihon.domain.migration.usecases.MigrateAnimeUseCase
 import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import mihon.feature.migration.list.models.MigratingAnime
@@ -56,7 +58,10 @@ class MigrationListViewModel(
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
     private val migrateAnime: MigrateAnimeUseCase = Injekt.get(),
     private val updateAnimeFromRemote: UpdateAnimeFromRemote = Injekt.get(),
-) : StateViewModel<MigrationListViewModel.State>(State()) {
+) : ViewModel() {
+
+    val state: StateFlow<MigrationListViewModel.State>
+        field = MutableStateFlow<MigrationListViewModel.State>(State())
 
     companion object {
         val ANIME_IDS_KEY = CreationExtras.Key<Collection<Long>>()
@@ -104,7 +109,7 @@ class MigrationListViewModel(
                 }
                 .awaitAll()
                 .filterNotNull()
-            mutableState.update { it.copy(items = anime) }
+            state.update { it.copy(items = anime) }
             runMigrations(anime)
         }
     }
@@ -244,7 +249,7 @@ class MigrationListViewModel(
     }
 
     private suspend fun updateMigrationProgress() {
-        mutableState.update { state ->
+        state.update { state ->
             state.copy(
                 finishedCount = items.count { it.searchResult.value != SearchResult.Searching },
                 migrationComplete = migrationComplete(),
@@ -336,7 +341,7 @@ class MigrationListViewModel(
 
     private fun migrateAnimes(replace: Boolean) {
         migrateJob = viewModelScope.launchIO {
-            mutableState.update { it.copy(dialog = Dialog.Progress(0f)) }
+            state.update { it.copy(dialog = Dialog.Progress(0f)) }
             val items = items
             try {
                 items.forEachIndexed { index, anime ->
@@ -356,14 +361,14 @@ class MigrationListViewModel(
                         if (e is CancellationException) throw e
                         logcat(LogPriority.WARN, throwable = e)
                     }
-                    mutableState.update {
+                    state.update {
                         it.copy(dialog = Dialog.Progress((index.toFloat() / items.size).coerceAtMost(1f)))
                     }
                 }
 
                 navigateBack()
             } finally {
-                mutableState.update { it.copy(dialog = null) }
+                state.update { it.copy(dialog = null) }
                 migrateJob = null
             }
         }
@@ -398,7 +403,7 @@ class MigrationListViewModel(
     }
 
     private fun removeAnime(item: MigratingAnime) {
-        mutableState.update { it.copy(items = items.toMutableList().apply { remove(item) }) }
+        state.update { it.copy(items = items.toMutableList().apply { remove(item) }) }
     }
 
     override fun onCleared() {
@@ -408,7 +413,7 @@ class MigrationListViewModel(
     }
 
     fun showMigrateDialog(copy: Boolean) {
-        mutableState.update { state ->
+        state.update { state ->
             state.copy(
                 dialog = Dialog.Migrate(
                     copy = copy,
@@ -420,13 +425,13 @@ class MigrationListViewModel(
     }
 
     fun showExitDialog() {
-        mutableState.update {
+        state.update {
             it.copy(dialog = Dialog.Exit)
         }
     }
 
     fun dismissDialog() {
-        mutableState.update { it.copy(dialog = null) }
+        state.update { it.copy(dialog = null) }
     }
 
     data class EpisodeInfo(

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -13,8 +14,9 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.anime.AnimeNotesScreen
 import eu.kanade.presentation.util.Screen
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.domain.anime.interactor.UpdateAnimeNotes
 import tachiyomi.domain.anime.model.Anime
@@ -46,7 +48,10 @@ class AnimeNotesScreen(
     class Model(
         private val anime: Anime,
         private val updateAnimeNotes: UpdateAnimeNotes = Injekt.get(),
-    ) : StateViewModel<State>(State(anime, anime.notes)) {
+    ) : ViewModel() {
+
+        val state: StateFlow<State>
+            field = MutableStateFlow<State>(State(anime, anime.notes))
 
         companion object {
             val ANIME_KEY = CreationExtras.Key<Anime>()
@@ -63,7 +68,7 @@ class AnimeNotesScreen(
         fun updateNotes(content: String) {
             if (content == state.value.notes) return
 
-            mutableState.update {
+            state.update {
                 it.copy(notes = content)
             }
 

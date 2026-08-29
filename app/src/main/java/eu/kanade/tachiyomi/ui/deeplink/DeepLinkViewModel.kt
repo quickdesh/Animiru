@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.deeplink
 
 import androidx.compose.runtime.Immutable
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
@@ -9,8 +10,9 @@ import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.SEpisode
 import eu.kanade.tachiyomi.animesource.online.ResolvableAnimeSource
 import eu.kanade.tachiyomi.animesource.online.UriType
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import mihon.core.viewmodel.StateViewModel
 import mihon.domain.anime.model.toDomainAnime
 import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import tachiyomi.core.common.util.lang.launchIO
@@ -28,7 +30,10 @@ class DeepLinkViewModel(
     private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
     private val getEpisodeByUrlAndAnimeId: GetEpisodeByUrlAndAnimeId = Injekt.get(),
     private val updateAnimeFromRemote: UpdateAnimeFromRemote = Injekt.get(),
-) : StateViewModel<DeepLinkViewModel.State>(State.Loading) {
+) : ViewModel() {
+
+    val state: StateFlow<DeepLinkViewModel.State>
+        field = MutableStateFlow<DeepLinkViewModel.State>(State.Loading)
 
     companion object {
         val QUERY_KEY = CreationExtras.Key<String>()
@@ -58,7 +63,7 @@ class DeepLinkViewModel(
                 null
             }
 
-            mutableState.update {
+            state.update {
                 if (anime == null) {
                     State.NoResults
                 } else {

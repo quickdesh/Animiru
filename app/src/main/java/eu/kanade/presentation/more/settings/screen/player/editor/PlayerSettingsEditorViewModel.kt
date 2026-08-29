@@ -3,6 +3,7 @@ package eu.kanade.presentation.more.settings.screen.player.editor
 import android.app.Application
 import android.content.Context
 import androidx.compose.runtime.Immutable
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -14,10 +15,10 @@ import eu.kanade.tachiyomi.util.storage.size
 import eu.kanade.tachiyomi.util.storage.toSize
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.storage.service.SCRIPTS_PATH
@@ -33,7 +34,10 @@ import java.util.Locale
 class PlayerSettingsEditorViewModel(
     private val context: Context,
     private val storageManager: StorageManager = Injekt.get(),
-) : StateViewModel<EditorScreenState>(EditorScreenState.Loading) {
+) : ViewModel() {
+
+    val state: StateFlow<EditorScreenState>
+        field = MutableStateFlow<EditorScreenState>(EditorScreenState.Loading)
 
     companion object {
         val Factory = viewModelFactory {
@@ -60,7 +64,7 @@ class PlayerSettingsEditorViewModel(
     }
 
     private fun updateItems(type: EditorListType) {
-        mutableState.update {
+        state.update {
             EditorScreenState.Success(
                 editorListItems = getEditorListItems(type),
             )
@@ -129,7 +133,7 @@ class PlayerSettingsEditorViewModel(
     }
 
     fun isValidName(name: String, initialName: String? = null): FileCreationResult {
-        val names = (mutableState.value as? EditorScreenState.Success)
+        val names = (state.value as? EditorScreenState.Success)
             ?.editorListItems
             ?.map { it.name }
             ?.filterNot { it == initialName }

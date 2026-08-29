@@ -56,4 +56,3 @@ include(":source-local")
 include(":cast")
 // <-- AM
 include(":baseline-profile")
-include(":core:viewmodel")

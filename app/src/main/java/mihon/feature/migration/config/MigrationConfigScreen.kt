@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -48,8 +49,9 @@ import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.ui.browse.migration.search.MigrateSearchScreen
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import mihon.core.viewmodel.StateViewModel
 import mihon.feature.migration.list.MigrationListScreen
 import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableItem
@@ -77,7 +79,7 @@ class MigrationConfigScreen(private val animeIds: Collection<Long>) : Screen() {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
 
-        val viewModel = viewModel<ViewModel>()
+        val viewModel = viewModel<Model>()
         val state by viewModel.state.collectAsState()
 
         var migrationSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -121,20 +123,20 @@ class MigrationConfigScreen(private val animeIds: Collection<Long>) : Screen() {
                                 AppBar.Action(
                                     title = stringResource(MR.strings.migrationConfigScreen_selectAllLabel),
                                     icon = Icons.Outlined.SelectAll,
-                                    onClick = { viewModel.toggleSelection(ViewModel.SelectionConfig.All) },
+                                    onClick = { viewModel.toggleSelection(Model.SelectionConfig.All) },
                                 ),
                                 AppBar.Action(
                                     title = stringResource(MR.strings.migrationConfigScreen_selectNoneLabel),
                                     icon = Icons.Outlined.Deselect,
-                                    onClick = { viewModel.toggleSelection(ViewModel.SelectionConfig.None) },
+                                    onClick = { viewModel.toggleSelection(Model.SelectionConfig.None) },
                                 ),
                                 AppBar.OverflowAction(
                                     title = stringResource(MR.strings.migrationConfigScreen_selectEnabledLabel),
-                                    onClick = { viewModel.toggleSelection(ViewModel.SelectionConfig.Enabled) },
+                                    onClick = { viewModel.toggleSelection(Model.SelectionConfig.Enabled) },
                                 ),
                                 AppBar.OverflowAction(
                                     title = stringResource(MR.strings.migrationConfigScreen_selectPinnedLabel),
-                                    onClick = { viewModel.toggleSelection(ViewModel.SelectionConfig.Pinned) },
+                                    onClick = { viewModel.toggleSelection(Model.SelectionConfig.Pinned) },
                                 ),
                             ),
                         )
@@ -306,10 +308,13 @@ class MigrationConfigScreen(private val animeIds: Collection<Long>) : Screen() {
         }
     }
 
-    class ViewModel(
+    class Model(
         val sourcePreferences: SourcePreferences = Injekt.get(),
         private val sourceManager: SourceManager = Injekt.get(),
-    ) : StateViewModel<ViewModel.State>(State()) {
+    ) : ViewModel() {
+
+        val state: StateFlow<Model.State>
+            field = MutableStateFlow<Model.State>(State())
 
         private val sourcesComparator = { includedSources: List<Long> ->
             compareBy<MigrationSource>(
@@ -322,12 +327,12 @@ class MigrationConfigScreen(private val animeIds: Collection<Long>) : Screen() {
         init {
             viewModelScope.launchIO {
                 initSources()
-                mutableState.update { it.copy(isLoading = false) }
+                state.update { it.copy(isLoading = false) }
             }
         }
 
         private fun updateSources(action: (List<MigrationSource>) -> List<MigrationSource>) {
-            mutableState.update { state ->
+            state.update { state ->
                 val updatedSources = action(state.sources)
                 val includedSources = updatedSources.mapNotNull { if (!it.isSelected) null else it.id }
                 state.copy(sources = updatedSources.sortedWith(sourcesComparator(includedSources)))
@@ -364,7 +369,7 @@ class MigrationConfigScreen(private val animeIds: Collection<Long>) : Screen() {
                 }
                 .toList()
 
-            mutableState.update { state ->
+            state.update { state ->
                 state.copy(sources = sources.sortedWith(sourcesComparator(includedSources)))
             }
         }

@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.ui.storage
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.util.fastDistinctBy
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.presentation.more.storage.StorageScreenState
@@ -11,6 +12,7 @@ import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.util.storage.size
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -20,7 +22,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.domain.anime.interactor.GetLibraryAnime
@@ -48,7 +49,11 @@ class StorageViewModel(
     private val sourceManager: SourceManager = Injekt.get(),
     private val sourceFileSystem: LocalSourceFileSystem = Injekt.get(),
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
-) : StateViewModel<StorageScreenState>(StorageScreenState.Loading(0)) {
+) : ViewModel() {
+
+    val state: StateFlow<StorageScreenState>
+        field = MutableStateFlow<StorageScreenState>(StorageScreenState.Loading(0))
+
     private val _selectedCategory = MutableStateFlow(allCategory)
     val selectedCategory = _selectedCategory.asStateFlow()
 
@@ -113,7 +118,7 @@ class StorageViewModel(
 
                 val items = mutableListOf<StorageData>()
 
-                mutableState.update {
+                state.update {
                     StorageScreenState.Loading(0)
                 }
 
@@ -125,7 +130,7 @@ class StorageViewModel(
                     val episodeCount = getCount(anime)
                     val categories = getAnimeCategoryIds(anime)
 
-                    mutableState.update {
+                    state.update {
                         StorageScreenState.Loading((((index + 1.0) / distinctEntries.size) * 100).toInt())
                     }
 
@@ -170,7 +175,7 @@ class StorageViewModel(
             .onEach { (items, categories) ->
                 if (items.isEmpty() && categories.isEmpty()) return@onEach
 
-                mutableState.update {
+                state.update {
                     StorageScreenState.Success(
                         items = items,
                         categories = categories,

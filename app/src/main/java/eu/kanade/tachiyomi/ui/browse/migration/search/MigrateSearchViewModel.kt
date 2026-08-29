@@ -46,7 +46,7 @@ class MigrateSearchViewModel(
     init {
         viewModelScope.launch {
             val anime = getAnime.await(animeId)!!
-            mutableState.update {
+            updateState {
                 it.copy(
                     from = anime,
                     searchQuery = anime.title,

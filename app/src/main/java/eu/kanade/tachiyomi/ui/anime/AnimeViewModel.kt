@@ -7,6 +7,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.util.fastAny
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
@@ -67,6 +68,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -77,7 +80,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
-import mihon.core.viewmodel.StateViewModel
 import mihon.domain.episode.interactor.FilterEpisodesForDownload
 import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import tachiyomi.core.common.i18n.stringResource
@@ -185,7 +187,10 @@ class AnimeViewModel(
     // <-- AM (CUSTOM_INFORMATION)
     private val updateAnimeFromRemote: UpdateAnimeFromRemote = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
-) : StateViewModel<AnimeViewModel.State>(State.Loading) {
+) : ViewModel() {
+
+    val state: StateFlow<AnimeViewModel.State>
+        field = MutableStateFlow<AnimeViewModel.State>(State.Loading)
 
     companion object {
         val ANIME_ID_KEY = CreationExtras.Key<Long>()
@@ -252,7 +257,7 @@ class AnimeViewModel(
      * Helper function to update the UI state only if it's currently in success state
      */
     private inline fun updateSuccessState(func: (State.Success) -> State.Success) {
-        mutableState.update {
+        state.update {
             when (it) {
                 State.Loading -> it
                 is State.Success -> func(it)
@@ -336,7 +341,7 @@ class AnimeViewModel(
             // <-- AY
 
             // Show what we have earlier
-            mutableState.update {
+            state.update {
                 State.Success(
                     anime = anime,
                     source = source,

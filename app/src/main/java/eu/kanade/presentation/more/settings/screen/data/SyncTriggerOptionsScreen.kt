@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -12,8 +13,9 @@ import eu.kanade.domain.connection.SyncPreferences
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.data.connection.syncmiru.models.SyncTriggerOptions
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.components.LabeledCheckbox
@@ -79,13 +81,13 @@ class SyncTriggerOptionsScreen : Screen() {
 
 class SyncOptionsViewModel(
     val syncPreferences: SyncPreferences = Injekt.get(),
-) : StateViewModel<SyncOptionsViewModel.State>(
-    State(
-        syncPreferences.getSyncTriggerOptions(),
-    ),
-) {
+) : ViewModel() {
+
+    val state: StateFlow<SyncOptionsViewModel.State>
+        field = MutableStateFlow<SyncOptionsViewModel.State>(State(syncPreferences.getSyncTriggerOptions()))
+
     fun toggle(setter: (SyncTriggerOptions, Boolean) -> SyncTriggerOptions, enabled: Boolean) {
-        mutableState.update {
+        state.update {
             val updatedTriggerOptions = setter(it.options, enabled)
             syncPreferences.setSyncTriggerOptions(updatedTriggerOptions)
             it.copy(
