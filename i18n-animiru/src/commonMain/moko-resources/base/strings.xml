@@ -75,6 +75,7 @@
 
     <!-- Downloads -->
     <string name="pref_download_ignore_broken_tracks">Skip broken external tracks</string>
+    <string name="am.update_check_notification_download_in_progress">Downloading…</string>
 
     <!-- Storage overview -->
     <string name="pref_storage_overview">Storage overview</string>

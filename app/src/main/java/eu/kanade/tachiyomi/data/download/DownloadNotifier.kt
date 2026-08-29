@@ -96,7 +96,7 @@ internal class DownloadNotifier(private val context: Context) {
 
             // AY -->
             val downloadingProgressText = if (download.progress == 0) {
-                context.stringResource(MR.strings.update_check_notification_download_in_progress)
+                context.stringResource(AMMR.strings.am_update_check_notification_download_in_progress)
             } else {
                 context.stringResource(AYMR.strings.episode_downloading_progress, download.progress)
             }
