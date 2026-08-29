@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -101,7 +100,7 @@ data object BrowseTab : Tab {
         val updateCount by sourcesViewModel.sourcePreferences.extensionUpdatesCount.collectAsState()
 
         val extensionViewModel = viewModel<ExtensionsViewModel>()
-        val extensionsState by extensionViewModel.state.collectAsState()
+        val extensionsState by extensionViewModel.state.collectAsStateWithLifecycle()
 
         var inExtensionsScreen by remember { mutableStateOf(goToExtensions) }
         val animationDuration = 300
