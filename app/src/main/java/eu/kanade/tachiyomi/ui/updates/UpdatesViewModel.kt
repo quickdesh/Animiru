@@ -114,8 +114,9 @@ class UpdatesViewModel(
             }
         }
     }
-            // Set date limit for recent episodes
-            val limit = Clock.System.now().minus(3, DateTimeUnit.MONTH, TimeZone.currentSystemDefault())
+
+    // Set date limit for recent episodes
+    val limit = Clock.System.now().minus(3, DateTimeUnit.MONTH, TimeZone.currentSystemDefault())
 
     private val hasActiveFilters = getUpdatesItemPreferenceFlow()
         .map { prefs ->
