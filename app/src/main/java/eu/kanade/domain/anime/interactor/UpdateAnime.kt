@@ -1,5 +1,6 @@
 package eu.kanade.domain.anime.interactor
 
+import dev.zacsweers.metro.Inject
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -9,6 +10,7 @@ import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.anime.repository.AnimeRepository
 import kotlin.time.Clock
 
+@Inject
 class UpdateAnime(
     private val animeRepository: AnimeRepository,
     private val fetchInterval: FetchInterval,

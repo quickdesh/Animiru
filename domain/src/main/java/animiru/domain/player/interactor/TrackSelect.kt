@@ -4,13 +4,13 @@ import androidx.core.os.LocaleListCompat
 import animiru.domain.player.model.VideoTrack
 import animiru.domain.player.service.AudioPreferences
 import animiru.domain.player.service.SubtitlePreferences
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import dev.zacsweers.metro.Inject
 import java.util.Locale
 
+@Inject
 class TrackSelect(
-    private val subtitlePreferences: SubtitlePreferences = Injekt.get(),
-    private val audioPreferences: AudioPreferences = Injekt.get(),
+    private val subtitlePreferences: SubtitlePreferences,
+    private val audioPreferences: AudioPreferences,
 ) {
     fun <T : VideoTrack> getPreferredTrackIndex(tracks: List<T>, subtitle: Boolean = true): T? {
         val prefLangs = if (subtitle) {

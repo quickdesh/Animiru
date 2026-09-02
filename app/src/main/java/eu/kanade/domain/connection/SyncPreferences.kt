@@ -1,12 +1,17 @@
 // AM (SYNC) -->
 package eu.kanade.domain.connection
 
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.domain.connection.models.SyncSettings
 import eu.kanade.tachiyomi.data.connection.syncmiru.models.SyncTriggerOptions
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import java.util.UUID
 
+@Inject
+@SingleIn(AppScope::class)
 class SyncPreferences(
     private val preferenceStore: PreferenceStore,
 ) {

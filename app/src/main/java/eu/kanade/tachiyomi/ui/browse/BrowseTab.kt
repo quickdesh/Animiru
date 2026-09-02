@@ -22,12 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.browse.ExtensionScreen
 import eu.kanade.presentation.browse.SourceOptionsDialog
 import eu.kanade.presentation.browse.SourcesScreen
@@ -95,11 +95,11 @@ data object BrowseTab : Tab {
 
         // AM (BROWSE) -->
         val navigator = LocalNavigator.currentOrThrow
-        val sourcesViewModel = viewModel<SourcesViewModel>()
+        val sourcesViewModel = metroViewModel<SourcesViewModel>()
         val sourcesState by sourcesViewModel.state.collectAsStateWithLifecycle()
         val updateCount by sourcesViewModel.sourcePreferences.extensionUpdatesCount.collectAsState()
 
-        val extensionViewModel = viewModel<ExtensionsViewModel>()
+        val extensionViewModel = metroViewModel<ExtensionsViewModel>()
         val extensionsState by extensionViewModel.state.collectAsStateWithLifecycle()
 
         var inExtensionsScreen by remember { mutableStateOf(goToExtensions) }

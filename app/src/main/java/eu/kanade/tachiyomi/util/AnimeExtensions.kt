@@ -10,12 +10,10 @@ import tachiyomi.source.local.image.LocalBackgroundManager
 import tachiyomi.source.local.image.LocalCoverManager
 import tachiyomi.source.local.image.LocalEpisodeThumbnailManager
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.InputStream
 import kotlin.time.Clock
 
-fun Anime.removeCovers(coverCache: CoverCache = Injekt.get()): Anime {
+fun Anime.removeCovers(coverCache: CoverCache): Anime {
     if (isLocal()) return this
     return if (coverCache.deleteFromCache(this, true) > 0) {
         copy(coverLastModified = Clock.System.now().toEpochMilliseconds())
@@ -38,8 +36,8 @@ fun Anime.removeBackgrounds(backgroundCache: BackgroundCache): Anime {
 suspend fun Anime.editCover(
     coverManager: LocalCoverManager,
     stream: InputStream,
-    updateAnime: UpdateAnime = Injekt.get(),
-    coverCache: CoverCache = Injekt.get(),
+    updateAnime: UpdateAnime,
+    coverCache: CoverCache,
 ) {
     if (isLocal()) {
         coverManager.update(toSAnime(), stream)
@@ -54,8 +52,8 @@ suspend fun Anime.editCover(
 suspend fun Anime.editBackground(
     backgroundManager: LocalBackgroundManager,
     stream: InputStream,
-    updateAnime: UpdateAnime = Injekt.get(),
-    backgroundCache: BackgroundCache = Injekt.get(),
+    updateAnime: UpdateAnime,
+    backgroundCache: BackgroundCache,
 ) {
     if (isLocal()) {
         backgroundManager.update(toSAnime(), stream)

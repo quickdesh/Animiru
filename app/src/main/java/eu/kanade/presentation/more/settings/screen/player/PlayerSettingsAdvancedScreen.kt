@@ -5,13 +5,11 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import animiru.domain.player.service.AdvancedPlayerPreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.SearchableSettings
+import mihon.app.di.appGraph
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 object PlayerSettingsAdvancedScreen : SearchableSettings {
 
@@ -21,9 +19,9 @@ object PlayerSettingsAdvancedScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
-        val advancedPlayerPreferences = remember { Injekt.get<AdvancedPlayerPreferences>() }
-        val scope = rememberCoroutineScope()
         val context = LocalContext.current
+        val advancedPlayerPreferences = remember { context.appGraph.advancedPlayerPreferences }
+        val scope = rememberCoroutineScope()
 
         val enableUserFiles = advancedPlayerPreferences.mpvUserFiles
         val mpvConf = advancedPlayerPreferences.mpvConf

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.AssetManager
 import animiru.domain.player.service.AdvancedPlayerPreferences
 import com.hippo.unifile.UniFile
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
+@Inject
 class MpvConfig(
     private val context: Context,
     private val storageManager: StorageManager,

@@ -15,6 +15,9 @@ import com.arthenica.ffmpegkit.Level
 import com.arthenica.ffmpegkit.LogCallback
 import com.arthenica.ffmpegkit.StatisticsCallback
 import com.hippo.unifile.UniFile
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.animesource.UnmeteredSource
 import eu.kanade.tachiyomi.animesource.model.HttpServer
 import eu.kanade.tachiyomi.animesource.model.Track
@@ -73,9 +76,6 @@ import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.io.BufferedReader
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -87,34 +87,31 @@ import kotlin.time.Duration.Companion.seconds
  *
  * Its queue contains the list of episodes to download.
  */
+@Inject
+@SingleIn(AppScope::class)
 class Downloader(
     private val context: Context,
     private val provider: DownloadProvider,
     private val cache: DownloadCache,
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val downloadPreferences: DownloadPreferences = Injekt.get(),
+    private val sourceManager: SourceManager,
+    private val downloadPreferences: DownloadPreferences,
+    private val store: DownloadStore,
+    private val notifier: DownloadNotifier,
     // AY -->
-    private val torrentServerApi: TorrentServerApi = Injekt.get(),
-    private val torrentServerUtils: TorrentServerUtils = Injekt.get(),
-    private val torrentPreferences: TorrentPreferences = Injekt.get(),
+    private val episodeLoader: Lazy<EpisodeLoader>,
+    private val hosterLoader: Lazy<HosterLoader>,
+    private val networkService: NetworkHelper,
+    private val torrentServerApi: TorrentServerApi,
+    private val torrentServerUtils: TorrentServerUtils,
+    private val torrentPreferences: TorrentPreferences,
     // <-- AY
 ) {
-
-    /**
-     * Store for persisting downloads across restarts.
-     */
-    private val store = DownloadStore(context)
 
     /**
      * Queue where active downloads are kept.
      */
     private val _queueState = MutableStateFlow<List<Download>>(emptyList())
     val queueState = _queueState.asStateFlow()
-
-    /**
-     * Notifier for the downloader state and progress.
-     */
-    private val notifier by lazy { DownloadNotifier(context) }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var downloaderJob: Job? = null
@@ -126,7 +123,6 @@ class Downloader(
         get() = downloaderJob?.isActive ?: false
 
     // AM -->
-    val networkService: NetworkHelper by injectLazy()
     val client: OkHttpClient
         get() = networkService.client
     // <-- AM
@@ -392,11 +388,11 @@ class Downloader(
             // AY -->
             if (download.video == null) {
                 // Pull video from network and add them to download object
-                val hosters = EpisodeLoader.getHosters(download.episode, download.anime, download.source)
+                val hosters = episodeLoader.value.getHosters(download.episode, download.anime, download.source)
                 if (hosters.isEmpty()) {
                     throw Exception(context.stringResource(AYMR.strings.video_list_empty_error))
                 }
-                val bestVideo = HosterLoader.getBestVideo(download.source, hosters)
+                val bestVideo = hosterLoader.value.getBestVideo(download.source, hosters)
                     ?: throw Exception(context.stringResource(AYMR.strings.video_list_empty_error))
                 download.video = bestVideo
             }
@@ -579,7 +575,7 @@ class Downloader(
         filename: String,
     ) {
         val video = download.video!!
-        TorrentServerService.start()
+        TorrentServerService.start(context)
         if (video.videoUrl.startsWith(torrentServerApi.hostUrl)) {
             val hash = video.videoUrl.substringAfter("link=").substringBefore("&")
             val index = video.videoUrl.substringAfter("index=").substringBefore("&").toInt()

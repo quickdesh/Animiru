@@ -33,13 +33,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import animiru.domain.player.service.AudioPreferences
-import animiru.domain.player.service.GesturePreferences
-import animiru.domain.player.service.PlayerPreferences
 import eu.kanade.presentation.player.components.LeftSideOvalShape
 import eu.kanade.presentation.player.components.RightSideOvalShape
 import eu.kanade.presentation.theme.playerRippleConfiguration
@@ -47,13 +45,11 @@ import eu.kanade.tachiyomi.ui.player.Panels
 import eu.kanade.tachiyomi.ui.player.PlayerViewModel
 import eu.kanade.tachiyomi.ui.player.Sheets
 import eu.kanade.tachiyomi.ui.player.controls.components.DoubleTapSeekTriangles
-import eu.kanade.tachiyomi.ui.player.domain.BrightnessManager
 import kotlinx.coroutines.delay
+import mihon.app.di.appGraph
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
 import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -62,11 +58,12 @@ fun GestureHandler(
     viewModel: PlayerViewModel,
     interactionSource: MutableInteractionSource,
 ) {
+    val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
-    val playerPreferences = remember { Injekt.get<PlayerPreferences>() }
-    val gesturePreferences = remember { Injekt.get<GesturePreferences>() }
-    val audioPreferences = remember { Injekt.get<AudioPreferences>() }
-    val brightnessManager = remember { Injekt.get<BrightnessManager>() }
+    val playerPreferences = remember { context.appGraph.playerPreferences }
+    val gesturePreferences = remember { context.appGraph.gesturePreferences }
+    val audioPreferences = remember { context.appGraph.audioPreferences }
+    val brightnessManager = remember { context.appGraph.brightnessManager }
 
     val allowGesturesInPanels by playerPreferences.allowGestures.collectAsState()
     val horizontalGesture by gesturePreferences.gestureHorizontalSeek.collectAsState()

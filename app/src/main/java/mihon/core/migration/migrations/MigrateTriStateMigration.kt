@@ -1,8 +1,11 @@
 package mihon.core.migration.migrations
 
-import android.app.Application
+import android.content.Context
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
@@ -10,14 +13,17 @@ import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.common.preference.getEnum
 
-class MigrateTriStateMigration : Migration {
+@Inject
+@ContributesIntoSet(AppScope::class)
+class MigrateTriStateMigration(
+    private val context: Context,
+    private val trackerManager: Lazy<TrackerManager>,
+    private val preferenceStore: PreferenceStore,
+) : Migration {
     override val version = 99f
 
     // Migrate TriState usages to TriStateFilter enum
     override suspend fun invoke(migrationContext: MigrationContext): Boolean {
-        val context = migrationContext.get<Application>() ?: return false
-        val trackerManager = migrationContext.get<TrackerManager>() ?: return false
-        val preferenceStore = migrationContext.get<PreferenceStore>() ?: return false
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
         val prefKeys = listOf(
@@ -27,7 +33,7 @@ class MigrateTriStateMigration : Migration {
             "pref_filter_library_started",
             "pref_filter_library_bookmarked",
             "pref_filter_library_completed",
-        ) + trackerManager.trackers.map { "pref_filter_library_tracked_${it.id}" }
+        ) + trackerManager.value.trackers.map { "pref_filter_library_tracked_${it.id}" }
 
         prefKeys.forEach { key ->
             val pref = preferenceStore.getInt(key, 0)

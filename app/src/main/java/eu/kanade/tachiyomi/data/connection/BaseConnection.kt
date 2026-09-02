@@ -1,19 +1,25 @@
 // AM (CONNECTION) -->
 package eu.kanade.tachiyomi.data.connection
 
+import android.content.Context
 import androidx.annotation.CallSuper
 import eu.kanade.domain.connection.service.ConnectionPreferences
 import eu.kanade.tachiyomi.network.NetworkHelper
+import mihon.app.di.appGraph
 import okhttp3.OkHttpClient
-import uy.kohesive.injekt.injectLazy
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 abstract class BaseConnection(
     override val id: Long,
     override val name: String,
 ) : Connection {
 
-    private val connectionPreferences: ConnectionPreferences by injectLazy()
-    private val networkService: NetworkHelper by injectLazy()
+    // TODO: remove injekt usage
+    protected val appGraph get() = Injekt.get<Context>().appGraph
+
+    private val connectionPreferences: ConnectionPreferences by lazy { appGraph.connectionPreferences }
+    private val networkService: NetworkHelper by lazy { appGraph.networkHelper }
 
     override val client: OkHttpClient
         get() = networkService.client

@@ -35,18 +35,15 @@ import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.data.SyncSettingsSelector
 import eu.kanade.presentation.more.settings.screen.data.SyncTriggerOptionsScreen
 import eu.kanade.presentation.util.relativeTimeSpanString
-import eu.kanade.tachiyomi.data.connection.ConnectionManager
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncDataJob
-import eu.kanade.tachiyomi.data.connection.syncmiru.service.GoogleDriveService
 import eu.kanade.tachiyomi.data.connection.syncmiru.service.GoogleDriveSyncService
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.launch
+import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 object SettingsSyncmiruScreen : SearchableSettings {
 
@@ -56,7 +53,8 @@ object SettingsSyncmiruScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
-        val syncPreferences = remember { Injekt.get<SyncPreferences>() }
+        val context = LocalContext.current
+        val syncPreferences = remember { context.appGraph.syncPreferences }
         val googleDriveRefreshToken by syncPreferences.googleDriveRefreshToken.collectAsState()
         val syncyomiApiKey by syncPreferences.clientAPIKey.collectAsState()
 
@@ -78,8 +76,8 @@ object SettingsSyncmiruScreen : SearchableSettings {
     @Composable
     private fun getSyncPreferences(syncPreferences: SyncPreferences): Preference.PreferenceGroup {
         val context = LocalContext.current
-        val connectionManager = remember { Injekt.get<ConnectionManager>() }
-        val googleDriveSync = Injekt.get<GoogleDriveService>()
+        val connectionManager = remember { context.appGraph.connectionManager }
+        val googleDriveSync = remember { context.appGraph.googleDriveService }
         val googleDriveRefreshToken by syncPreferences.googleDriveRefreshToken.collectAsState()
 
         var dialog by remember { mutableStateOf<Any?>(null) }

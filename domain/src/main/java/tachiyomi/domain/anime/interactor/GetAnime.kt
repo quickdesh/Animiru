@@ -1,11 +1,13 @@
 package tachiyomi.domain.anime.interactor
 
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.repository.AnimeRepository
 
+@Inject
 class GetAnime(
     private val animeRepository: AnimeRepository,
 ) {

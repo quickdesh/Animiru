@@ -1,17 +1,20 @@
 package eu.kanade.presentation.more.settings.screen.player.editor.codeeditor
 
-import android.app.Application
 import android.content.Context
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import animiru.feature.mpvfiles.MpvConfig.Companion.MPV_DIR
 import com.hippo.unifile.UniFile
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,14 +26,13 @@ import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.FileOutputStream
 
+@AssistedInject
 class CodeEditViewModel(
+    @Assisted private val filePath: String,
+    private val storageManager: StorageManager,
     private val context: Context,
-    private val filePath: String,
-    private val storageManager: StorageManager = Injekt.get(),
 ) : ViewModel() {
 
     val state: StateFlow<CodeEditScreenState>
@@ -38,17 +40,13 @@ class CodeEditViewModel(
 
     companion object {
         private const val HIGHLIGHT_MAX_SIZE = 15000
+    }
 
-        val FILE_PATH_KEY = CreationExtras.Key<String>()
-
-        val Factory = viewModelFactory {
-            initializer {
-                CodeEditViewModel(
-                    context = Injekt.get<Application>(),
-                    filePath = get(FILE_PATH_KEY)!!,
-                )
-            }
-        }
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(filePath: String): CodeEditViewModel
     }
 
     private val _hasModified = MutableStateFlow(false)

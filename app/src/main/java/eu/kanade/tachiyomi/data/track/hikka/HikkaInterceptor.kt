@@ -5,10 +5,8 @@ import eu.kanade.tachiyomi.data.track.hikka.dto.HKOAuth
 import kotlinx.serialization.json.Json
 import okhttp3.Interceptor
 import okhttp3.Response
-import uy.kohesive.injekt.injectLazy
 
-class HikkaInterceptor(private val hikka: Hikka) : Interceptor {
-    private val json: Json by injectLazy()
+class HikkaInterceptor(private val hikka: Hikka, private val json: Json) : Interceptor {
     private var oauth: HKOAuth? = hikka.loadOAuth()
 
     override fun intercept(chain: Interceptor.Chain): Response {

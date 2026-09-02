@@ -6,8 +6,6 @@ import eu.kanade.domain.anime.model.hasCustomBackground
 import eu.kanade.domain.anime.model.hasCustomCover
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import tachiyomi.domain.anime.model.AnimeCover
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import tachiyomi.domain.anime.model.Anime as DomainAnime
 
 class AnimeKeyer : Keyer<DomainAnime> {
@@ -24,7 +22,7 @@ class AnimeKeyer : Keyer<DomainAnime> {
 }
 
 class AnimeCoverKeyer(
-    private val coverCache: CoverCache = Injekt.get(),
+    private val coverCache: CoverCache,
 ) : Keyer<AnimeCover> {
     override fun key(data: AnimeCover, options: Options): String {
         return if (coverCache.getCustomCoverFile(data.animeId).exists()) {

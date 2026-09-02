@@ -1,10 +1,12 @@
 // AY -->
 package tachiyomi.domain.custombutton.interactor
 
+import dev.zacsweers.metro.Inject
 import tachiyomi.core.common.util.lang.withNonCancellableContext
 import tachiyomi.domain.custombutton.model.CustomButtonUpdate
 import tachiyomi.domain.custombutton.repository.CustomButtonRepository
 
+@Inject
 class UpdateCustomButton(
     private val customButtonRepository: CustomButtonRepository,
 ) {

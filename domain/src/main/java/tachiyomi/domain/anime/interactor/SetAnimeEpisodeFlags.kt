@@ -1,9 +1,11 @@
 package tachiyomi.domain.anime.interactor
 
+import dev.zacsweers.metro.Inject
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.anime.repository.AnimeRepository
 
+@Inject
 class SetAnimeEpisodeFlags(
     private val animeRepository: AnimeRepository,
 ) {

@@ -8,10 +8,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.core.util.ifSourcesLoaded
 import eu.kanade.presentation.browse.BrowseSourceContent
 import eu.kanade.presentation.components.AppBar
@@ -44,13 +43,9 @@ data class MigrateSeasonSelectScreen(
         val uriHandler = LocalUriHandler.current
         val navigator = LocalNavigator.currentOrThrow
 
-        val viewModel = viewModel<MigrateSeasonSelectViewModel>(
-            factory = MigrateSeasonSelectViewModel.Factory,
-            extras = CreationExtras {
-                set(MigrateSeasonSelectViewModel.ANIME_ID_KEY, anime.id)
-                set(MigrateSeasonSelectViewModel.SOURCE_ID_KEY, anime.source)
-            },
-        )
+        val viewModel = assistedMetroViewModel<MigrateSeasonSelectViewModel, MigrateSeasonSelectViewModel.Factory> {
+            create(animeId = anime.id, sourceId = anime.source)
+        }
         val state by viewModel.state.collectAsState()
 
         val snackbarHostState = remember { SnackbarHostState() }

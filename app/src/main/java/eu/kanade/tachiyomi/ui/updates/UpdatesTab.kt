@@ -22,10 +22,10 @@ import eu.kanade.tachiyomi.ui.home.HomeScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.updates.UpdatesViewModel.Event
 import kotlinx.coroutines.flow.collectLatest
+import mihon.app.di.appGraph
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.injectLazy
 
 // AM (RECENTS_FILTER_CHIP) -->
 @Composable
@@ -123,7 +123,7 @@ fun AnimeUpdatesHalfTab(
 }
 
 suspend fun openEpisode(context: Context, updateItem: UpdatesItem, altPlayer: Boolean = false) {
-    val playerPreferences: PlayerPreferences by injectLazy()
+    val playerPreferences: PlayerPreferences = context.appGraph.playerPreferences
     val update = updateItem.update
     val extPlayer = playerPreferences.alwaysUseExternalPlayer.get() != altPlayer
     MainActivity.startPlayerActivity(context, update.animeId, update.episodeId, extPlayer, update.sourceId)

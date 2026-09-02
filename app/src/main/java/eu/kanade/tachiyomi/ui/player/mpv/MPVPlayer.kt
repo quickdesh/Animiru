@@ -21,6 +21,9 @@ import animiru.domain.player.service.SubtitleAssOverride
 import animiru.domain.player.service.SubtitlePreferences
 import animiru.feature.mpvfiles.MpvConfig
 import com.hippo.unifile.UniFile
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.ui.player.controls.components.panels.toColorHexString
 import `is`.xyz.mpv.KeyMapping
@@ -31,19 +34,23 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import logcat.LogPriority
 import logcat.logcat
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@AssistedInject
 class MPVPlayer(
+    @Assisted videoOutput: String,
     context: Context,
-    videoOutput: String,
-    playerPreferences: PlayerPreferences = Injekt.get(),
-    decoderPreferences: DecoderPreferences = Injekt.get(),
-    networkPreferences: NetworkPreferences = Injekt.get(),
-    advancedPreferences: AdvancedPlayerPreferences = Injekt.get(),
-    private val subtitlePreferences: SubtitlePreferences = Injekt.get(),
-    private val audioPreferences: AudioPreferences = Injekt.get(),
+    playerPreferences: PlayerPreferences,
+    decoderPreferences: DecoderPreferences,
+    networkPreferences: NetworkPreferences,
+    advancedPreferences: AdvancedPlayerPreferences,
+    private val subtitlePreferences: SubtitlePreferences,
+    private val audioPreferences: AudioPreferences,
 ) : MPV.EventObserver, MPV.LogObserver, AudioManager.OnAudioFocusChangeListener {
+
+    @AssistedFactory
+    fun interface Factory {
+        fun create(videoOutput: String): MPVPlayer
+    }
 
     val mpv: MPV
     private val handler = Handler(context.mainLooper)

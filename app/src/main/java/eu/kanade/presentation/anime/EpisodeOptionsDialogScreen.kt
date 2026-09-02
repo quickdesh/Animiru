@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,16 +48,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import cafe.adriel.voyager.core.screen.Screen
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.components.TabbedDialogPaddings
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.Hoster
 import eu.kanade.tachiyomi.animesource.model.Video
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.player.components.HosterState
 import eu.kanade.tachiyomi.ui.player.components.QualitySheetHosterContent
@@ -72,6 +76,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import logcat.LogPriority
+import mihon.app.di.appGraph
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.core.common.util.lang.withIOContext
@@ -86,8 +91,6 @@ import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.LoadingScreen
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -101,14 +104,9 @@ class EpisodeOptionsDialogScreen(
 
     @Composable
     override fun Content() {
-        val vm = viewModel<EpisodeOptionsDialogViewModel>(
-            factory = EpisodeOptionsDialogViewModel.Factory,
-            extras = CreationExtras {
-                set(EpisodeOptionsDialogViewModel.EPISODE_ID_KEY, episodeId)
-                set(EpisodeOptionsDialogViewModel.ANIME_ID_KEY, animeId)
-                set(EpisodeOptionsDialogViewModel.SOURCE_ID_KEY, sourceId)
-            },
-        )
+        val vm = assistedMetroViewModel<EpisodeOptionsDialogViewModel, EpisodeOptionsDialogViewModel.Factory> {
+            create(episodeId = episodeId, animeId = animeId, sourceId = sourceId)
+        }
 
         val episode by vm.episode.collectAsState()
         val anime by vm.anime.collectAsState()
@@ -140,29 +138,24 @@ class EpisodeOptionsDialogScreen(
     }
 }
 
+@AssistedInject
 class EpisodeOptionsDialogViewModel(
-    episodeId: Long,
-    animeId: Long,
-    sourceId: Long,
+    @Assisted episodeId: Long,
+    @Assisted animeId: Long,
+    @Assisted sourceId: Long,
+    private val episodeLoader: EpisodeLoader,
+    private val hosterLoader: HosterLoader,
+    private val sourceManager: SourceManager,
+    private val getEpisode: GetEpisode,
+    private val getAnime: GetAnime,
 ) : ViewModel() {
 
-    companion object {
-        val EPISODE_ID_KEY = CreationExtras.Key<Long>()
-        val ANIME_ID_KEY = CreationExtras.Key<Long>()
-        val SOURCE_ID_KEY = CreationExtras.Key<Long>()
-
-        val Factory = viewModelFactory {
-            initializer {
-                EpisodeOptionsDialogViewModel(
-                    episodeId = get(EPISODE_ID_KEY)!!,
-                    animeId = get(ANIME_ID_KEY)!!,
-                    sourceId = get(SOURCE_ID_KEY)!!,
-                )
-            }
-        }
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(episodeId: Long, animeId: Long, sourceId: Long): EpisodeOptionsDialogViewModel
     }
-
-    private val sourceManager: SourceManager = Injekt.get()
 
     private val _hosterState = MutableStateFlow<Result<List<HosterState>>?>(null)
     val hosterState = _hosterState.asStateFlow()
@@ -191,8 +184,8 @@ class EpisodeOptionsDialogViewModel(
         val hasFoundPreferredVideo = AtomicBoolean(false)
 
         viewModelScope.launchIO {
-            val episode = Injekt.get<GetEpisode>().await(episodeId)!!
-            val anime = Injekt.get<GetAnime>().await(animeId)!!
+            val episode = getEpisode.await(episodeId)!!
+            val anime = getAnime.await(animeId)!!
             val source = sourceManager.getOrStub(sourceId)
 
             _episode.update { _ -> episode }
@@ -201,7 +194,7 @@ class EpisodeOptionsDialogViewModel(
 
             val hosterListResult = withIOContext {
                 try {
-                    Result.success(EpisodeLoader.getHosters(episode, anime, source))
+                    Result.success(episodeLoader.getHosters(episode, anime, source))
                 } catch (e: Exception) {
                     Result.failure(e)
                 }
@@ -236,7 +229,7 @@ class EpisodeOptionsDialogViewModel(
             try {
                 hosterList.mapIndexed { hosterIdx, hoster ->
                     async {
-                        val hosterState = EpisodeLoader.loadHosterVideos(source, hoster)
+                        val hosterState = episodeLoader.loadHosterVideos(source, hoster)
 
                         _hosterState.updateAt(hosterIdx, hosterState)
 
@@ -258,7 +251,7 @@ class EpisodeOptionsDialogViewModel(
                 if (hasFoundPreferredVideo.compareAndSet(false, true)) {
                     if (selectedHosterVideoIndex.value == Pair(-1, -1)) {
                         val hosterStateList = hosterState.value!!.getOrThrow()
-                        val (hosterIdx, videoIdx) = HosterLoader.selectBestVideo(hosterStateList)
+                        val (hosterIdx, videoIdx) = hosterLoader.selectBestVideo(hosterStateList)
                         if (hosterIdx == -1) {
                             _hosterState.update { _ ->
                                 Result.failure(NoSuchElementException("No available videos"))
@@ -293,7 +286,7 @@ class EpisodeOptionsDialogViewModel(
         )
 
         val resolvedVideo = if (selectedHosterState.videoState[videoIndex] != Video.State.READY) {
-            HosterLoader.getResolvedVideo(source, video)
+            hosterLoader.getResolvedVideo(source, video)
         } else {
             video
         }
@@ -307,7 +300,7 @@ class EpisodeOptionsDialogViewModel(
 
                 val hosterStateList = hosterState.value?.getOrNull() ?: return false
 
-                val (newHosterIdx, newVideoIdx) = HosterLoader.selectBestVideo(hosterStateList)
+                val (newHosterIdx, newVideoIdx) = hosterLoader.selectBestVideo(hosterStateList)
                 if (newHosterIdx == -1) {
                     _hosterState.update { _ ->
                         Result.failure(NoSuchElementException("No available videos"))
@@ -369,7 +362,7 @@ class EpisodeOptionsDialogViewModel(
                 _hosterState.updateAt(hosterIndex, HosterState.Loading(hosterName))
 
                 viewModelScope.launchIO {
-                    val newHosterState = EpisodeLoader.loadHosterVideos(
+                    val newHosterState = episodeLoader.loadHosterVideos(
                         _source.value!!,
                         _hosterList.value[hosterIndex],
                     )
@@ -505,9 +498,9 @@ private fun VideoList(
     onClickVideo: (Int, Int) -> Unit,
     getHosterList: () -> List<Hoster>?,
 ) {
-    val downloadManager = Injekt.get<DownloadManager>()
-    val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
+    val downloadManager = remember { context.appGraph.downloadManager }
+    val clipboardManager = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
     val copiedString = stringResource(AYMR.strings.copied_video_link_to_clipboard)
 

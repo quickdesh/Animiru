@@ -6,6 +6,7 @@ import androidx.core.net.toUri
 import animiru.domain.player.model.VideoTrack
 import com.arthenica.ffmpegkit.FFmpegKitConfig
 import com.arthenica.ffmpegkit.FFprobeKit
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.util.storage.toFFmpegString
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -80,6 +81,7 @@ data class CodecInformation(
     val duration: Double?,
 )
 
+@Inject
 class VideoInformation(
     private val context: Context,
     private val json: Json,

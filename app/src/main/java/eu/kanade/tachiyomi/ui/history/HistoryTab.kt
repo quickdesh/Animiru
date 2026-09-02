@@ -23,12 +23,12 @@ import eu.kanade.tachiyomi.ui.category.CategoryScreen
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
+import mihon.app.di.appGraph
 import mihon.feature.migration.dialog.MigrateAnimeDialog
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.injectLazy
 
 val resumeLastEpisodeSeenEvent = Channel<Unit>()
 
@@ -128,7 +128,7 @@ fun Screen.HistoryHalfTab(
 }
 
 suspend fun openEpisode(context: Context, episode: Episode?, snackbarHostState: SnackbarHostState) {
-    val playerPreferences: PlayerPreferences by injectLazy()
+    val playerPreferences: PlayerPreferences = context.appGraph.playerPreferences
     val extPlayer = playerPreferences.alwaysUseExternalPlayer.get()
     if (episode != null) {
         MainActivity.startPlayerActivity(context, episode.animeId, episode.id, extPlayer)

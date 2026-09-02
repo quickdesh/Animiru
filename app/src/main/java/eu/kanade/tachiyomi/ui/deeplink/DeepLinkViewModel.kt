@@ -3,9 +3,13 @@ package eu.kanade.tachiyomi.ui.deeplink
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.SEpisode
 import eu.kanade.tachiyomi.animesource.online.ResolvableAnimeSource
@@ -21,30 +25,24 @@ import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.episode.interactor.GetEpisodeByUrlAndAnimeId
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@AssistedInject
 class DeepLinkViewModel(
-    query: String,
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
-    private val getEpisodeByUrlAndAnimeId: GetEpisodeByUrlAndAnimeId = Injekt.get(),
-    private val updateAnimeFromRemote: UpdateAnimeFromRemote = Injekt.get(),
+    @Assisted query: String,
+    private val sourceManager: SourceManager,
+    private val networkToLocalAnime: NetworkToLocalAnime,
+    private val getEpisodeByUrlAndAnimeId: GetEpisodeByUrlAndAnimeId,
+    private val updateAnimeFromRemote: UpdateAnimeFromRemote,
 ) : ViewModel() {
 
     val state: StateFlow<DeepLinkViewModel.State>
         field = MutableStateFlow<DeepLinkViewModel.State>(State.Loading)
 
-    companion object {
-        val QUERY_KEY = CreationExtras.Key<String>()
-
-        val Factory = viewModelFactory {
-            initializer {
-                DeepLinkViewModel(
-                    query = get(QUERY_KEY)!!,
-                )
-            }
-        }
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(query: String): DeepLinkViewModel
     }
 
     init {

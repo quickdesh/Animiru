@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.data.backup.restore.restorers
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.tachiyomi.data.backup.models.BackupAnime
 import eu.kanade.tachiyomi.data.backup.models.BackupCategory
@@ -26,24 +27,23 @@ import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
 import tachiyomi.domain.track.model.Track
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.util.Date
 import kotlin.math.max
 import kotlin.time.Clock
 
+@Inject
 class AnimeRestorer(
-    private val database: Database = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val getAnimeByUrlAndSourceId: GetAnimeByUrlAndSourceId = Injekt.get(),
-    private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
-    private val updateAnime: UpdateAnime = Injekt.get(),
-    private val getTracks: GetTracks = Injekt.get(),
-    private val insertTrack: InsertTrack = Injekt.get(),
+    private val database: Database,
+    private val getCategories: GetCategories,
+    private val getAnimeByUrlAndSourceId: GetAnimeByUrlAndSourceId,
+    private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
+    private val updateAnime: UpdateAnime,
+    private val getTracks: GetTracks,
+    private val insertTrack: InsertTrack,
     // AM (CUSTOM_INFORMATION) -->
-    private val setCustomAnimeInfo: SetCustomAnimeInfo = Injekt.get(),
+    private val setCustomAnimeInfo: SetCustomAnimeInfo,
     // <-- AM (CUSTOM_INFORMATION)
-    fetchInterval: FetchInterval = Injekt.get(),
+    fetchInterval: FetchInterval,
 ) {
 
     private val timeZone = TimeZone.currentSystemDefault()

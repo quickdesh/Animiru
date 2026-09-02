@@ -2,7 +2,9 @@ package eu.kanade.tachiyomi.ui.player.domain
 
 import android.content.Context
 import android.provider.Settings
+import dev.zacsweers.metro.Inject
 
+@Inject
 class BrightnessManager(
     private val context: Context,
 ) {

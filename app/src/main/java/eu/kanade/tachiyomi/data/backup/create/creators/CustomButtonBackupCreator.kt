@@ -1,14 +1,14 @@
 // AY -->
 package eu.kanade.tachiyomi.data.backup.create.creators
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.data.backup.models.BackupCustomButtons
 import eu.kanade.tachiyomi.data.backup.models.backupCustomButtonsMapper
 import tachiyomi.domain.custombutton.interactor.GetCustomButtons
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@Inject
 class CustomButtonBackupCreator(
-    private val getCustomButtons: GetCustomButtons = Injekt.get(),
+    private val getCustomButtons: GetCustomButtons,
 ) {
     suspend operator fun invoke(): List<BackupCustomButtons> {
         return getCustomButtons.getAll()

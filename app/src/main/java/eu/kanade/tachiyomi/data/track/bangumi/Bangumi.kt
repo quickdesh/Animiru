@@ -9,16 +9,15 @@ import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class Bangumi(id: Long) : BaseTracker(id, "Bangumi") {
 
-    private val json: Json by injectLazy()
+    private val json: Json by lazy { appGraph.json }
 
-    private val interceptor by lazy { BangumiInterceptor(this) }
+    private val interceptor by lazy { BangumiInterceptor(this, json) }
 
-    private val api by lazy { BangumiApi(id, client, interceptor) }
+    private val api by lazy { BangumiApi(id, client, json, interceptor) }
 
     override val supportsPrivateTracking: Boolean = true
 

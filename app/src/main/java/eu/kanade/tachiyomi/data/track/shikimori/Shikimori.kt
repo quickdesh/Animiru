@@ -10,7 +10,6 @@ import eu.kanade.tachiyomi.data.track.shikimori.dto.SMOAuth
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
@@ -29,11 +28,11 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
         private const val SEARCH_ID_PREFIX = "id:"
     }
 
-    private val json: Json by injectLazy()
+    private val json: Json by lazy { appGraph.json }
 
-    private val interceptor by lazy { ShikimoriInterceptor(this) }
+    private val interceptor by lazy { ShikimoriInterceptor(this, json) }
 
-    private val api by lazy { ShikimoriApi(id, client, interceptor) }
+    private val api by lazy { ShikimoriApi(id, client, json, interceptor) }
 
     override fun getScoreList(): List<String> = SCORE_LIST
 

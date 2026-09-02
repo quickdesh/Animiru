@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -60,19 +61,16 @@ import androidx.compose.ui.util.fastForEach
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
-import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.presentation.util.Tab
 import eu.kanade.tachiyomi.ui.browse.BrowseTab
 import eu.kanade.tachiyomi.ui.library.LibraryTab
 import eu.kanade.tachiyomi.ui.recents.RecentsTab
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import tachiyomi.domain.library.service.LibraryPreferences
+import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 private fun getOffsetX(numOfTabs: Int): Float = (0.5f * numOfTabs) - 0.5f
 
@@ -248,6 +246,7 @@ private fun NavigationPillItem(
 
 @Composable
 private fun NavigationIconItem(tab: Tab) {
+    val context = LocalContext.current
     BadgedBox(
         badge = {
             when {
@@ -255,7 +254,7 @@ private fun NavigationIconItem(tab: Tab) {
                 RecentsTab::class.isInstance(tab) -> {
                     // <-- AM (RECENTS)
                     val count by produceState(initialValue = 0) {
-                        val pref = Injekt.get<LibraryPreferences>()
+                        val pref = context.appGraph.libraryPreferences
                         pref.newUpdatesCount.changes()
                             .collectLatest { value = if (pref.newShowUpdatesCount.get()) it else 0 }
                     }
@@ -275,7 +274,7 @@ private fun NavigationIconItem(tab: Tab) {
                 }
                 BrowseTab::class.isInstance(tab) -> {
                     val count by produceState(initialValue = 0) {
-                        val pref = Injekt.get<SourcePreferences>()
+                        val pref = context.appGraph.sourcePreferences
                         pref.extensionUpdatesCount.changes().collectLatest { value = it }
                     }
                     if (count > 0) {

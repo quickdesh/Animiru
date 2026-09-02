@@ -12,10 +12,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import animiru.domain.player.service.PlayerPreferences
+import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.navigator.currentOrThrow
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import mihon.app.di.appGraph
 import kotlin.math.abs
 
 @Composable
@@ -24,7 +23,8 @@ fun BrightnessOverlay(
     modifier: Modifier = Modifier,
 ) {
     val activity = LocalActivity.currentOrThrow
-    val playerPreferences = remember { Injekt.get<PlayerPreferences>() }
+    val context = LocalContext.current
+    val playerPreferences = remember { context.appGraph.playerPreferences }
 
     LaunchedEffect(Unit) {
         if (brightness == WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE) {

@@ -11,38 +11,42 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import androidx.compose.ui.util.fastAny
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.connection.service.ConnectionPreferences
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.connection.ConnectionManager
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import mihon.app.di.AppGraph
+import mihon.app.di.appGraph
+import mihon.core.metro.metroGraph
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.model.Category.Companion.UNCATEGORIZED_ID
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import kotlin.math.ceil
 import kotlin.math.floor
 
 class DiscordRPCService : Service() {
 
-    private val connectionManager: ConnectionManager by injectLazy()
+    private val graph: AppGraph by lazy { metroGraph() }
+
+    @Inject private lateinit var connectionManager: ConnectionManager
+
+    @Inject private lateinit var connectionPreferences: ConnectionPreferences
 
     override fun onCreate() {
+        graph.inject(this)
         super.onCreate()
 
         val token = connectionPreferences.connectionToken(connectionManager.discord).get()
@@ -153,7 +157,7 @@ class DiscordRPCService : Service() {
 
     companion object {
 
-        private val connectionPreferences: ConnectionPreferences by injectLazy()
+        // private val connectionPreferences: ConnectionPreferences by injectLazy()
 
         private var rpc: DiscordRPC? = null
         private val handler = Handler(Looper.getMainLooper())
@@ -163,7 +167,10 @@ class DiscordRPCService : Service() {
         private const val ACTION_RESTART = "${BuildConfig.APPLICATION_ID}.DISCORD_RPC_RESTART"
         private const val STOP_SERVICE = "${BuildConfig.APPLICATION_ID}.DISCORD_RPC_STOP"
 
-        fun start(context: Context, connectionManager: ConnectionManager = Injekt.get()) {
+        fun start(context: Context) {
+            val connectionManager = context.appGraph.connectionManager
+            val connectionPreferences = context.appGraph.connectionPreferences
+
             handler.removeCallbacksAndMessages(null)
             val token = connectionPreferences.connectionToken(connectionManager.discord).get()
             if (connectionPreferences.enableDiscordRPC.get()) {
@@ -201,7 +208,10 @@ class DiscordRPCService : Service() {
             }
         }
 
-        fun restart(context: Context, connectionManager: ConnectionManager = Injekt.get()) {
+        fun restart(context: Context) {
+            val connectionManager = context.appGraph.connectionManager
+            val connectionPreferences = context.appGraph.connectionPreferences
+
             val token = connectionPreferences.connectionToken(connectionManager.discord).get()
             if (connectionPreferences.enableDiscordRPC.get() && token.isNotBlank()) {
                 val restartIntent = Intent(context, DiscordRPCService::class.java).apply {
@@ -212,7 +222,7 @@ class DiscordRPCService : Service() {
                 } catch (_: Exception) {
                     // Fallback to stop/start if service isn't running
                     stop(context, 0L)
-                    handler.postDelayed({ start(context, connectionManager) }, 1000L)
+                    handler.postDelayed({ start(context) }, 1000L)
                 }
             } else if (token.isBlank()) {
                 connectionPreferences.enableDiscordRPC.set(false)
@@ -290,6 +300,7 @@ class DiscordRPCService : Service() {
             discordScreen: DiscordScreen,
             sinceTime: Long = since,
         ) {
+            val connectionPreferences = context.appGraph.connectionPreferences
             val appName = context.stringResource(MR.strings.app_name)
 
             val customMessage = connectionPreferences.discordCustomMessage.get()
@@ -368,15 +379,15 @@ class DiscordRPCService : Service() {
             if (rpc == null || playerData.thumbnailUrl == null || playerData.animeId == null) return
 
             try {
-                val categories = getCategories(playerData.animeId)
-                val discordIncognito = isIncognito(categories, playerData.incognitoMode)
+                val categories = getCategories(context, playerData.animeId)
+                val discordIncognito = isIncognito(context, categories, playerData.incognitoMode)
 
                 val animeTitle = playerData.animeTitle.takeUnless { discordIncognito }
-                val episodeNumber = getFormattedEpisodeNumber(playerData, discordIncognito)
+                val episodeNumber = getFormattedEpisodeNumber(context, playerData, discordIncognito)
                 val (startTime, end) = getTimestamps(playerData)
 
                 withIOContext {
-                    val rpcExternalAsset = getRPCExternalAsset()
+                    val rpcExternalAsset = getRPCExternalAsset(context)
                     val animeThumbnail =
                         getDiscordThumbnail(rpcExternalAsset, playerData.thumbnailUrl, discordIncognito)
 
@@ -400,21 +411,27 @@ class DiscordRPCService : Service() {
 
         // Helper functions
 
-        private suspend fun getCategories(id: Long?): List<String> {
-            return Injekt.get<GetCategories>()
+        private suspend fun getCategories(context: Context, id: Long?): List<String> {
+            return context.appGraph.getCategories
                 .await(id!!)
                 .map { it.id.toString() }
                 .run { ifEmpty { plus(UNCATEGORIZED_ID.toString()) } }
         }
 
-        private fun isIncognito(categories: List<String>, incognitoMode: Boolean): Boolean {
+        private fun isIncognito(context: Context, categories: List<String>, incognitoMode: Boolean): Boolean {
+            val connectionPreferences = context.appGraph.connectionPreferences
             val discordIncognitoMode = connectionPreferences.discordRPCIncognito.get()
             val incognitoCategories = connectionPreferences.discordRPCIncognitoCategories.get()
             val incognitoCategory = categories.fastAny { it in incognitoCategories }
             return discordIncognitoMode || incognitoMode || incognitoCategory
         }
 
-        private fun getFormattedEpisodeNumber(playerData: PlayerData, discordIncognito: Boolean): String? {
+        private fun getFormattedEpisodeNumber(
+            context: Context,
+            playerData: PlayerData,
+            discordIncognito: Boolean,
+        ): String? {
+            val connectionPreferences = context.appGraph.connectionPreferences
             return playerData.episodeNumber?.let {
                 when {
                     discordIncognito -> null
@@ -431,9 +448,10 @@ class DiscordRPCService : Service() {
             return Pair(startTime, end)
         }
 
-        private suspend fun getRPCExternalAsset(): DiscordRPCExternalAsset {
-            val connectionManager: ConnectionManager by injectLazy()
-            val networkService: NetworkHelper by injectLazy()
+        private suspend fun getRPCExternalAsset(context: Context): DiscordRPCExternalAsset {
+            val connectionManager = context.appGraph.connectionManager
+            val networkService = context.appGraph.networkHelper
+            val connectionPreferences = context.appGraph.connectionPreferences
             val client = networkService.client
             return DiscordRPCExternalAsset(
                 applicationId = RICH_PRESENCE_APPLICATION_ID,

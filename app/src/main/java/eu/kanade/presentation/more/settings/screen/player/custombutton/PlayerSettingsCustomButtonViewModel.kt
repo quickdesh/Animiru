@@ -5,6 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import animiru.feature.mpvfiles.MpvConfig
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,18 +28,19 @@ import tachiyomi.domain.custombutton.interactor.UpdateCustomButton
 import tachiyomi.domain.custombutton.model.CustomButton
 import tachiyomi.domain.custombutton.model.CustomButtonUpdate
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class PlayerSettingsCustomButtonViewModel(
-    private val getCustomButtons: GetCustomButtons = Injekt.get(),
-    private val createCustomButton: CreateCustomButton = Injekt.get(),
-    private val deleteCustomButton: DeleteCustomButton = Injekt.get(),
-    private val updateCustomButton: UpdateCustomButton = Injekt.get(),
-    private val reorderCustomButton: ReorderCustomButton = Injekt.get(),
-    private val toggleFavoriteCustomButton: ToggleFavoriteCustomButton = Injekt.get(),
+    private val getCustomButtons: GetCustomButtons,
+    private val createCustomButton: CreateCustomButton,
+    private val deleteCustomButton: DeleteCustomButton,
+    private val updateCustomButton: UpdateCustomButton,
+    private val reorderCustomButton: ReorderCustomButton,
+    private val toggleFavoriteCustomButton: ToggleFavoriteCustomButton,
     // AM -->
-    private val mpvConfig: MpvConfig = Injekt.get(),
+    private val mpvConfig: MpvConfig,
     // <-- AM
 ) : ViewModel() {
 

@@ -1,10 +1,12 @@
 package aniyomi.core.common.torrent
 
 import aniyomi.core.common.torrent.model.Torrent
+import dev.zacsweers.metro.Inject
 import xyz.secozzi.torrserver.TorrServer
 import java.io.File
 import java.net.URLEncoder
 
+@Inject
 class TorrentServerUtils(
     preferences: TorrentPreferences,
     private val api: TorrentServerApi,

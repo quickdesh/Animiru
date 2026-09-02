@@ -32,7 +32,6 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeCover
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.IOException
 
@@ -300,15 +299,12 @@ class AnimeImageFetcher(
 
     class AnimeFactory(
         private val callFactoryLazy: Lazy<Call.Factory>,
-    ) : Fetcher.Factory<Anime> {
-
-        private val coverCache: CoverCache by injectLazy()
-
+        private val coverCache: CoverCache,
         // AY -->
-        private val backgroundCache: BackgroundCache by injectLazy()
-
+        private val backgroundCache: BackgroundCache,
         // <-- AY
-        private val sourceManager: SourceManager by injectLazy()
+        private val sourceManager: SourceManager,
+    ) : Fetcher.Factory<Anime> {
 
         override fun create(data: Anime, options: Options, imageLoader: ImageLoader): Fetcher {
             // AY -->
@@ -344,10 +340,9 @@ class AnimeImageFetcher(
 
     class AnimeCoverFactory(
         private val callFactoryLazy: Lazy<Call.Factory>,
+        private val coverCache: CoverCache,
+        private val sourceManager: SourceManager,
     ) : Fetcher.Factory<AnimeCover> {
-
-        private val coverCache: CoverCache by injectLazy()
-        private val sourceManager: SourceManager by injectLazy()
 
         override fun create(data: AnimeCover, options: Options, imageLoader: ImageLoader): Fetcher {
             return AnimeImageFetcher(

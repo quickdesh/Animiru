@@ -1,6 +1,7 @@
 package tachiyomi.domain.anime.interactor
 
 import aniyomi.domain.anime.model.SeasonAnime
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import tachiyomi.domain.anime.model.Anime
@@ -8,6 +9,7 @@ import tachiyomi.domain.anime.repository.AnimeRepository
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.episode.repository.EpisodeRepository
 
+@Inject
 class GetAnimeWithEpisodesAndSeasons(
     private val animeRepository: AnimeRepository,
     private val episodeRepository: EpisodeRepository,

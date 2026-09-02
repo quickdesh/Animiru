@@ -4,6 +4,10 @@ import aniyomi.domain.anime.model.SeasonAnime
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -26,6 +30,9 @@ import tachiyomi.domain.library.model.LibraryAnime
 import tachiyomi.domain.source.model.DeletableAnime
 import kotlin.time.Clock
 
+@Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class AnimeRepositoryImpl(
     private val database: Database,
 ) : AnimeRepository {

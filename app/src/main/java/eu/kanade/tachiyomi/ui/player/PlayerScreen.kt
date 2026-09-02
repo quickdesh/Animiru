@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import animiru.domain.player.model.AudioChannels
@@ -27,14 +28,8 @@ import animiru.domain.player.model.Decoder.Companion.getDecoderFromValue
 import animiru.domain.player.model.SubtitleJustification
 import animiru.domain.player.model.SubtitlesBorderStyle
 import animiru.domain.player.model.VideoFilters
-import animiru.domain.player.service.AdvancedPlayerPreferences
-import animiru.domain.player.service.AudioPreferences
-import animiru.domain.player.service.DecoderPreferences
-import animiru.domain.player.service.PlayerPreferences
 import animiru.domain.player.service.SubtitleAssOverride
-import animiru.domain.player.service.SubtitlePreferences
 import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
-import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.theme.playerRippleConfiguration
 import eu.kanade.tachiyomi.ui.player.PlayerViewModel.PlayerEvent
 import eu.kanade.tachiyomi.ui.player.cast.CastDialog
@@ -63,13 +58,12 @@ import eu.kanade.tachiyomi.ui.player.controls.components.panels.toColorHexString
 import eu.kanade.tachiyomi.ui.player.controls.components.sheets.toFixed
 import eu.kanade.tachiyomi.ui.player.mpv.MpvVideoTrack
 import kotlinx.coroutines.delay
+import mihon.app.di.appGraph
 import tachiyomi.core.common.preference.deleteAndGet
 import tachiyomi.core.common.preference.minusAssign
 import tachiyomi.core.common.preference.plusAssign
 import tachiyomi.presentation.core.util.collectAsState
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -80,13 +74,15 @@ fun PlayerScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val appGraph = remember { context.appGraph }
     val interactionSource = remember { MutableInteractionSource() }
-    val uiPreferences = remember { Injekt.get<UiPreferences>() }
-    val playerPreferences = remember { Injekt.get<PlayerPreferences>() }
-    val audioPreferences = remember { Injekt.get<AudioPreferences>() }
-    val subtitlePreferences = remember { Injekt.get<SubtitlePreferences>() }
-    val decoderPreferences = remember { Injekt.get<DecoderPreferences>() }
-    val advancedPreferences = remember { Injekt.get<AdvancedPlayerPreferences>() }
+    val uiPreferences = remember { appGraph.uiPreferences }
+    val playerPreferences = remember { appGraph.playerPreferences }
+    val audioPreferences = remember { appGraph.audioPreferences }
+    val subtitlePreferences = remember { appGraph.subtitlePreferences }
+    val decoderPreferences = remember { appGraph.decoderPreferences }
+    val advancedPreferences = remember { appGraph.advancedPlayerPreferences }
 
     val stateData by viewModel.stateData.collectAsStateWithLifecycle()
     val uiData by viewModel.uiData.collectAsStateWithLifecycle()

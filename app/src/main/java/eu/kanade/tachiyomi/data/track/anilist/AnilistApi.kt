@@ -27,14 +27,15 @@ import kotlinx.serialization.json.putJsonObject
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.lang.withIOContext
-import uy.kohesive.injekt.injectLazy
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 import tachiyomi.domain.track.model.Track as DomainTrack
 
-class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
-
-    private val json: Json by injectLazy()
+class AnilistApi(
+    private val json: Json,
+    val client: OkHttpClient,
+    interceptor: AnilistInterceptor,
+) {
 
     private val authClient = client.newBuilder()
         .addInterceptor(interceptor)

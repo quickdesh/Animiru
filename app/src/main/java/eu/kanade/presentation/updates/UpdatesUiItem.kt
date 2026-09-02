@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontStyle
@@ -41,12 +42,10 @@ import eu.kanade.presentation.anime.components.EpisodeDownloadAction
 import eu.kanade.presentation.anime.components.EpisodeDownloadIndicator
 import eu.kanade.presentation.components.relativeDateText
 import eu.kanade.presentation.util.relativeTimeSpanString
-import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.ui.updates.UpdatesItem
+import mihon.app.di.appGraph
 import tachiyomi.core.common.util.lang.withIOContext
-import tachiyomi.domain.source.service.SourceManager
-import tachiyomi.domain.storage.service.StoragePreferences
 import tachiyomi.domain.updates.model.UpdatesWithRelations
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
@@ -55,7 +54,6 @@ import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.selectedBackground
-import uy.kohesive.injekt.injectLazy
 import java.util.concurrent.TimeUnit
 
 internal fun LazyListScope.updatesLastUpdatedItem(
@@ -165,6 +163,7 @@ private fun UpdatesUiItem(
     // <-- AM (FILE_SIZE)
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val textAlpha = if (update.seen) DISABLED_ALPHA else 1f
 
@@ -264,19 +263,19 @@ private fun UpdatesUiItem(
         // AM (FILE_SIZE) -->
         var fileSizeAsync: Long? by remember { mutableStateOf(updatesItem.fileSize) }
         if (downloadStateProvider() == Download.State.DOWNLOADED &&
-            storagePreferences.showEpisodeFileSize.get() &&
+            context.appGraph.storagePreferences.showEpisodeFileSize.get() &&
             fileSizeAsync == null
         ) {
             LaunchedEffect(update, Unit) {
                 fileSizeAsync = withIOContext {
-                    downloadProvider.getEpisodeFileSize(
+                    context.appGraph.downloadProvider.getEpisodeFileSize(
                         update.episodeName,
                         null,
                         update.scanlator,
                         // AM (CUSTOM_INFORMATION) -->
                         update.ogAnimeTitle,
                         // <-- AM (CUSTOM_INFORMATION)
-                        sourceManager.getOrStub(update.sourceId),
+                        context.appGraph.sourceManager.getOrStub(update.sourceId),
                     )
                 }
                 updatesItem.fileSize = fileSizeAsync
@@ -318,9 +317,3 @@ private fun formatProgress(milliseconds: Long): String {
     }
 }
 // <-- AY
-
-// AM (FILE_SIZE) -->
-private val storagePreferences: StoragePreferences by injectLazy()
-private val downloadProvider: DownloadProvider by injectLazy()
-private val sourceManager: SourceManager by injectLazy()
-// <-- AM (FILE_SIZE)

@@ -2,10 +2,15 @@ package animiru.domain.player.service
 
 import animiru.domain.player.model.PlayerOrientation
 import animiru.domain.player.model.VideoAspect
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
 
+@Inject
+@SingleIn(AppScope::class)
 class PlayerPreferences(
     preferenceStore: PreferenceStore,
 ) {

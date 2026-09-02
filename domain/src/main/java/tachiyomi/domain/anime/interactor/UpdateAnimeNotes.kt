@@ -1,8 +1,10 @@
 package tachiyomi.domain.anime.interactor
 
+import dev.zacsweers.metro.Inject
 import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.anime.repository.AnimeRepository
 
+@Inject
 class UpdateAnimeNotes(
     private val animeRepository: AnimeRepository,
 ) {

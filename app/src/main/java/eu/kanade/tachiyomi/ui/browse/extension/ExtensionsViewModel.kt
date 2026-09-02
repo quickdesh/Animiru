@@ -1,10 +1,15 @@
 package eu.kanade.tachiyomi.ui.browse.extension
 
-import android.app.Application
+import android.content.Context
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.extension.interactor.GetExtensionsByType
 import eu.kanade.domain.source.service.SourcePreferences
@@ -33,24 +38,24 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import kotlin.time.Duration.Companion.seconds
 
 // AM (BROWSE) -->
 var currentDownloads = MutableStateFlow<Map<String, InstallStep>>(hashMapOf())
 // <-- AM (BROWSE)
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class ExtensionsViewModel(
-    private val preferences: SourcePreferences = Injekt.get(),
-    basePreferences: BasePreferences = Injekt.get(),
-    private val extensionManager: ExtensionManager = Injekt.get(),
-    private val getExtensions: GetExtensionsByType = Injekt.get(),
+    private val preferences: SourcePreferences,
+    basePreferences: BasePreferences,
+    private val extensionManager: ExtensionManager,
+    private val getExtensions: GetExtensionsByType,
+    private val context: Context,
 ) : ViewModel() {
 
     private val currentDownloads = MutableStateFlow<Map<String, InstallStep>>(hashMapOf())
-
-    private val context = Injekt.get<Application>()
 
     private val searchQuery = MutableStateFlow<String?>(null)
     private val isRefreshing = MutableStateFlow(false)

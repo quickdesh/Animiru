@@ -4,6 +4,7 @@ package eu.kanade.tachiyomi.data.connection.syncmiru
 import android.content.Context
 import android.net.Uri
 import app.cash.sqldelight.async.coroutines.awaitAsList
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.connection.SyncPreferences
 import eu.kanade.tachiyomi.data.backup.create.BackupCreator
 import eu.kanade.tachiyomi.data.backup.create.BackupOptions
@@ -16,6 +17,7 @@ import eu.kanade.tachiyomi.data.backup.restore.restorers.AnimeRestorer
 import eu.kanade.tachiyomi.data.connection.syncmiru.service.GoogleDriveSyncService
 import eu.kanade.tachiyomi.data.connection.syncmiru.service.SyncData
 import eu.kanade.tachiyomi.data.connection.syncmiru.service.SyncYomiSyncService
+import eu.kanade.tachiyomi.util.system.workManager
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import logcat.LogPriority
@@ -25,8 +27,6 @@ import tachiyomi.data.Episodes
 import tachiyomi.data.anime.AnimeMapper.mapAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.category.interactor.GetCategories
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.File
 import java.io.IOException
 import java.util.Date
@@ -39,19 +39,20 @@ import logcat.logcat as log
  *
  * @property context The application context.
  */
+@Inject
 class SyncManager(
     private val context: Context,
-    private val database: Database = Injekt.get(),
-    private val syncPreferences: SyncPreferences = Injekt.get(),
-    private var json: Json = Json {
+    private val database: Database,
+    private val syncPreferences: SyncPreferences,
+    private val getCategories: GetCategories,
+    private val backupCreatorFactory: BackupCreator.Factory,
+    private val notifier: SyncNotifier,
+    private val animeRestorer: AnimeRestorer,
+) {
+    private val json: Json = Json {
         encodeDefaults = true
         ignoreUnknownKeys = true
-    },
-    private val getCategories: GetCategories = Injekt.get(),
-) {
-    private val backupCreator: BackupCreator = BackupCreator(context, false)
-    private val notifier: SyncNotifier = SyncNotifier(context)
-    private val animeRestorer: AnimeRestorer = AnimeRestorer()
+    }
 
     /**
      * Syncs data with a sync service.
@@ -85,6 +86,7 @@ class SyncManager(
         )
 
         log(LogPriority.DEBUG) { "Begin create backup" }
+        val backupCreator = backupCreatorFactory.create(isAutoBackup = false)
         val backupAnime = backupCreator.backupAnimes(databaseAnime, backupOptions)
         val backup = Backup(
             backupAnime = backupAnime,
@@ -172,7 +174,7 @@ class SyncManager(
         logcat(LogPriority.DEBUG) { "Got Backup Uri: $backupUri" }
         if (backupUri != null) {
             BackupRestoreJob.start(
-                context,
+                context.workManager,
                 backupUri,
                 sync = true,
                 options = RestoreOptions(

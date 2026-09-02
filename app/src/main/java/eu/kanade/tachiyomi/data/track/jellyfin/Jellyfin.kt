@@ -8,10 +8,12 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.BaseTracker
 import eu.kanade.tachiyomi.data.track.EnhancedTracker
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import tachiyomi.domain.anime.model.Anime
+import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.domain.track.model.Track as DomainTrack
@@ -24,14 +26,18 @@ class Jellyfin(id: Long) : BaseTracker(id, "Jellyfin"), EnhancedTracker {
         const val COMPLETED = 3L
     }
 
+    private val json: Json by lazy { appGraph.json }
+
+    private val sourceManager: SourceManager by lazy { appGraph.sourceManager }
+
     override val client by lazy {
         networkService.client.newBuilder()
-            .addInterceptor(JellyfinInterceptor())
+            .addInterceptor(JellyfinInterceptor(sourceManager))
             .dns(Dns.SYSTEM) // don't use DNS over HTTPS as it breaks IP addressing
             .build()
     }
 
-    val api by lazy { JellyfinApi(id, client) }
+    val api by lazy { JellyfinApi(id, client, json) }
 
     override fun getLogo() = R.drawable.brand_jellyfin
 

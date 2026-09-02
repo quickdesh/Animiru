@@ -25,13 +25,12 @@ import eu.kanade.tachiyomi.ui.player.WEB_VIDEO_CASTER
 import eu.kanade.tachiyomi.ui.player.X_PLAYER
 import eu.kanade.tachiyomi.util.system.castIncluded
 import eu.kanade.tachiyomi.util.system.toast
+import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.text.NumberFormat
 
 object PlayerSettingsPlayerScreen : SearchableSettings {
@@ -42,8 +41,9 @@ object PlayerSettingsPlayerScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
-        val playerPreferences = remember { Injekt.get<PlayerPreferences>() }
-        val basePreferences = remember { Injekt.get<BasePreferences>() }
+        val context = LocalContext.current
+        val playerPreferences = remember { context.appGraph.playerPreferences }
+        val basePreferences = remember { context.appGraph.basePreferences }
         val deviceSupportsPip = basePreferences.deviceHasPip()
 
         return listOfNotNull(

@@ -1,9 +1,10 @@
 package eu.kanade.domain.anime.model
 
-import eu.kanade.domain.base.BasePreferences
+import android.content.Context
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.data.cache.BackgroundCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
+import mihon.app.di.appGraph
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.domain.anime.model.Anime
 import uy.kohesive.injekt.Injekt
@@ -12,7 +13,7 @@ import uy.kohesive.injekt.api.get
 // TODO: move these into the domain model
 val Anime.downloadedFilter: TriState
     get() {
-        if (Injekt.get<BasePreferences>().downloadedOnly.get()) return TriState.ENABLED_IS
+        if (Injekt.get<Context>().appGraph.basePreferences.downloadedOnly.get()) return TriState.ENABLED_IS
         return when (downloadedFilterRaw) {
             Anime.EPISODE_SHOW_DOWNLOADED -> TriState.ENABLED_IS
             Anime.EPISODE_SHOW_NOT_DOWNLOADED -> TriState.ENABLED_NOT
@@ -23,7 +24,7 @@ val Anime.downloadedFilter: TriState
 // AY -->
 val Anime.seasonDownloadedFilter: TriState
     get() {
-        if (Injekt.get<BasePreferences>().downloadedOnly.get()) return TriState.ENABLED_IS
+        if (Injekt.get<Context>().appGraph.basePreferences.downloadedOnly.get()) return TriState.ENABLED_IS
         return when (seasonDownloadedFilterRaw) {
             Anime.SEASON_SHOW_DOWNLOADED -> TriState.ENABLED_IS
             Anime.SEASON_SHOW_NOT_DOWNLOADED -> TriState.ENABLED_NOT

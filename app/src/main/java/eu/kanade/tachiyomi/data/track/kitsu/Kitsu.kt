@@ -10,7 +10,6 @@ import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.injectLazy
 import java.text.DecimalFormat
 import tachiyomi.domain.track.model.Track as DomainTrack
 
@@ -30,11 +29,11 @@ class Kitsu(id: Long) : BaseTracker(id, "Kitsu"), DeletableTracker {
 
     override val supportsPrivateTracking: Boolean = true
 
-    private val json: Json by injectLazy()
+    private val json: Json by lazy { appGraph.json }
 
-    private val interceptor by lazy { KitsuInterceptor(this) }
+    private val interceptor by lazy { KitsuInterceptor(this, json) }
 
-    private val api by lazy { KitsuApi(client, interceptor) }
+    private val api by lazy { KitsuApi(client, json, interceptor) }
 
     override fun getLogo() = R.drawable.brand_kitsu
 

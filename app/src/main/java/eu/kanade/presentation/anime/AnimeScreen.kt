@@ -72,7 +72,6 @@ import eu.kanade.presentation.util.formatEpisodeNumber
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.animesource.model.SAnime
-import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.getNameForAnimeInfo
 import eu.kanade.tachiyomi.ui.anime.AnimeSeasonItem
@@ -80,6 +79,7 @@ import eu.kanade.tachiyomi.ui.anime.AnimeViewModel
 import eu.kanade.tachiyomi.ui.anime.EpisodeList
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import kotlinx.coroutines.delay
+import mihon.app.di.appGraph
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.episode.model.Episode
@@ -97,7 +97,6 @@ import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.shouldExpandFAB
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.injectLazy
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -1226,7 +1225,9 @@ private fun LazyGridScope.sharedEpisodeItems(
         span = { GridItemSpan(maxLineSpan) },
         // <-- AY
     ) { item ->
+        val context = LocalContext.current
         val haptic = LocalHapticFeedback.current
+        val downloadProvider = remember { context.appGraph.downloadProvider }
 
         when (item) {
             is EpisodeList.MissingCount -> {
@@ -1381,7 +1382,3 @@ private fun Modifier.ignorePadding(gridPadding: Int) = layout { measurable, cons
     }
 }
 // <-- AY
-
-// AM (FILE_SIZE) -->
-private val downloadProvider: DownloadProvider by injectLazy()
-// <-- AM (FILE_SIZE)

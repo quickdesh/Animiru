@@ -1,6 +1,7 @@
 // AY -->
 package tachiyomi.domain.custombutton.interactor
 
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import logcat.LogPriority
@@ -10,6 +11,7 @@ import tachiyomi.domain.custombutton.model.CustomButton
 import tachiyomi.domain.custombutton.model.CustomButtonUpdate
 import tachiyomi.domain.custombutton.repository.CustomButtonRepository
 
+@Inject
 class ToggleFavoriteCustomButton(
     private val customButtonRepository: CustomButtonRepository,
 ) {

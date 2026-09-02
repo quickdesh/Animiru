@@ -5,11 +5,16 @@ import androidx.compose.ui.graphics.toArgb
 import animiru.domain.player.model.SubtitleJustification
 import animiru.domain.player.model.SubtitlesBorderStyle
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 import tachiyomi.core.common.preference.getEnum
 import tachiyomi.i18n.animiru.AMMR
 
+@Inject
+@SingleIn(AppScope::class)
 class SubtitlePreferences(
     preferenceStore: PreferenceStore,
 ) {

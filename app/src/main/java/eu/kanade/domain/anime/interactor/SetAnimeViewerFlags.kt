@@ -1,11 +1,13 @@
 package eu.kanade.domain.anime.interactor
 
+import dev.zacsweers.metro.Inject
 import tachiyomi.core.common.util.lang.toLong
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.model.AnimeUpdate
 import tachiyomi.domain.anime.repository.AnimeRepository
 import kotlin.math.pow
 
+@Inject
 class SetAnimeViewerFlags(
     private val animeRepository: AnimeRepository,
 ) {

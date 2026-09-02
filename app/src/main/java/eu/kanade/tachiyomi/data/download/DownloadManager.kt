@@ -1,8 +1,12 @@
 package eu.kanade.tachiyomi.data.download
 
 import android.content.Context
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.Video
+import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.data.download.model.Download
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -17,9 +21,11 @@ import logcat.LogPriority
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.system.logcat
+import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.download.service.DownloadPreferences
+import tachiyomi.domain.episode.interactor.GetEpisode
 import tachiyomi.domain.episode.model.Episode
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StorageManager
@@ -27,38 +33,32 @@ import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.source.local.io.Format
 import tachiyomi.source.local.io.LocalSourceFileSystem
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 /**
  * This class is used to manage episode downloads in the application. It must be instantiated once
  * and retrieved through dependency injection. You can use this class to queue new episodes or query
  * downloaded episodes.
  */
+@Inject
+@SingleIn(AppScope::class)
 class DownloadManager(
     private val context: Context,
     // AM (STORAGE_SCREEN) -->
-    private val storageManager: StorageManager = Injekt.get(),
+    private val storageManager: StorageManager,
     // <-- AM (STORAGE_SCREEN)
-    private val provider: DownloadProvider = Injekt.get(),
-    private val cache: DownloadCache = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val downloadPreferences: DownloadPreferences = Injekt.get(),
+    private val provider: DownloadProvider,
+    private val cache: DownloadCache,
+    private val getCategories: GetCategories,
+    private val getAnime: GetAnime,
+    private val getEpisode: GetEpisode,
+    private val sourceManager: SourceManager,
+    private val downloadPreferences: DownloadPreferences,
+    private val downloader: Downloader,
+    private val pendingDeleter: DownloadPendingDeleter,
 ) {
-
-    /**
-     * Downloader whose only task is to download episodes.
-     */
-    private val downloader = Downloader(context, provider, cache)
 
     val isRunning: Boolean
         get() = downloader.isRunning
-
-    /**
-     * Queue to delay the deletion of a list of episodes until triggered.
-     */
-    private val pendingDeleter = DownloadPendingDeleter(context)
 
     val queueState
         get() = downloader.queueState
@@ -111,13 +111,21 @@ class DownloadManager(
     fun startDownloadNow(episodeId: Long) {
         val existingDownload = getQueuedDownloadOrNull(episodeId)
         // If not in queue try to start a new download
-        val toAdd = existingDownload ?: runBlocking { Download.fromEpisodeId(episodeId) } ?: return
+        val toAdd = existingDownload ?: runBlocking { downloadFromEpisodeId(episodeId) } ?: return
         queueState.value.toMutableList().apply {
             existingDownload?.let { remove(it) }
             add(0, toAdd)
             reorderQueue(this)
         }
         startDownloads()
+    }
+
+    private suspend fun downloadFromEpisodeId(episodeId: Long): Download? {
+        val episode = getEpisode.await(episodeId) ?: return null
+        val anime = getAnime.await(episode.animeId) ?: return null
+        val source = sourceManager.get(anime.source) as? AnimeHttpSource ?: return null
+
+        return Download(source, anime, episode)
     }
 
     /**

@@ -17,11 +17,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.core.util.ifSourcesLoaded
 import eu.kanade.domain.anime.model.hasCustomBackground
 import eu.kanade.domain.anime.model.hasCustomCover
@@ -97,13 +96,9 @@ class AnimeScreen(
         val context = LocalContext.current
         val haptic = LocalHapticFeedback.current
         val scope = rememberCoroutineScope()
-        val viewModel = viewModel<AnimeViewModel>(
-            factory = AnimeViewModel.Factory,
-            extras = CreationExtras {
-                set(AnimeViewModel.ANIME_ID_KEY, animeId)
-                set(AnimeViewModel.IS_FROM_SOURCE_KEY, fromSource)
-            },
-        )
+        val viewModel = assistedMetroViewModel<AnimeViewModel, AnimeViewModel.Factory> {
+            create(animeId = animeId, isFromSource = fromSource)
+        }
 
         val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -149,7 +144,7 @@ class AnimeScreen(
                 // AY -->
                 scope.launchIO {
                     if (viewModel.isTorrentEnabled() && successState.source.isSourceForTorrents()) {
-                        TorrentServerService.start()
+                        TorrentServerService.start(context)
                     }
                     val extPlayer = viewModel.alwaysUseExternalPlayer != alt
                     openEpisode(context, episode, extPlayer)
@@ -373,12 +368,9 @@ class AnimeScreen(
                 )
             }
             AnimeViewModel.Dialog.FullImages -> {
-                val vm = viewModel<AnimeImageViewModel>(
-                    factory = AnimeImageViewModel.Factory,
-                    extras = CreationExtras {
-                        set(AnimeImageViewModel.ANIME_ID_KEY, successState.anime.id)
-                    },
-                )
+                val vm = assistedMetroViewModel<AnimeImageViewModel, AnimeImageViewModel.Factory> {
+                    create(animeId = animeId)
+                }
                 val anime by vm.state.collectAsStateWithLifecycle()
                 if (anime != null) {
                     val getContent = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {

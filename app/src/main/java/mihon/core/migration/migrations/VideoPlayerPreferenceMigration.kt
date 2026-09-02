@@ -1,24 +1,28 @@
 package mihon.core.migration.migrations
 
-import android.app.Application
+import android.content.Context
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import animiru.domain.player.service.SubtitlePreferences
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
-import uy.kohesive.injekt.injectLazy
 
-class VideoPlayerPreferenceMigration : Migration {
+@Inject
+@ContributesIntoSet(AppScope::class)
+class VideoPlayerPreferenceMigration(
+    private val context: Context,
+    private val subtitlePreferences: SubtitlePreferences,
+    private val json: Json,
+) : Migration {
     override val version = 126f
 
-    private val json: Json by injectLazy()
-
     override suspend fun invoke(migrationContext: MigrationContext): Boolean {
-        val context = migrationContext.get<Application>() ?: return false
-        val subtitlePreferences = migrationContext.get<SubtitlePreferences>() ?: return false
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
         val subtitleConf = prefs.getString("pref_sub_select_conf", "")!!

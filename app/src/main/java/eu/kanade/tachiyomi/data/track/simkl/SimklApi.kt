@@ -30,11 +30,12 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.lang.withIOContext
-import uy.kohesive.injekt.injectLazy
 
-class SimklApi(private val client: OkHttpClient, interceptor: SimklInterceptor) {
-
-    private val json: Json by injectLazy()
+class SimklApi(
+    private val client: OkHttpClient,
+    private val json: Json,
+    interceptor: SimklInterceptor,
+) {
 
     private val authClient = client.newBuilder().addInterceptor(interceptor).build()
 

@@ -33,13 +33,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.lifecycle.viewmodel.compose.viewModel
 import animiru.domain.player.service.PlayerPreferences
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.history.HistoryTopBar
 import eu.kanade.presentation.updates.UpdatesBottomBar
 import eu.kanade.presentation.updates.UpdatesTopBar
@@ -60,6 +60,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
+import mihon.app.di.appGraph
 import mihon.feature.upcoming.UpcomingScreen
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
@@ -70,7 +71,6 @@ import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.injectLazy
 
 data object RecentsTab : Tab {
 
@@ -104,10 +104,10 @@ data object RecentsTab : Tab {
     override fun Content() {
         val context = LocalContext.current
 
-        val historyViewModel = viewModel<HistoryViewModel>()
+        val historyViewModel = metroViewModel<HistoryViewModel>()
         // AM (RECENTS_FILTER_CHIP) -->
-        val updatesViewModel = viewModel<UpdatesViewModel>()
-        val updatesSettingsViewModel = viewModel<UpdatesSettingsViewModel>()
+        val updatesViewModel = metroViewModel<UpdatesViewModel>()
+        val updatesSettingsViewModel = metroViewModel<UpdatesSettingsViewModel>()
         // AM (TAB_HOLD) -->
         val snackbarHostState = SnackbarHostState()
         // <-- AM (TAB_HOLD)
@@ -150,7 +150,7 @@ data object RecentsTab : Tab {
 }
 
 internal suspend fun openEpisode(context: Context, episode: Episode?, snackbarHostState: SnackbarHostState) {
-    val playerPreferences: PlayerPreferences by injectLazy()
+    val playerPreferences: PlayerPreferences = context.appGraph.playerPreferences
     val extPlayer = playerPreferences.alwaysUseExternalPlayer.get()
     if (episode != null) {
         MainActivity.startPlayerActivity(context, episode.animeId, episode.id, extPlayer)

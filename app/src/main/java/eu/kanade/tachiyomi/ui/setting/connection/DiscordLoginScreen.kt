@@ -47,15 +47,12 @@ import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import mihon.app.di.appGraph
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
-import kotlin.getValue
 
 private const val DISCORD_DOMAIN = "https://discord.com"
 private const val DISCORD_LOGIN_URL = "$DISCORD_DOMAIN/login"
@@ -197,7 +194,7 @@ class DiscordLoginScreen : Screen() {
                                         ),
                                         AppBar.OverflowAction(
                                             title = stringResource(MR.strings.pref_clear_cookies),
-                                            onClick = { clearCookies(currentUrl) },
+                                            onClick = { clearCookies(currentUrl, context) },
                                         ),
                                     ),
                                 )
@@ -238,7 +235,7 @@ class DiscordLoginScreen : Screen() {
                         WebView.setWebContentsDebuggingEnabled(true)
                     }
 
-                    clearCookies(DISCORD_LOGIN_URL)
+                    clearCookies(DISCORD_LOGIN_URL, context)
 
                     WebStorage.getInstance().deleteOrigin(DISCORD_DOMAIN)
 
@@ -266,16 +263,16 @@ class DiscordLoginScreen : Screen() {
     }
 
     private fun login(token: String, context: Context) {
-        val connectionManager: ConnectionManager by injectLazy()
-        val connectionPreferences: ConnectionPreferences by injectLazy()
+        val connectionManager: ConnectionManager = context.appGraph.connectionManager
+        val connectionPreferences: ConnectionPreferences = context.appGraph.connectionPreferences
 
         connectionPreferences.connectionToken(connectionManager.discord).set(token)
         connectionPreferences.setConnectionCredentials(connectionManager.discord, "Discord", "Logged In")
         context.toast(MR.strings.login_success)
     }
 
-    private fun clearCookies(url: String) {
-        val networkHelper: NetworkHelper by lazy { Injekt.get() }
+    private fun clearCookies(url: String, context: Context) {
+        val networkHelper: NetworkHelper = context.appGraph.networkHelper
 
         url.toHttpUrlOrNull()?.let {
             val cleared = networkHelper.cookieJar.remove(it)

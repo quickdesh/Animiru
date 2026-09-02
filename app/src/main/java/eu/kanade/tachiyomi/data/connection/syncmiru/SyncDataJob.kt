@@ -11,24 +11,40 @@ import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.connection.SyncPreferences
+import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.isRunning
 import eu.kanade.tachiyomi.util.system.setForegroundSafely
 import eu.kanade.tachiyomi.util.system.workManager
 import logcat.LogPriority
+import mihon.app.di.AppGraph
+import mihon.app.di.appGraph
+import mihon.core.metro.metroGraph
 import tachiyomi.core.common.util.system.logcat
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.util.concurrent.TimeUnit
 
 class SyncDataJob(private val context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
 
-    private val notifier = SyncNotifier(context)
+    private val graph: AppGraph = context.metroGraph()
+
+    @Inject private lateinit var syncPreferences: SyncPreferences
+
+    @Inject private lateinit var syncManager: SyncManager
+
+    @Inject private lateinit var securityPreferences: SecurityPreferences
+
+    private val notifier = SyncNotifier(context, securityPreferences)
+
+    init {
+        graph.inject(this)
+    }
 
     override suspend fun doWork(): Result {
         if (tags.contains(TAG_AUTO)) {
@@ -41,7 +57,7 @@ class SyncDataJob(private val context: Context, workerParams: WorkerParameters) 
         setForegroundSafely()
 
         return try {
-            SyncManager(context).syncData()
+            syncManager.syncData()
             Result.success()
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e)
@@ -69,13 +85,12 @@ class SyncDataJob(private val context: Context, workerParams: WorkerParameters) 
         private const val TAG_AUTO = "$TAG_JOB:auto"
         const val TAG_MANUAL = "$TAG_JOB:manual"
 
-        fun isRunning(context: Context): Boolean {
-            return context.workManager.isRunning(TAG_JOB)
+        fun isRunning(workManager: WorkManager): Boolean {
+            return workManager.isRunning(TAG_JOB)
         }
 
         fun setupTask(context: Context, prefInterval: Int? = null) {
-            val syncPreferences = Injekt.get<SyncPreferences>()
-            val interval = prefInterval ?: syncPreferences.syncInterval.get()
+            val interval = prefInterval ?: context.appGraph.syncPreferences.syncInterval.get()
 
             if (interval > 0) {
                 val request = PeriodicWorkRequestBuilder<SyncDataJob>(
@@ -94,8 +109,8 @@ class SyncDataJob(private val context: Context, workerParams: WorkerParameters) 
             }
         }
 
-        fun startNow(context: Context) {
-            val wm = context.workManager
+        fun startNow(workManager: WorkManager) {
+            val wm = workManager
             if (wm.isRunning(TAG_JOB)) {
                 // Already running either as a scheduled or manual job
                 return
@@ -104,7 +119,7 @@ class SyncDataJob(private val context: Context, workerParams: WorkerParameters) 
                 .addTag(TAG_JOB)
                 .addTag(TAG_MANUAL)
                 .build()
-            context.workManager.enqueueUniqueWork(TAG_MANUAL, ExistingWorkPolicy.KEEP, request)
+            workManager.enqueueUniqueWork(TAG_MANUAL, ExistingWorkPolicy.KEEP, request)
         }
 
         fun stop(context: Context) {

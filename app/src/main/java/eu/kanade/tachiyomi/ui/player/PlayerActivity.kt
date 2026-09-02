@@ -61,6 +61,7 @@ import animiru.domain.player.model.SingleActionGesture
 import animiru.domain.player.service.GesturePreferences
 import animiru.domain.player.service.PlayerPreferences
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.connection.service.ConnectionPreferences
 import eu.kanade.presentation.theme.TachiyomiTheme
 import eu.kanade.tachiyomi.animesource.model.Hoster
@@ -79,29 +80,34 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import logcat.LogPriority
+import mihon.app.di.AppGraph
+import mihon.core.metro.metroGraph
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
 class PlayerActivity : BaseActivity() {
-    private val viewModel by viewModels<PlayerViewModel>()
+
+    private val graph: AppGraph by lazy { metroGraph() }
+
+    private val viewModel by viewModels<PlayerViewModel> { graph.viewModelFactory }
     private val windowInsetsController by lazy { WindowCompat.getInsetsController(window, window.decorView) }
     private val audioManager by lazy { getSystemService(AUDIO_SERVICE) as AudioManager }
     private val inputMethodManager by lazy { getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager }
 
     private var mediaSession: MediaSession? = null
-    private val gesturePreferences: GesturePreferences = Injekt.get()
-    private val playerPreferences: PlayerPreferences = Injekt.get()
+
+    @Inject private lateinit var gesturePreferences: GesturePreferences
+
+    @Inject private lateinit var playerPreferences: PlayerPreferences
 
     // AM (DISCORD_RPC) -->
-    private val connectionPreferences: ConnectionPreferences = Injekt.get()
+    @Inject private lateinit var connectionPreferences: ConnectionPreferences
     // <-- AM (DISCORD_RPC)
 
     private var pipRect: Rect? = null
@@ -196,6 +202,7 @@ class PlayerActivity : BaseActivity() {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
+        graph.inject(this)
         enableEdgeToEdge()
         registerSecureActivity(this)
         super.onCreate(savedInstanceState)

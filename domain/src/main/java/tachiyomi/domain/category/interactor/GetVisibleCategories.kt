@@ -1,10 +1,12 @@
 // AY -->
 package tachiyomi.domain.category.interactor
 
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.category.repository.CategoryRepository
 
+@Inject
 class GetVisibleCategories(
     private val categoryRepository: CategoryRepository,
 ) {

@@ -30,17 +30,14 @@ import eu.kanade.domain.connection.service.ConnectionPreferences
 import eu.kanade.presentation.category.visualName
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.widget.TriStateListDialog
-import eu.kanade.tachiyomi.data.connection.ConnectionManager
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.runBlocking
-import tachiyomi.domain.category.interactor.GetCategories
+import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.components.material.TextButton
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 object SettingsDiscordScreen : SearchableSettings {
 
@@ -63,8 +60,8 @@ object SettingsDiscordScreen : SearchableSettings {
     override fun getPreferences(): List<Preference> {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val connectionPreferences = remember { Injekt.get<ConnectionPreferences>() }
-        val connectionManager = remember { Injekt.get<ConnectionManager>() }
+        val connectionPreferences = remember { context.appGraph.connectionPreferences }
+        val connectionManager = remember { context.appGraph.connectionManager }
         val enableDRPCPref = connectionPreferences.enableDiscordRPC
         val discordRPCStatus = connectionPreferences.discordRPCStatus
 
@@ -130,7 +127,8 @@ object SettingsDiscordScreen : SearchableSettings {
         connectionPreferences: ConnectionPreferences,
         enabled: Boolean,
     ): Preference.PreferenceGroup {
-        val getAnimeCategories = remember { Injekt.get<GetCategories>() }
+        val context = LocalContext.current
+        val getAnimeCategories = remember { context.appGraph.getCategories }
         val allAnimeCategories by getAnimeCategories.subscribe().collectAsState(
             initial = runBlocking {
                 getAnimeCategories.await()
