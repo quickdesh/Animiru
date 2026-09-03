@@ -97,7 +97,7 @@ class KitsuApi(
                     putJsonObject("attributes") {
                         put("status", track.toApiStatus())
                         put("progress", track.last_episode_seen.toInt())
-                        put("ratingTwenty", track.toApiScore())
+                        put("ratingTwenty", track.score.takeIf { it > 0 }?.toInt())
                         put("startedAt", KitsuDateHelper.convert(track.started_watching_date))
                         put("finishedAt", KitsuDateHelper.convert(track.finished_watching_date))
                         put("private", track.private)
