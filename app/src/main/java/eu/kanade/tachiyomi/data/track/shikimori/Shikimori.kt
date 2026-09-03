@@ -55,7 +55,7 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
             }
         }
 
-        return api.updateLibAnime(track, getUsername())
+        return api.updateLibAnime(track)
     }
 
     override suspend fun delete(track: DomainTrack) {
@@ -93,11 +93,10 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
     }
 
     override suspend fun refresh(track: Track): Track {
-        api.findLibAnime(track, isRefresh = true)?.let { remoteTrack ->
-            track.library_id = remoteTrack.library_id
-            track.copyPersonalFrom(remoteTrack)
-            track.total_episodes = remoteTrack.total_episodes
-        } ?: throw Exception("Could not find anime")
+        val remoteTrack = api.findLibAnime(track) ?: throw Exception("Could not find anime")
+        track.library_id = remoteTrack.library_id
+        track.copyPersonalFrom(remoteTrack)
+        track.total_episodes = remoteTrack.total_episodes
         return track
     }
 
