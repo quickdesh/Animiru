@@ -1,10 +1,12 @@
 package tachiyomi.domain.source.interactor
 
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.anime.repository.AnimeRepository
 import tachiyomi.domain.source.model.DeletableAnime
 
+@Inject
 class GetSourcesWithNonLibraryAnime(
     private val repository: AnimeRepository,
 ) {

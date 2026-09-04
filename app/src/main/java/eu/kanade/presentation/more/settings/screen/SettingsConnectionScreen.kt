@@ -21,14 +21,12 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.tachiyomi.data.connection.Connection
-import eu.kanade.tachiyomi.data.connection.ConnectionManager
 import eu.kanade.tachiyomi.ui.setting.connection.DiscordLoginScreen
 import eu.kanade.tachiyomi.util.system.toast
+import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 object SettingsConnectionScreen : SearchableSettings {
 
@@ -40,7 +38,7 @@ object SettingsConnectionScreen : SearchableSettings {
     override fun getPreferences(): List<Preference> {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val connectionManager = remember { Injekt.get<ConnectionManager>() }
+        val connectionManager = remember { context.appGraph.connectionManager }
 
         return listOf(
             Preference.PreferenceGroup(

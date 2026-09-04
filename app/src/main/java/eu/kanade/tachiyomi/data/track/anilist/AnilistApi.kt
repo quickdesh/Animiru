@@ -27,14 +27,15 @@ import kotlinx.serialization.json.putJsonObject
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.lang.withIOContext
-import uy.kohesive.injekt.injectLazy
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 import tachiyomi.domain.track.model.Track as DomainTrack
 
-class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
-
-    private val json: Json by injectLazy()
+class AnilistApi(
+    private val json: Json,
+    val client: OkHttpClient,
+    interceptor: AnilistInterceptor,
+) {
 
     private val authClient = client.newBuilder()
         .addInterceptor(interceptor)
@@ -303,6 +304,67 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
                     .awaitSuccess()
                     .parseAs<ALCurrentUserResult>()
                     .data.viewer
+            }
+        }
+    }
+
+    suspend fun getAnimeDetails(id: Int): TrackSearch? {
+        return withIOContext {
+            val query = $$"""
+            |query Search($anime_id: Int) {
+                |Page (perPage: 1) {
+                    |media(id: $anime_id, type: ANIME) {
+                        |id
+                        |studios {
+                            |edges {
+                                |isMain
+                                |node {
+                                    |name
+                                |}
+                            |}
+                        |}
+                        |title {
+                            |userPreferred
+                        |}
+                        |coverImage {
+                            |large
+                        |}
+                        |format
+                        |status
+                        |episodes
+                        |description
+                        |startDate {
+                            |year
+                            |month
+                            |day
+                        |}
+                        |averageScore
+                    |}
+                |}
+            |}
+            |
+            """.trimMargin()
+
+            val payload = buildJsonObject {
+                put("query", query)
+                putJsonObject("variables") {
+                    put("anime_id", id)
+                }
+            }
+
+            with(json) {
+                authClient.newCall(
+                    POST(
+                        API_URL,
+                        body = payload.toString().toRequestBody(jsonMime),
+                    ),
+                )
+                    .awaitSuccess()
+                    .parseAs<ALSearchResult>()
+                    .data.page.media
+                    .firstOrNull()
+                    ?.toALAnime()
+                    ?.toTrack()
             }
         }
     }

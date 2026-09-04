@@ -2,7 +2,9 @@ package eu.kanade.tachiyomi.ui.player.domain
 
 import android.content.Context
 import android.media.AudioManager
+import dev.zacsweers.metro.Inject
 
+@Inject
 class AudioManager(
     private val context: Context,
 ) {

@@ -8,7 +8,7 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.databinding.DownloadItemBinding
 import eu.kanade.tachiyomi.util.view.popupMenu
 import tachiyomi.core.common.i18n.stringResource
-import tachiyomi.i18n.MR
+import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 
 /**
@@ -79,7 +79,7 @@ class DownloadHolder(private val view: View, val adapter: DownloadAdapter) :
     fun notifyDownloadProgress() {
         // AY -->
         binding.downloadProgressText.text = if (download.progress == 0) {
-            view.context.stringResource(MR.strings.update_check_notification_download_in_progress)
+            view.context.stringResource(AMMR.strings.am_update_check_notification_download_in_progress)
         } else {
             view.context.stringResource(AYMR.strings.episode_download_progress, download.progress)
         }

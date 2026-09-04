@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.data.torrent.service
 
-import android.app.Application
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
@@ -12,6 +11,7 @@ import aniyomi.core.common.torrent.ProxyMode
 import aniyomi.core.common.torrent.TorrentPreferences
 import aniyomi.core.common.torrent.TorrentServerApi
 import aniyomi.core.common.torrent.TorrentServerUtils
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.network.NetworkPreferences
@@ -21,27 +21,35 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import logcat.LogPriority
+import mihon.app.di.AppGraph
+import mihon.app.di.appGraph
+import mihon.core.metro.metroGraph
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import xyz.secozzi.torrserver.TorrServer
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration.Companion.seconds
 
 class TorrentServerService : Service() {
     private val serviceScope = CoroutineScope(EmptyCoroutineContext)
-    private val applicationContext = Injekt.get<Application>()
-    private val networkPreferences = Injekt.get<NetworkPreferences>()
-    private val torrentPreferences = Injekt.get<TorrentPreferences>()
-    private val torrentServerUtils = Injekt.get<TorrentServerUtils>()
-    private val api = Injekt.get<TorrentServerApi>()
+
+    private val graph: AppGraph by lazy { metroGraph() }
+
+    @Inject private lateinit var networkPreferences: NetworkPreferences
+
+    @Inject private lateinit var torrentPreferences: TorrentPreferences
+
+    @Inject private lateinit var torrentServerUtils: TorrentServerUtils
+
+    @Inject private lateinit var api: TorrentServerApi
 
     override fun onBind(p0: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        graph.inject(this)
+
         intent?.let {
             if (it.action != null) {
                 when (it.action) {
@@ -76,7 +84,7 @@ class TorrentServerService : Service() {
                 )
                 if (port != -1) {
                     api.setPort(port)
-                    wait(10)
+                    wait(applicationContext, 10)
                     torrentServerUtils.setTrackersList()
                 }
             }
@@ -140,37 +148,34 @@ class TorrentServerService : Service() {
     companion object {
         const val ACTION_START = "start_torrent_server"
         const val ACTION_STOP = "stop_torrent_server"
-        val applicationContext = Injekt.get<Application>()
-        val api = Injekt.get<TorrentServerApi>()
 
-        suspend fun start() {
+        suspend fun start(context: Context) {
             try {
-                val intent =
-                    Intent(applicationContext, TorrentServerService::class.java).apply {
-                        action = ACTION_START
-                    }
-                applicationContext.startService(intent)
-                wait(10)
+                val intent = Intent(context, TorrentServerService::class.java).apply {
+                    action = ACTION_START
+                }
+                context.startService(intent)
+                wait(context, 10)
             } catch (e: Exception) {
                 logcat(LogPriority.DEBUG, e) { "Failed to start torrent service" }
                 e.printStackTrace()
             }
         }
 
-        fun stop() {
+        fun stop(context: Context) {
             try {
-                val intent =
-                    Intent(applicationContext, TorrentServerService::class.java).apply {
-                        action = ACTION_STOP
-                    }
-                applicationContext.startService(intent)
+                val intent = Intent(context, TorrentServerService::class.java).apply {
+                    action = ACTION_STOP
+                }
+                context.startService(intent)
             } catch (e: Exception) {
                 logcat(LogPriority.DEBUG, e) { "Failed to stop torrent service" }
                 e.printStackTrace()
             }
         }
 
-        suspend fun wait(timeout: Int = -1): Boolean {
+        suspend fun wait(context: Context, timeout: Int = -1): Boolean {
+            val api = context.appGraph.torrentServerApi
             var count = 0
             if (timeout < 0) {
                 count = -20

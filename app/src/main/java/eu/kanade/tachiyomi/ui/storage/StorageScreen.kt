@@ -5,9 +5,9 @@ package eu.kanade.tachiyomi.ui.storage
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.more.storage.StorageScreenContent
 import eu.kanade.presentation.more.storage.StorageScreenState
@@ -24,7 +24,7 @@ class StorageScreen : Screen() {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
 
-        val viewModel = viewModel<StorageViewModel>()
+        val viewModel = metroViewModel<StorageViewModel>()
         val state by viewModel.state.collectAsState()
         val selectedCategory by viewModel.selectedCategory.collectAsState()
 

@@ -12,12 +12,11 @@ import eu.kanade.core.preference.asState
 import eu.kanade.tachiyomi.data.connection.Connection
 import eu.kanade.tachiyomi.data.track.Tracker
 import kotlinx.coroutines.CoroutineScope
+import mihon.app.di.appGraph
 import mihon.core.archive.openFileDescriptor
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.FileOutputStream
 import tachiyomi.core.common.preference.Preference as PreferenceData
 
@@ -186,7 +185,7 @@ sealed class Preference {
             override val enabled: Boolean = true,
             override val onValueChanged: suspend (value: String) -> Boolean = { value ->
                 if (fileName != null) {
-                    val storageManager: StorageManager = Injekt.get()
+                    val storageManager: StorageManager = context.appGraph.storageManager
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
                         val inputFile = storageManager.getMPVConfigDirectory()
                             ?.createFile(fileName)

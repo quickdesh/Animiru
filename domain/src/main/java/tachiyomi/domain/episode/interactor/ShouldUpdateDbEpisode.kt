@@ -1,7 +1,9 @@
 package tachiyomi.domain.episode.interactor
 
+import dev.zacsweers.metro.Inject
 import tachiyomi.domain.episode.model.Episode
 
+@Inject
 class ShouldUpdateDbEpisode {
 
     fun await(dbEpisode: Episode, sourceEpisode: Episode): Boolean {

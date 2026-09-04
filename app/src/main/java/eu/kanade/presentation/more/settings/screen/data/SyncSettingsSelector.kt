@@ -7,9 +7,14 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.domain.connection.SyncPreferences
 import eu.kanade.domain.connection.models.SyncSettings
 import eu.kanade.presentation.components.AppBar
@@ -17,8 +22,10 @@ import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.data.backup.create.BackupOptions
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncDataJob
 import eu.kanade.tachiyomi.util.system.toast
+import eu.kanade.tachiyomi.util.system.workManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.components.LabeledCheckbox
@@ -26,15 +33,13 @@ import tachiyomi.presentation.core.components.LazyColumnWithAction
 import tachiyomi.presentation.core.components.SectionCard
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 class SyncSettingsSelector : Screen() {
     @Composable
     override fun Content() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-        val model = viewModel<SyncSettingsSelectorViewModel>()
+        val model = metroViewModel<SyncSettingsSelectorViewModel>()
         val state by model.state.collectAsState()
 
         Scaffold(
@@ -51,7 +56,7 @@ class SyncSettingsSelector : Screen() {
                 actionLabel = stringResource(AMMR.strings.label_sync),
                 actionEnabled = true,
                 onClickAction = {
-                    if (!SyncDataJob.isRunning(context)) {
+                    if (!SyncDataJob.isRunning(context.workManager)) {
                         model.syncNow(context)
                         navigator.pop()
                     } else {
@@ -93,13 +98,20 @@ class SyncSettingsSelector : Screen() {
     }
 }
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class)
 class SyncSettingsSelectorViewModel(
-    val syncPreferences: SyncPreferences = Injekt.get(),
-) : StateViewModel<SyncSettingsSelectorViewModel.State>(
-    State(syncOptionsToBackupOptions(syncPreferences.getSyncSettings())),
-) {
+    val syncPreferences: SyncPreferences,
+) : ViewModel() {
+
+    val state: StateFlow<SyncSettingsSelectorViewModel.State>
+        field = MutableStateFlow<SyncSettingsSelectorViewModel.State>(
+            State(syncOptionsToBackupOptions(syncPreferences.getSyncSettings())),
+        )
+
     fun toggle(setter: (BackupOptions, Boolean) -> BackupOptions, enabled: Boolean) {
-        mutableState.update {
+        state.update {
             val updatedOptions = setter(it.options, enabled)
             syncPreferences.setSyncSettings(backupOptionsToSyncOptions(updatedOptions))
             it.copy(options = updatedOptions)
@@ -107,7 +119,7 @@ class SyncSettingsSelectorViewModel(
     }
 
     fun syncNow(context: Context) {
-        SyncDataJob.startNow(context)
+        SyncDataJob.startNow(context.workManager)
     }
 
     @Immutable

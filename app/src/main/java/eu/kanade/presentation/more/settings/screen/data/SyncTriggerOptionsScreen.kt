@@ -5,15 +5,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.domain.connection.SyncPreferences
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.util.Screen
 import eu.kanade.tachiyomi.data.connection.syncmiru.models.SyncTriggerOptions
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.presentation.core.components.LabeledCheckbox
@@ -21,15 +27,13 @@ import tachiyomi.presentation.core.components.LazyColumnWithAction
 import tachiyomi.presentation.core.components.SectionCard
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 class SyncTriggerOptionsScreen : Screen() {
 
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val viewModel = viewModel<SyncOptionsViewModel>()
+        val viewModel = metroViewModel<SyncOptionsViewModel>()
         val state by viewModel.state.collectAsState()
 
         Scaffold(
@@ -77,15 +81,18 @@ class SyncTriggerOptionsScreen : Screen() {
     }
 }
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class)
 class SyncOptionsViewModel(
-    val syncPreferences: SyncPreferences = Injekt.get(),
-) : StateViewModel<SyncOptionsViewModel.State>(
-    State(
-        syncPreferences.getSyncTriggerOptions(),
-    ),
-) {
+    val syncPreferences: SyncPreferences,
+) : ViewModel() {
+
+    val state: StateFlow<SyncOptionsViewModel.State>
+        field = MutableStateFlow<SyncOptionsViewModel.State>(State(syncPreferences.getSyncTriggerOptions()))
+
     fun toggle(setter: (SyncTriggerOptions, Boolean) -> SyncTriggerOptions, enabled: Boolean) {
-        mutableState.update {
+        state.update {
             val updatedTriggerOptions = setter(it.options, enabled)
             syncPreferences.setSyncTriggerOptions(updatedTriggerOptions)
             it.copy(

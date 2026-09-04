@@ -2,7 +2,7 @@ package tachiyomi.domain.updates.model
 
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import tachiyomi.domain.anime.model.AnimeCover
-import uy.kohesive.injekt.injectLazy
+import tachiyomi.domain.anime.model.CustomAnimeInfoHolder
 
 data class UpdatesWithRelations(
     val animeId: Long,
@@ -30,7 +30,9 @@ data class UpdatesWithRelations(
     val animeTitle: String = getCustomAnimeInfo.get(animeId)?.title ?: ogAnimeTitle
 
     companion object {
-        private val getCustomAnimeInfo: GetCustomAnimeInfo by injectLazy()
+        private val getCustomAnimeInfo: GetCustomAnimeInfo by lazy {
+            CustomAnimeInfoHolder.getCustomAnimeInfo
+        }
     }
     // <-- AM (CUSTOM_INFORMATION)
 }

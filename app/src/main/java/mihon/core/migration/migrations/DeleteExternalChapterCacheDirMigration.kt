@@ -1,17 +1,22 @@
 package mihon.core.migration.migrations
 
-import android.app.Application
+import android.content.Context
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
 import java.io.File
 
-class DeleteExternalChapterCacheDirMigration : Migration {
+@Inject
+@ContributesIntoSet(AppScope::class)
+class DeleteExternalChapterCacheDirMigration(
+    private val context: Context,
+) : Migration {
     override val version = 26f
 
     // Delete external chapter cache dir.
     override suspend fun invoke(migrationContext: MigrationContext): Boolean {
-        val context = migrationContext.get<Application>() ?: return false
-
         val extCache = context.externalCacheDir
         if (extCache != null) {
             val chapterCache = File(extCache, "chapter_disk_cache")

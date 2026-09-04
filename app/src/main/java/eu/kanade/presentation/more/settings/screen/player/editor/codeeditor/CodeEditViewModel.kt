@@ -1,50 +1,52 @@
 package eu.kanade.presentation.more.settings.screen.player.editor.codeeditor
 
-import android.app.Application
 import android.content.Context
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import animiru.feature.mpvfiles.MpvConfig.Companion.MPV_DIR
 import com.hippo.unifile.UniFile
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import logcat.LogPriority
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.FileOutputStream
 
+@AssistedInject
 class CodeEditViewModel(
+    @Assisted private val filePath: String,
+    private val storageManager: StorageManager,
     private val context: Context,
-    private val filePath: String,
-    private val storageManager: StorageManager = Injekt.get(),
-) : StateViewModel<CodeEditScreenState>(CodeEditScreenState.Loading) {
+) : ViewModel() {
+
+    val state: StateFlow<CodeEditScreenState>
+        field = MutableStateFlow<CodeEditScreenState>(CodeEditScreenState.Loading)
 
     companion object {
         private const val HIGHLIGHT_MAX_SIZE = 15000
+    }
 
-        val FILE_PATH_KEY = CreationExtras.Key<String>()
-
-        val Factory = viewModelFactory {
-            initializer {
-                CodeEditViewModel(
-                    context = Injekt.get<Application>(),
-                    filePath = get(FILE_PATH_KEY)!!,
-                )
-            }
-        }
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(filePath: String): CodeEditViewModel
     }
 
     private val _hasModified = MutableStateFlow(false)
@@ -66,7 +68,7 @@ class CodeEditViewModel(
                 val content = file.openInputStream().use {
                     it.readBytes().toString(Charsets.UTF_8)
                 }
-                mutableState.update { _ ->
+                state.update { _ ->
                     CodeEditScreenState.Success(
                         TextFieldValue(
                             annotatedString = content.highlightText(),
@@ -75,7 +77,7 @@ class CodeEditViewModel(
                     )
                 }
             } catch (e: Exception) {
-                mutableState.update { _ -> CodeEditScreenState.Error(e) }
+                state.update { _ -> CodeEditScreenState.Error(e) }
             }
         }
     }
@@ -103,7 +105,7 @@ class CodeEditViewModel(
     }
 
     fun onEdit(value: TextFieldValue) {
-        mutableState.update { current ->
+        state.update { current ->
             if (value.text != (current as? CodeEditScreenState.Success)?.content?.text) {
                 _hasModified.update { _ -> true }
 
@@ -136,7 +138,7 @@ class CodeEditViewModel(
             .createFile(filePath)!!
         // <-- AM
 
-        val content = (mutableState.value as? CodeEditScreenState.Success)
+        val content = (state.value as? CodeEditScreenState.Success)
             ?.content?.annotatedString?.text ?: kotlin.run {
             context.toast(AYMR.strings.editor_save_error)
             return

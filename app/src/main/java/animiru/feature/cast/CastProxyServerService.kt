@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.IBinder
 import animiru.domain.player.service.PlayerPreferences
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.notification.Notifications
@@ -16,22 +17,30 @@ import eu.kanade.tachiyomi.util.system.notificationBuilder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.json.Json
 import logcat.LogPriority
+import mihon.app.di.AppGraph
+import mihon.core.metro.metroGraph
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.animiru.AMMR
-import uy.kohesive.injekt.injectLazy
 
 class CastProxyServerService : Service() {
 
+    private val graph: AppGraph by lazy { metroGraph() }
+
     private var server: CastProxyServer? = null
 
-    private val networkHelper: NetworkHelper by injectLazy()
-    private val playerPreferences: PlayerPreferences by injectLazy()
+    @Inject private lateinit var networkHelper: NetworkHelper
+
+    @Inject private lateinit var playerPreferences: PlayerPreferences
+
+    @Inject private lateinit var json: Json
 
     override fun onBind(p0: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        graph.inject(this)
         if (intent?.action == ACTION_STOP) {
             stopSelf()
             return START_NOT_STICKY
@@ -48,6 +57,7 @@ class CastProxyServerService : Service() {
             contentResolver = contentResolver,
             ipAddress = address,
             port = playerPreferences.castProxyPort.get().toInt(),
+            json = json,
         )
 
         try {

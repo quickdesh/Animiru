@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.ui.player
 
-import android.app.Application
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -11,6 +10,9 @@ import android.os.Bundle
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import animiru.domain.player.service.PlayerPreferences
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.track.model.toDbTrack
 import eu.kanade.domain.track.service.DelayedTrackingUpdateJob
@@ -34,6 +36,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import logcat.LogPriority
+import mihon.app.di.appGraph
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.core.common.util.lang.withIOContext
@@ -53,13 +56,30 @@ import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.util.Date
 
-class ExternalIntents {
+@Inject
+@SingleIn(AppScope::class)
+class ExternalIntents(
+    private val context: Context,
+    private val upsertHistory: UpsertHistory,
+    private val updateEpisode: UpdateEpisode,
+    private val getAnime: GetAnime,
+    private val sourceManager: SourceManager,
+    private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
+    private val getTracks: GetTracks,
+    private val insertTrack: InsertTrack,
+    private val trackerManager: TrackerManager,
+    private val downloadManager: DownloadManager,
+    private val delayedTrackingStore: DelayedTrackingStore,
+    private val playerPreferences: PlayerPreferences,
+    private val downloadPreferences: DownloadPreferences,
+    private val trackPreferences: TrackPreferences,
+    private val basePreferences: BasePreferences,
+    private val episodeLoader: EpisodeLoader,
+    private val hosterLoader: HosterLoader,
+) {
 
     /**
      * The common variables
@@ -86,10 +106,10 @@ class ExternalIntents {
         chosenVideo: Video?,
     ): Intent? {
         if (!initAnime(animeId, episodeId)) return null
-        val hosters = EpisodeLoader.getHosters(episode, anime, source)
+        val hosters = episodeLoader.getHosters(episode, anime, source)
 
         val video = chosenVideo
-            ?: HosterLoader.getBestVideo(source, hosters)
+            ?: hosterLoader.getBestVideo(source, hosters)
             ?: throw Exception("Video list is empty")
 
         var videoUrl = getVideoUrl(source, context, video) ?: return null
@@ -156,7 +176,7 @@ class ExternalIntents {
      * @param video the video being sent to the external player.
      */
     private suspend fun getVideoUrl(source: AnimeSource, context: Context, video: Video): Uri? {
-        val resolvedVideo = HosterLoader.getResolvedVideo(source, video)
+        val resolvedVideo = hosterLoader.getResolvedVideo(source, video)
 
         if (resolvedVideo == null || resolvedVideo.videoUrl.isEmpty()) {
             makeErrorToast(context, Exception("Video URL is empty."))
@@ -450,21 +470,6 @@ class ExternalIntents {
         }
     }
 
-    // List of all the required Injectable classes
-    private val upsertHistory: UpsertHistory = Injekt.get()
-    private val updateEpisode: UpdateEpisode = Injekt.get()
-    private val getAnime: GetAnime = Injekt.get()
-    private val sourceManager: SourceManager = Injekt.get()
-    private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get()
-    private val getTracks: GetTracks = Injekt.get()
-    private val insertTrack: InsertTrack = Injekt.get()
-    private val downloadManager: DownloadManager by injectLazy()
-    private val delayedTrackingStore: DelayedTrackingStore = Injekt.get()
-    private val playerPreferences: PlayerPreferences = Injekt.get()
-    private val downloadPreferences: DownloadPreferences = Injekt.get()
-    private val trackPreferences: TrackPreferences = Injekt.get()
-    private val basePreferences: BasePreferences by injectLazy()
-
     /**
      * Saves this episode's last seen history if incognito mode isn't on.
      *
@@ -558,9 +563,6 @@ class ExternalIntents {
     private suspend fun updateTrackEpisodeSeen(episodeNumber: Double, anime: Anime) {
         if (!trackPreferences.autoUpdateTrack.get()) return
 
-        val trackerManager = Injekt.get<TrackerManager>()
-        val context = Injekt.get<Application>()
-
         withIOContext {
             getTracks.await(anime.id)
                 .mapNotNull { track ->
@@ -613,8 +615,6 @@ class ExternalIntents {
 
     companion object {
 
-        val externalIntents: ExternalIntents by injectLazy()
-
         /**
          * Used to direct the [Intent] of a chosen episode to an external player.
          *
@@ -623,7 +623,7 @@ class ExternalIntents {
          * @param episodeId the id of the episode.
          */
         suspend fun newIntent(context: Context, animeId: Long, episodeId: Long, video: Video?): Intent? {
-            return externalIntents.getExternalIntent(context, animeId, episodeId, video)
+            return context.appGraph.externalIntents.getExternalIntent(context, animeId, episodeId, video)
         }
     }
 }

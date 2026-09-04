@@ -1,5 +1,9 @@
 package tachiyomi.data.source
 
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
@@ -8,15 +12,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import tachiyomi.data.Database
 import tachiyomi.data.subscribeToList
+import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.domain.source.repository.SourcePagingSource
 import tachiyomi.domain.source.repository.SourceRepository
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.source.model.Source as DomainSource
 
+@Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class SourceRepositoryImpl(
     private val sourceManager: SourceManager,
     private val database: Database,
+    private val networkToLocalAnime: NetworkToLocalAnime,
 ) : SourceRepository {
 
     override fun getSources(): Flow<List<DomainSource>> {
@@ -61,15 +70,15 @@ class SourceRepositoryImpl(
         query: String,
         filterList: AnimeFilterList,
     ): SourcePagingSource {
-        return SourceSearchPagingSource(sourceManager.getOrStub(sourceId), query, filterList)
+        return SourceSearchPagingSource(sourceManager.getOrStub(sourceId), query, filterList, networkToLocalAnime)
     }
 
     override fun getPopular(sourceId: Long): SourcePagingSource {
-        return SourcePopularPagingSource(sourceManager.getOrStub(sourceId))
+        return SourcePopularPagingSource(sourceManager.getOrStub(sourceId), networkToLocalAnime)
     }
 
     override fun getLatest(sourceId: Long): SourcePagingSource {
-        return SourceLatestPagingSource(sourceManager.getOrStub(sourceId))
+        return SourceLatestPagingSource(sourceManager.getOrStub(sourceId), networkToLocalAnime)
     }
 }
 

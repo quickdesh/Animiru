@@ -1,10 +1,15 @@
 // AM (CONNECTION) -->
 package eu.kanade.domain.connection.service
 
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.data.connection.Connection
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 
+@Inject
+@SingleIn(AppScope::class)
 class ConnectionPreferences(
     private val preferenceStore: PreferenceStore,
 ) {

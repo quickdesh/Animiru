@@ -18,19 +18,21 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.google.api.services.drive.model.File
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.domain.connection.SyncPreferences
 import eu.kanade.tachiyomi.data.backup.models.Backup
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import logcat.LogPriority
+import mihon.app.di.appGraph
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.IOException
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
@@ -38,7 +40,11 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import logcat.logcat as log
 
-class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: SyncPreferences) : SyncService(
+class GoogleDriveSyncService(
+    context: Context,
+    json: Json,
+    syncPreferences: SyncPreferences,
+) : SyncService(
     context,
     json,
     syncPreferences,
@@ -49,7 +55,7 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
             encodeDefaults = true
             ignoreUnknownKeys = true
         },
-        Injekt.get<SyncPreferences>(),
+        context.appGraph.syncPreferences,
     )
 
     enum class DeleteSyncDataStatus {
@@ -63,9 +69,9 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
 
     private val remoteFileName = "${appName}_sync.proto.gz"
 
-    private val googleDriveService = GoogleDriveService(context)
+    private val googleDriveService = context.appGraph.googleDriveService
 
-    private val protoBuf: ProtoBuf = Injekt.get()
+    private val protoBuf: ProtoBuf = context.appGraph.protoBuf
 
     override suspend fun doSync(syncData: SyncData): Backup? {
         beforeSync()
@@ -244,12 +250,16 @@ class GoogleDriveSyncService(context: Context, json: Json, syncPreferences: Sync
     }
 }
 
-class GoogleDriveService(private val context: Context) {
+@Inject
+@SingleIn(AppScope::class)
+class GoogleDriveService(
+    private val context: Context,
+    private val syncPreferences: SyncPreferences,
+) {
     var driveService: Drive? = null
     companion object {
         const val REDIRECT_URI = "animiru.google.oauth:/oauth2redirect"
     }
-    private val syncPreferences = Injekt.get<SyncPreferences>()
 
     init {
         initGoogleDriveService()

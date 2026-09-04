@@ -18,7 +18,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import eu.kanade.domain.connection.SyncPreferences
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.animesource.model.AnimeUpdateStrategy
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.animesource.model.SAnime
@@ -44,6 +44,9 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import logcat.LogPriority
+import mihon.app.di.AppGraph
+import mihon.app.di.appGraph
+import mihon.core.metro.metroGraph
 import mihon.domain.episode.interactor.FilterEpisodesForDownload
 import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import tachiyomi.core.common.i18n.stringResource
@@ -76,8 +79,6 @@ import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
@@ -91,34 +92,44 @@ import kotlin.time.Clock
 class LibraryUpdateJob(private val context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
 
-    private val sourceManager: SourceManager = Injekt.get()
-    private val libraryPreferences: LibraryPreferences = Injekt.get()
-    private val downloadManager: DownloadManager = Injekt.get()
-    private val getLibraryAnime: GetLibraryAnime = Injekt.get()
-    private val getAnime: GetAnime = Injekt.get()
-    private val fetchInterval: FetchInterval = Injekt.get()
-    private val filterEpisodesForDownload: FilterEpisodesForDownload = Injekt.get()
+    private val graph: AppGraph = context.metroGraph()
+
+    @Inject private lateinit var sourceManager: SourceManager
+
+    @Inject private lateinit var libraryPreferences: LibraryPreferences
+
+    @Inject private lateinit var downloadManager: DownloadManager
+
+    @Inject private lateinit var getLibraryAnime: GetLibraryAnime
+
+    @Inject private lateinit var getAnime: GetAnime
+
+    @Inject private lateinit var fetchInterval: FetchInterval
+
+    @Inject private lateinit var filterEpisodesForDownload: FilterEpisodesForDownload
+
+    @Inject private lateinit var updateAnimeFromRemote: UpdateAnimeFromRemote
+
+    @Inject private lateinit var notifier: LibraryUpdateNotifier
 
     // AY -->
-    private val getAnimeSeasonsByParentId: GetAnimeSeasonsByParentId = Injekt.get()
+    @Inject private lateinit var getAnimeSeasonsByParentId: GetAnimeSeasonsByParentId
     // <-- AY
 
-    private val updateAnimeFromRemote: UpdateAnimeFromRemote = Injekt.get()
-
     // AM (GROUPING) -->
-    private val getTracks: GetTracks = Injekt.get()
-    private val trackerManager: TrackerManager = Injekt.get()
-    // <-- AM (GROUPING)
+    @Inject private lateinit var getTracks: GetTracks
 
-    private val notifier = LibraryUpdateNotifier(context)
+    @Inject private lateinit var trackerManager: TrackerManager
+    // <-- AM (GROUPING)
 
     private var animeToUpdate: List<LibraryAnime> = mutableListOf()
 
     override suspend fun doWork(): Result {
+        graph.inject(this)
+
         if (tags.contains(WORK_NAME_AUTO)) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                val preferences = Injekt.get<LibraryPreferences>()
-                val restrictions = preferences.autoUpdateDeviceRestrictions.get()
+                val restrictions = libraryPreferences.autoUpdateDeviceRestrictions.get()
                 if ((DEVICE_ONLY_ON_WIFI in restrictions) && !context.isConnectedToWifi()) {
                     return Result.retry()
                 }
@@ -160,7 +171,6 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     }
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
-        val notifier = LibraryUpdateNotifier(context)
         return ForegroundInfo(
             Notifications.ID_LIBRARY_PROGRESS,
             notifier.progressNotificationBuilder.build(),
@@ -534,7 +544,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
             context: Context,
             prefInterval: Int? = null,
         ) {
-            val preferences = Injekt.get<LibraryPreferences>()
+            val preferences = context.appGraph.libraryPreferences
             val interval = prefInterval ?: preferences.autoUpdateInterval.get()
             if (interval > 0) {
                 val restrictions = preferences.autoUpdateDeviceRestrictions.get()
@@ -582,10 +592,6 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
             }
         }
 
-        // AM (SYNC) -->
-        private val syncPreferences: SyncPreferences = Injekt.get()
-        // <-- AM (SYNC)
-
         fun startNow(
             context: Context,
             category: Category? = null,
@@ -610,9 +616,9 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
 
             // AM (SYNC) -->
             // Always sync the data before library update if syncing is enabled.
-            if (syncPreferences.isSyncEnabled()) {
+            if (context.appGraph.syncPreferences.isSyncEnabled()) {
                 // Check if SyncDataJob is already running
-                if (SyncDataJob.isRunning(context)) {
+                if (SyncDataJob.isRunning(wm)) {
                     // SyncDataJob is already running
                     return false
                 }

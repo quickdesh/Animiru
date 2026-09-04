@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,12 +21,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import eu.kanade.presentation.browse.ExtensionScreen
 import eu.kanade.presentation.browse.SourceOptionsDialog
 import eu.kanade.presentation.browse.SourcesScreen
@@ -95,12 +95,12 @@ data object BrowseTab : Tab {
 
         // AM (BROWSE) -->
         val navigator = LocalNavigator.currentOrThrow
-        val sourcesViewModel = viewModel<SourcesViewModel>()
-        val sourcesState by sourcesViewModel.state.collectAsState()
+        val sourcesViewModel = metroViewModel<SourcesViewModel>()
+        val sourcesState by sourcesViewModel.state.collectAsStateWithLifecycle()
         val updateCount by sourcesViewModel.sourcePreferences.extensionUpdatesCount.collectAsState()
 
-        val extensionViewModel = viewModel<ExtensionsViewModel>()
-        val extensionsState by extensionViewModel.state.collectAsState()
+        val extensionViewModel = metroViewModel<ExtensionsViewModel>()
+        val extensionsState by extensionViewModel.state.collectAsStateWithLifecycle()
 
         var inExtensionsScreen by remember { mutableStateOf(goToExtensions) }
         val animationDuration = 300

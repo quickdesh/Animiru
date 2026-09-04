@@ -15,8 +15,6 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.parser.Parser
 import tachiyomi.core.common.util.system.logcat
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.FileInputStream
 import java.io.InputStream
 import java.net.URI
@@ -31,7 +29,7 @@ class CastProxyServer(
     private val contentResolver: ContentResolver,
     private val ipAddress: String,
     private val port: Int,
-    private val json: Json = Injekt.get(),
+    private val json: Json,
 ) : NanoHTTPD(port) {
     private fun OkHttpClient.Builder.ignoreAllSSLErrors(): OkHttpClient.Builder {
         val naiveTrustManager =

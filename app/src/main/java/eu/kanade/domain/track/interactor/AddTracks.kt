@@ -1,5 +1,6 @@
 package eu.kanade.domain.track.interactor
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.track.model.toDbTrack
 import eu.kanade.domain.track.model.toDomainTrack
 import eu.kanade.tachiyomi.animesource.AnimeSource
@@ -20,14 +21,14 @@ import tachiyomi.domain.history.interactor.GetHistory
 import tachiyomi.domain.season.interactor.GetAnimeSeasonsByParentId
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.InsertTrack
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
+@Inject
 class AddTracks(
     private val insertTrack: InsertTrack,
     private val syncEpisodeProgressWithTrack: SyncEpisodeProgressWithTrack,
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
     private val trackerManager: TrackerManager,
+    private val getHistory: GetHistory,
     // AM -->
     private val getAnimeSeasonsByParentId: GetAnimeSeasonsByParentId,
     private val sourceManager: SourceManager,
@@ -67,7 +68,7 @@ class AddTracks(
                         }
 
                         if (track.startDate <= 0) {
-                            val firstSeenEpisodeDate = Injekt.get<GetHistory>().await(anime.id)
+                            val firstSeenEpisodeDate = getHistory.await(anime.id)
                                 .sortedBy { it.seenAt }
                                 .firstOrNull()
                                 ?.seenAt

@@ -1,9 +1,11 @@
 package eu.kanade.domain.episode.interactor
 
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import tachiyomi.domain.episode.repository.EpisodeRepository
 
+@Inject
 class GetAvailableScanlators(
     private val repository: EpisodeRepository,
 ) {

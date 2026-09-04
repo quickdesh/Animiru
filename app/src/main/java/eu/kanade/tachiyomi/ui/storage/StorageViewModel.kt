@@ -3,7 +3,13 @@ package eu.kanade.tachiyomi.ui.storage
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.util.fastDistinctBy
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.presentation.more.storage.StorageScreenState
 import eu.kanade.presentation.more.storage.data.StorageData
@@ -11,6 +17,7 @@ import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.util.storage.size
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -20,7 +27,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
 import tachiyomi.domain.anime.interactor.GetLibraryAnime
@@ -33,22 +39,27 @@ import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.source.local.io.Format
 import tachiyomi.source.local.io.LocalSourceFileSystem
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class StorageViewModel(
-    private val downloadCache: DownloadCache = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
-    private val getLibraryAnime: GetLibraryAnime = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val getVisibleCategories: GetVisibleCategories = Injekt.get(),
-    private val updateAnime: UpdateAnime = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val sourceFileSystem: LocalSourceFileSystem = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-) : StateViewModel<StorageScreenState>(StorageScreenState.Loading(0)) {
+    private val downloadCache: DownloadCache,
+    private val downloadManager: DownloadManager,
+    private val getLibraryAnime: GetLibraryAnime,
+    private val getCategories: GetCategories,
+    private val getVisibleCategories: GetVisibleCategories,
+    private val updateAnime: UpdateAnime,
+    private val sourceManager: SourceManager,
+    private val sourceFileSystem: LocalSourceFileSystem,
+    private val libraryPreferences: LibraryPreferences,
+) : ViewModel() {
+
+    val state: StateFlow<StorageScreenState>
+        field = MutableStateFlow<StorageScreenState>(StorageScreenState.Loading(0))
+
     private val _selectedCategory = MutableStateFlow(allCategory)
     val selectedCategory = _selectedCategory.asStateFlow()
 
@@ -113,7 +124,7 @@ class StorageViewModel(
 
                 val items = mutableListOf<StorageData>()
 
-                mutableState.update {
+                state.update {
                     StorageScreenState.Loading(0)
                 }
 
@@ -125,7 +136,7 @@ class StorageViewModel(
                     val episodeCount = getCount(anime)
                     val categories = getAnimeCategoryIds(anime)
 
-                    mutableState.update {
+                    state.update {
                         StorageScreenState.Loading((((index + 1.0) / distinctEntries.size) * 100).toInt())
                     }
 
@@ -170,7 +181,7 @@ class StorageViewModel(
             .onEach { (items, categories) ->
                 if (items.isEmpty() && categories.isEmpty()) return@onEach
 
-                mutableState.update {
+                state.update {
                     StorageScreenState.Success(
                         items = items,
                         categories = categories,

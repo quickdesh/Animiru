@@ -9,26 +9,31 @@ import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.source.repository.SourcePagingSource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 class SourceSearchPagingSource(
     source: AnimeSource,
     private val query: String,
     private val filters: AnimeFilterList,
-) : BaseSourcePagingSource(source) {
+    networkToLocalAnime: NetworkToLocalAnime,
+) : BaseSourcePagingSource(source, networkToLocalAnime) {
     override suspend fun requestNextPage(currentPage: Int): AnimesPage {
         return source.getSearchAnime(currentPage, query, filters)
     }
 }
 
-class SourcePopularPagingSource(source: AnimeSource) : BaseSourcePagingSource(source) {
+class SourcePopularPagingSource(
+    source: AnimeSource,
+    networkToLocalAnime: NetworkToLocalAnime,
+) : BaseSourcePagingSource(source, networkToLocalAnime) {
     override suspend fun requestNextPage(currentPage: Int): AnimesPage {
         return source.getPopularAnime(currentPage)
     }
 }
 
-class SourceLatestPagingSource(source: AnimeSource) : BaseSourcePagingSource(source) {
+class SourceLatestPagingSource(
+    source: AnimeSource,
+    networkToLocalAnime: NetworkToLocalAnime,
+) : BaseSourcePagingSource(source, networkToLocalAnime) {
     override suspend fun requestNextPage(currentPage: Int): AnimesPage {
         return source.getLatestUpdates(currentPage)
     }
@@ -36,7 +41,7 @@ class SourceLatestPagingSource(source: AnimeSource) : BaseSourcePagingSource(sou
 
 abstract class BaseSourcePagingSource(
     protected val source: AnimeSource,
-    private val networkToLocalAnime: NetworkToLocalAnime = Injekt.get(),
+    private val networkToLocalAnime: NetworkToLocalAnime,
 ) : SourcePagingSource() {
 
     private val seenAnime = hashSetOf<String>()

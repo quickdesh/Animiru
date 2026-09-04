@@ -10,7 +10,6 @@ import eu.kanade.tachiyomi.data.track.shikimori.dto.SMOAuth
 import kotlinx.serialization.json.Json
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
@@ -25,13 +24,15 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
 
         private val SCORE_LIST = IntRange(0, 10)
             .map(Int::toString)
+
+        private const val SEARCH_ID_PREFIX = "id:"
     }
 
-    private val json: Json by injectLazy()
+    private val json: Json by lazy { appGraph.json }
 
-    private val interceptor by lazy { ShikimoriInterceptor(this) }
+    private val interceptor by lazy { ShikimoriInterceptor(this, json) }
 
-    private val api by lazy { ShikimoriApi(id, client, interceptor) }
+    private val api by lazy { ShikimoriApi(id, client, json, interceptor) }
 
     override fun getScoreList(): List<String> = SCORE_LIST
 
@@ -54,7 +55,7 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
             }
         }
 
-        return api.updateLibAnime(track, getUsername())
+        return api.updateLibAnime(track)
     }
 
     override suspend fun delete(track: DomainTrack) {
@@ -82,15 +83,20 @@ class Shikimori(id: Long) : BaseTracker(id, "Shikimori"), DeletableTracker {
     }
 
     override suspend fun search(query: String): List<TrackSearch> {
+        if (query.startsWith(SEARCH_ID_PREFIX)) {
+            query.substringAfter(SEARCH_ID_PREFIX).trim().toIntOrNull()?.let { id ->
+                return api.getAnimeDetails(id)?.let { listOf(it) } ?: emptyList()
+            }
+        }
+
         return api.search(query)
     }
 
     override suspend fun refresh(track: Track): Track {
-        api.findLibAnime(track, isRefresh = true)?.let { remoteTrack ->
-            track.library_id = remoteTrack.library_id
-            track.copyPersonalFrom(remoteTrack)
-            track.total_episodes = remoteTrack.total_episodes
-        } ?: throw Exception("Could not find anime")
+        val remoteTrack = api.findLibAnime(track) ?: throw Exception("Could not find anime")
+        track.library_id = remoteTrack.library_id
+        track.copyPersonalFrom(remoteTrack)
+        track.total_episodes = remoteTrack.total_episodes
         return track
     }
 

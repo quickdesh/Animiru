@@ -1,5 +1,6 @@
 package eu.kanade.domain.episode.interactor
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.anime.interactor.GetExcludedScanlators
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.anime.model.toSAnime
@@ -29,6 +30,7 @@ import java.lang.Long.max
 import java.util.TreeSet
 import kotlin.time.Clock
 
+@Inject
 class SyncEpisodesWithSource(
     private val downloadManager: DownloadManager,
     private val downloadProvider: DownloadProvider,

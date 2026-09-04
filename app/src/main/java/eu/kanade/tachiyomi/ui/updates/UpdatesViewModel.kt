@@ -1,11 +1,17 @@
 package eu.kanade.tachiyomi.ui.updates
 
-import android.app.Application
+import android.content.Context
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.util.fastFilter
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import eu.kanade.core.preference.asState
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
@@ -17,25 +23,28 @@ import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.util.lang.toLocalDate
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import logcat.LogPriority
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.core.common.preference.TriState
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
@@ -51,26 +60,30 @@ import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.updates.interactor.GetUpdates
 import tachiyomi.domain.updates.model.UpdatesWithRelations
 import tachiyomi.domain.updates.service.UpdatesPreferences
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class UpdatesViewModel(
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
-    private val downloadCache: DownloadCache = Injekt.get(),
-    private val updateEpisode: UpdateEpisode = Injekt.get(),
-    private val setSeenStatus: SetSeenStatus = Injekt.get(),
-    private val getUpdates: GetUpdates = Injekt.get(),
-    private val getAnime: GetAnime = Injekt.get(),
-    private val getEpisode: GetEpisode = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    private val updatesPreferences: UpdatesPreferences = Injekt.get(),
-    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
+    private val context: Context,
+    private val sourceManager: SourceManager,
+    private val downloadManager: DownloadManager,
+    private val downloadCache: DownloadCache,
+    private val updateEpisode: UpdateEpisode,
+    private val setSeenStatus: SetSeenStatus,
+    private val getUpdates: GetUpdates,
+    private val getAnime: GetAnime,
+    private val getEpisode: GetEpisode,
+    private val libraryPreferences: LibraryPreferences,
+    private val updatesPreferences: UpdatesPreferences,
     // AY -->
-    downloadPreferences: DownloadPreferences = Injekt.get(),
+    downloadPreferences: DownloadPreferences,
     // <-- AY
-) : StateViewModel<UpdatesViewModel.State>(State()) {
+) : ViewModel() {
+
+    val snackbarHostState: SnackbarHostState = SnackbarHostState()
 
     private val _events: Channel<Event> = Channel(Int.MAX_VALUE)
     val events: Flow<Event> = _events.receiveAsFlow()
@@ -83,75 +96,116 @@ class UpdatesViewModel(
 
     // First and last selected index in list
     private val selectedPositions: Array<Int> = arrayOf(-1, -1)
-    private val selectedEpisodeIds: HashSet<Long> = HashSet()
+    private val selectedEpisodeIds = MutableStateFlow(emptySet<Long>())
+
+    private val dialog = MutableStateFlow<Dialog?>(null)
+
+    private val downloadStates = MutableStateFlow(emptyMap<Long, DownloadProgress>())
 
     init {
-        viewModelScope.launchIO {
-            // Set date limit for recent episodes
-            val limit = Clock.System.now().minus(3, DateTimeUnit.MONTH, TimeZone.currentSystemDefault())
-
-            combine(
-                // needed for SQL filters (unread, started, bookmarked, etc)
-                getUpdatesItemPreferenceFlow()
-                    .distinctUntilChanged()
-                    .flatMapLatest {
-                        getUpdates.subscribe(
-                            limit,
-                            unseen = it.filterUnseen.toBooleanOrNull(),
-                            started = it.filterStarted.toBooleanOrNull(),
-                            bookmarked = it.filterBookmarked.toBooleanOrNull(),
-                            fillermarked = it.filterFillermarked.toBooleanOrNull(),
-                            hideExcludedScanlators = it.filterExcludedScanlators,
-                            includedCategories = it.filterIncludedCategories,
-                            excludedCategories = it.filterExcludedCategories,
-                        ).distinctUntilChanged()
-                    },
-                downloadCache.changes,
-                downloadManager.queueState,
-                // needed for Kotlin filters (downloaded)
-                getUpdatesItemPreferenceFlow().distinctUntilChanged { old, new ->
-                    old.filterDownloaded == new.filterDownloaded
-                },
-            ) { updates, _, _, itemPreferences ->
-                updates
-                    .toUpdateItems()
-                    .applyFilters(itemPreferences)
-            }
-                .collectLatest { updateItems ->
-                    mutableState.update {
-                        it.copy(
-                            isLoading = false,
-                            items = updateItems,
-                        )
-                    }
-                }
-        }
-
         viewModelScope.launchIO {
             merge(downloadManager.statusFlow(), downloadManager.progressFlow())
                 .catch { logcat(LogPriority.ERROR, it) }
                 .collect(this@UpdatesViewModel::updateDownloadState)
         }
-
-        getUpdatesItemPreferenceFlow()
-            .map { prefs ->
-                listOf(
-                    prefs.filterUnseen,
-                    prefs.filterDownloaded,
-                    prefs.filterStarted,
-                    prefs.filterBookmarked,
-                    prefs.filterFillermarked,
-                )
-                    .any { it != TriState.DISABLED }
-            }
-            .distinctUntilChanged()
-            .onEach {
-                mutableState.update { state ->
-                    state.copy(hasActiveFilters = it)
-                }
-            }
-            .launchIn(viewModelScope)
     }
+
+    private fun updateDownloadState(download: Download) {
+        val episodeId = download.episode.id
+        downloadStates.update {
+            // Terminal states are derived by the queried item itself, so drop the override instead
+            // of letting it outlive reality, e.g. showing a since deleted episode as downloaded.
+            if (download.status == Download.State.NOT_DOWNLOADED || download.status == Download.State.DOWNLOADED) {
+                it - episodeId
+            } else {
+                it + (episodeId to DownloadProgress(download.status, download.progress))
+            }
+        }
+    }
+
+    // Set date limit for recent episodes
+    val limit = Clock.System.now().minus(3, DateTimeUnit.MONTH, TimeZone.currentSystemDefault())
+
+    private val hasActiveFilters = getUpdatesItemPreferenceFlow()
+        .map { prefs ->
+            listOf(
+                prefs.filterUnseen,
+                prefs.filterDownloaded,
+                prefs.filterStarted,
+                prefs.filterBookmarked,
+            )
+                .any { it != TriState.DISABLED } ||
+                prefs.filterExcludedScanlators ||
+                listOf(
+                    prefs.filterIncludedCategories,
+                    prefs.filterExcludedCategories,
+                )
+                    .any { it.isNotEmpty() }
+        }
+        .distinctUntilChanged()
+
+    private val updateItems = combine(
+        // needed for SQL filters (unseen, started, bookmarked, etc)
+        getUpdatesItemPreferenceFlow()
+            .distinctUntilChanged()
+            .flatMapLatest {
+                getUpdates.subscribe(
+                    Clock.System.now().minus(3, DateTimeUnit.MONTH, TimeZone.currentSystemDefault()),
+                    unseen = it.filterUnseen.toBooleanOrNull(),
+                    started = it.filterStarted.toBooleanOrNull(),
+                    bookmarked = it.filterBookmarked.toBooleanOrNull(),
+                    // AY -->
+                    fillermarked = it.filterFillermarked.toBooleanOrNull(),
+                    // <-- AY
+                    hideExcludedScanlators = it.filterExcludedScanlators,
+                    includedCategories = it.filterIncludedCategories,
+                    excludedCategories = it.filterExcludedCategories,
+                ).distinctUntilChanged()
+            },
+        downloadCache.changes,
+        downloadManager.queueState,
+        // needed for Kotlin filters (downloaded)
+        getUpdatesItemPreferenceFlow().distinctUntilChanged { old, new ->
+            old.filterDownloaded == new.filterDownloaded
+        },
+    ) { updates, _, _, itemPreferences ->
+        updates
+            .toUpdateItems()
+            .applyFilters(itemPreferences)
+    }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), null)
+
+    val state: StateFlow<State> = combine(
+        updateItems,
+        selectedEpisodeIds,
+        downloadStates,
+        dialog,
+        hasActiveFilters,
+    ) { items, selectedIds, downloads, dialog, hasActiveFilters ->
+        State(
+            isLoading = items == null,
+            hasActiveFilters = hasActiveFilters,
+            items = items.orEmpty().map { item ->
+                val download = downloads[item.update.episodeId]
+                item.copy(
+                    selected = item.update.episodeId in selectedIds,
+                    downloadStateProvider = if (download != null) {
+                        { download.status }
+                    } else {
+                        item.downloadStateProvider
+                    },
+                    downloadProgressProvider = if (download != null) {
+                        { download.progress }
+                    } else {
+                        item.downloadProgressProvider
+                    },
+                )
+            },
+            dialog = dialog,
+        )
+    }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), State())
 
     private fun List<UpdatesItem>.applyFilters(
         preferences: ItemPreferences,
@@ -191,7 +245,6 @@ class UpdatesViewModel(
                     update = update,
                     downloadStateProvider = { downloadState },
                     downloadProgressProvider = { activeDownload?.progress ?: 0 },
-                    selected = update.episodeId in selectedEpisodeIds,
                     // AM (FILE_SIZE) -->
                     fileSize = null,
                     // <-- AM (FILE_SIZE)
@@ -200,32 +253,11 @@ class UpdatesViewModel(
     }
 
     fun updateLibrary(): Boolean {
-        val started = LibraryUpdateJob.startNow(Injekt.get<Application>())
+        val started = LibraryUpdateJob.startNow(context)
         viewModelScope.launch {
             _events.send(Event.LibraryUpdateTriggered(started))
         }
         return started
-    }
-
-    /**
-     * Update status of episodes.
-     *
-     * @param download download object containing progress.
-     */
-    private fun updateDownloadState(download: Download) {
-        mutableState.update { state ->
-            val newItems = state.items.toMutableList().also { list ->
-                val modifiedIndex = list.indexOfFirst { it.update.episodeId == download.episode.id }
-                if (modifiedIndex < 0) return@also
-
-                val item = list[modifiedIndex]
-                list[modifiedIndex] = item.copy(
-                    downloadStateProvider = { download.status },
-                    downloadProgressProvider = { download.progress },
-                )
-            }
-            state.copy(items = newItems)
-        }
     }
 
     fun downloadEpisodes(items: List<UpdatesItem>, action: EpisodeDownloadAction) {
@@ -378,91 +410,80 @@ class UpdatesViewModel(
         selected: Boolean,
         fromLongPress: Boolean = false,
     ) {
-        mutableState.update { state ->
-            val newItems = state.items.toMutableList().apply {
-                val selectedIndex = indexOfFirst { it.update.episodeId == item.update.episodeId }
-                if (selectedIndex < 0) return@apply
+        val items = state.value.items
+        val selectedIndex = items.indexOfFirst { it.update.episodeId == item.update.episodeId }
+        if (selectedIndex < 0) return
 
-                val selectedItem = get(selectedIndex)
-                if (selectedItem.selected == selected) return@apply
+        // Read selection from its own flow, not the derived items, which lag behind it.
+        val currentSelection = selectedEpisodeIds.value
+        if ((item.update.episodeId in currentSelection) == selected) return
 
-                val firstSelection = none { it.selected }
-                set(selectedIndex, selectedItem.copy(selected = selected))
-                selectedEpisodeIds.addOrRemove(item.update.episodeId, selected)
+        // Off the visible items, not the id set, which can retain ids filtered out of the list
+        val firstSelection = items.none { it.selected }
+        val newSelection = currentSelection.toHashSet()
+        newSelection.addOrRemove(item.update.episodeId, selected)
 
-                if (selected && fromLongPress) {
-                    if (firstSelection) {
-                        selectedPositions[0] = selectedIndex
-                        selectedPositions[1] = selectedIndex
-                    } else {
-                        // Try to select the items in-between when possible
-                        val range: IntRange
-                        if (selectedIndex < selectedPositions[0]) {
-                            range = selectedIndex + 1..<selectedPositions[0]
-                            selectedPositions[0] = selectedIndex
-                        } else if (selectedIndex > selectedPositions[1]) {
-                            range = (selectedPositions[1] + 1)..<selectedIndex
-                            selectedPositions[1] = selectedIndex
-                        } else {
-                            // Just select itself
-                            range = IntRange.EMPTY
-                        }
+        if (selected && fromLongPress) {
+            if (firstSelection) {
+                selectedPositions[0] = selectedIndex
+                selectedPositions[1] = selectedIndex
+            } else {
+                // Try to select the items in-between when possible
+                val range: IntRange
+                if (selectedIndex < selectedPositions[0]) {
+                    range = selectedIndex + 1..<selectedPositions[0]
+                    selectedPositions[0] = selectedIndex
+                } else if (selectedIndex > selectedPositions[1]) {
+                    range = (selectedPositions[1] + 1)..<selectedIndex
+                    selectedPositions[1] = selectedIndex
+                } else {
+                    // Just select itself
+                    range = IntRange.EMPTY
+                }
 
-                        range.forEach {
-                            val inbetweenItem = get(it)
-                            if (!inbetweenItem.selected) {
-                                selectedEpisodeIds.add(inbetweenItem.update.episodeId)
-                                set(it, inbetweenItem.copy(selected = true))
-                            }
-                        }
-                    }
-                } else if (!fromLongPress) {
-                    if (!selected) {
-                        if (selectedIndex == selectedPositions[0]) {
-                            selectedPositions[0] = indexOfFirst { it.selected }
-                        } else if (selectedIndex == selectedPositions[1]) {
-                            selectedPositions[1] = indexOfLast { it.selected }
-                        }
-                    } else {
-                        if (selectedIndex < selectedPositions[0]) {
-                            selectedPositions[0] = selectedIndex
-                        } else if (selectedIndex > selectedPositions[1]) {
-                            selectedPositions[1] = selectedIndex
-                        }
-                    }
+                range.forEach { newSelection.add(items[it].update.episodeId) }
+            }
+        } else if (!fromLongPress) {
+            if (!selected) {
+                if (selectedIndex == selectedPositions[0]) {
+                    selectedPositions[0] = items.indexOfFirst { it.update.episodeId in newSelection }
+                } else if (selectedIndex == selectedPositions[1]) {
+                    selectedPositions[1] = items.indexOfLast { it.update.episodeId in newSelection }
+                }
+            } else {
+                if (selectedIndex < selectedPositions[0]) {
+                    selectedPositions[0] = selectedIndex
+                } else if (selectedIndex > selectedPositions[1]) {
+                    selectedPositions[1] = selectedIndex
                 }
             }
-            state.copy(items = newItems)
         }
+
+        selectedEpisodeIds.update { newSelection }
     }
 
     fun toggleAllSelection(selected: Boolean) {
-        mutableState.update { state ->
-            val newItems = state.items.map {
-                selectedEpisodeIds.addOrRemove(it.update.episodeId, selected)
-                it.copy(selected = selected)
-            }
-            state.copy(items = newItems)
-        }
+        val ids = if (selected) state.value.items.map { it.update.episodeId }.toSet() else emptySet()
+        selectedEpisodeIds.update { ids }
 
         selectedPositions[0] = -1
         selectedPositions[1] = -1
     }
 
     fun invertSelection() {
-        mutableState.update { state ->
-            val newItems = state.items.map {
-                selectedEpisodeIds.addOrRemove(it.update.episodeId, !it.selected)
-                it.copy(selected = !it.selected)
-            }
-            state.copy(items = newItems)
-        }
+        val current = selectedEpisodeIds.value
+        val ids = state.value.items
+            .map { it.update.episodeId }
+            .filterNot { it in current }
+            .toSet()
+        selectedEpisodeIds.update { ids }
+
         selectedPositions[0] = -1
         selectedPositions[1] = -1
     }
 
     fun setDialog(dialog: Dialog?) {
-        mutableState.update { it.copy(dialog = dialog) }
+        this.dialog.update { dialog }
     }
 
     fun resetNewUpdatesCount() {
@@ -497,7 +518,7 @@ class UpdatesViewModel(
     }
 
     fun showFilterDialog() {
-        mutableState.update { it.copy(dialog = Dialog.FilterSheet) }
+        dialog.update { Dialog.FilterSheet }
     }
 
     @Immutable
@@ -511,6 +532,8 @@ class UpdatesViewModel(
         val filterIncludedCategories: List<Long>,
         val filterExcludedCategories: List<Long>,
     )
+
+    private data class DownloadProgress(val status: Download.State, val progress: Int)
 
     @Immutable
     data class State(

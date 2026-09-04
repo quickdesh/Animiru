@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
-import eu.kanade.tachiyomi.data.track.shikimori.dto.SMAddAnimeResponse
+import eu.kanade.tachiyomi.data.track.shikimori.dto.SMLibraryIdResponse
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMOAuth
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMSearchResult
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUser
@@ -12,6 +12,7 @@ import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUserListResult
 import eu.kanade.tachiyomi.data.track.shikimori.dto.SMUserResult
 import eu.kanade.tachiyomi.network.DELETE
 import eu.kanade.tachiyomi.network.POST
+import eu.kanade.tachiyomi.network.PUT
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.jsonMime
 import eu.kanade.tachiyomi.network.parseAs
@@ -23,16 +24,14 @@ import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.lang.withIOContext
-import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class ShikimoriApi(
     private val trackId: Long,
     private val client: OkHttpClient,
+    private val json: Json,
     interceptor: ShikimoriInterceptor,
 ) {
-
-    private val json: Json by injectLazy()
 
     private val authClient = client.newBuilder().addInterceptor(interceptor).build()
 
@@ -55,7 +54,7 @@ class ShikimoriApi(
                         body = payload.toString().toRequestBody(jsonMime),
                     ),
                 ).awaitSuccess()
-                    .parseAs<SMAddAnimeResponse>()
+                    .parseAs<SMLibraryIdResponse>()
                     .let {
                         // save id of the entry for possible future delete request
                         track.library_id = it.id
@@ -65,7 +64,32 @@ class ShikimoriApi(
         }
     }
 
-    suspend fun updateLibAnime(track: Track, userId: String): Track = addLibAnime(track, userId)
+    suspend fun updateLibAnime(track: Track): Track {
+        return withIOContext {
+            val payload = buildJsonObject {
+                putJsonObject("user_rate") {
+                    put("episodes", track.last_episode_seen.toInt())
+                    put("score", track.score.toInt())
+                    put("status", track.toShikimoriStatus())
+                }
+            }
+
+            with(json) {
+                authClient.newCall(
+                    PUT(
+                        "$API_URL/v2/user_rates/${track.library_id}",
+                        body = payload.toString().toRequestBody(jsonMime),
+                    ),
+                )
+                    .awaitSuccess()
+                    .parseAs<SMLibraryIdResponse>()
+                    .let {
+                        track.library_id = it.id
+                    }
+                track
+            }
+        }
+    }
 
     suspend fun deleteLibAnime(track: DomainTrack) {
         withIOContext {
@@ -121,7 +145,55 @@ class ShikimoriApi(
         }
     }
 
-    suspend fun findLibAnime(track: Track, isRefresh: Boolean = false): Track? {
+    suspend fun getAnimeDetails(id: Int): TrackSearch? {
+        return withIOContext {
+            val query = $$"""
+            |query($query: String) {
+                |animes(ids: $query, limit: 1) {
+                    |id
+                    |name
+                    |episodes
+                    |kind
+                    |poster {
+                        |mainUrl
+                    |}
+                    |score
+                    |url
+                    |status
+                    |airedOn {
+                        |date
+                    |}
+                    |description
+                    |studios {
+                        |name
+                    |}
+                |}
+            |}
+            """.trimMargin()
+            val payload = buildJsonObject {
+                put("query", query)
+                putJsonObject("variables") {
+                    put("query", "$id")
+                }
+            }
+
+            with(json) {
+                authClient.newCall(
+                    POST(
+                        GRAPHQL_API_URL,
+                        body = payload.toString().toRequestBody(jsonMime),
+                    ),
+                )
+                    .awaitSuccess()
+                    .parseAs<SMSearchResult>()
+                    .data.animes
+                    .firstOrNull()
+                    ?.toTrack(trackId)
+            }
+        }
+    }
+
+    suspend fun findLibAnime(track: Track): Track? {
         return withIOContext {
             val query = $$"""
                 |query($id: String) {
@@ -163,9 +235,11 @@ class ShikimoriApi(
                 // userRate data which will be null if the title is not in the user's list.
                 // If it was removed on Shikimori and is still linked in the app, notify user via returning null here
                 // which throws an exception at the Shikimori.refresh call
-                if (isRefresh && listResult?.userRate == null) return@with null
-
-                listResult?.toTrack(trackId)
+                if (listResult?.userRate == null) {
+                    null
+                } else {
+                    listResult.toTrack(trackId)
+                }
             }
         }
     }

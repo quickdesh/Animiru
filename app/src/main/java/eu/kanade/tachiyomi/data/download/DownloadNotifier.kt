@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.download.model.Download
@@ -18,7 +19,6 @@ import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.injectLazy
 import java.util.regex.Pattern
 
 /**
@@ -26,9 +26,11 @@ import java.util.regex.Pattern
  *
  * @param context context of application
  */
-internal class DownloadNotifier(private val context: Context) {
-
-    private val preferences: SecurityPreferences by injectLazy()
+@Inject
+class DownloadNotifier(
+    private val context: Context,
+    private val preferences: SecurityPreferences,
+) {
 
     private val progressNotificationBuilder by lazy {
         context.notificationBuilder(Notifications.CHANNEL_DOWNLOADER_PROGRESS) {
@@ -96,7 +98,7 @@ internal class DownloadNotifier(private val context: Context) {
 
             // AY -->
             val downloadingProgressText = if (download.progress == 0) {
-                context.stringResource(MR.strings.update_check_notification_download_in_progress)
+                context.stringResource(AMMR.strings.am_update_check_notification_download_in_progress)
             } else {
                 context.stringResource(AYMR.strings.episode_downloading_progress, download.progress)
             }

@@ -1,11 +1,16 @@
 // AM (CONNECTION) -->
 package eu.kanade.tachiyomi.data.connection
 
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.data.connection.discord.Discord
 import eu.kanade.tachiyomi.data.connection.syncmiru.GoogleDrive
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncMiru
 import eu.kanade.tachiyomi.data.connection.syncmiru.SyncYomi
 
+@Inject
+@SingleIn(AppScope::class)
 class ConnectionManager {
 
     companion object {

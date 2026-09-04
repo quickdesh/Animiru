@@ -1,5 +1,6 @@
 package tachiyomi.domain.history.interactor
 
+import dev.zacsweers.metro.Inject
 import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.episode.model.Episode
@@ -7,6 +8,7 @@ import tachiyomi.domain.episode.service.getEpisodeSort
 import tachiyomi.domain.history.repository.HistoryRepository
 import kotlin.math.max
 
+@Inject
 class GetNextEpisodes(
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
     private val getAnime: GetAnime,

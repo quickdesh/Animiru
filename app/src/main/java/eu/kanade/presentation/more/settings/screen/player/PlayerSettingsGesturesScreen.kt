@@ -16,16 +16,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import animiru.domain.player.model.SingleActionGesture
 import animiru.domain.player.service.GesturePreferences
 import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.SearchableSettings
+import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.WheelTextPicker
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 object PlayerSettingsGesturesScreen : SearchableSettings {
 
@@ -35,7 +35,8 @@ object PlayerSettingsGesturesScreen : SearchableSettings {
 
     @Composable
     override fun getPreferences(): List<Preference> {
-        val gesturePreferences = remember { Injekt.get<GesturePreferences>() }
+        val context = LocalContext.current
+        val gesturePreferences = remember { context.appGraph.gesturePreferences }
 
         return listOf(
             getSlidersGroup(gesturePreferences = gesturePreferences),

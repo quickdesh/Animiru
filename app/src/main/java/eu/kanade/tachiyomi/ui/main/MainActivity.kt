@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.ui.main
 
 import android.animation.ValueAnimator
-import android.app.Application
 import android.app.SearchManager
 import android.app.assist.AssistContent
 import android.content.Context
@@ -58,6 +57,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.NavigatorDisposeBehavior
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.connection.service.ConnectionPreferences
 import eu.kanade.domain.source.interactor.GetIncognitoState
@@ -77,7 +77,6 @@ import eu.kanade.tachiyomi.data.connection.discord.DiscordRPCService
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.player.service.HttpServerService
-import eu.kanade.tachiyomi.data.updater.AppUpdateChecker
 import eu.kanade.tachiyomi.data.updater.RELEASE_URL
 import eu.kanade.tachiyomi.extension.api.ExtensionApi
 import eu.kanade.tachiyomi.ui.anime.AnimeScreen
@@ -110,39 +109,45 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import logcat.LogPriority
+import mihon.app.di.AppGraph
+import mihon.app.di.appGraph
+import mihon.core.metro.metroGraph
 import mihon.core.migration.Migrator
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class MainActivity : BaseActivity() {
 
-    private val preferences: BasePreferences by injectLazy()
+    private val graph: AppGraph by lazy { metroGraph() }
+
+    @Inject private lateinit var preferences: BasePreferences
 
     // AM -->
-    private val mpvConfig: MpvConfig by injectLazy()
-    private val uiPreferences: UiPreferences by injectLazy()
+    @Inject private lateinit var mpvConfig: MpvConfig
+
+    @Inject private lateinit var uiPreferences: UiPreferences
+
+    @Inject private lateinit var externalIntents: ExternalIntents
     // <-- AM
 
     // AM (CONNECTION) -->
-    private val connectionPreferences: ConnectionPreferences by injectLazy()
+    @Inject private lateinit var connectionPreferences: ConnectionPreferences
     // <-- AM (CONNECTION)
 
-    private val downloadCache: DownloadCache by injectLazy()
+    @Inject private lateinit var downloadCache: DownloadCache
 
-    private val getIncognitoState: GetIncognitoState by injectLazy()
+    @Inject private lateinit var getIncognitoState: GetIncognitoState
+
+    @Inject private lateinit var extensionApi: ExtensionApi
 
     // To be checked by splash screen. If true then splash screen will be removed.
     var ready = false
@@ -154,6 +159,7 @@ class MainActivity : BaseActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        graph.inject(this)
         val isLaunch = savedInstanceState == null
 
         // Prevent splash screen showing up on configuration changes
@@ -323,12 +329,12 @@ class MainActivity : BaseActivity() {
 
                 if (animeId != null && episodeId != null) {
                     runBlocking {
-                        ExternalIntents.externalIntents.initAnime(animeId, episodeId)
+                        externalIntents.initAnime(animeId, episodeId)
                     }
                 }
 
                 // AM (DISCORD_RPC) -->
-                ExternalIntents.externalIntents.onActivityResult(this.applicationContext, result.data)
+                externalIntents.onActivityResult(this.applicationContext, result.data)
                 // <-- AM (DISCORD_RPC)
             }
         }
@@ -366,7 +372,7 @@ class MainActivity : BaseActivity() {
         LaunchedEffect(Unit) {
             if (updaterEnabled) {
                 try {
-                    val result = AppUpdateChecker().checkForUpdate()
+                    val result = context.appGraph.updateChecker.checkForUpdate()
                     if (result is GetApplicationRelease.Result.NewUpdate) {
                         val updateScreen = NewUpdateScreen(
                             versionName = result.release.version,
@@ -385,7 +391,7 @@ class MainActivity : BaseActivity() {
         // Extensions updates
         LaunchedEffect(Unit) {
             try {
-                ExtensionApi().checkForUpdates(context)
+                extensionApi.checkForUpdates(context)
             } catch (e: Exception) {
                 logcat(LogPriority.ERROR, e)
             }
@@ -532,10 +538,10 @@ class MainActivity : BaseActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        ExternalIntents.externalIntents.animeId?.let {
+        externalIntents.animeId?.let {
             outState.putLong(SAVED_STATE_ANIME_KEY, it)
         }
-        ExternalIntents.externalIntents.episodeId?.let {
+        externalIntents.episodeId?.let {
             outState.putLong(SAVED_STATE_EPISODE_KEY, it)
         }
     }
@@ -575,10 +581,10 @@ class MainActivity : BaseActivity() {
             hosterList: List<Hoster>? = null,
         ) {
             if (extPlayer) {
-                val sourceId = sourceId ?: (Injekt.get<GetAnime>().await(animeId)?.source ?: -1L)
+                val sourceId = sourceId ?: (context.appGraph.getAnime.await(animeId)?.source ?: -1L)
                 val (success, port) = startHttpServerService(context, sourceId)
                 if (!success) {
-                    withUIContext { Injekt.get<Application>().toast(AYMR.strings.http_server_start_failure) }
+                    withUIContext { context.toast(AYMR.strings.http_server_start_failure) }
                     return
                 }
 
@@ -587,7 +593,7 @@ class MainActivity : BaseActivity() {
                     ExternalIntents.newIntent(context, animeId, episodeId, video)
                 } catch (e: Exception) {
                     logcat(LogPriority.ERROR, e)
-                    withUIContext { Injekt.get<Application>().toast(e.message) }
+                    withUIContext { context.toast(e.message) }
                     null
                 } ?: return
                 externalPlayerResult?.launch(intent) ?: return

@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -36,10 +35,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import eu.kanade.presentation.components.AppBar
 import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.more.settings.screen.player.editor.components.UnsavedChangesDialog
@@ -56,13 +54,9 @@ class CodeEditScreen(private val filePath: String) : Screen() {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val context = LocalContext.current
-        val viewModel = viewModel<CodeEditViewModel>(
-            factory = CodeEditViewModel.Factory,
-            extras = CreationExtras {
-                set(CodeEditViewModel.FILE_PATH_KEY, filePath)
-            },
-        )
+        val viewModel = assistedMetroViewModel<CodeEditViewModel, CodeEditViewModel.Factory> {
+            create(filePath = filePath)
+        }
 
         val state by viewModel.state.collectAsState()
         val dialogShown by viewModel.dialogShown.collectAsState()

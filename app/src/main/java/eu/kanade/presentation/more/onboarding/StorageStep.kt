@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,24 +22,15 @@ import eu.kanade.presentation.more.settings.screen.SettingsDataScreen
 import eu.kanade.tachiyomi.util.system.isTvBox
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.collectLatest
-import tachiyomi.core.common.storage.AndroidStorageFolderProvider
-import tachiyomi.domain.storage.service.StoragePreferences
+import mihon.app.di.appGraph
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.animiru.AMMR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.Button
 import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 internal class StorageStep : OnboardingStep {
-
-    private val storagePref = Injekt.get<StoragePreferences>().baseStorageDirectory
-
-    // AY -->
-    private val folderProvider = Injekt.get<AndroidStorageFolderProvider>()
-    // <-- AY
 
     private var _isComplete by mutableStateOf(false)
 
@@ -51,9 +43,11 @@ internal class StorageStep : OnboardingStep {
         val handler = LocalUriHandler.current
 
         // AY -->
-        val isTvBox = isTvBox(LocalContext.current)
+        val folderProvider = remember { context.appGraph.androidStorageFolderProvider }
+        val isTvBox = remember { isTvBox(context) }
         // <-- AY
 
+        val storagePref = remember { context.appGraph.storagePreferences.baseStorageDirectory }
         val pickStorageLocation = SettingsDataScreen.storageLocationPicker(storagePref)
 
         Column(

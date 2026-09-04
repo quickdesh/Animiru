@@ -18,6 +18,10 @@ import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.google.android.gms.common.images.WebImage
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.animesource.model.Video
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,14 +40,15 @@ import tachiyomi.cast.domain.CodecInformation
 import tachiyomi.cast.domain.TrackInformation
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.anime.model.Anime
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.milliseconds
 
 // Some code taken from https://github.com/MakD/AFinity/blob/master/app/src/main/java/com/makd/afinity/cast/CastManager.kt
+@Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class CastManagerImpl(
-    private val gesturePreferences: GesturePreferences = Injekt.get(),
+    private val gesturePreferences: GesturePreferences,
 ) : CastManager {
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())

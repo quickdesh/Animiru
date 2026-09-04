@@ -16,7 +16,6 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
-import uy.kohesive.injekt.injectLazy
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -25,9 +24,8 @@ import kotlin.math.abs
 class JellyfinApi(
     private val trackId: Long,
     private val client: OkHttpClient,
+    private val json: Json,
 ) {
-    private val json: Json by injectLazy()
-
     suspend fun getTrackSearch(url: String): TrackSearch =
         withIOContext {
             try {

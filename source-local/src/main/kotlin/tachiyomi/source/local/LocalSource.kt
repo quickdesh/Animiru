@@ -4,6 +4,9 @@ import android.content.Context
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.FFprobeKit
 import com.hippo.unifile.UniFile
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.UnmeteredSource
 import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
@@ -39,7 +42,6 @@ import tachiyomi.source.local.image.LocalCoverManager
 import tachiyomi.source.local.image.LocalEpisodeThumbnailManager
 import tachiyomi.source.local.io.Format
 import tachiyomi.source.local.io.LocalSourceFileSystem
-import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.io.InputStream
 import java.text.SimpleDateFormat
@@ -48,18 +50,19 @@ import kotlin.math.abs
 import kotlin.time.Duration.Companion.days
 import tachiyomi.domain.source.model.Source as DomainSource
 
+@Inject
+@SingleIn(AppScope::class)
 class LocalSource(
     private val context: Context,
     private val fileSystem: LocalSourceFileSystem,
     private val coverManager: LocalCoverManager,
+    private val json: Json,
     // AY -->
     private val backgroundManager: LocalBackgroundManager,
     private val thumbnailManager: LocalEpisodeThumbnailManager,
     private val fetchTypeManager: LocalFetchTypeManager,
     // <-- AY
 ) : AnimeSource, UnmeteredSource {
-
-    private val json: Json by injectLazy()
 
     @Suppress("PrivatePropertyName")
     private val PopularFilters = AnimeFilterList(OrderBy.Popular(context))

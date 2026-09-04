@@ -1,6 +1,7 @@
 package eu.kanade.domain.anime.interactor
 
 import aniyomi.domain.anime.repository.AnimeRelationRepository
+import dev.zacsweers.metro.Inject
 import eu.kanade.domain.anime.model.toSAnime
 import mihon.domain.anime.model.toDomainAnime
 import tachiyomi.domain.anime.interactor.NetworkToLocalAnime
@@ -9,6 +10,7 @@ import tachiyomi.domain.source.service.SourceManager
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
+@Inject
 class SyncRelatedAnimeWithSource(
     private val sourceManager: SourceManager,
     private val networkToLocalAnime: NetworkToLocalAnime,

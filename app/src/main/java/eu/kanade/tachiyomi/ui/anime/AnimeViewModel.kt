@@ -1,16 +1,13 @@
 package eu.kanade.tachiyomi.ui.anime
 
-import android.app.Application
 import android.content.Context
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.util.fastAny
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import animiru.domain.player.service.GesturePreferences
 import animiru.domain.player.service.PlayerPreferences
 import aniyomi.core.common.torrent.TorrentPreferences
@@ -19,6 +16,13 @@ import aniyomi.domain.anime.interactor.GetRelatedAnime
 import aniyomi.domain.anime.model.AnimeRelationGroup
 import aniyomi.domain.anime.model.SeasonAnime
 import aniyomi.domain.anime.model.SeasonDisplayMode
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import eu.kanade.core.util.addOrRemove
 import eu.kanade.core.util.insertSeparators
 import eu.kanade.domain.anime.interactor.GetExcludedScanlators
@@ -48,6 +52,7 @@ import eu.kanade.tachiyomi.animesource.UnmeteredSource
 import eu.kanade.tachiyomi.animesource.model.FetchType
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.animesource.model.Video
+import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.download.model.Download
@@ -67,6 +72,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -77,7 +84,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
-import mihon.core.viewmodel.StateViewModel
 import mihon.domain.episode.interactor.FilterEpisodesForDownload
 import mihon.domain.source.interactor.UpdateAnimeFromRemote
 import tachiyomi.core.common.i18n.stringResource
@@ -124,84 +130,80 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.util.Calendar
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.floor
 
+@AssistedInject
 class AnimeViewModel(
+    @Assisted private val animeId: Long,
+    @Assisted private val isFromSource: Boolean,
     private val context: Context,
-    private val animeId: Long,
-    private val isFromSource: Boolean,
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    private val trackPreferences: TrackPreferences = Injekt.get(),
+    private val libraryPreferences: LibraryPreferences,
+    private val trackPreferences: TrackPreferences,
     // AY -->
-    downloadPreferences: DownloadPreferences = Injekt.get(),
-    private val torrentPreferences: TorrentPreferences = Injekt.get(),
-    private val sourcePreferences: SourcePreferences = Injekt.get(),
-    internal val playerPreferences: PlayerPreferences = Injekt.get(),
-    internal val gesturePreferences: GesturePreferences = Injekt.get(),
-    internal val setAnimeViewerFlags: SetAnimeViewerFlags = Injekt.get(),
+    downloadPreferences: DownloadPreferences,
+    private val torrentPreferences: TorrentPreferences,
+    private val sourcePreferences: SourcePreferences,
+    internal val playerPreferences: PlayerPreferences,
+    internal val gesturePreferences: GesturePreferences,
+    internal val setAnimeViewerFlags: SetAnimeViewerFlags,
     // <-- AY
-    private val trackerManager: TrackerManager = Injekt.get(),
-    private val trackEpisode: TrackEpisode = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
-    private val downloadCache: DownloadCache = Injekt.get(),
+    private val trackerManager: TrackerManager,
+    private val trackEpisode: TrackEpisode,
+    private val downloadManager: DownloadManager,
+    private val downloadCache: DownloadCache,
     // AY -->
-    private val getAnimeAndEpisodesAndSeasons: GetAnimeWithEpisodesAndSeasons = Injekt.get(),
+    private val getAnimeAndEpisodesAndSeasons: GetAnimeWithEpisodesAndSeasons,
     // <-- AY
-    private val getDuplicateLibraryAnime: GetDuplicateLibraryAnime = Injekt.get(),
-    private val getAvailableScanlators: GetAvailableScanlators = Injekt.get(),
-    private val getExcludedScanlators: GetExcludedScanlators = Injekt.get(),
-    private val setExcludedScanlators: SetExcludedScanlators = Injekt.get(),
-    private val setAnimeEpisodeFlags: SetAnimeEpisodeFlags = Injekt.get(),
-    private val setAnimeDefaultEpisodeFlags: SetAnimeDefaultEpisodeFlags = Injekt.get(),
+    private val getDuplicateLibraryAnime: GetDuplicateLibraryAnime,
+    private val getAvailableScanlators: GetAvailableScanlators,
+    private val getExcludedScanlators: GetExcludedScanlators,
+    private val setExcludedScanlators: SetExcludedScanlators,
+    private val setAnimeEpisodeFlags: SetAnimeEpisodeFlags,
+    private val setAnimeDefaultEpisodeFlags: SetAnimeDefaultEpisodeFlags,
     // AY -->
-    private val setAnimeSeasonFlags: SetAnimeSeasonFlags = Injekt.get(),
-    private val setAnimeDefaultSeasonFlags: SetAnimeDefaultSeasonFlags = Injekt.get(),
-    private val getRelatedAnime: GetRelatedAnime = Injekt.get(),
-    private val syncRelatedAnimeWithSource: SyncRelatedAnimeWithSource = Injekt.get(),
+    private val setAnimeSeasonFlags: SetAnimeSeasonFlags,
+    private val setAnimeDefaultSeasonFlags: SetAnimeDefaultSeasonFlags,
+    private val getRelatedAnime: GetRelatedAnime,
+    private val syncRelatedAnimeWithSource: SyncRelatedAnimeWithSource,
     // <-- AY
-    private val setSeenStatus: SetSeenStatus = Injekt.get(),
-    private val updateEpisode: UpdateEpisode = Injekt.get(),
-    private val updateAnime: UpdateAnime = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val getTracks: GetTracks = Injekt.get(),
-    private val addTracks: AddTracks = Injekt.get(),
-    private val setAnimeCategories: SetAnimeCategories = Injekt.get(),
-    private val animeRepository: AnimeRepository = Injekt.get(),
+    private val setSeenStatus: SetSeenStatus,
+    private val updateEpisode: UpdateEpisode,
+    private val updateAnime: UpdateAnime,
+    private val getCategories: GetCategories,
+    private val getTracks: GetTracks,
+    private val addTracks: AddTracks,
+    private val setAnimeCategories: SetAnimeCategories,
+    private val animeRepository: AnimeRepository,
     // AY -->
-    private val getEpisodesByAnimeId: GetEpisodesByAnimeId = Injekt.get(),
-    private val torrentServerUtils: TorrentServerUtils = Injekt.get(),
+    private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
+    private val torrentServerUtils: TorrentServerUtils,
     // <-- AY
-    private val filterEpisodesForDownload: FilterEpisodesForDownload = Injekt.get(),
+    private val filterEpisodesForDownload: FilterEpisodesForDownload,
+    private val updateAnimeFromRemote: UpdateAnimeFromRemote,
+    private val sourceManager: SourceManager,
+    private val refreshTracks: RefreshTracks,
+    private val coverCache: CoverCache,
     // AM (FILE_SIZE) -->
-    storagePreferences: StoragePreferences = Injekt.get(),
+    storagePreferences: StoragePreferences,
     // <-- AM (FILE_SIZE)
     // AM (CUSTOM_INFORMATION) -->
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val setCustomAnimeInfo: SetCustomAnimeInfo = Injekt.get(),
+    private val setCustomAnimeInfo: SetCustomAnimeInfo,
     // <-- AM (CUSTOM_INFORMATION)
-    private val updateAnimeFromRemote: UpdateAnimeFromRemote = Injekt.get(),
-    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
-) : StateViewModel<AnimeViewModel.State>(State.Loading) {
+) : ViewModel() {
 
-    companion object {
-        val ANIME_ID_KEY = CreationExtras.Key<Long>()
+    val state: StateFlow<AnimeViewModel.State>
+        field = MutableStateFlow<AnimeViewModel.State>(State.Loading)
 
-        val IS_FROM_SOURCE_KEY = CreationExtras.Key<Boolean>()
-
-        val Factory = viewModelFactory {
-            initializer {
-                AnimeViewModel(
-                    context = Injekt.get<Application>(),
-                    animeId = get(ANIME_ID_KEY)!!,
-                    isFromSource = get(IS_FROM_SOURCE_KEY)!!,
-                )
-            }
-        }
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(animeId: Long, isFromSource: Boolean): AnimeViewModel
     }
+
+    val snackbarHostState: SnackbarHostState = SnackbarHostState()
 
     private val successState: State.Success?
         get() = state.value as? State.Success
@@ -252,7 +254,7 @@ class AnimeViewModel(
      * Helper function to update the UI state only if it's currently in success state
      */
     private inline fun updateSuccessState(func: (State.Success) -> State.Success) {
-        mutableState.update {
+        state.update {
             when (it) {
                 State.Loading -> it
                 is State.Success -> func(it)
@@ -336,7 +338,7 @@ class AnimeViewModel(
             // <-- AY
 
             // Show what we have earlier
-            mutableState.update {
+            state.update {
                 State.Success(
                     anime = anime,
                     source = source,
@@ -619,7 +621,7 @@ class AnimeViewModel(
                 // Remove from library
                 if (updateAnime.awaitUpdateFavorite(anime.id, false)) {
                     // Remove covers and update last modified in db
-                    if (anime.removeCovers() != anime) {
+                    if (anime.removeCovers(coverCache) != anime) {
                         updateAnime.awaitUpdateCoverLastModified(anime.id)
                     }
                     withUIContext { onRemoved() }
@@ -880,8 +882,8 @@ class AnimeViewModel(
 
     private suspend fun startTorrentServer(source: AnimeSource?) {
         if (isTorrentEnabled() && source.isSourceForTorrents()) {
-            TorrentServerService.start()
-            TorrentServerService.wait(10)
+            TorrentServerService.start(context)
+            TorrentServerService.wait(context, 10)
             torrentServerUtils.setTrackersList()
         }
     }
@@ -1161,7 +1163,6 @@ class AnimeViewModel(
 
     // AM -->
     private suspend fun refreshTrackers(
-        refreshTracks: RefreshTracks = Injekt.get(),
         animeId: Long,
         enhancedOnly: Boolean = false,
         skipCompleted: Boolean = false,

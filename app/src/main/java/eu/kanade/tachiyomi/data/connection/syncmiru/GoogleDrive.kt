@@ -5,7 +5,6 @@ import android.graphics.Color
 import eu.kanade.domain.connection.SyncPreferences
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.connection.BaseConnection
-import uy.kohesive.injekt.injectLazy
 
 class GoogleDrive(id: Long) : BaseConnection(id, "Google Drive") {
 
@@ -13,7 +12,7 @@ class GoogleDrive(id: Long) : BaseConnection(id, "Google Drive") {
 
     override fun getLogoColor() = Color.TRANSPARENT
 
-    private val syncPreferences: SyncPreferences by injectLazy()
+    private val syncPreferences: SyncPreferences by lazy { appGraph.syncPreferences }
 
     override fun logout() {
         super.logout()

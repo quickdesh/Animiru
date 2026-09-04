@@ -1,6 +1,7 @@
 // AY -->
 package eu.kanade.domain.anime.interactor
 
+import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import kotlinx.datetime.TimeZone
@@ -17,6 +18,7 @@ import tachiyomi.domain.season.service.SeasonRecognition
 import tachiyomi.source.local.isLocal
 import kotlin.time.Clock
 
+@Inject
 class SyncSeasonsWithSource(
     private val updateAnime: UpdateAnime,
     private val animeRepository: AnimeRepository,

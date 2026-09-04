@@ -1,49 +1,46 @@
 package eu.kanade.presentation.more.settings.screen.player.editor
 
-import android.app.Application
 import android.content.Context
 import androidx.compose.runtime.Immutable
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import animiru.feature.mpvfiles.MpvConfig.Companion.MPV_DIR
 import com.hippo.unifile.UniFile
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.size
 import eu.kanade.tachiyomi.util.storage.toSize
 import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.storage.service.SCRIPTS_PATH
 import tachiyomi.domain.storage.service.SCRIPT_OPTS_PATH
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class PlayerSettingsEditorViewModel(
     private val context: Context,
-    private val storageManager: StorageManager = Injekt.get(),
-) : StateViewModel<EditorScreenState>(EditorScreenState.Loading) {
+    private val storageManager: StorageManager,
+) : ViewModel() {
 
-    companion object {
-        val Factory = viewModelFactory {
-            initializer {
-                PlayerSettingsEditorViewModel(
-                    context = Injekt.get<Application>(),
-                )
-            }
-        }
-    }
+    val state: StateFlow<EditorScreenState>
+        field = MutableStateFlow<EditorScreenState>(EditorScreenState.Loading)
 
     private val _selectedType = MutableStateFlow(EditorListType.SCRIPTS)
     val selectedType = _selectedType.asStateFlow()
@@ -60,7 +57,7 @@ class PlayerSettingsEditorViewModel(
     }
 
     private fun updateItems(type: EditorListType) {
-        mutableState.update {
+        state.update {
             EditorScreenState.Success(
                 editorListItems = getEditorListItems(type),
             )
@@ -129,7 +126,7 @@ class PlayerSettingsEditorViewModel(
     }
 
     fun isValidName(name: String, initialName: String? = null): FileCreationResult {
-        val names = (mutableState.value as? EditorScreenState.Success)
+        val names = (state.value as? EditorScreenState.Success)
             ?.editorListItems
             ?.map { it.name }
             ?.filterNot { it == initialName }

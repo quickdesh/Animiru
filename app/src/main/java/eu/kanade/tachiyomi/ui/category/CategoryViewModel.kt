@@ -1,14 +1,24 @@
 package eu.kanade.tachiyomi.ui.category
 
 import androidx.compose.runtime.Immutable
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.icerock.moko.resources.StringResource
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.domain.category.interactor.CreateCategoryWithName
 import tachiyomi.domain.category.interactor.DeleteCategory
 import tachiyomi.domain.category.interactor.GetCategories
@@ -19,45 +29,43 @@ import tachiyomi.domain.category.interactor.ReorderCategory
 import tachiyomi.domain.category.model.Category
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import kotlin.time.Duration.Companion.seconds
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class CategoryViewModel(
-    private val getCategories: GetCategories = Injekt.get(),
-    private val createCategoryWithName: CreateCategoryWithName = Injekt.get(),
-    private val deleteCategory: DeleteCategory = Injekt.get(),
-    private val reorderCategory: ReorderCategory = Injekt.get(),
-    private val renameCategory: RenameCategory = Injekt.get(),
+    private val getCategories: GetCategories,
+    private val createCategoryWithName: CreateCategoryWithName,
+    private val deleteCategory: DeleteCategory,
+    private val reorderCategory: ReorderCategory,
+    private val renameCategory: RenameCategory,
     // AY -->
-    private val getVisibleCategories: GetVisibleCategories = Injekt.get(),
-    private val hideCategory: HideCategory = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
+    private val getVisibleCategories: GetVisibleCategories,
+    private val hideCategory: HideCategory,
+    private val libraryPreferences: LibraryPreferences,
     // <-- AY
-) : StateViewModel<CategoryScreenState>(CategoryScreenState.Loading) {
+) : ViewModel() {
 
     private val _events: Channel<CategoryEvent> = Channel()
     val events = _events.receiveAsFlow()
 
-    init {
-        viewModelScope.launch {
-            // AY -->
-            val allCategories = if (libraryPreferences.hideHiddenCategoriesSettings.get()) {
-                getVisibleCategories.subscribe()
-            } else {
-                getCategories.subscribe()
-            }
-            // <-- AY
+    private val dialog = MutableStateFlow<CategoryDialog?>(null)
 
-            allCategories.collectLatest { categories ->
-                mutableState.update {
-                    CategoryScreenState.Success(
-                        categories = categories
-                            .filterNot(Category::isSystemCategory),
-                    )
-                }
-            }
-        }
+    val state: StateFlow<CategoryScreenState> = combine(
+        // AY -->
+        libraryPreferences.hideHiddenCategoriesSettings.changes(),
+        getVisibleCategories.subscribe(),
+        // <-- AY
+        getCategories.subscribe(),
+        dialog,
+    ) { hideHidden, visible, categories, dialog ->
+        CategoryScreenState.Success(
+            categories = (if (hideHidden) visible else categories).filterNot(Category::isSystemCategory),
+            dialog = dialog,
+        )
     }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), CategoryScreenState.Loading)
 
     fun createCategory(name: String) {
         viewModelScope.launch {
@@ -109,21 +117,11 @@ class CategoryViewModel(
     }
 
     fun showDialog(dialog: CategoryDialog) {
-        mutableState.update {
-            when (it) {
-                CategoryScreenState.Loading -> it
-                is CategoryScreenState.Success -> it.copy(dialog = dialog)
-            }
-        }
+        this.dialog.update { dialog }
     }
 
     fun dismissDialog() {
-        mutableState.update {
-            when (it) {
-                CategoryScreenState.Loading -> it
-                is CategoryScreenState.Success -> it.copy(dialog = null)
-            }
-        }
+        dialog.update { null }
     }
 }
 

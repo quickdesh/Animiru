@@ -12,11 +12,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import eu.kanade.domain.connection.service.ConnectionPreferences
 import eu.kanade.presentation.more.settings.widget.ConnectionPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.EditTextPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.InfoWidget
@@ -29,10 +30,9 @@ import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.presentation.more.settings.widget.TitleFontSize
 import eu.kanade.presentation.more.settings.widget.TrackingPreferenceWidget
 import kotlinx.coroutines.launch
+import mihon.app.di.appGraph
 import tachiyomi.presentation.core.components.BaseSliderItem
 import tachiyomi.presentation.core.util.collectAsState
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 val LocalPreferenceHighlighted = compositionLocalOf(structuralEqualityPolicy()) { false }
 val LocalPreferenceMinHeight = compositionLocalOf(structuralEqualityPolicy()) { 56.dp }
@@ -63,6 +63,8 @@ internal fun PreferenceItem(
     item: Preference.PreferenceItem<*, *>,
     highlightKey: String?,
 ) {
+    val context = LocalContext.current
+    val connectionPreferences = remember { context.appGraph.connectionPreferences }
     val scope = rememberCoroutineScope()
     StatusWrapper(
         item = item,
@@ -237,7 +239,7 @@ internal fun PreferenceItem(
             // AM (CONNECTION) -->
             // TODO: update this connection based on above tracker
             is Preference.PreferenceItem.ConnectionPreference -> {
-                val uName by Injekt.get<ConnectionPreferences>()
+                val uName by connectionPreferences
                     .connectionUsername(item.connection)
                     .collectAsState()
                 item.connection.run {

@@ -7,13 +7,10 @@ import eu.kanade.tachiyomi.animesource.sourcePreferences
 import okhttp3.Interceptor
 import okhttp3.Response
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.injectLazy
 import java.io.IOException
 import java.security.MessageDigest
 
-class JellyfinInterceptor : Interceptor {
-
-    private val sourceManager: SourceManager by injectLazy()
+class JellyfinInterceptor(private val sourceManager: SourceManager) : Interceptor {
 
     private val apiKeys = mutableMapOf<String, String>()
 

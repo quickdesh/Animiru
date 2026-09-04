@@ -4,14 +4,19 @@ import android.content.Context
 import android.net.Uri
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.SnackbarHostState
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import coil3.asDrawable
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.size.Size
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.tachiyomi.data.cache.BackgroundCache
 import eu.kanade.tachiyomi.data.cache.CoverCache
@@ -22,10 +27,14 @@ import eu.kanade.tachiyomi.util.editBackground
 import eu.kanade.tachiyomi.util.editCover
 import eu.kanade.tachiyomi.util.system.getBitmapOrNull
 import eu.kanade.tachiyomi.util.system.toShareIntent
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import logcat.LogPriority
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
@@ -35,35 +44,34 @@ import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.aniyomi.AYMR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import tachiyomi.source.local.image.LocalBackgroundManager
+import tachiyomi.source.local.image.LocalCoverManager
+import kotlin.time.Duration.Companion.seconds
 
+@AssistedInject
 class AnimeImageViewModel(
-    private val animeId: Long,
-    private val getAnime: GetAnime = Injekt.get(),
-    private val imageSaver: ImageSaver = Injekt.get(),
-    private val coverCache: CoverCache = Injekt.get(),
+    @Assisted private val animeId: Long,
+    private val getAnime: GetAnime,
+    private val imageSaver: ImageSaver,
+    private val coverCache: CoverCache,
     // AY -->
-    private val backgroundCache: BackgroundCache = Injekt.get(),
+    private val backgroundCache: BackgroundCache,
+    private val backgroundManager: LocalBackgroundManager,
     // <-- AY
-    private val updateAnime: UpdateAnime = Injekt.get(),
+    private val updateAnime: UpdateAnime,
+    private val coverManager: LocalCoverManager,
 
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
     // AY -->
     val pagerState: PagerState = PagerState(pageCount = { 2 }),
     // <-- AY
-) : StateViewModel<Anime?>(null) {
+) : ViewModel() {
 
-    companion object {
-        val ANIME_ID_KEY = CreationExtras.Key<Long>()
-
-        val Factory = viewModelFactory {
-            initializer {
-                AnimeImageViewModel(
-                    animeId = get(ANIME_ID_KEY)!!,
-                )
-            }
-        }
+    @AssistedFactory
+    @ManualViewModelAssistedFactoryKey
+    @ContributesIntoMap(AppScope::class)
+    interface Factory : ManualViewModelAssistedFactory {
+        fun create(animeId: Long): AnimeImageViewModel
     }
 
     // AY -->
@@ -71,12 +79,9 @@ class AnimeImageViewModel(
         get() = pagerState.currentPage != 1
     // <-- AY
 
-    init {
-        viewModelScope.launchIO {
-            getAnime.subscribe(animeId)
-                .collect { newAnime -> mutableState.update { newAnime } }
-        }
-    }
+    val state: StateFlow<Anime?> = getAnime.subscribe(animeId)
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), null)
 
     fun saveImage(context: Context) {
         // AY -->
@@ -174,10 +179,10 @@ class AnimeImageViewModel(
             context.contentResolver.openInputStream(data)?.use {
                 try {
                     if (isCover) {
-                        anime.editCover(Injekt.get(), it, updateAnime, coverCache)
+                        anime.editCover(coverManager, it, updateAnime, coverCache)
                     } else {
                         // AY -->
-                        anime.editBackground(Injekt.get(), it, updateAnime, backgroundCache)
+                        anime.editBackground(backgroundManager, it, updateAnime, backgroundCache)
                         // <-- AY
                     }
                     notifyImageUpdated(context)
@@ -189,7 +194,6 @@ class AnimeImageViewModel(
     }
 
     fun deleteCustomImage(context: Context) {
-        val animeId = state.value?.id ?: return
         viewModelScope.launchIO {
             try {
                 if (isCover) {

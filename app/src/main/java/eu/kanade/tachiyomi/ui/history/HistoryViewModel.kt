@@ -2,7 +2,13 @@ package eu.kanade.tachiyomi.ui.history
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import eu.kanade.core.util.insertSeparators
 import eu.kanade.domain.anime.interactor.UpdateAnime
 import eu.kanade.domain.track.interactor.AddTracks
@@ -11,16 +17,21 @@ import eu.kanade.tachiyomi.util.lang.toLocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import logcat.LogPriority
-import mihon.core.viewmodel.StateViewModel
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.core.common.preference.mapAsCheckboxState
 import tachiyomi.core.common.util.lang.launchIO
@@ -40,46 +51,55 @@ import tachiyomi.domain.history.interactor.RemoveHistory
 import tachiyomi.domain.history.model.HistoryWithRelations
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import kotlin.time.Duration.Companion.seconds
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 class HistoryViewModel(
-    private val addTracks: AddTracks = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val getDuplicateLibraryAnime: GetDuplicateLibraryAnime = Injekt.get(),
-    private val getHistory: GetHistory = Injekt.get(),
-    private val getAnime: GetAnime = Injekt.get(),
-    private val getNextEpisodes: GetNextEpisodes = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    private val removeHistory: RemoveHistory = Injekt.get(),
-    private val setAnimeCategories: SetAnimeCategories = Injekt.get(),
-    private val updateAnime: UpdateAnime = Injekt.get(),
-    val snackbarHostState: SnackbarHostState = SnackbarHostState(),
-    private val sourceManager: SourceManager = Injekt.get(),
-) : StateViewModel<HistoryViewModel.State>(State()) {
+    private val addTracks: AddTracks,
+    private val getCategories: GetCategories,
+    private val getDuplicateLibraryAnime: GetDuplicateLibraryAnime,
+    private val getHistory: GetHistory,
+    private val getAnime: GetAnime,
+    private val getNextEpisodes: GetNextEpisodes,
+    private val libraryPreferences: LibraryPreferences,
+    private val removeHistory: RemoveHistory,
+    private val setAnimeCategories: SetAnimeCategories,
+    private val updateAnime: UpdateAnime,
+    private val sourceManager: SourceManager,
+) : ViewModel() {
+
+    val snackbarHostState: SnackbarHostState = SnackbarHostState()
 
     private val _events: Channel<Event> = Channel(Channel.UNLIMITED)
     val events: Flow<Event> = _events.receiveAsFlow()
 
-    init {
-        viewModelScope.launch {
-            // AM (RECENTS_FILTER_CHIP) -->
-            state.map { it.searchQuery }
+    private val searchQuery = MutableStateFlow<String?>(null)
+
+    private val dialog = MutableStateFlow<Dialog?>(null)
+
+    private val history = searchQuery
+        .flatMapLatest { query ->
+            getHistory.subscribe(query ?: "")
                 .distinctUntilChanged()
-                .flatMapLatest { query ->
-                    getHistory.subscribe(query ?: "")
-                        .distinctUntilChanged()
-                        .catch { error ->
-                            logcat(LogPriority.ERROR, error)
-                            _events.send(Event.InternalError)
-                        }
-                        .map { it.toHistoryUiModels() }
-                        .flowOn(Dispatchers.IO)
+                .catch { error ->
+                    logcat(LogPriority.ERROR, error)
+                    _events.send(Event.InternalError)
                 }
-                .collect { newList -> mutableState.update { it.copy(list = newList) } }
-            // <-- AM (RECENTS_FILTER_CHIP)
+                .map { it.toHistoryUiModels() }
+                .flowOn(Dispatchers.IO)
         }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), emptyList())
+
+    val state: StateFlow<State> = combine(
+        searchQuery,
+        history,
+        dialog,
+    ) { searchQuery, history, dialog ->
+        State(searchQuery = searchQuery, list = history, dialog = dialog)
     }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5.seconds), State())
 
     private fun List<HistoryWithRelations>.toHistoryUiModels(): List<HistoryUiModel> {
         return map { HistoryUiModel.Item(it) }
@@ -129,14 +149,12 @@ class HistoryViewModel(
         }
     }
 
-    // AM (RECENTS_FILTER_CHIP) -->
     fun updateSearchQuery(query: String?) {
-        mutableState.update { it.copy(searchQuery = query) }
+        searchQuery.update { query }
     }
-    // <-- AM (RECENTS_FILTER_CHIP)
 
     fun setDialog(dialog: Dialog?) {
-        mutableState.update { it.copy(dialog = dialog) }
+        this.dialog.update { dialog }
     }
 
     /**
@@ -179,7 +197,7 @@ class HistoryViewModel(
 
             val duplicates = getDuplicateLibraryAnime(anime)
             if (duplicates.isNotEmpty()) {
-                mutableState.update { it.copy(dialog = Dialog.DuplicateAnime(anime, duplicates)) }
+                dialog.update { Dialog.DuplicateAnime(anime, duplicates) }
                 return@launchIO
             }
 
@@ -219,21 +237,17 @@ class HistoryViewModel(
     }
 
     fun showMigrateDialog(target: Anime, current: Anime) {
-        mutableState.update { currentState ->
-            currentState.copy(dialog = Dialog.Migrate(target = target, current = current))
-        }
+        dialog.update { Dialog.Migrate(target = target, current = current) }
     }
 
     fun showChangeCategoryDialog(anime: Anime) {
         viewModelScope.launch {
             val categories = getCategories()
             val selection = getAnimeCategoryIds(anime)
-            mutableState.update { currentState ->
-                currentState.copy(
-                    dialog = Dialog.ChangeCategory(
-                        anime = anime,
-                        initialSelection = categories.mapAsCheckboxState { it.id in selection },
-                    ),
+            dialog.update {
+                Dialog.ChangeCategory(
+                    anime = anime,
+                    initialSelection = categories.mapAsCheckboxState { it.id in selection },
                 )
             }
         }

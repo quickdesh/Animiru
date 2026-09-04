@@ -14,6 +14,7 @@ import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.network.POST
 import eu.kanade.tachiyomi.network.PUT
+import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.jsonMime
 import eu.kanade.tachiyomi.network.parseAs
@@ -27,12 +28,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.lang.withIOContext
-import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.track.model.Track as DomainTrack
 
 class HikkaApi(
     private val trackId: Long,
     private val client: OkHttpClient,
+    private val json: Json,
     interceptor: HikkaInterceptor,
 ) {
     suspend fun getCurrentUser(): HKUser {
@@ -115,6 +116,25 @@ class HikkaApi(
         }
     }
 
+    suspend fun getAnimeDetails(slug: String): TrackSearch? {
+        return withIOContext {
+            val url = "$BASE_API_URL/anime/$slug"
+
+            with(json) {
+                val response = authClient.newCall(GET(url))
+                    .await()
+
+                if (response.code == 404) {
+                    null
+                } else {
+                    response
+                        .parseAs<HKAnime>()
+                        .toTrack(trackId)
+                }
+            }
+        }
+    }
+
     suspend fun getAnime(track: Track): TrackSearch {
         return withIOContext {
             val slug = track.tracking_url.split("/")[4]
@@ -175,7 +195,6 @@ class HikkaApi(
 
     suspend fun updateUserAnime(track: Track): Track = addUserAnime(track)
 
-    private val json: Json by injectLazy()
     private val authClient = client.newBuilder().addInterceptor(interceptor).build()
 
     companion object {

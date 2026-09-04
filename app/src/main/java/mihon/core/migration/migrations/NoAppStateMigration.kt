@@ -1,19 +1,24 @@
 package mihon.core.migration.migrations
 
-import android.app.Application
+import android.content.Context
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import mihon.core.migration.Migration
 import mihon.core.migration.MigrationContext
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
 
-class NoAppStateMigration : Migration {
+@Inject
+@ContributesIntoSet(AppScope::class)
+class NoAppStateMigration(
+    private val context: Context,
+    private val preferenceStore: PreferenceStore,
+) : Migration {
     override val version = 113f
 
     // Don't include "app state" preferences in backups
     override suspend fun invoke(migrationContext: MigrationContext): Boolean {
-        val context = migrationContext.get<Application>() ?: return false
-        val preferenceStore = migrationContext.get<PreferenceStore>() ?: return false
-
         val prefsToReplace = listOf(
             "pref_download_only",
             "incognito_mode",

@@ -6,6 +6,7 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.bangumi.dto.BGMCollectionResponse
 import eu.kanade.tachiyomi.data.track.bangumi.dto.BGMOAuth
 import eu.kanade.tachiyomi.data.track.bangumi.dto.BGMSearchResult
+import eu.kanade.tachiyomi.data.track.bangumi.dto.BGMSubject
 import eu.kanade.tachiyomi.data.track.bangumi.dto.BGMUser
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.network.GET
@@ -26,15 +27,13 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import tachiyomi.core.common.util.lang.withIOContext
-import uy.kohesive.injekt.injectLazy
 
 class BangumiApi(
     private val trackId: Long,
     private val client: OkHttpClient,
+    private val json: Json,
     interceptor: BangumiInterceptor,
 ) {
-
-    private val json: Json by injectLazy()
 
     private val authClient = client.newBuilder().addInterceptor(interceptor).build()
 
@@ -105,6 +104,20 @@ class BangumiApi(
                     .parseAs<BGMSearchResult>()
                     .data
                     .map { it.toTrackSearch(trackId) }
+            }
+        }
+    }
+
+    suspend fun getAnimeDetails(id: Int): TrackSearch? {
+        return withIOContext {
+            val url = "$API_URL/v0/subjects/$id"
+
+            with(json) {
+                authClient.newCall(GET(url, headers = headersOf("Content-Type", APP_JSON)))
+                    .awaitSuccess()
+                    .parseAs<BGMSubject>()
+                    .takeIf { it.platform == null }
+                    ?.toTrackSearch(trackId)
             }
         }
     }

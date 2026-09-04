@@ -2,7 +2,7 @@ package tachiyomi.domain.history.model
 
 import tachiyomi.domain.anime.interactor.GetCustomAnimeInfo
 import tachiyomi.domain.anime.model.AnimeCover
-import uy.kohesive.injekt.injectLazy
+import tachiyomi.domain.anime.model.CustomAnimeInfoHolder
 import java.util.Date
 
 data class HistoryWithRelations(
@@ -17,10 +17,12 @@ data class HistoryWithRelations(
     val coverData: AnimeCover,
 ) {
     // AM (CUSTOM_INFORMATION) -->
-    val title: String = customAnimeManager.get(animeId)?.title ?: ogTitle
+    val title: String = getCustomAnimeInfo.get(animeId)?.title ?: ogTitle
 
     companion object {
-        private val customAnimeManager: GetCustomAnimeInfo by injectLazy()
+        private val getCustomAnimeInfo: GetCustomAnimeInfo by lazy {
+            CustomAnimeInfoHolder.getCustomAnimeInfo
+        }
     }
     // <-- AM (CUSTOM_INFORMATION)
 }

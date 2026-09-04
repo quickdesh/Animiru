@@ -5,6 +5,7 @@ plugins {
     alias(mihonx.plugins.spotless)
     alias(mihonx.plugins.compose)
 
+    alias(libs.plugins.metro)
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -28,6 +29,7 @@ android {
 dependencies {
     implementation(projects.domain)
     implementation(projects.core.common)
+    implementation(projects.core.metro)
     implementation(projects.presentationCore)
     implementation(projects.sourceApi)
     implementation(projects.i18nAnimiru)

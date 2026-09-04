@@ -1,6 +1,10 @@
 package tachiyomi.cast
 
 import android.content.Context
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.animesource.model.Video
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,6 +12,9 @@ import tachiyomi.cast.domain.CodecInformation
 import tachiyomi.cast.domain.TrackInformation
 import tachiyomi.domain.anime.model.Anime
 
+@Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class CastManagerImpl : CastManager {
 
     override val castState = MutableStateFlow(CastState())

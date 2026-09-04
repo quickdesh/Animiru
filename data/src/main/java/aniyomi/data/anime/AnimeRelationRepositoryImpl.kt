@@ -3,12 +3,19 @@ package aniyomi.data.anime
 import aniyomi.domain.anime.model.AnimeRelationGroup
 import aniyomi.domain.anime.repository.AnimeRelationRepository
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import tachiyomi.data.Database
 import tachiyomi.data.anime.AnimeMapper
 import tachiyomi.data.subscribeToList
 
+@Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class AnimeRelationRepositoryImpl(
     private val database: Database,
 ) : AnimeRelationRepository {
