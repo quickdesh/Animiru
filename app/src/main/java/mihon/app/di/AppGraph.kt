@@ -7,6 +7,7 @@ import animiru.domain.player.service.DecoderPreferences
 import animiru.domain.player.service.GesturePreferences
 import animiru.domain.player.service.PlayerPreferences
 import animiru.domain.player.service.SubtitlePreferences
+import animiru.domain.torrent.service.TorrentUtilsImpl
 import animiru.feature.cast.CastProxyServerService
 import aniyomi.core.common.torrent.TorrentPreferences
 import aniyomi.core.common.torrent.TorrentServerApi
@@ -162,6 +163,7 @@ interface AppGraph : ViewModelGraph {
     val downloadProvider: DownloadProvider
     val googleDriveService: GoogleDriveService
     val torrentServerApi: TorrentServerApi
+    val torrentUtilsImpl: TorrentUtilsImpl
     val getAnime: GetAnime
     val externalIntents: ExternalIntents
     val brightnessManager: BrightnessManager

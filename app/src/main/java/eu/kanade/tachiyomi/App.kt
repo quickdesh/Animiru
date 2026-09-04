@@ -15,6 +15,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import animiru.domain.player.service.PlayerPreferences
+import animiru.domain.torrent.service.TorrentUtilsHolder
+import animiru.domain.torrent.service.TorrentUtilsImpl
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.memory.MemoryCache
@@ -129,6 +131,9 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         }
 
         graph.inject(this)
+        // AM -->
+        TorrentUtilsHolder.init(graph.torrentUtilsImpl)
+        // <-- AM
         // AM (CUSTOM_INFORMATION) -->
         CustomAnimeInfoHolder.init(graph.getCustomAnimeInfo)
         // <-- AM (CUSTOM_INFORMATION)

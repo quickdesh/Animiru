@@ -3,6 +3,9 @@ plugins {
     alias(mihonx.plugins.spotless)
 
     alias(libs.plugins.kotlin.serialization)
+    // AM -->
+    alias(libs.plugins.metro)
+    // <-- AM
 }
 
 android {
@@ -24,6 +27,9 @@ dependencies {
     api(aniyomilibs.nanohttpd)
     // <-- AY
 
+    // AM -->
+    implementation(libs.metro.runtime)
+    // <-- AM
     implementation(libs.androidx.preference)
 
     implementation(platform(libs.androidx.compose.bom))
