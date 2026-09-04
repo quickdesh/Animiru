@@ -139,6 +139,7 @@ fun NavigationPill(
                         },
                     )
                 },
+            color = MaterialTheme.colorScheme.surfaceContainer,
             tonalElevation = 1.4.dp,
         ) {
             val cornerAnimationSpec: FiniteAnimationSpec<CornerSizes> = tween(durationMillis = labelFade * 2)
