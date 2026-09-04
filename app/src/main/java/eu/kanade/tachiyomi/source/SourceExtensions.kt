@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.source
 
 import android.content.Context
 import eu.kanade.tachiyomi.animesource.AnimeSource
+import kotlinx.coroutines.flow.first
 import mihon.app.di.appGraph
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.source.local.isLocal
@@ -26,18 +27,18 @@ fun AnimeSource.getNameForAnimeInfo(): String {
 fun AnimeSource.isLocalOrStub(): Boolean = isLocal() || this is StubSource
 
 // AM (DISCORD_RPC) -->
-fun AnimeSource?.isNsfw(): Boolean {
+suspend fun AnimeSource?.isNsfw(): Boolean {
     if (this == null || this.isLocalOrStub()) return false
-    val sourceUsed = Injekt.get<Context>().appGraph.extensionManager.installedExtensionsFlow.value
+    val sourceUsed = Injekt.get<Context>().appGraph.extensionManager.installedExtensionsFlow.first()
         .find { ext -> ext.sources.any { it.id == this.id } }!!
     return sourceUsed.isNsfw
 }
 // <-- AM (DISCORD_RPC)
 
 // AY -->
-fun AnimeSource?.isSourceForTorrents(): Boolean {
+suspend fun AnimeSource?.isSourceForTorrents(): Boolean {
     if (this == null || this.isLocalOrStub()) return false
-    val sourceUsed = Injekt.get<Context>().appGraph.extensionManager.installedExtensionsFlow.value
+    val sourceUsed = Injekt.get<Context>().appGraph.extensionManager.installedExtensionsFlow.first()
         .find { ext -> ext.sources.any { it.id == this.id } }!!
     return sourceUsed.isTorrent
 }
