@@ -45,7 +45,7 @@ class BackupRestoreJob(private val context: Context, workerParams: WorkerParamet
         if (uri == null || options == null) {
             return Result.failure()
         }
-        6
+        
         val isSync = inputData.getBoolean(SYNC_KEY, false)
 
         setForegroundSafely()
