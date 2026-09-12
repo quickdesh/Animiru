@@ -1,6 +1,8 @@
 package eu.kanade.tachiyomi.ui.player.loader
 
+import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.Hoster
 import eu.kanade.tachiyomi.animesource.model.Video
@@ -15,6 +17,7 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
 
 @Inject
+@SingleIn(AppScope::class)
 class HosterLoader(
     private val episodeLoader: EpisodeLoader,
 ) {

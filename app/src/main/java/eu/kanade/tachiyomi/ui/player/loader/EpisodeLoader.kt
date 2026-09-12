@@ -1,6 +1,8 @@
 package eu.kanade.tachiyomi.ui.player.loader
 
+import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import eu.kanade.domain.episode.model.toSEpisode
 import eu.kanade.tachiyomi.animesource.AnimeSource
 import eu.kanade.tachiyomi.animesource.model.Hoster
@@ -21,6 +23,7 @@ import tachiyomi.source.local.io.LocalSourceFileSystem
  * Loader used to retrieve the hosters for a given episode.
  */
 @Inject
+@SingleIn(AppScope::class)
 class EpisodeLoader(
     private val downloadManager: DownloadManager,
     private val fileSystem: LocalSourceFileSystem,
