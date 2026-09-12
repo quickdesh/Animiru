@@ -22,6 +22,7 @@ import eu.kanade.tachiyomi.data.backup.restore.restorers.ExtensionsRestorer
 import eu.kanade.tachiyomi.data.backup.restore.restorers.PreferenceRestorer
 import eu.kanade.tachiyomi.data.download.DownloadCache
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
@@ -134,17 +135,27 @@ class BackupRestorer(
         // <-- AY
 
         coroutineScope {
-            if (options.categories) {
+            val restoreCategoriesJob = if (options.categories) {
                 restoreCategories(backup.backupCategories)
+            } else {
+                null
             }
             if (options.appSettings) {
-                restoreAppPreferences(backup.backupPreferences, backup.backupCategories.takeIf { options.categories })
+                restoreAppPreferences(
+                    backup.backupPreferences,
+                    backup.backupCategories.takeIf { options.categories },
+                    restoreCategoriesJob,
+                )
             }
             if (options.sourceSettings) {
                 restoreSourcePreferences(backup.backupSourcePreferences)
             }
             if (options.libraryEntries) {
-                restoreAnime(backup.backupAnime, if (options.categories) backup.backupCategories else emptyList())
+                restoreAnime(
+                    backup.backupAnime,
+                    if (options.categories) backup.backupCategories else emptyList(),
+                    restoreCategoriesJob,
+                )
             }
             if (options.extensionStores) {
                 restoreExtensionStores(backup.backupExtensionStores)
@@ -178,7 +189,9 @@ class BackupRestorer(
     private fun CoroutineScope.restoreAnime(
         backupAnimes: List<BackupAnime>,
         backupCategories: List<BackupCategory>,
+        categoriesRestoreJob: Job?,
     ) = launch {
+        categoriesRestoreJob?.join()
         animeRestorer.sortByNew(backupAnimes)
             .chunked(100)
             .forEach { chunk ->
@@ -233,7 +246,9 @@ class BackupRestorer(
     private fun CoroutineScope.restoreAppPreferences(
         preferences: List<BackupPreference>,
         categories: List<BackupCategory>?,
+        categoriesRestoreJob: Job?,
     ) = launch {
+        categoriesRestoreJob?.join()
         ensureActive()
         preferenceRestorer.restoreApp(
             preferences,
