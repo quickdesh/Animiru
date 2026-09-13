@@ -408,6 +408,7 @@ class CastManagerImpl(
 
         override fun onSessionStartFailed(session: CastSession, error: Int) {
             logcat(LogPriority.ERROR) { "Cast session failed: $error" }
+            resetCastState()
             scope.launch {
                 _castEvent.emit(CastEvent.ConnectionError)
             }
@@ -418,6 +419,7 @@ class CastManagerImpl(
 
         override fun onSessionEnded(session: CastSession, error: Int) {
             val state = castState.value
+            resetCastState()
             removeListeners()
 
             scope.launch {
@@ -474,5 +476,9 @@ class CastManagerImpl(
         override fun onStatusUpdated() {
             updateStatusFromRemote()
         }
+    }
+
+    private fun resetCastState() {
+        _castState.update { _ -> CastState() }
     }
 }
