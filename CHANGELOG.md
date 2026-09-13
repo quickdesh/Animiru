@@ -18,12 +18,17 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 ### Improved
 - Don't toggle controls visibility when double tap seeking ([@Secozzi](https://github.com/Secozzi)) ([#199](https://github.com/quickdesh/Animiru/pull/199))
 - Brightness can be changed from quick settings before any drag gestures ([@Secozzi](https://github.com/Secozzi)) ([#199](https://github.com/quickdesh/Animiru/pull/199))
+- Set navigation bar background same as system navigation ([@Secozzi](https://github.com/Secozzi)) ([#208](https://github.com/quickdesh/Animiru/pull/208))
+- Add support for jellyfin 12.0 ([@Secozzi](https://github.com/Secozzi)) ([#208](https://github.com/quickdesh/Animiru/pull/208))
+- Show a helpful error message for expired AniList credentials ([@Secozzi](https://github.com/Secozzi)) ([#208](https://github.com/quickdesh/Animiru/pull/208))
 
 ### Fixed
 - Fix discord rpc ([@Secozzi](https://github.com/Secozzi)) ([#196](https://github.com/quickdesh/Animiru/pull/196))
 - Fix search intent using manga instead of anime ([@Secozzi](https://github.com/Secozzi)) ([#197](https://github.com/quickdesh/Animiru/pull/197))
 - Fix simkl not fetching last watched time ([@Secozzi](https://github.com/Secozzi)) ([#198](https://github.com/quickdesh/Animiru/pull/198))
 - Fix track sync breaking if source isn't loaded ([@Secozzi](https://github.com/Secozzi)) ([#199](https://github.com/quickdesh/Animiru/pull/199))
+- Fixed default category and anime sometimes not getting their category set when restoring a backup ([@Secozzi](https://github.com/Secozzi)) ([#208](https://github.com/quickdesh/Animiru/pull/208))
+- Fixed AniList rate limit ([@Secozzi](https://github.com/Secozzi)) ([#208](https://github.com/quickdesh/Animiru/pull/208))
 
 ### Other
 - Merge from aniyomi ([@Secozzi](https://github.com/Secozzi)) ([#191](https://github.com/quickdesh/Animiru/pull/191), [#200](https://github.com/quickdesh/Animiru/pull/200))
