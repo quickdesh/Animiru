@@ -108,10 +108,17 @@ fun EpisodeListItem(
             )
         }
 
-        Spacer(modifier = Modifier.width(2.dp))
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val enableAniZip = remember {
+            try {
+                mihon.app.di.appGraph(context).trackPreferences.enableAniZip.get()
+            } catch (_: Throwable) {
+                true
+            }
+        }
 
         Column {
-            val anizipTitle = episode.memo["anizip_title"]?.jsonPrimitive?.contentOrNull
+            val anizipTitle = if (enableAniZip) episode.memo["anizip_title"]?.jsonPrimitive?.contentOrNull else null
             val displayTitle = if (!anizipTitle.isNullOrBlank() && !title.contains(anizipTitle, ignoreCase = true)) {
                 "$title - $anizipTitle"
             } else {
@@ -132,7 +139,7 @@ fun EpisodeListItem(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                val rating = episode.memo["rating"]?.jsonPrimitive?.contentOrNull
+                val rating = if (enableAniZip) episode.memo["rating"]?.jsonPrimitive?.contentOrNull else null
                 if (!rating.isNullOrBlank()) {
                     Text(
                         text = "★ $rating",
