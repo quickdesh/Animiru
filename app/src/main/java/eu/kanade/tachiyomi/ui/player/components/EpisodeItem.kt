@@ -111,8 +111,14 @@ fun EpisodeListItem(
         Spacer(modifier = Modifier.width(2.dp))
 
         Column {
+            val anizipTitle = episode.memo["anizip_title"]?.jsonPrimitive?.contentOrNull
+            val displayTitle = if (!anizipTitle.isNullOrBlank() && !title.contains(anizipTitle, ignoreCase = true)) {
+                "$title - $anizipTitle"
+            } else {
+                title
+            }
             Text(
-                text = title,
+                text = displayTitle,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
