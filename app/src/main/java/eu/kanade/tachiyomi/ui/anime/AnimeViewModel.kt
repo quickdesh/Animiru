@@ -501,6 +501,12 @@ class AnimeViewModel(
                             fetchEpisodesFromSeasons(update.newSeasons, manualFetch)
                         }
                         enrichEpisodesWithAniZip.await(state.anime.id)
+                        state.seasons.forEach { season ->
+                            enrichEpisodesWithAniZip.await(
+                                animeId = season.seasonAnime.id,
+                                fallbackTrackAnimeId = state.anime.id,
+                            )
+                        }
                     }
                 }
             }
@@ -909,6 +915,7 @@ class AnimeViewModel(
                         fetchEpisodes = true,
                         manualFetch = manualFetch,
                     )
+                    enrichEpisodesWithAniZip.await(animeId = s.id, fallbackTrackAnimeId = state.anime.id)
                 } catch (e: Throwable) {
                     logcat(LogPriority.ERROR, e)
                 }
@@ -1823,6 +1830,15 @@ class AnimeViewModel(
                 .collectLatest { tracks ->
                     if (tracks.any { it.trackerId == TrackerManager.ANILIST || it.trackerId == 1L }) {
                         enrichEpisodesWithAniZip.await(anime.id)
+                        val currentState = successState
+                        if (currentState != null && currentState.anime.fetchType == FetchType.Seasons) {
+                            currentState.seasons.forEach { season ->
+                                enrichEpisodesWithAniZip.await(
+                                    animeId = season.seasonAnime.id,
+                                    fallbackTrackAnimeId = anime.id,
+                                )
+                            }
+                        }
                     }
                 }
         }
