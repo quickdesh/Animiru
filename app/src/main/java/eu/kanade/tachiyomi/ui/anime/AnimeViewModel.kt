@@ -36,6 +36,7 @@ import eu.kanade.domain.anime.model.seasonDownloadedFilter
 import eu.kanade.domain.anime.model.seasonsFiltered
 import eu.kanade.domain.anime.model.toSAnime
 import eu.kanade.domain.episode.interactor.EnrichEpisodesWithAniZip
+import eu.kanade.tachiyomi.data.anizip.model.AniZipEpisodeMeta
 import eu.kanade.domain.episode.interactor.GetAvailableScanlators
 import eu.kanade.domain.episode.interactor.SetSeenStatus
 import eu.kanade.domain.source.service.SourcePreferences
@@ -237,10 +238,13 @@ class AnimeViewModel(
 
     // AY -->
     val showNextEpisodeAirTime = trackPreferences.showNextEpisodeAiringTime.get()
+    val enableAniZip = trackPreferences.enableAniZip.get()
     val alwaysUseExternalPlayer = playerPreferences.alwaysUseExternalPlayer.get()
     val useExternalDownloader = downloadPreferences.useExternalDownloader.get()
 
     val relatedAnimeDisplayMode = sourcePreferences.sourceDisplayMode.get()
+
+    private val aniZipMetaMap = MutableStateFlow<Map<Long, AniZipEpisodeMeta>>(emptyMap())
 
     internal var isFromChangeCategory: Boolean = false
 
@@ -270,18 +274,18 @@ class AnimeViewModel(
                 getAnimeAndEpisodesAndSeasons.subscribe(animeId, applyScanlatorFilter = true).distinctUntilChanged(),
                 downloadCache.changes,
                 downloadManager.queueState,
-            ) { animeAndEpisodesAndSeasons, _, _ -> animeAndEpisodesAndSeasons }
-                .collectLatest { (anime, episodes, seasons) ->
-                    updateSuccessState {
-                        it.copy(
-                            anime = anime,
-                            episodes = episodes.toEpisodeListItems(anime),
-                            // AY -->
-                            seasons = seasons.toAnimeSeasonItems(),
-                            // <-- AY
-                        )
-                    }
+                aniZipMetaMap,
+            ) { (anime, episodes, seasons), _, _, aniZipMeta ->
+                updateSuccessState {
+                    it.copy(
+                        anime = anime,
+                        episodes = episodes.toEpisodeListItems(anime, aniZipMeta),
+                        // AY -->
+                        seasons = seasons.toAnimeSeasonItems(),
+                        // <-- AY
+                    )
                 }
+            }.collectLatest {}
         }
 
         viewModelScope.launchIO {
@@ -485,7 +489,12 @@ class AnimeViewModel(
                         if (manualFetch) {
                             downloadNewEpisodes(update.newEpisodes)
                         }
-                        enrichEpisodesWithAniZip.await(state.anime.id)
+                        if (enableAniZip) {
+                            val meta = enrichEpisodesWithAniZip.await(state.anime.id)
+                            if (meta.isNotEmpty()) {
+                                aniZipMetaMap.value = meta
+                            }
+                        }
                     }
                     FetchType.Seasons -> {
                         val update = updateAnimeFromRemote.awaitSeasonsUpdate(
@@ -500,12 +509,11 @@ class AnimeViewModel(
                         if (libraryPreferences.updateSeasonOnRefresh.get()) {
                             fetchEpisodesFromSeasons(update.newSeasons, manualFetch)
                         }
-                        enrichEpisodesWithAniZip.await(state.anime.id)
-                        state.seasons.forEach { season ->
-                            enrichEpisodesWithAniZip.await(
-                                animeId = season.seasonAnime.id,
-                                fallbackTrackAnimeId = state.anime.id,
-                            )
+                        if (enableAniZip) {
+                            val meta = enrichEpisodesWithAniZip.await(state.anime.id)
+                            if (meta.isNotEmpty()) {
+                                aniZipMetaMap.value = meta
+                            }
                         }
                     }
                 }
@@ -836,7 +844,10 @@ class AnimeViewModel(
         }
     }
 
-    private fun List<Episode>.toEpisodeListItems(anime: Anime): List<EpisodeList.Item> {
+    private fun List<Episode>.toEpisodeListItems(
+        anime: Anime,
+        aniZipMeta: Map<Long, AniZipEpisodeMeta> = aniZipMetaMap.value,
+    ): List<EpisodeList.Item> {
         val isLocal = anime.isLocal()
         return map { episode ->
             val activeDownload = if (isLocal) {
@@ -868,6 +879,7 @@ class AnimeViewModel(
                 downloadState = downloadState,
                 downloadProgress = activeDownload?.progress ?: 0,
                 selected = episode.id in selectedEpisodeIds,
+                aniZipMeta = if (enableAniZip) aniZipMeta[episode.id] else null,
             )
         }
     }
@@ -915,7 +927,6 @@ class AnimeViewModel(
                         fetchEpisodes = true,
                         manualFetch = manualFetch,
                     )
-                    enrichEpisodesWithAniZip.await(animeId = s.id, fallbackTrackAnimeId = state.anime.id)
                 } catch (e: Throwable) {
                     logcat(LogPriority.ERROR, e)
                 }
@@ -1828,16 +1839,10 @@ class AnimeViewModel(
                 .catch { logcat(LogPriority.ERROR, it) }
                 .distinctUntilChanged()
                 .collectLatest { tracks ->
-                    if (tracks.any { it.trackerId == TrackerManager.ANILIST || it.trackerId == 1L }) {
-                        enrichEpisodesWithAniZip.await(anime.id)
-                        val currentState = successState
-                        if (currentState != null && currentState.anime.fetchType == FetchType.Seasons) {
-                            currentState.seasons.forEach { season ->
-                                enrichEpisodesWithAniZip.await(
-                                    animeId = season.seasonAnime.id,
-                                    fallbackTrackAnimeId = anime.id,
-                                )
-                            }
+                    if (enableAniZip && tracks.any { it.trackerId == TrackerManager.ANILIST || it.trackerId == 1L }) {
+                        val meta = enrichEpisodesWithAniZip.await(anime.id, fallbackTrackAnimeId = anime.parentId)
+                        if (meta.isNotEmpty()) {
+                            aniZipMetaMap.value = meta
                         }
                     }
                 }
@@ -2134,6 +2139,9 @@ sealed class EpisodeList {
         var fileSize: Long? = null,
         // <-- AM (FILE_SIZE)
         val selected: Boolean = false,
+        // AY -->
+        val aniZipMeta: AniZipEpisodeMeta? = null,
+        // <-- AY
     ) : EpisodeList() {
         val id = episode.id
         val isDownloaded = downloadState == Download.State.DOWNLOADED
