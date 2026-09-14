@@ -11,6 +11,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Other` - for technical stuff.
 
 ## [Unreleased]
+### Fixed
+- Fixed per-category sorting mode ([@Secozzi](https://github.com/Secozzi)) ([#209](https://github.com/quickdesh/Animiru/pull/209))
 
 ## [v0.20.0.0] - 2026-09-14
 ### Added

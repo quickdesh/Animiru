@@ -191,7 +191,7 @@ class LibraryViewModel(
                         favoritesById = data.favoritesById,
                         trackMap = data.tracksMap,
                         loggedInTrackerIds = data.loggedInTrackerIds,
-                        groupSort = group.second,
+                        groupSort = group.second.takeIf { group.first != LibraryGroup.BY_DEFAULT },
                     ),
                 // <-- AM (GROUPING)
             )
