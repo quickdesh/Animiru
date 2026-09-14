@@ -1,8 +1,8 @@
 package eu.kanade.domain.episode.interactor
 
 import dev.zacsweers.metro.Inject
+import eu.kanade.domain.track.service.TrackPreferences
 import eu.kanade.tachiyomi.data.anizip.AniZipService
-import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -11,7 +11,6 @@ import kotlinx.serialization.json.put
 import logcat.LogPriority
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.anime.interactor.GetAnime
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
 import tachiyomi.domain.episode.interactor.UpdateEpisode
 import tachiyomi.domain.episode.model.EpisodeUpdate
@@ -23,10 +22,11 @@ class EnrichEpisodesWithAniZip(
     private val getTracks: GetTracks,
     private val getEpisodesByAnimeId: GetEpisodesByAnimeId,
     private val updateEpisode: UpdateEpisode,
-    private val getAnime: GetAnime,
-    private val downloadManager: DownloadManager,
+    private val trackPreferences: TrackPreferences,
 ) {
     suspend fun await(animeId: Long, fallbackTrackAnimeId: Long? = null) = withIOContext {
+        if (!trackPreferences.enableAniZip.get()) return@withIOContext
+
         try {
             val tracks = getTracks.await(animeId).ifEmpty {
                 fallbackTrackAnimeId?.let { getTracks.await(it) }.orEmpty()
@@ -50,7 +50,6 @@ class EnrichEpisodesWithAniZip(
             val episodes = getEpisodesByAnimeId.await(animeId)
             if (episodes.isEmpty()) return@withIOContext
 
-            val anime = getAnime.await(animeId)
             val updates = mutableListOf<EpisodeUpdate>()
 
             for (episode in episodes) {
@@ -58,52 +57,30 @@ class EnrichEpisodesWithAniZip(
                     ?: continue
 
                 var changed = false
-                var newName = episode.name
                 var newPreviewUrl = episode.previewUrl
                 var newSummary = episode.summary
                 var newDateUpload = episode.dateUpload
 
-                // Check download status to avoid altering persisted name of downloaded episodes
-                val isDownloaded = if (anime != null) {
-                    downloadManager.isEpisodeDownloaded(
-                        episode.name,
-                        episode.scanlator,
-                        episode.url,
-                        anime.ogTitle,
-                        anime.source,
-                    )
-                } else {
-                    false
-                }
-
-                // 1. Title enrichment
-                val metaTitle = meta.title
-                if (!metaTitle.isNullOrBlank()) {
-                    if (!isDownloaded && !episode.name.contains(metaTitle, ignoreCase = true)) {
-                        newName = "${episode.name} - $metaTitle"
-                        changed = true
-                    }
-                }
-
-                // 2. Thumbnail / Preview URL
+                // 1. Thumbnail / Preview URL
                 if (newPreviewUrl.isNullOrBlank() && !meta.image.isNullOrBlank()) {
                     newPreviewUrl = meta.image
                     changed = true
                 }
 
-                // 3. Summary / Overview
+                // 2. Summary / Overview
                 if (newSummary.isNullOrBlank() && !meta.overview.isNullOrBlank()) {
                     newSummary = meta.overview
                     changed = true
                 }
 
-                // 4. Air Date (if not set on episode)
+                // 3. Air Date (if not set on episode)
                 if (newDateUpload <= 0L && meta.airDateMillis != null && meta.airDateMillis > 0L) {
                     newDateUpload = meta.airDateMillis
                     changed = true
                 }
 
-                // 5. Rating and extra info in memo
+                // 4. Rating and extra info in memo (including localized title)
+                val metaTitle = meta.title
                 val currentRating = episode.memo["rating"]?.jsonPrimitive?.contentOrNull
                 val currentAirDate = episode.memo["airDate"]?.jsonPrimitive?.contentOrNull
                 val currentTitle = episode.memo["anizip_title"]?.jsonPrimitive?.contentOrNull
@@ -128,7 +105,6 @@ class EnrichEpisodesWithAniZip(
                     updates.add(
                         EpisodeUpdate(
                             id = episode.id,
-                            name = newName,
                             previewUrl = newPreviewUrl,
                             summary = newSummary,
                             dateUpload = newDateUpload,
