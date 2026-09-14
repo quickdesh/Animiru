@@ -35,6 +35,7 @@ import eu.kanade.domain.anime.model.episodesFiltered
 import eu.kanade.domain.anime.model.seasonDownloadedFilter
 import eu.kanade.domain.anime.model.seasonsFiltered
 import eu.kanade.domain.anime.model.toSAnime
+import eu.kanade.domain.episode.interactor.EnrichEpisodesWithAniZip
 import eu.kanade.domain.episode.interactor.GetAvailableScanlators
 import eu.kanade.domain.episode.interactor.SetSeenStatus
 import eu.kanade.domain.source.service.SourcePreferences
@@ -191,6 +192,7 @@ class AnimeViewModel(
     // AM (CUSTOM_INFORMATION) -->
     private val setCustomAnimeInfo: SetCustomAnimeInfo,
     // <-- AM (CUSTOM_INFORMATION)
+    private val enrichEpisodesWithAniZip: EnrichEpisodesWithAniZip,
 ) : ViewModel() {
 
     val state: StateFlow<AnimeViewModel.State>
@@ -483,6 +485,7 @@ class AnimeViewModel(
                         if (manualFetch) {
                             downloadNewEpisodes(update.newEpisodes)
                         }
+                        enrichEpisodesWithAniZip.await(state.anime.id)
                     }
                     FetchType.Seasons -> {
                         val update = updateAnimeFromRemote.awaitSeasonsUpdate(
@@ -497,6 +500,7 @@ class AnimeViewModel(
                         if (libraryPreferences.updateSeasonOnRefresh.get()) {
                             fetchEpisodesFromSeasons(update.newSeasons, manualFetch)
                         }
+                        enrichEpisodesWithAniZip.await(state.anime.id)
                     }
                 }
             }
@@ -1809,6 +1813,17 @@ class AnimeViewModel(
                 .distinctUntilChanged()
                 .collectLatest { trackItems ->
                     updateAiringTime(anime, trackItems, manualFetch = false)
+                }
+        }
+
+        viewModelScope.launchIO {
+            getTracks.subscribe(anime.id)
+                .catch { logcat(LogPriority.ERROR, it) }
+                .distinctUntilChanged()
+                .collectLatest { tracks ->
+                    if (tracks.any { it.trackerId == TrackerManager.ANILIST || it.trackerId == 1L }) {
+                        enrichEpisodesWithAniZip.await(anime.id)
+                    }
                 }
         }
         // <-- AY
