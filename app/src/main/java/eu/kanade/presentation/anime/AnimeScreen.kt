@@ -1230,6 +1230,8 @@ private fun LazyGridScope.sharedEpisodeItems(
         val context = LocalContext.current
         val haptic = LocalHapticFeedback.current
         val downloadProvider = remember { context.appGraph.downloadProvider }
+        val trackPreferences = remember { context.appGraph.trackPreferences }
+        val enableAniZip = remember { trackPreferences.enableAniZip.get() }
 
         when (item) {
             is EpisodeList.MissingCount -> {
@@ -1268,7 +1270,7 @@ private fun LazyGridScope.sharedEpisodeItems(
                             formatEpisodeNumber(item.episode.episodeNumber),
                         )
                     } else {
-                        val anizipTitle = item.episode.memo["anizip_title"]?.jsonPrimitive?.contentOrNull
+                        val anizipTitle = if (enableAniZip) item.episode.memo["anizip_title"]?.jsonPrimitive?.contentOrNull else null
                         if (!anizipTitle.isNullOrBlank() && !item.episode.name.contains(anizipTitle, ignoreCase = true)) {
                             "${item.episode.name} - $anizipTitle"
                         } else {
@@ -1291,7 +1293,7 @@ private fun LazyGridScope.sharedEpisodeItems(
                     // AY -->
                     summary = item.episode.summary.takeIf { !it.isNullOrBlank() && showSummaries },
                     previewUrl = item.episode.previewUrl.takeIf { !it.isNullOrBlank() && showPreviews },
-                    rating = item.episode.memo["rating"]?.jsonPrimitive?.contentOrNull,
+                    rating = if (enableAniZip) item.episode.memo["rating"]?.jsonPrimitive?.contentOrNull else null,
                     // <-- AY
                     seen = item.episode.seen,
                     bookmark = item.episode.bookmark,
