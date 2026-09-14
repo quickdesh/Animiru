@@ -145,17 +145,10 @@ class SyncEpisodesWithSource(
                     } else {
                         dbEpisode.memo
                     }
-
-                    val anizipTitle = dbEpisode.memo["anizip_title"]?.jsonPrimitive?.contentOrNull
-                    val enrichedName = if (!anizipTitle.isNullOrBlank() && !episode.name.contains(anizipTitle, ignoreCase = true)) {
-                        "${episode.name} - $anizipTitle"
-                    } else {
-                        episode.name
-                    }
                     // <-- AY
 
                     var toChangeEpisode = dbEpisode.copy(
-                        name = enrichedName,
+                        name = episode.name,
                         episodeNumber = episode.episodeNumber,
                         scanlator = episode.scanlator,
                         // AY -->
