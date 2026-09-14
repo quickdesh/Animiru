@@ -74,31 +74,19 @@ data class AniZipImage(
 
 @Serializable
 data class AniZipMappings(
-    @SerialName("animeplanet_id") val animeplanetId: JsonElement? = null,
-    @SerialName("kitsu_id") val kitsuId: JsonElement? = null,
-    @SerialName("mal_id") val malId: JsonElement? = null,
+    @SerialName("animeplanet_id") val animeplanetId: String? = null,
+    @SerialName("kitsu_id") val kitsuId: Long? = null,
+    @SerialName("mal_id") val malId: Long? = null,
     @SerialName("type") val type: String? = null,
-    @SerialName("anilist_id") val anilistId: JsonElement? = null,
-    @SerialName("anisearch_id") val anisearchId: JsonElement? = null,
-    @SerialName("anidb_id") val anidbId: JsonElement? = null,
-    @SerialName("notifymoe_id") val notifymoeId: JsonElement? = null,
-    @SerialName("livechart_id") val livechartId: JsonElement? = null,
-    @SerialName("thetvdb_id") val tvdbId: JsonElement? = null,
-    @SerialName("imdb_id") val imdbId: JsonElement? = null,
-    @SerialName("themoviedb_id") val tmdbId: JsonElement? = null,
-) {
-    val anilistIdLong: Long?
-        get() = (anilistId as? JsonPrimitive)?.contentOrNull?.toLongOrNull()
-
-    val malIdLong: Long?
-        get() = (malId as? JsonPrimitive)?.contentOrNull?.toLongOrNull()
-
-    val imdbIdString: String?
-        get() = (imdbId as? JsonPrimitive)?.contentOrNull
-
-    val tmdbIdString: String?
-        get() = (tmdbId as? JsonPrimitive)?.contentOrNull
-}
+    @SerialName("anilist_id") val anilistId: Long? = null,
+    @SerialName("anisearch_id") val anisearchId: Long? = null,
+    @SerialName("anidb_id") val anidbId: Long? = null,
+    @SerialName("notifymoe_id") val notifymoeId: String? = null,
+    @SerialName("livechart_id") val livechartId: Long? = null,
+    @SerialName("thetvdb_id") val tvdbId: Long? = null,
+    @SerialName("imdb_id") val imdbId: String? = null,
+    @SerialName("themoviedb_id") val tmdbId: String? = null,
+)
 
 data class AniZipEpisodeMeta(
     val episodeNumber: String,
