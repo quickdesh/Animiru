@@ -14,6 +14,10 @@ import eu.kanade.tachiyomi.data.download.DownloadProvider
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import tachiyomi.data.episode.EpisodeSanitizer
 import tachiyomi.domain.anime.model.Anime
 import tachiyomi.domain.episode.interactor.GetEpisodesByAnimeId
@@ -132,15 +136,33 @@ class SyncEpisodesWithSource(
                         downloadManager.renameEpisode(source, anime, dbEpisode, episode)
                     }
 
+                    // AY -->
+                    val mergedMemo = if (episode.memo.isNotEmpty() || dbEpisode.memo.isNotEmpty()) {
+                        buildJsonObject {
+                            dbEpisode.memo.forEach { (k, v) -> put(k, v) }
+                            episode.memo.forEach { (k, v) -> put(k, v) }
+                        }
+                    } else {
+                        dbEpisode.memo
+                    }
+
+                    val anizipTitle = dbEpisode.memo["anizip_title"]?.jsonPrimitive?.contentOrNull
+                    val enrichedName = if (!anizipTitle.isNullOrBlank() && !episode.name.contains(anizipTitle, ignoreCase = true)) {
+                        "${episode.name} - $anizipTitle"
+                    } else {
+                        episode.name
+                    }
+                    // <-- AY
+
                     var toChangeEpisode = dbEpisode.copy(
-                        name = episode.name,
+                        name = enrichedName,
                         episodeNumber = episode.episodeNumber,
                         scanlator = episode.scanlator,
                         // AY -->
-                        summary = episode.summary,
+                        summary = episode.summary?.ifBlank { null } ?: dbEpisode.summary,
                         // <-- AY
                         sourceOrder = episode.sourceOrder,
-                        memo = episode.memo,
+                        memo = mergedMemo,
                     )
 
                     if (episode.dateUpload != 0L) {
