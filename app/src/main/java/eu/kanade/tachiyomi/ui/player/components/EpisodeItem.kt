@@ -33,6 +33,8 @@ import eu.kanade.presentation.anime.components.DotSeparatorText
 import eu.kanade.presentation.theme.TachiyomiPreviewTheme
 import eu.kanade.tachiyomi.data.database.models.Episode
 import eu.kanade.tachiyomi.data.database.models.EpisodeImpl
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.padding
 
@@ -124,6 +126,24 @@ fun EpisodeListItem(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                val rating = episode.memo["rating"]?.jsonPrimitive?.contentOrNull
+                if (!rating.isNullOrBlank()) {
+                    Text(
+                        text = "★ $rating",
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = episodeColor,
+                        modifier = Modifier.alpha(textAlpha),
+                        fontWeight = textWeight,
+                        fontStyle = textStyle,
+                    )
+                    if (date != null || episode.scanlator != null) {
+                        DotSeparatorText(
+                            modifier = Modifier.alpha(textAlpha),
+                        )
+                    }
+                }
                 if (date != null) {
                     Text(
                         text = date,
