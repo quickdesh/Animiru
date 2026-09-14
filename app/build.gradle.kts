@@ -95,10 +95,10 @@ android {
 
             matchingFallbacks.addAll(commonMatchingFallbacks)
         }
-        create("nightly") {
+        create("preview") {
             initWith(release)
 
-            applicationIdSuffix = ".nightly"
+            applicationIdSuffix = ".preview"
 
             versionNameSuffix = debug.versionNameSuffix
 
@@ -117,7 +117,7 @@ android {
     }
 
     sourceSets {
-        getByName("nightly").res.directories.add("src/debug/res")
+        getByName("preview").res.directories.add("src/debug/res")
         getByName("benchmark").res.directories.add("src/debug/res")
     }
 

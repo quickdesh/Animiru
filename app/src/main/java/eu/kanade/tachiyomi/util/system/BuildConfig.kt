@@ -15,8 +15,8 @@ val updaterEnabled: Boolean
 val isDebugBuildType: Boolean
     inline get() = BuildConfig.BUILD_TYPE == "debug"
 
-val isNightlyBuildType: Boolean
-    inline get() = BuildConfig.BUILD_TYPE == "nightly"
+val isPreviewBuildType: Boolean
+    inline get() = BuildConfig.BUILD_TYPE == "preview"
 
 val isReleaseBuildType: Boolean
     inline get() = BuildConfig.BUILD_TYPE == "release"

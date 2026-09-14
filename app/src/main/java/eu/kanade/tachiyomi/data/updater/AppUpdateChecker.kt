@@ -3,7 +3,7 @@ package eu.kanade.tachiyomi.data.updater
 import dev.zacsweers.metro.Inject
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.util.system.isFossBuildType
-import eu.kanade.tachiyomi.util.system.isNightlyBuildType
+import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import tachiyomi.core.common.util.lang.withIOContext
 import tachiyomi.domain.release.interactor.GetApplicationRelease
 
@@ -22,7 +22,7 @@ class AppUpdateChecker(
             val result = getApplicationRelease.await(
                 GetApplicationRelease.Arguments(
                     isFossBuildType,
-                    isNightlyBuildType,
+                    isPreviewBuildType,
                     BuildConfig.COMMIT_COUNT.toInt(),
                     BuildConfig.VERSION_NAME,
                     GITHUB_REPO,
@@ -36,7 +36,7 @@ class AppUpdateChecker(
 }
 
 val GITHUB_REPO: String by lazy {
-    if (isNightlyBuildType) {
+    if (isPreviewBuildType) {
         "quickdesh/Animiru-preview"
     } else {
         "quickdesh/Animiru"
@@ -44,7 +44,7 @@ val GITHUB_REPO: String by lazy {
 }
 
 val RELEASE_TAG: String by lazy {
-    if (isNightlyBuildType) {
+    if (isPreviewBuildType) {
         "r${BuildConfig.COMMIT_COUNT}"
     } else {
         "v${BuildConfig.VERSION_NAME}"

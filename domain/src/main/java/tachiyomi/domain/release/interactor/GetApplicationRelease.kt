@@ -13,7 +13,7 @@ class GetApplicationRelease(
 
         // Check if latest version is different from current version
         val isNewVersion = isNewVersion(
-            arguments.isNightly,
+            arguments.isPreview,
             arguments.commitCount,
             arguments.versionName,
             release.version,
@@ -25,15 +25,15 @@ class GetApplicationRelease(
     }
 
     private fun isNewVersion(
-        isNightly: Boolean,
+        isPreview: Boolean,
         commitCount: Int,
         versionName: String,
         versionTag: String,
     ): Boolean {
         // Removes prefixes like "r" or "v"
         val newVersion = versionTag.replace("[^\\d.]".toRegex(), "")
-        return if (isNightly) {
-            // Nightly builds: based on releases in "quickdesh/Animiru-preview" repo
+        return if (isPreview) {
+            // Preview builds: based on releases in "quickdesh/Animiru-preview" repo
             // tagged as something like "r1234"
             newVersion.toInt() > commitCount
         } else {
@@ -56,7 +56,7 @@ class GetApplicationRelease(
 
     data class Arguments(
         val isFoss: Boolean,
-        val isNightly: Boolean,
+        val isPreview: Boolean,
         val commitCount: Int,
         val versionName: String,
         val repository: String,
