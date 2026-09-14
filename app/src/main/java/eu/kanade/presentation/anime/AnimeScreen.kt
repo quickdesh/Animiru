@@ -1268,7 +1268,12 @@ private fun LazyGridScope.sharedEpisodeItems(
                             formatEpisodeNumber(item.episode.episodeNumber),
                         )
                     } else {
-                        item.episode.name
+                        val anizipTitle = item.episode.memo["anizip_title"]?.jsonPrimitive?.contentOrNull
+                        if (!anizipTitle.isNullOrBlank() && !item.episode.name.contains(anizipTitle, ignoreCase = true)) {
+                            "${item.episode.name} - $anizipTitle"
+                        } else {
+                            item.episode.name
+                        }
                     },
                     date = relativeDateText(item.episode.dateUpload),
                     watchProgress = item.episode.lastSecondSeen
