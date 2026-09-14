@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +36,7 @@ import eu.kanade.tachiyomi.data.database.models.Episode
 import eu.kanade.tachiyomi.data.database.models.EpisodeImpl
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
+import mihon.app.di.appGraph
 import tachiyomi.presentation.core.components.material.DISABLED_ALPHA
 import tachiyomi.presentation.core.components.material.padding
 
@@ -108,14 +110,8 @@ fun EpisodeListItem(
             )
         }
 
-        val context = androidx.compose.ui.platform.LocalContext.current
-        val enableAniZip = remember {
-            try {
-                mihon.app.di.appGraph(context).trackPreferences.enableAniZip.get()
-            } catch (_: Throwable) {
-                true
-            }
-        }
+        val context = LocalContext.current
+        val enableAniZip = remember { context.appGraph.trackPreferences.enableAniZip.get() }
 
         Column {
             val anizipTitle = if (enableAniZip) episode.memo["anizip_title"]?.jsonPrimitive?.contentOrNull else null
