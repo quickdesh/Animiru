@@ -21,6 +21,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - Set navigation bar background same as system navigation ([@Secozzi](https://github.com/Secozzi)) ([#208](https://github.com/quickdesh/Animiru/pull/208))
 - Add support for jellyfin 12.0 ([@Secozzi](https://github.com/Secozzi)) ([#208](https://github.com/quickdesh/Animiru/pull/208))
 - Show a helpful error message for expired AniList credentials ([@Secozzi](https://github.com/Secozzi)) ([#208](https://github.com/quickdesh/Animiru/pull/208))
+- Don't include tip on new updates screen ([@Secozzi](https://github.com/Secozzi)) ([#208](https://github.com/quickdesh/Animiru/pull/208))
 
 ### Fixed
 - Fix discord rpc ([@Secozzi](https://github.com/Secozzi)) ([#196](https://github.com/quickdesh/Animiru/pull/196))
