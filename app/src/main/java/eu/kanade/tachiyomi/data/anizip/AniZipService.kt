@@ -121,6 +121,45 @@ class AniZipService(
         }
     }
 
+    fun findMetaForEpisode(
+        metadata: Map<String, AniZipEpisodeMeta>,
+        episodeNumber: Double,
+        episodeName: String,
+    ): AniZipEpisodeMeta? {
+        if (metadata.isEmpty()) return null
+
+        // 1. Direct match by recognized episode number (e.g. 1.0 -> "1")
+        if (episodeNumber >= 0) {
+            val intNum = episodeNumber.toInt()
+            if (episodeNumber == intNum.toDouble()) {
+                val key = intNum.toString()
+                metadata[key]?.let { return it }
+                metadata["0$key"]?.let { return it }
+            } else {
+                metadata[episodeNumber.toString()]?.let { return it }
+            }
+        }
+
+        // 2. Try parsing leading/contained numbers from episode name
+        val regexMatch = Regex("""(?:Episode|Ep\.?|E)\s*(\d+)""", RegexOption.IGNORE_CASE).find(episodeName)
+        if (regexMatch != null) {
+            val epNum = regexMatch.groupValues[1].toIntOrNull()
+            if (epNum != null) {
+                metadata[epNum.toString()]?.let { return it }
+            }
+        }
+
+        // 3. Specials (e.g., "S1", "SP1")
+        val specialMatch = Regex("""(?:Special|SP|S)\s*(\d+)""", RegexOption.IGNORE_CASE).find(episodeName)
+        if (specialMatch != null) {
+            val spNum = specialMatch.groupValues[1]
+            metadata["S$spNum"]?.let { return it }
+            metadata["SP$spNum"]?.let { return it }
+        }
+
+        return null
+    }
+
     companion object {
         fun parseAirDateMillis(dateStr: String?): Long? {
             if (dateStr.isNullOrBlank()) return null
@@ -136,45 +175,6 @@ class AniZipService(
             } catch (_: Exception) {
                 null
             }
-        }
-
-        fun findMetaForEpisode(
-            metadata: Map<String, AniZipEpisodeMeta>,
-            episodeNumber: Double,
-            episodeName: String,
-        ): AniZipEpisodeMeta? {
-            if (metadata.isEmpty()) return null
-
-            // 1. Direct match by recognized episode number (e.g. 1.0 -> "1")
-            if (episodeNumber >= 0) {
-                val intNum = episodeNumber.toInt()
-                if (episodeNumber == intNum.toDouble()) {
-                    val key = intNum.toString()
-                    metadata[key]?.let { return it }
-                    metadata["0$key"]?.let { return it }
-                } else {
-                    metadata[episodeNumber.toString()]?.let { return it }
-                }
-            }
-
-            // 2. Try parsing leading/contained numbers from episode name
-            val regexMatch = Regex("""(?:Episode|Ep\.?|E)\s*(\d+)""", RegexOption.IGNORE_CASE).find(episodeName)
-            if (regexMatch != null) {
-                val epNum = regexMatch.groupValues[1].toIntOrNull()
-                if (epNum != null) {
-                    metadata[epNum.toString()]?.let { return it }
-                }
-            }
-
-            // 3. Specials (e.g., "S1", "SP1")
-            val specialMatch = Regex("""(?:Special|SP|S)\s*(\d+)""", RegexOption.IGNORE_CASE).find(episodeName)
-            if (specialMatch != null) {
-                val spNum = specialMatch.groupValues[1]
-                metadata["S$spNum"]?.let { return it }
-                metadata["SP$spNum"]?.let { return it }
-            }
-
-            return null
         }
     }
 }
