@@ -43,6 +43,7 @@ import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
+import eu.kanade.domain.episode.interactor.EnrichEpisodesWithAniZip
 import eu.kanade.domain.track.interactor.RefreshResult
 import eu.kanade.domain.track.interactor.RefreshTracks
 import eu.kanade.domain.track.model.toDbTrack
@@ -778,6 +779,7 @@ data class TrackerSearchScreen(
         trackerManager: TrackerManager,
         // AY -->
         private val getAnime: GetAnime,
+        private val enrichEpisodesWithAniZip: EnrichEpisodesWithAniZip,
         // <-- AY
     ) : ViewModel() {
 
@@ -835,6 +837,7 @@ data class TrackerSearchScreen(
                 val anime = getAnime.await(animeId) ?: return@launchNonCancellable
                 // <-- AM
                 tracker.register(item, anime)
+                enrichEpisodesWithAniZip.await(animeId)
             }
         }
 
