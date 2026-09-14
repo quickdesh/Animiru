@@ -1262,7 +1262,7 @@ private fun LazyGridScope.sharedEpisodeItems(
                         item.fileSize = fileSizeAsync
                     }
                 }
-                // <-- AM (FILE_SIZE)
+                val aniZipMeta = if (enableAniZip) item.aniZipMeta else null
                 AnimeEpisodeListItem(
                     title = if (anime.displayMode == Anime.EPISODE_DISPLAY_NUMBER) {
                         stringResource(
@@ -1270,14 +1270,20 @@ private fun LazyGridScope.sharedEpisodeItems(
                             formatEpisodeNumber(item.episode.episodeNumber),
                         )
                     } else {
-                        val anizipTitle = if (enableAniZip) item.episode.memo["anizip_title"]?.jsonPrimitive?.contentOrNull else null
+                        val anizipTitle = aniZipMeta?.title
                         if (!anizipTitle.isNullOrBlank() && !item.episode.name.contains(anizipTitle, ignoreCase = true)) {
                             "${item.episode.name} - $anizipTitle"
                         } else {
                             item.episode.name
                         }
                     },
-                    date = relativeDateText(item.episode.dateUpload),
+                    date = relativeDateText(
+                        if (aniZipMeta?.airDateMillis != null && item.episode.dateUpload <= 0L) {
+                            aniZipMeta.airDateMillis
+                        } else {
+                            item.episode.dateUpload
+                        },
+                    ),
                     watchProgress = item.episode.lastSecondSeen
                         .takeIf { !item.episode.seen && it > 0L }
                         ?.let {
@@ -1291,9 +1297,9 @@ private fun LazyGridScope.sharedEpisodeItems(
                         },
                     scanlator = item.episode.scanlator.takeIf { !it.isNullOrBlank() },
                     // AY -->
-                    summary = item.episode.summary.takeIf { !it.isNullOrBlank() && showSummaries },
-                    previewUrl = item.episode.previewUrl.takeIf { !it.isNullOrBlank() && showPreviews },
-                    rating = if (enableAniZip) item.episode.memo["rating"]?.jsonPrimitive?.contentOrNull else null,
+                    summary = (aniZipMeta?.overview ?: item.episode.summary).takeIf { !it.isNullOrBlank() && showSummaries },
+                    previewUrl = (aniZipMeta?.image ?: item.episode.previewUrl).takeIf { !it.isNullOrBlank() && showPreviews },
+                    rating = aniZipMeta?.rating,
                     // <-- AY
                     seen = item.episode.seen,
                     bookmark = item.episode.bookmark,
