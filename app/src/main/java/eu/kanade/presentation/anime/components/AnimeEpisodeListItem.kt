@@ -69,6 +69,7 @@ fun AnimeEpisodeListItem(
     // AY -->
     summary: String?,
     previewUrl: String?,
+    rating: String? = null,
     // <-- AY
     seen: Boolean,
     bookmark: Boolean,
@@ -140,6 +141,7 @@ fun AnimeEpisodeListItem(
                 SimpleEpisodeListItemImpl(
                     title = title,
                     date = date,
+                    rating = rating,
                     watchProgress = watchProgress,
                     fillermark = fillermark,
                     scanlator = scanlator,
@@ -209,6 +211,7 @@ fun AnimeEpisodeListItem(
                 ) {
                     EpisodeInformation(
                         seen = seen,
+                        rating = rating,
                         date = date,
                         watchProgress = watchProgress,
                         fillermark = fillermark,
@@ -239,6 +242,7 @@ fun AnimeEpisodeListItem(
 private fun RowScope.SimpleEpisodeListItemImpl(
     title: String,
     date: String?,
+    rating: String? = null,
     watchProgress: String?,
     fillermark: Boolean,
     scanlator: String?,
@@ -267,6 +271,7 @@ private fun RowScope.SimpleEpisodeListItemImpl(
 
         EpisodeInformation(
             seen = seen,
+            rating = rating,
             date = date,
             watchProgress = watchProgress,
             fillermark = fillermark,
@@ -449,6 +454,7 @@ private fun EpisodeSummary(
 @Composable
 private fun EpisodeInformation(
     seen: Boolean,
+    rating: String? = null,
     date: String?,
     watchProgress: String?,
     fillermark: Boolean,
@@ -471,6 +477,14 @@ private fun EpisodeInformation(
                     color = MaterialTheme.colorScheme.tertiary.copy(alpha = subtitleStyle.alpha),
                     modifier = Modifier.padding(end = 4.dp),
                 )
+            }
+            if (!rating.isNullOrBlank()) {
+                Text(
+                    text = "★ $rating",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (date != null || watchProgress != null || scanlator != null) DotSeparatorText()
             }
             if (date != null) {
                 Text(
