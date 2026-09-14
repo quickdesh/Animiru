@@ -70,4 +70,6 @@ class TrackPreferences(
         "pref_auto_update_anime_on_mark_seen",
         AutoTrackState.ALWAYS,
     )
+
+    val enableAniZip: Preference<Boolean> = preferenceStore.getBoolean("enable_anizip", true)
 }
