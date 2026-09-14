@@ -97,6 +97,8 @@ import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.shouldExpandFAB
 import tachiyomi.source.local.isLocal
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -1284,6 +1286,7 @@ private fun LazyGridScope.sharedEpisodeItems(
                     // AY -->
                     summary = item.episode.summary.takeIf { !it.isNullOrBlank() && showSummaries },
                     previewUrl = item.episode.previewUrl.takeIf { !it.isNullOrBlank() && showPreviews },
+                    rating = item.episode.memo["rating"]?.jsonPrimitive?.contentOrNull,
                     // <-- AY
                     seen = item.episode.seen,
                     bookmark = item.episode.bookmark,
